@@ -1,13 +1,12 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import TwilioVoiceReactNative from 'twilio-voice-react-native';
 
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    TwilioVoiceReactNative.multiply(3, 7).then(setResult);
+    setResult(21);
   }, []);
 
   return (
