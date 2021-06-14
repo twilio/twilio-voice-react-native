@@ -1,23 +1,187 @@
 import { EventEmitter } from 'events';
 import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
-import type { Uuid } from './type';
+import type { NativeCallEvent, NativeCallEventType, Uuid } from './type';
 
-export interface CallOptions {
-  nativeEventEmitter: NativeEventEmitter;
+export declare namespace Call {
+  export enum Event {
+    'Connected' = 'connected',
+    'ConnectFailure' = 'connectFailure',
+    'Reconnecting' = 'reconnecting',
+    'Reconnected' = 'reconnected',
+    'Disconnected' = 'disconnected',
+    'Ringing' = 'ringing',
+  }
+
+  export interface Options {
+    nativeEventEmitter: NativeEventEmitter;
+    nativeModule: typeof TwilioVoiceReactNative;
+  }
+}
+
+/**
+ * Declare strict typings for event-emissions and event-listeners.
+ */
+export declare interface Call {
+  /**
+   * Emit typings.
+   */
+  emit(callEvent: Call.Event.Connected): boolean;
+  emit(callEvent: Call.Event.ConnectFailure): boolean;
+  emit(callEvent: Call.Event.Reconnecting): boolean;
+  emit(callEvent: Call.Event.Reconnected): boolean;
+  emit(callEvent: Call.Event.Disconnected): boolean;
+  emit(callEvent: Call.Event.Ringing): boolean;
+
+  /**
+   * Listener typings.
+   */
+  addEventListener(callEvent: Call.Event.Connected, listener: () => void): this;
+  on(callEvent: Call.Event.Connected, listener: () => void): this;
+
+  addEventListener(
+    callEvent: Call.Event.ConnectFailure,
+    listener: () => void
+  ): this;
+  on(callEvent: Call.Event.ConnectFailure, listener: () => void): this;
+
+  addEventListener(
+    callEvent: Call.Event.Reconnecting,
+    listener: () => void
+  ): this;
+  on(callEvent: Call.Event.Reconnecting, listener: () => void): this;
+
+  addEventListener(
+    callEvent: Call.Event.Reconnected,
+    listener: () => void
+  ): this;
+  on(callEvent: Call.Event.Reconnected, listener: () => void): this;
+
+  addEventListener(
+    callEvent: Call.Event.Disconnected,
+    listener: () => void
+  ): this;
+  on(callEvent: Call.Event.Disconnected, listener: () => void): this;
+
+  addEventListener(callEvent: Call.Event.Ringing, listener: () => void): this;
+  on(callEvent: Call.Event.Ringing, listener: () => void): this;
 }
 
 export class Call extends EventEmitter {
-  nativeEventEmitter: NativeEventEmitter;
-  uuid: string;
+  private _nativeEventHandler: Record<
+    NativeCallEventType,
+    (callEvent: NativeCallEvent) => void
+  >;
+  private _nativeEventEmitter: NativeEventEmitter;
+  private _nativeModule: typeof TwilioVoiceReactNative;
+  private _nativeScope: string;
+  private _uuid: Uuid;
 
-  constructor(uuid: Uuid, options: Partial<CallOptions> = {}) {
+  constructor(uuid: Uuid, options: Partial<Call.Options> = {}) {
     super();
 
-    this.nativeEventEmitter =
-      options.nativeEventEmitter ||
-      new NativeEventEmitter(TwilioVoiceReactNative);
+    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
-    this.uuid = uuid;
+    this._nativeEventEmitter =
+      options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
+
+    this._uuid = uuid;
+
+    this._nativeScope = `${Call.name}-${this._uuid}`;
+
+    this._nativeEventHandler = {
+      connected: this._handleConnectedEvent,
+      connectFailure: this._handleConnectFailure,
+      reconnecting: this._handleReconnecting,
+      reconnected: this._handleReconnected,
+      disconnected: this._handleDisconnected,
+      ringing: this._handleRinging,
+    };
+
+    this._nativeEventEmitter.addListener(
+      this._nativeScope,
+      this._handleNativeEvent
+    );
+  }
+
+  private _handleNativeEvent = (nativeCallEvent: NativeCallEvent) => {
+    const { type } = nativeCallEvent;
+    const handler = this._nativeEventHandler[type];
+    if (typeof handler === 'undefined') {
+      throw new Error(
+        `Unknown call event type received from the native layer: "${type}".`
+      );
+    }
+    handler(nativeCallEvent);
+  };
+
+  private _handleConnectedEvent = () => {
+    this.emit(Call.Event.Connected);
+  };
+
+  private _handleConnectFailure = () => {
+    this.emit(Call.Event.ConnectFailure);
+  };
+
+  private _handleDisconnected = () => {
+    this.emit(Call.Event.Disconnected);
+  };
+
+  private _handleReconnecting = () => {
+    this.emit(Call.Event.Reconnecting);
+  };
+
+  private _handleReconnected = () => {
+    this.emit(Call.Event.Reconnected);
+  };
+
+  private _handleRinging = () => {
+    this.emit(Call.Event.Ringing);
+  };
+
+  /**
+   * Binding specific functions.
+   */
+  getUuid() {
+    return this._uuid;
+  }
+
+  getNativeScope() {
+    return this._nativeScope;
+  }
+
+  /**
+   * Native functionality.
+   */
+  disconnect() {
+    this._nativeModule.call_disconnect(this._nativeScope);
+  }
+
+  getFrom() {
+    return this._nativeModule.call_getFrom(this._nativeScope);
+  }
+
+  getTo() {
+    return this._nativeModule.call_getTo(this._nativeScope);
+  }
+
+  getState() {
+    return this._nativeModule.call_getState(this._nativeScope);
+  }
+
+  getSid() {
+    return this._nativeModule.call_getSid(this._nativeScope);
+  }
+
+  hold() {
+    this._nativeModule.call_hold(this._nativeScope);
+  }
+
+  mute() {
+    this._nativeModule.call_mute(this._nativeScope);
+  }
+
+  sendDigits(digits: string) {
+    this._nativeModule.call_sendDigits(this._nativeScope, digits);
   }
 }

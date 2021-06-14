@@ -1,2 +1,5 @@
 import { NativeModules } from 'react-native';
-export const { TwilioVoiceReactNative } = NativeModules;
+import type { TwilioVoiceReactNative as TwilioVoiceReactNativeType } from './type';
+
+export const TwilioVoiceReactNative: TwilioVoiceReactNativeType =
+  NativeModules.TwilioVoiceReactNative;
