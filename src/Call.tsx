@@ -1,5 +1,4 @@
-import { EventEmitter } from 'events';
-import { NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, EventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
 import type { NativeCallEvent, NativeCallEventType, Uuid } from './type';
 
