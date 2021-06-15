@@ -1,4 +1,5 @@
-import { NativeEventEmitter, EventEmitter } from 'react-native';
+import { EventEmitter } from 'eventemitter3';
+import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
 import { CanceledCallInvite } from './CanceledCallInvite';
 import { CallInvite } from './CallInvite';
@@ -93,11 +94,6 @@ export class Voice extends EventEmitter {
 
     this._token = token;
 
-    console.log(options);
-    console.log(TwilioVoiceReactNative);
-    console.log(new NativeEventEmitter(TwilioVoiceReactNative));
-    console.log(new NativeEventEmitter(TwilioVoiceReactNative).addListener);
-
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
     this._nativeEventEmitter =
@@ -167,7 +163,7 @@ export class Voice extends EventEmitter {
     accessToken: string,
     registrationChannel: RegistrationChannel,
     registrationToken: string
-  ) {
+  ): Promise<void> {
     return this._nativeModule.voice_register(
       accessToken,
       registrationChannel,
@@ -179,7 +175,7 @@ export class Voice extends EventEmitter {
     accessToken: string,
     registrationChannel: RegistrationChannel,
     registrationToken: string
-  ) {
+  ): Promise<void> {
     return this._nativeModule.voice_unregister(
       accessToken,
       registrationChannel,
@@ -187,5 +183,3 @@ export class Voice extends EventEmitter {
     );
   }
 }
-
-export default Voice;

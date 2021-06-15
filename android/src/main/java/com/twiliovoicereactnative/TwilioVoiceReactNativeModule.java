@@ -6,7 +6,9 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
@@ -26,7 +28,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void connect(String token, ReadableMap params) {
+    public void voice_connect(String token, ReadableMap params, Promise promise) {
         // Create a new call object here, generate it a UUID.
         // Store in some global mapping the UUID to the new call object.
         // Bind event emitter such that all call events are scoped to that UUID.
@@ -37,8 +39,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void callMute(String callUUID) {
+    public void call_mute(String callUUID, Promise promise) {
         // Get the call object through the UUID mapping.
         // Mute the call.
+    }
+
+    @ReactMethod
+    public void voice_getVersion(Promise promise) {
+        promise.resolve("foobar-version from native!");
     }
 }

@@ -8,10 +8,7 @@ export default function App() {
 
   React.useEffect(() => {
     const voice = new Voice('foobar');
-    const run = async () => {
-      setResult(await voice.getVersion());
-    };
-    run();
+    voice.getVersion().then(setResult);
   }, []);
 
   return (
