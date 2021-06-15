@@ -1,4 +1,9 @@
 buildscript {
+    ext.versions = [
+      'androidGradlePlugin': '4.1.2',
+      'googleServices'     : '4.2.0',
+      'voiceAndroid'       : '5.7.2'
+    ]
     if (project == rootProject) {
         repositories {
             google()
@@ -6,7 +11,8 @@ buildscript {
         }
 
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.5.3'
+            classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
+            classpath "com.google.gms:google-services:${versions.googleServices}"
         }
     }
 }
@@ -55,4 +61,5 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation "com.twilio:voice-android:${versions.voiceAndroid}"
 }
