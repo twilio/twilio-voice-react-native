@@ -11,6 +11,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.twilio.voice.Voice;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.NAME)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
@@ -46,6 +47,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void voice_getVersion(Promise promise) {
-        promise.resolve("foobar-version from native!");
+        String version = Voice.getVersion();
+        promise.resolve(version);
     }
 }
