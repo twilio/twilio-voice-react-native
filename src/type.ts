@@ -48,52 +48,49 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
    * Call bindings.
    */
-  call_disconnect(nativeScope: string): void;
-  call_hold(nativeScope: string): void;
-  call_getFrom(nativeScope: string): string;
-  call_getTo(nativeScope: string): string;
-  call_getSid(nativeScope: string): string;
-  call_getState(nativeScope: string): NativeCallState;
-  call_mute(nativeScope: string): void;
-  call_sendDigits(nativeScope: string, digits: string): void;
+  call_disconnect(uuid: Uuid): void;
+  call_hold(uuid: Uuid): void;
+  call_getFrom(uuid: Uuid): string;
+  call_getTo(uuid: Uuid): string;
+  call_getSid(uuid: Uuid): string;
+  call_getState(uuid: Uuid): NativeCallState;
+  call_mute(uuid: Uuid): void;
+  call_sendDigits(uuid: Uuid, digits: string): void;
 
   /**
    * Call Invite bindings.
    */
-  callInvite_getFrom(nativeScope: string): string;
-  callInvite_getTo(nativeScope: string): string;
-  callInvite_getCallSid(nativeScope: string): string;
-  callInvite_accept(
-    nativeScope: string,
-    acceptOptions: CallInvite.AcceptOptions
-  ): Call;
-  callInvite_reject(nativeScope: string): void;
-  callInvite_isValid(nativeScope: string): boolean;
+  callInvite_getFrom(uuid: Uuid): string;
+  callInvite_getTo(uuid: Uuid): string;
+  callInvite_getCallSid(uuid: Uuid): string;
+  callInvite_accept(uuid: Uuid, acceptOptions: CallInvite.AcceptOptions): Call;
+  callInvite_reject(uuid: Uuid): void;
+  callInvite_isValid(uuid: Uuid): boolean;
 
   /**
    * CanceledCallInvite bindings.
    */
-  canceledCallInvite_getFrom(nativeScope: string): string;
-  canceledCallInvite_getTo(nativeScope: string): string;
-  canceledCallInvite_getCallSid(nativeScope: string): string;
+  canceledCallInvite_getFrom(uuid: Uuid): string;
+  canceledCallInvite_getTo(uuid: Uuid): string;
+  canceledCallInvite_getCallSid(uuid: Uuid): string;
 
   /**
    * Voice bindings.
    */
   voice_connect(
-    nativeScope: string,
+    uuid: Uuid,
     token: string,
     params: Record<string, string>
   ): Promise<void>;
   voice_getVersion(): Promise<string>;
   voice_register(
     accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void>;
   voice_unregister(
     accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void>;
 }
