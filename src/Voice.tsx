@@ -8,6 +8,7 @@ import type {
   CallException,
   NativeMessageEvent,
   RegistrationChannel,
+  NativeCallEventType,
 } from './type';
 
 export declare namespace Voice {
@@ -16,6 +17,7 @@ export declare namespace Voice {
     'CanceledCallInvite' = 'canceledCallInvite',
     'Registered' = 'registered',
     'Unregistered' = 'unregistered',
+    'CallConnected' = 'connected',
   }
 
   export interface Options {
@@ -106,7 +108,7 @@ export class Voice extends EventEmitter {
       unregistered: this._handleUnregistered,
     };
 
-    this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
+    this._nativeEventEmitter.addListener('connected', this._handleNativeEvent);
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
