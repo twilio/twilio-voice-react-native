@@ -1,21 +1,18 @@
 #import "TwilioVoiceReactNative.h"
 
+@import TwilioVoice;
+
 @implementation TwilioVoiceReactNative
 
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE();
 
-- (NSArray<NSString *> *)supportedEvents {
-  return @[@"test"];
-}
-
-RCT_REMAP_METHOD(multiply,
-                 multiplyWithA:(nonnull NSNumber*)a withB:(nonnull NSNumber*)b
-                 withResolver:(RCTPromiseResolveBlock)resolve
+RCT_REMAP_METHOD(voice_getVersion,
+                 getVersionWithResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSNumber *result = @([a floatValue] * [b floatValue]);
+    NSString *version = TwilioVoiceSDK.sdkVersion;
 
-  resolve(result);
+    resolve(version);
 }
 
 @end
