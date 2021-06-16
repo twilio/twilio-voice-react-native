@@ -7,8 +7,9 @@ export default function App() {
   const [result, setResult] = React.useState<string | undefined>();
 
   React.useEffect(() => {
-    const voice = new Voice('foobar');
+    const voice = new Voice('token');
     voice.getVersion().then(setResult);
+    voice.connect();
   }, []);
 
   return (
