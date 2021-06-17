@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { Button, StyleSheet, View, Text } from 'react-native';
-import { Voice, RegistrationChannel } from 'twilio-voice-react-native';
+import { Call, Voice, RegistrationChannel } from 'twilio-voice-react-native';
 
 const voice = new Voice('token');
 
