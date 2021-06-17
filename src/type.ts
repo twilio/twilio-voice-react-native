@@ -1,5 +1,4 @@
 import type { EventSubscriptionVendor } from 'react-native';
-import type { Call } from './Call';
 import type { CallInvite } from './CallInvite';
 
 export enum RegistrationChannel {
@@ -22,6 +21,7 @@ export type NativeCallEventType =
 export interface NativeCallEvent {
   exception?: CallException;
   type: NativeCallEventType;
+  uuid: Uuid;
 }
 
 export type NativeMessageEventType = 'callInvite' | 'canceledCallInvite';
@@ -41,59 +41,60 @@ export type NativeCallState =
 
 export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
-   *
+   * Utilities.
    */
   util_generateId(): Promise<Uuid>;
 
   /**
    * Call bindings.
    */
-  call_disconnect(nativeScope: string): void;
-  call_hold(nativeScope: string): void;
-  call_getFrom(nativeScope: string): string;
-  call_getTo(nativeScope: string): string;
-  call_getSid(nativeScope: string): string;
-  call_getState(nativeScope: string): NativeCallState;
-  call_mute(nativeScope: string): void;
-  call_sendDigits(nativeScope: string, digits: string): void;
+  call_disconnect(callUuid: Uuid): Promise<void>;
+  call_hold(callUuid: Uuid): Promise<void>;
+  call_getFrom(callUuid: Uuid): Promise<string>;
+  call_getTo(callUuid: Uuid): Promise<string>;
+  call_getSid(callUuid: Uuid): Promise<string>;
+  call_getState(callUuid: Uuid): Promise<NativeCallState>;
+  call_mute(callUuid: Uuid): Promise<void>;
+  call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
 
   /**
    * Call Invite bindings.
    */
-  callInvite_getFrom(nativeScope: string): string;
-  callInvite_getTo(nativeScope: string): string;
-  callInvite_getCallSid(nativeScope: string): string;
+  callInvite_getFrom(callInviteUuid: Uuid): Promise<string>;
+  callInvite_getTo(callInviteUuid: Uuid): Promise<string>;
+  callInvite_getCallSid(callInviteUuid: Uuid): Promise<string>;
   callInvite_accept(
-    nativeScope: string,
+    callInviteUuid: Uuid,
+    newCallUuid: Uuid,
     acceptOptions: CallInvite.AcceptOptions
-  ): Call;
-  callInvite_reject(nativeScope: string): void;
-  callInvite_isValid(nativeScope: string): boolean;
+  ): Promise<void>;
+  callInvite_reject(callInviteUuid: Uuid): Promise<void>;
+  callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
 
   /**
    * CanceledCallInvite bindings.
    */
-  canceledCallInvite_getFrom(nativeScope: string): string;
-  canceledCallInvite_getTo(nativeScope: string): string;
-  canceledCallInvite_getCallSid(nativeScope: string): string;
+  canceledCallInvite_getFrom(canceledCallInviteUuid: Uuid): Promise<string>;
+  canceledCallInvite_getTo(canceledCallInviteUuid: Uuid): Promise<string>;
+  canceledCallInvite_getCallSid(canceledCallInviteUuid: Uuid): Promise<string>;
 
   /**
    * Voice bindings.
    */
   voice_connect(
-    nativeScope: string,
+    newCallUuid: Uuid,
     token: string,
     params: Record<string, string>
   ): Promise<void>;
   voice_getVersion(): Promise<string>;
   voice_register(
     accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void>;
   voice_unregister(
     accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void>;
 }
