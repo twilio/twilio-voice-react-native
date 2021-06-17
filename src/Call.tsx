@@ -142,7 +142,7 @@ export class Call extends EventEmitter {
    * Native functionality.
    */
   disconnect() {
-    this._nativeModule.call_disconnect(this._uuid);
+    return this._nativeModule.call_disconnect(this._uuid);
   }
 
   getFrom() {
