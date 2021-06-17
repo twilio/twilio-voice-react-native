@@ -30,6 +30,12 @@ export declare interface Voice {
    * Listener typings.
    */
   addEventListener(
+    voiceEvent: Voice.Event,
+    listener: (...args: any[]) => void
+  ): this;
+  on(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
+
+  addEventListener(
     voiceEvent: Voice.Event.CallInvite,
     listener: (callInvite: CallInvite) => void
   ): this;

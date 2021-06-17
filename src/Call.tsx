@@ -20,6 +20,12 @@ export declare interface Call {
   /**
    * Listener typings.
    */
+  addEventListener(
+    callEvent: Call.Event,
+    listener: (...args: any[]) => void
+  ): this;
+  on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+
   addEventListener(callEvent: Call.Event.Connected, listener: () => void): this;
   on(callEvent: Call.Event.Connected, listener: () => void): this;
 
