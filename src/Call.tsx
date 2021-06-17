@@ -3,22 +3,6 @@ import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
 import type { NativeCallEvent, NativeCallEventType, Uuid } from './type';
 
-export declare namespace Call {
-  export enum Event {
-    'Connected' = 'connected',
-    'ConnectFailure' = 'connectFailure',
-    'Reconnecting' = 'reconnecting',
-    'Reconnected' = 'reconnected',
-    'Disconnected' = 'disconnected',
-    'Ringing' = 'ringing',
-  }
-
-  export interface Options {
-    nativeEventEmitter: NativeEventEmitter;
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
-}
-
 /**
  * Declare strict typings for event-emissions and event-listeners.
  */
@@ -87,7 +71,7 @@ export class Call extends EventEmitter {
 
     this._uuid = uuid;
 
-    this._nativeScope = `${Call.name}-${this._uuid}`;
+    this._nativeScope = Call.name;
 
     this._nativeEventHandler = {
       connected: this._handleConnectedEvent,
@@ -116,6 +100,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleConnectedEvent = () => {
+    console.log('connected');
     this.emit(Call.Event.Connected);
   };
 
@@ -124,6 +109,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleDisconnected = () => {
+    console.log('disconnected');
     this.emit(Call.Event.Disconnected);
   };
 
@@ -136,6 +122,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleRinging = () => {
+    console.log('ringing');
     this.emit(Call.Event.Ringing);
   };
 
@@ -154,34 +141,50 @@ export class Call extends EventEmitter {
    * Native functionality.
    */
   disconnect() {
-    this._nativeModule.call_disconnect(this._nativeScope);
+    this._nativeModule.call_disconnect(this._uuid);
   }
 
   getFrom() {
-    return this._nativeModule.call_getFrom(this._nativeScope);
+    return this._nativeModule.call_getFrom(this._uuid);
   }
 
   getTo() {
-    return this._nativeModule.call_getTo(this._nativeScope);
+    return this._nativeModule.call_getTo(this._uuid);
   }
 
   getState() {
-    return this._nativeModule.call_getState(this._nativeScope);
+    return this._nativeModule.call_getState(this._uuid);
   }
 
   getSid() {
-    return this._nativeModule.call_getSid(this._nativeScope);
+    return this._nativeModule.call_getSid(this._uuid);
   }
 
   hold() {
-    this._nativeModule.call_hold(this._nativeScope);
+    this._nativeModule.call_hold(this._uuid);
   }
 
   mute() {
-    this._nativeModule.call_mute(this._nativeScope);
+    this._nativeModule.call_mute(this._uuid);
   }
 
   sendDigits(digits: string) {
-    this._nativeModule.call_sendDigits(this._nativeScope, digits);
+    this._nativeModule.call_sendDigits(this._uuid, digits);
+  }
+}
+
+export namespace Call {
+  export enum Event {
+    'Connected' = 'connected',
+    'ConnectFailure' = 'connectFailure',
+    'Reconnecting' = 'reconnecting',
+    'Reconnected' = 'reconnected',
+    'Disconnected' = 'disconnected',
+    'Ringing' = 'ringing',
+  }
+
+  export interface Options {
+    nativeEventEmitter: NativeEventEmitter;
+    nativeModule: typeof TwilioVoiceReactNative;
   }
 }

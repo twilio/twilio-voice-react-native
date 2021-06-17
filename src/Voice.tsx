@@ -11,21 +11,6 @@ import type {
   NativeCallEventType,
 } from './type';
 
-export declare namespace Voice {
-  export enum Event {
-    'CallInvite' = 'callInvite',
-    'CanceledCallInvite' = 'canceledCallInvite',
-    'Registered' = 'registered',
-    'Unregistered' = 'unregistered',
-    'CallConnected' = 'connected',
-  }
-
-  export interface Options {
-    nativeEventEmitter: NativeEventEmitter;
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
-}
-
 /**
  * Declare strict typings for event-emissions and event-listeners.
  */
@@ -108,7 +93,7 @@ export class Voice extends EventEmitter {
       unregistered: this._handleUnregistered,
     };
 
-    this._nativeEventEmitter.addListener('connected', this._handleNativeEvent);
+    this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
@@ -149,11 +134,7 @@ export class Voice extends EventEmitter {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    await this._nativeModule.voice_connect(
-      call.getNativeScope(),
-      this._token,
-      params
-    );
+    await this._nativeModule.voice_connect(call.getUuid(), this._token, params);
     return call;
   }
 
@@ -162,26 +143,38 @@ export class Voice extends EventEmitter {
   }
 
   register(
-    accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void> {
     return this._nativeModule.voice_register(
-      accessToken,
-      registrationChannel,
-      registrationToken
+      this._token,
+      registrationToken,
+      registrationChannel
     );
   }
 
   unregister(
-    accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
   ): Promise<void> {
     return this._nativeModule.voice_unregister(
-      accessToken,
-      registrationChannel,
-      registrationToken
+      this._token,
+      registrationToken,
+      registrationChannel
     );
+  }
+}
+
+export namespace Voice {
+  export enum Event {
+    'CallInvite' = 'callInvite',
+    'CanceledCallInvite' = 'canceledCallInvite',
+    'Registered' = 'registered',
+    'Unregistered' = 'unregistered',
+  }
+
+  export interface Options {
+    nativeEventEmitter: NativeEventEmitter;
+    nativeModule: typeof TwilioVoiceReactNative;
   }
 }
