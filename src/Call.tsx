@@ -89,7 +89,6 @@ export class Call extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeCallEvent: NativeCallEvent) => {
-    console.log(nativeCallEvent);
     const { type, uuid } = nativeCallEvent;
 
     const handler = this._nativeEventHandler[type];
