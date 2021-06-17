@@ -97,12 +97,14 @@ export class Voice extends EventEmitter {
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
     const { type } = nativeMessageEvent;
+
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
       throw new Error(
         `Unknown voice event type received from the native layer: "${type}".`
       );
     }
+
     handler(nativeMessageEvent);
   };
 
@@ -133,7 +135,7 @@ export class Voice extends EventEmitter {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    await this._nativeModule.voice_connect(call.getUuid(), this._token, params);
+    this._nativeModule.voice_connect(callUuid, this._token, params);
     return call;
   }
 
