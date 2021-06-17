@@ -23,7 +23,7 @@ export class CallInvite {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    this._nativeModule.callInvite_accept(this._uuid, options);
+    await this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
     return call;
   }
 

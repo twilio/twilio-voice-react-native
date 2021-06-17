@@ -89,14 +89,18 @@ export class Call extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeCallEvent: NativeCallEvent) => {
-    const { type } = nativeCallEvent;
+    const { type, uuid } = nativeCallEvent;
+
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
       throw new Error(
         `Unknown call event type received from the native layer: "${type}".`
       );
     }
-    handler(nativeCallEvent);
+
+    if (uuid === this._uuid) {
+      handler(nativeCallEvent);
+    }
   };
 
   private _handleConnectedEvent = () => {
