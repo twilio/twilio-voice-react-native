@@ -130,4 +130,56 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
   }
 
+  @ReactMethod
+  public String call_getFrom(String uuid) {
+    Call activeCall = callMap.get(uuid);
+    String from = (activeCall != null) ? activeCall.getFrom() : null;
+    return from;
+  }
+
+  @ReactMethod
+  public String call_getTo(String uuid) {
+    Call activeCall = callMap.get(uuid);
+    String to = (activeCall != null) ? activeCall.getTo() : null;
+    return to;
+  }
+
+  @ReactMethod
+  public String call_getSid(String uuid) {
+    Call activeCall = callMap.get(uuid);
+    String sid = (activeCall != null) ? activeCall.getSid() : null;
+    return sid;
+  }
+
+  @ReactMethod
+  public String call_getState(String uuid) {
+    Call activeCall = callMap.get(uuid);
+    String state = (activeCall != null) ? activeCall.getState().toString() : null;
+    return state;
+  }
+
+  @ReactMethod
+  public void call_hold(String uuid, boolean hold) {
+    Call activeCall = callMap.get(uuid);
+    if (activeCall != null) {
+      activeCall.hold(hold);
+    }
+  }
+
+  @ReactMethod
+  public void call_mute(String uuid, boolean mute) {
+    Call activeCall = callMap.get(uuid);
+    if (activeCall != null) {
+      activeCall.mute(mute);
+    }
+  }
+
+  @ReactMethod
+  public void call_sendDigits(String uuid, String digits) {
+    Call activeCall = callMap.get(uuid);
+    if (activeCall != null) {
+      activeCall.sendDigits(digits);
+    }
+  }
+
 }
