@@ -20,6 +20,7 @@ public class AndroidEventEmitter {
   public static final String EVENT_CALL_DISCONNECTED = "disconnected";
   public static final String EVENT_CALL_CONNECT_FAILURE = "connectFailure";
   public static final String EVENT_CALL_RECONNECTED = "reconnect";
+  public static final String CALL_UUID = "uuid";
 
 
   public AndroidEventEmitter(ReactApplicationContext context) {

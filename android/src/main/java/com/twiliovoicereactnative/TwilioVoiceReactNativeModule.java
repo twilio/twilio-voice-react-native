@@ -82,56 +82,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     };
   }
 
-  private Call.Listener callListener() {
-    return new Call.Listener() {
-
-      @Override
-      public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_CONNECT_FAILURE);
-        params.putString(EVENT_ERROR, callException.getMessage());
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-      }
-
-      @Override
-      public void onRinging(@NonNull Call call) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_RINGING);
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-      }
-
-      @Override
-      public void onConnected(@NonNull Call call) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-      }
-
-      @Override
-      public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
-        params.putString(EVENT_ERROR, callException.getMessage());
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-      }
-
-      @Override
-      public void onReconnected(@NonNull Call call) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_RECONNECTED);
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-
-      }
-
-      @Override
-      public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
-        WritableMap params = Arguments.createMap();
-        params.putString(EVENT_TYPE, EVENT_CALL_DISCONNECTED);
-        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-      }
-    };
-  }
-
   @ReactMethod
   public void voice_connect(String uuid, String accessToken, ReadableMap params, Promise promise) {
     Log.e(TAG, String.format("Calling voice_connect"));
@@ -148,7 +98,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .params(twiMLParams)
       .build();
 
-    Call call = Voice.connect(getReactApplicationContext(), connectOptions, callListener());
+    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, androidEventEmitter));
     callMap.put(uuid, call);
     promise.resolve(uuid);
   }
@@ -179,4 +129,5 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       activeCall = null;
     }
   }
+
 }
