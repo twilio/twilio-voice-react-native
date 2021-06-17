@@ -12,10 +12,15 @@ import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
 public class AndroidEventEmitter {
   private ReactApplicationContext mContext;
 
-  public static final String EVENT_PROXIMITY = "proximity";
+  public static final String CALL_EVENT_NAME = "Call";
+  public static final String EVENT_TYPE = "type";
+  public static final String EVENT_ERROR = "error";
+  public static final String EVENT_CALL_RINGING = "ringing";
+  public static final String EVENT_CALL_CONNECTED = "connected";
+  public static final String EVENT_CALL_DISCONNECTED = "disconnected";
+  public static final String EVENT_CALL_CONNECT_FAILURE = "connectFailure";
+  public static final String EVENT_CALL_RECONNECTED = "reconnect";
 
-  public static final String EVENT_DEVICE_READY = "deviceReady";
-  public static final String EVENT_DEVICE_NOT_READY = "deviceNotReady";
 
   public AndroidEventEmitter(ReactApplicationContext context) {
     mContext = context;

@@ -3,14 +3,20 @@ import * as React from 'react';
 import { Button, StyleSheet, View, Text } from 'react-native';
 import { Voice, RegistrationChannel } from 'twilio-voice-react-native';
 
-const voice = new Voice('foobar-token');
+const voice = new Voice('token');
 
 export default function App() {
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
+  const [call, setCall] = React.useState<Call | undefined>();
+
+  const disconnectHandler = React.useCallback(() => {
+    console.log(call);
+    call?.disconnect();
+  }, [call]);
 
   const connectHandler = React.useCallback(() => {
-    voice.connect();
+    voice.connect().then(setCall);
   }, []);
 
   const registerHandler = React.useCallback(() => {
@@ -26,6 +32,7 @@ export default function App() {
     <View style={styles.container}>
       <Text>SDK Version: {sdkVersion}</Text>
       <Button title="Connect" onPress={connectHandler} />
+      <Button title="Disconnect" onPress={disconnectHandler} />
       <Button title="Register" onPress={registerHandler} />
       <Text>Registered: {String(registered)}</Text>
     </View>

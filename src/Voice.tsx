@@ -96,6 +96,7 @@ export class Voice extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
+    console.log(nativeMessageEvent);
     const { type } = nativeMessageEvent;
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {

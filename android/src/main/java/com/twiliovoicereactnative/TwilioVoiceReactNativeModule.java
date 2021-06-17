@@ -2,7 +2,10 @@ package com.twiliovoicereactnative;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.util.Log;
+
+import java.util.Map;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -24,13 +27,23 @@ import com.twilio.voice.LogLevel;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_DEVICE_READY;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_DEVICE_NOT_READY;
+
+import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_ERROR;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RINGING;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_DISCONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECT_FAILURE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTED;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public static final String TAG = "TwilioVoiceReactNative";
+  static final Map<String, Call> callMap = new HashMap<>();
+
   private AndroidEventEmitter androidEventEmitter;
+
 
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -56,7 +69,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         if (BuildConfig.DEBUG) {
           Log.d(TAG, "Successfully registered FCM");
         }
-        androidEventEmitter.sendEvent(EVENT_DEVICE_READY, null);
+        //androidEventEmitter.sendEvent(EVENT_DEVICE_READY, null);
       }
 
       @Override
@@ -64,7 +77,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         Log.e(TAG, String.format("Registration Error: %d, %s", error.getErrorCode(), error.getMessage()));
         WritableMap params = Arguments.createMap();
         params.putString("err", error.getMessage());
-        androidEventEmitter.sendEvent(EVENT_DEVICE_NOT_READY, params);
+        //androidEventEmitter.sendEvent(EVENT_DEVICE_NOT_READY, params);
       }
     };
   }
@@ -74,45 +87,60 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
       @Override
       public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
-
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_CONNECT_FAILURE);
+        params.putString(EVENT_ERROR, callException.getMessage());
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
       }
 
       @Override
       public void onRinging(@NonNull Call call) {
-
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_RINGING);
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
       }
 
       @Override
       public void onConnected(@NonNull Call call) {
-
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
       }
 
       @Override
       public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
-
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
+        params.putString(EVENT_ERROR, callException.getMessage());
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
       }
 
       @Override
       public void onReconnected(@NonNull Call call) {
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_RECONNECTED);
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
 
       }
 
       @Override
       public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
-
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_CALL_DISCONNECTED);
+        androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
       }
     };
-
   }
 
   @ReactMethod
-  public void voice_connect(String accessToken, ReadableMap params, Promise promise) {
+  public void voice_connect(String uuid, String accessToken, ReadableMap params, Promise promise) {
+    Log.e(TAG, String.format("Calling voice_connect"));
     HashMap<String, String> twiMLParams = new HashMap<>();
-    twiMLParams.put("To", "alice");
+    twiMLParams.put("To", "bob");
     twiMLParams.put("Type", "client");
-    twiMLParams.put("From", "client:kumkum");
+    twiMLParams.put("From", "client:react_native_android");
     twiMLParams.put("Mode", "Voice");
-    twiMLParams.put("PhoneNumber", "alice");
+    twiMLParams.put("PhoneNumber", "bob");
     twiMLParams.put("answer_on_bridge", "true");
 
     ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
@@ -120,7 +148,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .params(twiMLParams)
       .build();
 
-    Voice.connect(getReactApplicationContext(), connectOptions, callListener());
+    Call call = Voice.connect(getReactApplicationContext(), connectOptions, callListener());
+    callMap.put(uuid, call);
+    promise.resolve(uuid);
   }
 
   @ReactMethod
@@ -138,6 +168,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void util_generateId(Promise promise) {
     UUID uuid = UUID.randomUUID();
-    promise.resolve(uuid);
+    promise.resolve(uuid.toString());
+  }
+
+  @ReactMethod
+  public void call_disconnect(String uuid) {
+    Call activeCall = callMap.get(uuid);
+    if (activeCall != null) {
+      activeCall.disconnect();
+      activeCall = null;
+    }
   }
 }
