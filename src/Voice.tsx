@@ -92,7 +92,7 @@ export class Voice extends EventEmitter {
       unregistered: this._handleUnregistered,
     };
 
-    this._nativeEventEmitter.addListener('connected', this._handleNativeEvent);
+    this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {

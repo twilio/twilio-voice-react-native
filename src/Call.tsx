@@ -104,6 +104,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleConnectedEvent = () => {
+    console.log('connected');
     this.emit(Call.Event.Connected);
   };
 
@@ -112,6 +113,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleDisconnected = () => {
+    console.log('disconnected');
     this.emit(Call.Event.Disconnected);
   };
 
@@ -124,6 +126,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleRinging = () => {
+    console.log('ringing');
     this.emit(Call.Event.Ringing);
   };
 
