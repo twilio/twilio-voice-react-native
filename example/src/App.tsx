@@ -8,17 +8,25 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Call, Voice, RegistrationChannel } from 'twilio-voice-react-native';
+import {
+  Call,
+  CallInvite,
+  Voice,
+  RegistrationChannel,
+} from 'twilio-voice-react-native';
 
-const voice = new Voice('token');
+const voice = new Voice();
 
 const noOp = () => {};
 
-interface CallInterface {
+interface CallMethods {
   disconnect: () => void;
   hold: () => void;
   mute: () => void;
   sendDigits: (digits: string) => void;
+}
+
+interface CallInfo {
   from: string;
   to: string;
   state: string;
@@ -28,63 +36,98 @@ interface CallInterface {
 export default function App() {
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
-  const [callInterface, setCallInterface] = React.useState<
-    CallInterface | undefined
+  const [callMethods, setCallMethods] = React.useState<
+    CallMethods | undefined
   >();
+  const [callInfo, setCallInfo] = React.useState<CallInfo | undefined>();
   const [callEvents, setCallEvents] = React.useState<
     Array<{ id: string; content: string }>
   >([]);
   const [outgoingTo, setOutgoingTo] = React.useState<string>('');
+  const [isCallOnHold, setIsCallOnHold] = React.useState<boolean>(false);
+  const [isCallMuted, setIsCallMuted] = React.useState<boolean>(false);
 
-  const connectHandler = React.useCallback(() => {
-    voice.connect({ to: outgoingTo }).then(async (call) => {
-      Object.values(Call.Event).forEach((callEvent) => {
-        call.on(callEvent, () => {
-          setCallEvents((_callEvents) => [
-            ..._callEvents,
-            {
-              id: `${_callEvents.length}`,
-              content: callEvent,
-            },
-          ]);
-        });
+  const handleCall = React.useCallback((call: Call) => {
+    Object.values(Call.Event).forEach((callEvent) => {
+      const sid = call.getSid();
+
+      call.on(callEvent, () => {
+        setCallEvents((_callEvents) => [
+          ..._callEvents,
+          {
+            id: `${_callEvents.length}`,
+            content: `${sid}: ${callEvent}`,
+          },
+        ]);
       });
 
-      const [from, to, state, sid] = await Promise.all([
-        call.getFrom(),
-        call.getTo(),
-        call.getState(),
-        call.getSid(),
-      ]);
-
-      setCallInterface({
-        disconnect: () => call.disconnect(),
-        hold: () => call.hold(),
-        mute: () => call.mute(),
-        sendDigits: (digits: string) => call.sendDigits(digits),
-        from,
-        to,
-        state,
+      setCallInfo({
+        from: call.getFrom(),
+        to: call.getTo(),
+        state: call.getState(),
         sid,
       });
     });
-  }, [outgoingTo]);
+
+    setCallMethods({
+      disconnect: () => call.disconnect(),
+      hold: () => {
+        setIsCallOnHold((_isCallOnHold) => {
+          call.hold(!_isCallOnHold);
+          return !_isCallOnHold;
+        });
+      },
+      mute: () => {
+        setIsCallMuted((_isCallMuted) => {
+          call.mute(!_isCallMuted);
+          return !_isCallMuted;
+        });
+      },
+      sendDigits: (digits: string) => call.sendDigits(digits),
+    });
+
+    setCallInfo({
+      from: call.getFrom(),
+      to: call.getTo(),
+      state: call.getState(),
+      sid: call.getSid(),
+    });
+  }, []);
+
+  const connectHandler = React.useCallback(() => {
+    const call = voice.connect('token', { to: outgoingTo });
+    handleCall(call);
+  }, [handleCall, outgoingTo]);
 
   const registerHandler = React.useCallback(() => {
     voice.register('foobar-device-token', RegistrationChannel.FCM);
   }, []);
 
   React.useEffect(() => {
-    voice.getVersion().then(setSdkVersion);
+    setSdkVersion(voice.getVersion());
     voice.on(Voice.Event.Registered, () => setRegistered(true));
+    voice.on(Voice.Event.CallInvite, (_callInvite: CallInvite) => {
+      // handling call invite
+      // const call = callInvite.accept();
+      // handleCall(call);
+    });
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text>SDK Version {sdkVersion}</Text>
+        <Text>SDK Version: {String(sdkVersion)}</Text>
         <Text>Registered: {String(registered)}</Text>
       </View>
+      {callInfo ? (
+        <View>
+          <Text>Call Info</Text>
+          <Text>From: {String(callInfo.from)}</Text>
+          <Text>To: {String(callInfo.to)}</Text>
+          <Text>State: {String(callInfo.state)}</Text>
+          <Text>Sid: {String(callInfo.sid)}</Text>
+        </View>
+      ) : null}
       <View style={styles.eventsContainer}>
         <Text>Events</Text>
         <FlatList
@@ -105,13 +148,27 @@ export default function App() {
       </View>
       <View>
         <View style={styles.button}>
-          <Button title="Connect" onPress={connectHandler} />
+          {callMethods ? (
+            <Button title="Disconnect" onPress={callMethods.disconnect} />
+          ) : (
+            <Button title="Connect" onPress={connectHandler} />
+          )}
         </View>
-        <View style={styles.button}>
-          <Button
-            title="Disconnect"
-            onPress={callInterface?.disconnect || noOp}
-          />
+        <View style={styles.buttonContainer}>
+          <View style={styles.halfButton}>
+            <Button
+              disabled={!callMethods}
+              title={isCallMuted ? 'Unmute' : 'Mute'}
+              onPress={callMethods?.mute || noOp}
+            />
+          </View>
+          <View style={styles.halfButton}>
+            <Button
+              disabled={!callMethods}
+              title={isCallOnHold ? 'Unhold' : 'Hold'}
+              onPress={callMethods?.hold || noOp}
+            />
+          </View>
         </View>
         <View style={styles.button}>
           <Button title="Register" onPress={registerHandler} />
@@ -126,6 +183,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   button: {
+    padding: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+  },
+  halfButton: {
+    flex: 1,
     padding: 5,
   },
   eventsContainer: {

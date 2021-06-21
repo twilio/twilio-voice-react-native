@@ -79,12 +79,9 @@ export class Voice extends EventEmitter {
     Voice.Event,
     (messageEvent: NativeMessageEvent) => void
   >;
-  private _token: string;
 
-  constructor(token: string, options: Partial<Voice.Options> = {}) {
+  constructor(options: Partial<Voice.Options> = {}) {
     super();
-
-    this._token = token;
 
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
@@ -136,37 +133,39 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.Unregistered);
   };
 
-  async connect(params: Record<string, string> = {}): Promise<Call> {
-    const callUuid = await this._nativeModule.util_generateId();
+  connect(token: string, params: Record<string, string> = {}): Call {
+    const callUuid = this._nativeModule.util_generateId();
     const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    this._nativeModule.voice_connect(callUuid, this._token, params);
+    this._nativeModule.voice_connect(callUuid, token, params);
     return call;
   }
 
-  getVersion(): Promise<string> {
+  getVersion(): string {
     return this._nativeModule.voice_getVersion();
   }
 
   register(
+    token: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): Promise<void> {
-    return this._nativeModule.voice_register(
-      this._token,
+  ): void {
+    this._nativeModule.voice_register(
+      token,
       registrationToken,
       registrationChannel
     );
   }
 
   unregister(
+    token: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): Promise<void> {
-    return this._nativeModule.voice_unregister(
-      this._token,
+  ): void {
+    this._nativeModule.voice_unregister(
+      token,
       registrationToken,
       registrationChannel
     );
