@@ -104,12 +104,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void call_mute(String callUUID, Promise promise) {
-    // Get the call object through the UUID mapping.
-    // Mute the call.
-  }
-
-  @ReactMethod
   public void voice_getVersion(Promise promise) {
     String version = Voice.getVersion();
     promise.resolve(version);
