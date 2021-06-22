@@ -59,7 +59,15 @@
 				B3E7B5891CC2AC0600A0062D /* TwilioVoiceReactNative.m */,
 
 				134814211AA4EA7D00B7C361 /* Products */,
+				8F53CB6826794330002F8D61 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		8F53CB6826794330002F8D61 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -174,6 +182,11 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-framework",
+					TwilioVoice,
+				);
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -216,6 +229,11 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-framework",
+					TwilioVoice,
+				);
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -230,11 +248,15 @@
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-framework",
+					TwilioVoic,
+				);
 				PRODUCT_NAME = TwilioVoiceReactNative;
 				SKIP_INSTALL = YES;
-
 			};
 			name = Debug;
 		};
@@ -247,8 +269,13 @@
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-framework",
+					TwilioVoic,
+				);
 				PRODUCT_NAME = TwilioVoiceReactNative;
 				SKIP_INSTALL = YES;
 
