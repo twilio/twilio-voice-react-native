@@ -1,16 +1,25 @@
-#import "TwilioVoiceReactNative.h"
+#import "RNTwilioVoice.h"
 
 @import TwilioVoice;
 
-@interface TwilioVoiceReactNative () <TVOCallDelegate>
+@interface RNTwilioVoice () <TVOCallDelegate>
 
 // TODO: make this a map to support multiple calls
 @property (nonatomic, strong) TVOCall *activeCall;
+@property (nonatomic, strong) NSMutableDictionary *calls;
 
 @end
 
 
-@implementation TwilioVoiceReactNative
+@implementation RNTwilioVoice
+
+- (instancetype)init {
+    if (self = [super init]) {
+        _calls = [NSMutableDictionary dictionary];
+    }
+
+    return self;
+}
 
 RCT_EXPORT_MODULE();
 
@@ -44,6 +53,7 @@ RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
         builder.uuid = uuid;
     }];
     self.activeCall = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
+    self.calls[uuid] = self.activeCall;
 }
 
 #pragma mark - utility
