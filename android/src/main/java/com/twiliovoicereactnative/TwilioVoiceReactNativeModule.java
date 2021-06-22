@@ -13,7 +13,6 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.twilio.voice.Voice;
@@ -83,7 +82,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_connect(String uuid, String accessToken, ReadableMap params, Promise promise) {
+  public void voice_connect(String uuid, String accessToken, ReadableMap params) {
     Log.e(TAG, String.format("Calling voice_connect"));
     HashMap<String, String> twiMLParams = new HashMap<>();
     twiMLParams.put("To", "bob");
@@ -100,19 +99,17 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, androidEventEmitter));
     callMap.put(uuid, call);
-    promise.resolve(uuid);
   }
 
   @ReactMethod
-  public void voice_getVersion(Promise promise) {
-    String version = Voice.getVersion();
-    promise.resolve(version);
+  public String voice_getVersion() {
+    return Voice.getVersion();
   }
 
   @ReactMethod
-  public void util_generateId(Promise promise) {
+  public String util_generateId() {
     UUID uuid = UUID.randomUUID();
-    promise.resolve(uuid.toString());
+    return uuid.toString();
   }
 
   @ReactMethod
