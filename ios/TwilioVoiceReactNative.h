@@ -1,6 +1,6 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface RNTwilioVoice : RCTEventEmitter <RCTBridgeModule>
+@interface TwilioVoiceReactNative : RCTEventEmitter <RCTBridgeModule>
 
 @end
