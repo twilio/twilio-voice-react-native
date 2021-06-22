@@ -20,6 +20,12 @@ export declare interface Call {
   /**
    * Listener typings.
    */
+  addEventListener(
+    callEvent: Call.Event,
+    listener: (...args: any[]) => void
+  ): this;
+  on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+
   addEventListener(callEvent: Call.Event.Connected, listener: () => void): this;
   on(callEvent: Call.Event.Connected, listener: () => void): this;
 
@@ -130,46 +136,54 @@ export class Call extends EventEmitter {
   /**
    * Binding specific functions.
    */
-  getUuid() {
+  getUuid(): string {
     return this._uuid;
   }
 
-  getNativeScope() {
+  getNativeScope(): string {
     return this._nativeScope;
   }
 
   /**
    * Native functionality.
    */
-  disconnect() {
-    return this._nativeModule.call_disconnect(this._uuid);
+  disconnect(): void {
+    this._nativeModule.call_disconnect(this._uuid);
   }
 
-  getFrom() {
+  isOnHold(): boolean {
+    return this._nativeModule.call_isOnHold(this._uuid);
+  }
+
+  isMuted(): boolean {
+    return this._nativeModule.call_isMuted(this._uuid);
+  }
+
+  getFrom(): string {
     return this._nativeModule.call_getFrom(this._uuid);
   }
 
-  getTo() {
+  getTo(): string {
     return this._nativeModule.call_getTo(this._uuid);
   }
 
-  getState() {
+  getState(): string {
     return this._nativeModule.call_getState(this._uuid);
   }
 
-  getSid() {
+  getSid(): string {
     return this._nativeModule.call_getSid(this._uuid);
   }
 
-  hold() {
-    this._nativeModule.call_hold(this._uuid);
+  hold(hold: boolean): void {
+    this._nativeModule.call_hold(this._uuid, hold);
   }
 
-  mute() {
-    this._nativeModule.call_mute(this._uuid);
+  mute(mute: boolean): void {
+    this._nativeModule.call_mute(this._uuid, mute);
   }
 
-  sendDigits(digits: string) {
+  sendDigits(digits: string): void {
     this._nativeModule.call_sendDigits(this._uuid, digits);
   }
 }

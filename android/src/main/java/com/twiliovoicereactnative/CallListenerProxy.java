@@ -16,6 +16,7 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECTE
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_DISCONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECT_FAILURE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTING;
 import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_UUID;
 
 class CallListenerProxy implements Call.Listener {
@@ -55,7 +56,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
     WritableMap params = Arguments.createMap();
-    params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
+    params.putString(EVENT_TYPE, EVENT_CALL_RECONNECTING);
     params.putString(EVENT_ERROR, callException.getMessage());
     params.putString(CALL_UUID, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);

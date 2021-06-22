@@ -1,40 +1,179 @@
 import * as React from 'react';
 
-import { Button, StyleSheet, View, Text } from 'react-native';
-import { Call, Voice, RegistrationChannel } from 'twilio-voice-react-native';
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import {
+  Call,
+  CallInvite,
+  Voice,
+  RegistrationChannel,
+} from 'twilio-voice-react-native';
 
-const voice = new Voice('token');
+const voice = new Voice();
+
+const noOp = () => {};
+
+interface CallMethods {
+  disconnect: () => void;
+  hold: () => void;
+  mute: () => void;
+  sendDigits: (digits: string) => void;
+}
+
+interface CallInfo {
+  from: string;
+  to: string;
+  state: string;
+  sid: string;
+}
 
 export default function App() {
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
-  const [call, setCall] = React.useState<Call | undefined>();
+  const [callMethods, setCallMethods] = React.useState<
+    CallMethods | undefined
+  >();
+  const [callInfo, setCallInfo] = React.useState<CallInfo | undefined>();
+  const [callEvents, setCallEvents] = React.useState<
+    Array<{ id: string; content: string }>
+  >([]);
+  const [outgoingTo, setOutgoingTo] = React.useState<string>('');
+  const [isCallOnHold, setIsCallOnHold] = React.useState<boolean>(false);
+  const [isCallMuted, setIsCallMuted] = React.useState<boolean>(false);
 
-  const disconnectHandler = React.useCallback(() => {
-    console.log(call);
-    call?.disconnect();
-  }, [call]);
+  const handleCall = React.useCallback((call: Call) => {
+    Object.values(Call.Event).forEach((callEvent) => {
+      const sid = call.getSid();
+
+      call.on(callEvent, () => {
+        setCallEvents((_callEvents) => [
+          ..._callEvents,
+          {
+            id: `${_callEvents.length}`,
+            content: `${sid}: ${callEvent}`,
+          },
+        ]);
+      });
+
+      setCallInfo({
+        from: call.getFrom(),
+        to: call.getTo(),
+        state: call.getState(),
+        sid,
+      });
+    });
+
+    setCallMethods({
+      disconnect: () => call.disconnect(),
+      hold: () => {
+        setIsCallOnHold((_isCallOnHold) => {
+          call.hold(!_isCallOnHold);
+          return !_isCallOnHold;
+        });
+      },
+      mute: () => {
+        setIsCallMuted((_isCallMuted) => {
+          call.mute(!_isCallMuted);
+          return !_isCallMuted;
+        });
+      },
+      sendDigits: (digits: string) => call.sendDigits(digits),
+    });
+
+    setCallInfo({
+      from: call.getFrom(),
+      to: call.getTo(),
+      state: call.getState(),
+      sid: call.getSid(),
+    });
+  }, []);
 
   const connectHandler = React.useCallback(() => {
-    voice.connect().then(setCall);
-  }, []);
+    const call = voice.connect('token', { to: outgoingTo });
+    handleCall(call);
+  }, [handleCall, outgoingTo]);
 
   const registerHandler = React.useCallback(() => {
     voice.register('foobar-device-token', RegistrationChannel.FCM);
   }, []);
 
   React.useEffect(() => {
-    voice.getVersion().then(setSdkVersion);
+    setSdkVersion(voice.getVersion());
     voice.on(Voice.Event.Registered, () => setRegistered(true));
+    voice.on(Voice.Event.CallInvite, (_callInvite: CallInvite) => {
+      // handling call invite
+      // const call = callInvite.accept();
+      // handleCall(call);
+    });
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>SDK Version: {sdkVersion}</Text>
-      <Button title="Connect" onPress={connectHandler} />
-      <Button title="Disconnect" onPress={disconnectHandler} />
-      <Button title="Register" onPress={registerHandler} />
-      <Text>Registered: {String(registered)}</Text>
+      <View style={styles.header}>
+        <Text>SDK Version: {String(sdkVersion)}</Text>
+        <Text>Registered: {String(registered)}</Text>
+      </View>
+      {callInfo ? (
+        <View>
+          <Text>Call Info</Text>
+          <Text>From: {String(callInfo.from)}</Text>
+          <Text>To: {String(callInfo.to)}</Text>
+          <Text>State: {String(callInfo.state)}</Text>
+          <Text>Sid: {String(callInfo.sid)}</Text>
+        </View>
+      ) : null}
+      <View style={styles.eventsContainer}>
+        <Text>Events</Text>
+        <FlatList
+          style={styles.eventsList}
+          data={callEvents}
+          renderItem={(info) => <Text>{info.item.content}</Text>}
+        />
+      </View>
+      <View>
+        <View style={styles.input}>
+          <Text>To: </Text>
+          <TextInput
+            style={styles.textInput}
+            value={outgoingTo}
+            onChangeText={(text) => setOutgoingTo(text)}
+          />
+        </View>
+      </View>
+      <View>
+        <View style={styles.button}>
+          {callMethods ? (
+            <Button title="Disconnect" onPress={callMethods.disconnect} />
+          ) : (
+            <Button title="Connect" onPress={connectHandler} />
+          )}
+        </View>
+        <View style={styles.buttonContainer}>
+          <View style={styles.halfButton}>
+            <Button
+              disabled={!callMethods}
+              title={isCallMuted ? 'Unmute' : 'Mute'}
+              onPress={callMethods?.mute || noOp}
+            />
+          </View>
+          <View style={styles.halfButton}>
+            <Button
+              disabled={!callMethods}
+              title={isCallOnHold ? 'Unhold' : 'Hold'}
+              onPress={callMethods?.hold || noOp}
+            />
+          </View>
+        </View>
+        <View style={styles.button}>
+          <Button title="Register" onPress={registerHandler} />
+        </View>
+      </View>
     </View>
   );
 }
@@ -42,7 +181,38 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  button: {
+    padding: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+  },
+  halfButton: {
+    flex: 1,
+    padding: 5,
+  },
+  eventsContainer: {
+    flex: 1,
+    padding: 10,
+  },
+  eventsList: {
+    backgroundColor: 'rgba(0, 0, 0, .15)',
+    padding: 10,
+  },
+  input: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    padding: 10,
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 0.5,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
+    paddingTop: 20,
   },
 });
