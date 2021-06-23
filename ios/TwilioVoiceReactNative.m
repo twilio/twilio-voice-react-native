@@ -32,6 +32,11 @@ RCT_EXPORT_MODULE();
   return @[@"Voice", @"Call"];
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 #pragma mark - Bingings (Voice methods)
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_getVersion)
