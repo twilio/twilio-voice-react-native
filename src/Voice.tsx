@@ -133,8 +133,11 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.Unregistered);
   };
 
-  connect(token: string, params: Record<string, string> = {}): Call {
-    const callUuid = this._nativeModule.util_generateId();
+  async connect(
+    token: string,
+    params: Record<string, string> = {}
+  ): Promise<Call> {
+    const callUuid = await this._nativeModule.util_generateId();
     const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
@@ -143,7 +146,7 @@ export class Voice extends EventEmitter {
     return call;
   }
 
-  getVersion(): string {
+  getVersion(): Promise<string> {
     return this._nativeModule.voice_getVersion();
   }
 
@@ -151,8 +154,8 @@ export class Voice extends EventEmitter {
     token: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): void {
-    this._nativeModule.voice_register(
+  ): Promise<void> {
+    return this._nativeModule.voice_register(
       token,
       registrationToken,
       registrationChannel
@@ -163,8 +166,8 @@ export class Voice extends EventEmitter {
     token: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): void {
-    this._nativeModule.voice_unregister(
+  ): Promise<void> {
+    return this._nativeModule.voice_unregister(
       token,
       registrationToken,
       registrationChannel
