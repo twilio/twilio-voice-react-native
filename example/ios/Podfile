@@ -1,3 +1,4 @@
+source 'https://github.com/cocoapods/specs'
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
@@ -9,6 +10,7 @@ target 'TwilioVoiceReactNativeExample' do
   use_react_native!(:path => config["reactNativePath"])
 
   pod 'twilio-voice-react-native', :path => '../..'
+  pod 'TwilioVoice', '~> 6.3.0'
 
   # # Enables Flipper.
   # #

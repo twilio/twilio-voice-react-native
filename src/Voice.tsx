@@ -10,20 +10,6 @@ import type {
   RegistrationChannel,
 } from './type';
 
-export declare namespace Voice {
-  export enum Event {
-    'CallInvite' = 'callInvite',
-    'CanceledCallInvite' = 'canceledCallInvite',
-    'Registered' = 'registered',
-    'Unregistered' = 'unregistered',
-  }
-
-  export interface Options {
-    nativeEventEmitter: NativeEventEmitter;
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
-}
-
 /**
  * Declare strict typings for event-emissions and event-listeners.
  */
@@ -43,6 +29,12 @@ export declare interface Voice {
   /**
    * Listener typings.
    */
+  addEventListener(
+    voiceEvent: Voice.Event,
+    listener: (...args: any[]) => void
+  ): this;
+  on(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
+
   addEventListener(
     voiceEvent: Voice.Event.CallInvite,
     listener: (callInvite: CallInvite) => void
@@ -87,12 +79,9 @@ export class Voice extends EventEmitter {
     Voice.Event,
     (messageEvent: NativeMessageEvent) => void
   >;
-  private _token: string;
 
-  constructor(token: string, options: Partial<Voice.Options> = {}) {
+  constructor(options: Partial<Voice.Options> = {}) {
     super();
-
-    this._token = token;
 
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
@@ -110,13 +99,16 @@ export class Voice extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
+    console.log(nativeMessageEvent);
     const { type } = nativeMessageEvent;
+
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
       throw new Error(
         `Unknown voice event type received from the native layer: "${type}".`
       );
     }
+
     handler(nativeMessageEvent);
   };
 
@@ -141,45 +133,55 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.Unregistered);
   };
 
-  async connect(params: Record<string, string> = {}): Promise<Call> {
-    const callUuid = await this._nativeModule.util_generateId();
+  connect(token: string, params: Record<string, string> = {}): Call {
+    const callUuid = this._nativeModule.util_generateId();
     const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    await this._nativeModule.voice_connect(
-      call.getNativeScope(),
-      this._token,
-      params
-    );
+    this._nativeModule.voice_connect(callUuid, token, params);
     return call;
   }
 
-  getVersion(): Promise<string> {
+  getVersion(): string {
     return this._nativeModule.voice_getVersion();
   }
 
   register(
-    accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
-  ): Promise<void> {
-    return this._nativeModule.voice_register(
-      accessToken,
-      registrationChannel,
-      registrationToken
+    token: string,
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
+  ): void {
+    this._nativeModule.voice_register(
+      token,
+      registrationToken,
+      registrationChannel
     );
   }
 
   unregister(
-    accessToken: string,
-    registrationChannel: RegistrationChannel,
-    registrationToken: string
-  ): Promise<void> {
-    return this._nativeModule.voice_unregister(
-      accessToken,
-      registrationChannel,
-      registrationToken
+    token: string,
+    registrationToken: string,
+    registrationChannel?: RegistrationChannel
+  ): void {
+    this._nativeModule.voice_unregister(
+      token,
+      registrationToken,
+      registrationChannel
     );
+  }
+}
+
+export namespace Voice {
+  export enum Event {
+    'CallInvite' = 'callInvite',
+    'CanceledCallInvite' = 'canceledCallInvite',
+    'Registered' = 'registered',
+    'Unregistered' = 'unregistered',
+  }
+
+  export interface Options {
+    nativeEventEmitter: NativeEventEmitter;
+    nativeModule: typeof TwilioVoiceReactNative;
   }
 }

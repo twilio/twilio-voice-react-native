@@ -3,19 +3,9 @@ import { Call } from './Call';
 import { TwilioVoiceReactNative } from './const';
 import type { Uuid } from './type';
 
-export declare namespace CallInvite {
-  export interface AcceptOptions {}
-
-  export interface Options {
-    nativeEventEmitter: NativeEventEmitter;
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
-}
-
 export class CallInvite {
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
-  private _nativeScope: string;
   private _uuid: Uuid;
 
   constructor(uuid: Uuid, options: Partial<CallInvite.Options> = {}) {
@@ -25,37 +15,44 @@ export class CallInvite {
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._uuid = uuid;
-
-    this._nativeScope = `${CallInvite.name}-${this._uuid}`;
   }
 
-  async accept(options: CallInvite.AcceptOptions = {}) {
-    const callUuid = await this._nativeModule.util_generateId();
+  accept(options: CallInvite.AcceptOptions = {}): Call {
+    const callUuid = this._nativeModule.util_generateId();
     const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    this._nativeModule.callInvite_accept(this._nativeScope, options);
+    this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
     return call;
   }
 
-  reject() {
-    this._nativeModule.callInvite_reject(this._nativeScope);
+  reject(): void {
+    this._nativeModule.callInvite_reject(this._uuid);
   }
 
-  isValid() {
-    return this._nativeModule.callInvite_isValid(this._nativeScope);
+  isValid(): boolean {
+    return this._nativeModule.callInvite_isValid(this._uuid);
   }
 
-  getCallSid() {
-    return this._nativeModule.callInvite_getCallSid(this._nativeScope);
+  getCallSid(): string {
+    return this._nativeModule.callInvite_getCallSid(this._uuid);
   }
 
-  getFrom() {
-    return this._nativeModule.callInvite_getFrom(this._nativeScope);
+  getFrom(): string {
+    return this._nativeModule.callInvite_getFrom(this._uuid);
   }
 
-  getTo() {
-    return this._nativeModule.callInvite_getTo(this._nativeScope);
+  getTo(): string {
+    return this._nativeModule.callInvite_getTo(this._uuid);
+  }
+}
+
+export namespace CallInvite {
+  export interface AcceptOptions {}
+
+  export interface Options {
+    nativeEventEmitter: NativeEventEmitter;
+    nativeModule: typeof TwilioVoiceReactNative;
   }
 }
