@@ -11,15 +11,15 @@ export class CanceledCallInvite {
     this._uuid = uuid;
   }
 
-  getFrom(): string {
+  getFrom(): Promise<string> {
     return this._nativeModule.canceledCallInvite_getFrom(this._uuid);
   }
 
-  getTo(): string {
+  getTo(): Promise<string> {
     return this._nativeModule.canceledCallInvite_getTo(this._uuid);
   }
 
-  getCallSid(): string {
+  getCallSid(): Promise<string> {
     return this._nativeModule.canceledCallInvite_getCallSid(this._uuid);
   }
 }
