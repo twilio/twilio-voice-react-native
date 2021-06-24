@@ -43,42 +43,42 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
    * Utilities.
    */
-  util_generateId(): Uuid;
+  util_generateId(): Promise<Uuid>;
 
   /**
    * Call bindings.
    */
-  call_disconnect(callUuid: Uuid): void;
-  call_hold(callUuid: Uuid, hold: boolean): void;
-  call_isOnHold(callUuid: Uuid): boolean;
-  call_isMuted(callUuid: Uuid): boolean;
-  call_getFrom(callUuid: Uuid): string;
-  call_getTo(callUuid: Uuid): string;
-  call_getSid(callUuid: Uuid): string;
-  call_getState(callUuid: Uuid): NativeCallState;
-  call_mute(callUuid: Uuid, mute: boolean): void;
-  call_sendDigits(callUuid: Uuid, digits: string): void;
+  call_disconnect(callUuid: Uuid): Promise<void>;
+  call_hold(callUuid: Uuid, hold: boolean): Promise<void>;
+  call_isOnHold(callUuid: Uuid): Promise<boolean>;
+  call_isMuted(callUuid: Uuid): Promise<boolean>;
+  call_getFrom(callUuid: Uuid): Promise<string>;
+  call_getTo(callUuid: Uuid): Promise<string>;
+  call_getSid(callUuid: Uuid): Promise<string>;
+  call_getState(callUuid: Uuid): Promise<NativeCallState>;
+  call_mute(callUuid: Uuid, mute: boolean): Promise<void>;
+  call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
 
   /**
    * Call Invite bindings.
    */
-  callInvite_getFrom(callInviteUuid: Uuid): string;
-  callInvite_getTo(callInviteUuid: Uuid): string;
-  callInvite_getCallSid(callInviteUuid: Uuid): string;
+  callInvite_getFrom(callInviteUuid: Uuid): Promise<string>;
+  callInvite_getTo(callInviteUuid: Uuid): Promise<string>;
+  callInvite_getCallSid(callInviteUuid: Uuid): Promise<string>;
   callInvite_accept(
     callInviteUuid: Uuid,
     newCallUuid: Uuid,
     acceptOptions: CallInvite.AcceptOptions
-  ): void;
-  callInvite_reject(callInviteUuid: Uuid): void;
-  callInvite_isValid(callInviteUuid: Uuid): boolean;
+  ): Promise<void>;
+  callInvite_reject(callInviteUuid: Uuid): Promise<void>;
+  callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
 
   /**
    * CanceledCallInvite bindings.
    */
-  canceledCallInvite_getFrom(canceledCallInviteUuid: Uuid): string;
-  canceledCallInvite_getTo(canceledCallInviteUuid: Uuid): string;
-  canceledCallInvite_getCallSid(canceledCallInviteUuid: Uuid): string;
+  canceledCallInvite_getFrom(canceledCallInviteUuid: Uuid): Promise<string>;
+  canceledCallInvite_getTo(canceledCallInviteUuid: Uuid): Promise<string>;
+  canceledCallInvite_getCallSid(canceledCallInviteUuid: Uuid): Promise<string>;
 
   /**
    * Voice bindings.
@@ -87,16 +87,16 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     newCallUuid: Uuid,
     token: string,
     params: Record<string, string>
-  ): void;
-  voice_getVersion(): string;
+  ): Promise<void>;
+  voice_getVersion(): Promise<string>;
   voice_register(
     accessToken: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): void;
+  ): Promise<void>;
   voice_unregister(
     accessToken: string,
     registrationToken: string,
     registrationChannel?: RegistrationChannel
-  ): void;
+  ): Promise<void>;
 }

@@ -151,40 +151,40 @@ export class Call extends EventEmitter {
     this._nativeModule.call_disconnect(this._uuid);
   }
 
-  isOnHold(): boolean {
+  isOnHold(): Promise<boolean> {
     return this._nativeModule.call_isOnHold(this._uuid);
   }
 
-  isMuted(): boolean {
+  isMuted(): Promise<boolean> {
     return this._nativeModule.call_isMuted(this._uuid);
   }
 
-  getFrom(): string {
+  getFrom(): Promise<string> {
     return this._nativeModule.call_getFrom(this._uuid);
   }
 
-  getTo(): string {
+  getTo(): Promise<string> {
     return this._nativeModule.call_getTo(this._uuid);
   }
 
-  getState(): string {
+  getState(): Promise<string> {
     return this._nativeModule.call_getState(this._uuid);
   }
 
-  getSid(): string {
+  getSid(): Promise<string> {
     return this._nativeModule.call_getSid(this._uuid);
   }
 
-  hold(hold: boolean): void {
-    this._nativeModule.call_hold(this._uuid, hold);
+  hold(hold: boolean): Promise<void> {
+    return this._nativeModule.call_hold(this._uuid, hold);
   }
 
-  mute(mute: boolean): void {
-    this._nativeModule.call_mute(this._uuid, mute);
+  mute(mute: boolean): Promise<void> {
+    return this._nativeModule.call_mute(this._uuid, mute);
   }
 
-  sendDigits(digits: string): void {
-    this._nativeModule.call_sendDigits(this._uuid, digits);
+  sendDigits(digits: string): Promise<void> {
+    return this._nativeModule.call_sendDigits(this._uuid, digits);
   }
 }
 

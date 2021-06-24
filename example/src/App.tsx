@@ -33,6 +33,9 @@ interface CallInfo {
   sid: string;
 }
 
+const getCallInfo = (call: Call) =>
+  Promise.all([call.getFrom(), call.getSid(), call.getState(), call.getTo()]);
+
 export default function App() {
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
@@ -47,11 +50,13 @@ export default function App() {
   const [isCallOnHold, setIsCallOnHold] = React.useState<boolean>(false);
   const [isCallMuted, setIsCallMuted] = React.useState<boolean>(false);
 
-  const handleCall = React.useCallback((call: Call) => {
-    Object.values(Call.Event).forEach((callEvent) => {
-      const sid = call.getSid();
+  const handleCall = React.useCallback(async (call: Call) => {
+    const [from, sid, state, to] = await getCallInfo(call);
 
-      call.on(callEvent, () => {
+    Object.values(Call.Event).forEach((callEvent) => {
+      call.on(callEvent, async () => {
+        const [_from, _sid, _state, _to] = await getCallInfo(call);
+
         setCallEvents((_callEvents) => [
           ..._callEvents,
           {
@@ -59,13 +64,13 @@ export default function App() {
             content: `${sid}: ${callEvent}`,
           },
         ]);
-      });
 
-      setCallInfo({
-        from: call.getFrom(),
-        to: call.getTo(),
-        state: call.getState(),
-        sid,
+        setCallInfo({
+          from: _from,
+          sid: _sid,
+          state: _state,
+          to: _to,
+        });
       });
     });
 
@@ -86,16 +91,11 @@ export default function App() {
       sendDigits: (digits: string) => call.sendDigits(digits),
     });
 
-    setCallInfo({
-      from: call.getFrom(),
-      to: call.getTo(),
-      state: call.getState(),
-      sid: call.getSid(),
-    });
+    setCallInfo({ from, sid, state, to });
   }, []);
 
-  const connectHandler = React.useCallback(() => {
-    const call = voice.connect('token', { to: outgoingTo });
+  const connectHandler = React.useCallback(async () => {
+    const call = await voice.connect('token', { to: outgoingTo });
     handleCall(call);
   }, [handleCall, outgoingTo]);
 
@@ -104,7 +104,7 @@ export default function App() {
   }, []);
 
   React.useEffect(() => {
-    setSdkVersion(voice.getVersion());
+    voice.getVersion().then(setSdkVersion);
     voice.on(Voice.Event.Registered, () => setRegistered(true));
     voice.on(Voice.Event.CallInvite, (_callInvite: CallInvite) => {
       // handling call invite

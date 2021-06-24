@@ -17,8 +17,8 @@ export class CallInvite {
     this._uuid = uuid;
   }
 
-  accept(options: CallInvite.AcceptOptions = {}): Call {
-    const callUuid = this._nativeModule.util_generateId();
+  async accept(options: CallInvite.AcceptOptions = {}): Promise<Call> {
+    const callUuid = await this._nativeModule.util_generateId();
     const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
@@ -27,23 +27,23 @@ export class CallInvite {
     return call;
   }
 
-  reject(): void {
-    this._nativeModule.callInvite_reject(this._uuid);
+  reject(): Promise<void> {
+    return this._nativeModule.callInvite_reject(this._uuid);
   }
 
-  isValid(): boolean {
+  isValid(): Promise<boolean> {
     return this._nativeModule.callInvite_isValid(this._uuid);
   }
 
-  getCallSid(): string {
+  getCallSid(): Promise<string> {
     return this._nativeModule.callInvite_getCallSid(this._uuid);
   }
 
-  getFrom(): string {
+  getFrom(): Promise<string> {
     return this._nativeModule.callInvite_getFrom(this._uuid);
   }
 
-  getTo(): string {
+  getTo(): Promise<string> {
     return this._nativeModule.callInvite_getTo(this._uuid);
   }
 }
