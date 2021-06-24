@@ -78,14 +78,17 @@ RCT_EXPORT_MODULE();
 
 #pragma mark - Bingings (Voice methods)
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_getVersion)
+RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    return TwilioVoiceSDK.sdkVersion;
+    resolve(TwilioVoiceSDK.sdkVersion);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_connect:(NSString *)uuid
-                                       accessToken:(NSString *)accessToken
-                                       params:(NSDictionary *)params)
+RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
+                  accessToken:(NSString *)accessToken
+                  params:(NSDictionary *)params
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:accessToken
                                                                             block:^(TVOConnectOptionsBuilder *builder) {
@@ -95,22 +98,26 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_connect:(NSString *)uuid
     self.activeCall = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     self.callMap[uuid] = self.activeCall;
 
-    return nil;
+    resolve(nil);
 }
 
 #pragma mark - Bingings (Call)
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_disconnect:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call disconnect];
     }
 
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getState:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     NSString *state = @"";
@@ -118,85 +125,108 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getState:(NSString *)uuid)
         state = [self stringOfState:call.state];
     }
     
-    return state;
+    resolve(state);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getSid:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getSid:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && call.state != TVOCallStateConnecting)? call.sid : @"";
+    NSString *callSid = (call && call.state != TVOCallStateConnecting)? call.sid : @"";
+    
+    resolve(callSid);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getFrom:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getFrom:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && [call.from length] > 0)? call.from : @"";
+    NSString *from = (call && [call.from length] > 0)? call.from : @"";
+    
+    resolve(from);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getTo:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getTo:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && [call.to length] > 0)? call.to : @"";
+    NSString *to = (call && [call.to length] > 0)? call.to : @"";
+    
+    resolve(to);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_hold:(NSString *)uuid
-                                       onHold:(BOOL)onHold)
+RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
+                  onHold:(BOOL)onHold
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
     }
     
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_isOnHold:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
-        return @(call.isOnHold);
+        resolve(@(call.isOnHold));
     } else {
-        return @(false);
+        resolve(@(false));
     }
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_mute:(NSString *)uuid
-                                       muted:(BOOL)muted)
+RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
+                  muted:(BOOL)muted
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
     }
     
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_isMuted:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
-        return @(call.isMuted);
+        resolve(@(call.isMuted));
     } else {
-        return @(false);
+        resolve(@(false));
     }
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_sendDigits:(NSString *)uuid
-                                       digits:(NSString *)digits)
+RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
+                  digits:(NSString *)digits
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call sendDigits:digits];
     }
     
-    return nil;
+    resolve(nil);
 }
 
 #pragma mark - utility
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
+RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    return [[NSUUID UUID] UUIDString];
+    resolve([[NSUUID UUID] UUIDString]);
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {
