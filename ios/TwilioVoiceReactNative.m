@@ -1,4 +1,15 @@
+//
+//  TwilioVoiceReactNative.m
+//  TwilioVoiceReactNative
+//
+//  Copyright © 2021 Twilio, Inc. All rights reserved.
+//
+
+#import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
+
+NSString * const kTwilioVoiceReactNativeEventVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 
 @import TwilioVoice;
 
@@ -18,9 +29,37 @@
         _callMap = [NSMutableDictionary dictionary];
         _audioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = _audioDevice;
+        
+        [self subscribeToNotifications];
     }
 
     return self;
+}
+
+- (void)subscribeToNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handlePushRegistryNotification:)
+                                                 name:kTwilioVoicePushRegistryNotification
+                                               object:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)handlePushRegistryNotification:(NSNotification *)notification {
+    NSDictionary *eventBody = notification.userInfo;
+    if ([eventBody[kTwilioVoicePushRegistryType] isEqualToString:kTwilioVoicePushRegistryDeviceTokenUpdated]) {
+        /**
+           The listener might not have registered themselves at the time the pushRegistry:didUpdatePushCredentials:forType: callback is called.
+           1-second wait does the job and the React Native binding can receive the event properly.
+         */
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
+        });
+    } else {
+        [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
+    }
 }
 
 RCT_EXPORT_MODULE();
@@ -29,12 +68,12 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[@"Voice", @"Call"];
+  return @[kTwilioVoiceReactNativeEventVoice, kTwilioVoiceReactNativeEventCall];
 }
 
 + (BOOL)requiresMainQueueSetup
 {
-  return NO;
+  return YES;
 }
 
 #pragma mark - Bingings (Voice methods)
@@ -182,12 +221,12 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 - (void)callDidStartRinging:(TVOCall *)call {
     NSLog(@"Call ringing.");
     self.audioDevice.enabled = YES;
-    [self sendEventWithName:@"Call" body:@{@"type": @"ringing"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"ringing", @"uuid": [call.uuid UUIDString]}];
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
     NSLog(@"Call failed to connect: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"error": [error localizedDescription]}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 
     // TODO: disconnect call with CallKit if needed
     // TODO: CallKit completion handler
@@ -197,9 +236,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
     NSLog(@"Call disconnected with error: %@.", error);
     NSDictionary *messageBody = [NSDictionary dictionary];
     if (error) {
-        messageBody = @{@"type": @"disconnected", @"error": [error localizedDescription]};
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]};
     } else {
-        messageBody = @{@"type": @"disconnected"};
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString]};
     }
     
     [self sendEventWithName:@"Call" body:messageBody];
@@ -210,7 +249,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 
 - (void)callDidConnect:(TVOCall *)call {
     NSLog(@"Call connected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
 
     // TODO: CallKit completion handler
     // TODO: report connected to CallKit
@@ -218,12 +257,12 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
     NSLog(@"Call reconnecting: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"error": [error localizedDescription]}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 }
 
 - (void)callDidReconnect:(TVOCall *)call {
     NSLog(@"Call reconnected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected", @"uuid": [call.uuid UUIDString]}];
 }
 
 - (void)call:(TVOCall *)call

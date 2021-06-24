@@ -11,6 +11,10 @@
 
 #import "TwilioVoicePushRegistry.h"
 
+NSString * const kTwilioVoicePushRegistryNotification = @"TwilioVoicePushRegistryNotification";
+NSString * const kTwilioVoicePushRegistryType = @"type";
+NSString * const kTwilioVoicePushRegistryDeviceTokenUpdated = @"deviceTokenUpdated";
+
 @interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, CXProviderDelegate>
 
 @property (nonatomic, strong) PKPushRegistry *voipRegistry;
@@ -19,6 +23,8 @@
 @end
 
 @implementation TwilioVoicePushRegistry
+
+#pragma mark - TwilioVoicePushRegistry methods
 
 - (void)updatePushRegistry {
     CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Voice"];
@@ -33,11 +39,15 @@
     self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
 }
 
+#pragma mark - PKPushRegistryDelegate
+
 - (void)pushRegistry:(PKPushRegistry *)registry
 didUpdatePushCredentials:(PKPushCredentials *)credentials
              forType:(NSString *)type {
     if ([type isEqualToString:PKPushTypeVoIP]) {
-        // TODO: notify view-controller to emit event that device token is ready
+        [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
+                                                            object:nil
+                                                          userInfo:@{kTwilioVoicePushRegistryType : kTwilioVoicePushRegistryDeviceTokenUpdated}];
     }
 }
 

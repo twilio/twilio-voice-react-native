@@ -5,9 +5,11 @@
 //  Copyright © 2021 Twilio, Inc. All rights reserved.
 //
 
-@interface TwilioVoicePushRegistry : NSObject
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotification;
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryType;
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryDeviceTokenUpdated;
 
-// TODO: a delegate for eventing
+@interface TwilioVoicePushRegistry : NSObject
 
 - (void)updatePushRegistry;
 
