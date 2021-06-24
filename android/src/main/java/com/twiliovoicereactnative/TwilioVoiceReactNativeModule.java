@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.twilio.voice.Voice;
@@ -82,7 +83,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_connect(String uuid, String accessToken, ReadableMap params) {
+  public void voice_connect(String uuid, String accessToken, ReadableMap params, Promise promise) {
     Log.e(TAG, String.format("Calling voice_connect"));
     HashMap<String, String> twiMLParams = new HashMap<>();
     twiMLParams.put("To", "bob");
@@ -99,17 +100,18 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, androidEventEmitter));
     callMap.put(uuid, call);
+    promise.resolve(uuid);
   }
 
   @ReactMethod
-  public String voice_getVersion() {
-    return Voice.getVersion();
+  public void voice_getVersion(Promise promise) {
+    promise.resolve(Voice.getVersion());
   }
 
   @ReactMethod
-  public String util_generateId() {
+  public void util_generateId(Promise promise) {
     UUID uuid = UUID.randomUUID();
-    return uuid.toString();
+    promise.resolve(uuid.toString());
   }
 
   @ReactMethod
@@ -122,31 +124,31 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public String call_getFrom(String uuid) {
+  public void call_getFrom(String uuid, Promise promise) {
     Call activeCall = callMap.get(uuid);
     String from = (activeCall != null) ? activeCall.getFrom() : null;
-    return from;
+    promise.resolve(from);
   }
 
   @ReactMethod
-  public String call_getTo(String uuid) {
+  public void call_getTo(String uuid, Promise promise) {
     Call activeCall = callMap.get(uuid);
     String to = (activeCall != null) ? activeCall.getTo() : null;
-    return to;
+    promise.resolve(to);
   }
 
   @ReactMethod
-  public String call_getSid(String uuid) {
+  public void call_getSid(String uuid, Promise promise) {
     Call activeCall = callMap.get(uuid);
     String sid = (activeCall != null) ? activeCall.getSid() : null;
-    return sid;
+    promise.resolve(sid);
   }
 
   @ReactMethod
-  public String call_getState(String uuid) {
+  public void call_getState(String uuid, Promise promise) {
     Call activeCall = callMap.get(uuid);
     String state = (activeCall != null) ? activeCall.getState().toString() : null;
-    return state;
+    promise.resolve(state);
   }
 
   @ReactMethod
