@@ -6,8 +6,9 @@
 //
 
 FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotification;
-FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryType;
-FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryDeviceTokenUpdated;
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationType;
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenUpdated;
+FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenKey;
 
 @interface TwilioVoicePushRegistry : NSObject
 

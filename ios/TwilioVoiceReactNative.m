@@ -15,6 +15,8 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 
 @interface TwilioVoiceReactNative () <TVOCallDelegate>
 
+@property(nonatomic, strong) NSData *deviceTokenData;
+
 @property (nonatomic, strong) NSMutableDictionary *callMap;
 @property (nonatomic, strong) TVOCall *activeCall;
 @property (nonatomic, strong) TVODefaultAudioDevice *audioDevice;
@@ -29,6 +31,8 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
         _callMap = [NSMutableDictionary dictionary];
         _audioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = _audioDevice;
+        
+        TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
         
         [self subscribeToNotifications];
     }
@@ -49,12 +53,15 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 
 - (void)handlePushRegistryNotification:(NSNotification *)notification {
     NSDictionary *eventBody = notification.userInfo;
-    if ([eventBody[kTwilioVoicePushRegistryType] isEqualToString:kTwilioVoicePushRegistryDeviceTokenUpdated]) {
+    if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+        NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
+        self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
+
         /**
            The listener might not have registered themselves at the time the pushRegistry:didUpdatePushCredentials:forType: callback is called.
-           1-second wait does the job and the React Native binding can receive the event properly.
+           A 2-second wait does the job and the React Native binding can receive the event properly.
          */
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
         });
     } else {
@@ -82,6 +89,44 @@ RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     resolve(TwilioVoiceSDK.sdkVersion);
+}
+
+RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
+                  deviceToken:(NSString *)deviceToken
+                  channelType:(NSString *)channelType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [TwilioVoiceSDK registerWithAccessToken:accessToken
+                                deviceToken:self.deviceTokenData
+                                 completion:^(NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
+            NSLog(@"%@", errorMessage);
+            reject(@"Voice error", errorMessage, nil);
+        } else {
+            resolve(nil);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
+                  deviceToken:(NSString *)deviceToken
+                  channelType:(NSString *)channelType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [TwilioVoiceSDK unregisterWithAccessToken:accessToken
+                                  deviceToken:self.deviceTokenData
+                                   completion:^(NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
+            NSLog(@"%@", errorMessage);
+            reject(@"Voice error", errorMessage, nil);
+        } else {
+            resolve(nil);
+        }
+    }];
 }
 
 RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid

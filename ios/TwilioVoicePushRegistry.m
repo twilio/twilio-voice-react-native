@@ -12,8 +12,9 @@
 #import "TwilioVoicePushRegistry.h"
 
 NSString * const kTwilioVoicePushRegistryNotification = @"TwilioVoicePushRegistryNotification";
-NSString * const kTwilioVoicePushRegistryType = @"type";
-NSString * const kTwilioVoicePushRegistryDeviceTokenUpdated = @"deviceTokenUpdated";
+NSString * const kTwilioVoicePushRegistryNotificationType = @"type";
+NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenUpdated = @"deviceTokenUpdated";
+NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenKey = @"deviceToken";
 
 @interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, CXProviderDelegate>
 
@@ -47,7 +48,8 @@ didUpdatePushCredentials:(PKPushCredentials *)credentials
     if ([type isEqualToString:PKPushTypeVoIP]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                             object:nil
-                                                          userInfo:@{kTwilioVoicePushRegistryType : kTwilioVoicePushRegistryDeviceTokenUpdated}];
+                                                          userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationDeviceTokenUpdated,
+                                                                     kTwilioVoicePushRegistryNotificationDeviceTokenKey: credentials.token}];
     }
 }
 
