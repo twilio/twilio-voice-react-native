@@ -61,7 +61,7 @@ export default function App() {
           ..._callEvents,
           {
             id: `${_callEvents.length}`,
-            content: `${sid}: ${callEvent}`,
+            content: `${_sid}: ${callEvent}`,
           },
         ]);
 
@@ -148,10 +148,10 @@ export default function App() {
       </View>
       <View>
         <View style={styles.button}>
-          {callMethods ? (
-            <Button title="Disconnect" onPress={callMethods.disconnect} />
-          ) : (
+          {!callMethods || callInfo?.state === 'disconnected' ? (
             <Button title="Connect" onPress={connectHandler} />
+          ) : (
+            <Button title="Disconnect" onPress={callMethods.disconnect} />
           )}
         </View>
         <View style={styles.buttonContainer}>
