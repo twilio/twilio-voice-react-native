@@ -1,4 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.twiliovoicereactnative">
+  <uses-permission android:name="android.permission.VIBRATE" />
+
+  <application>
+    <!-- [START fcm_listener] -->
+    <service
+      android:name="com.twiliovoicereactnative.VoiceFirebaseMessagingService">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+    <!-- [END fcm_listener] -->
+  </application>
 
 </manifest>

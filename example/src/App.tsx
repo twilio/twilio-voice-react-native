@@ -148,7 +148,7 @@ export default function App() {
       </View>
       <View>
         <View style={styles.button}>
-          {!callMethods || callInfo?.state === 'disconnected' ? (
+          {!callMethods || callInfo?.state === 'DISCONNECTED' ? (
             <Button title="Connect" onPress={connectHandler} />
           ) : (
             <Button title="Disconnect" onPress={callMethods.disconnect} />
