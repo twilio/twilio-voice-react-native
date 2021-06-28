@@ -100,7 +100,7 @@ export default function App() {
   }, [handleCall, outgoingTo]);
 
   const registerHandler = React.useCallback(() => {
-    voice.register('foobar-device-token', RegistrationChannel.FCM);
+    voice.register('token', RegistrationChannel.FCM);
   }, []);
 
   React.useEffect(() => {

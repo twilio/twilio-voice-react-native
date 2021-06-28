@@ -13,6 +13,7 @@ public class AndroidEventEmitter {
   private ReactApplicationContext mContext;
 
   public static final String CALL_EVENT_NAME = "Call";
+  public static final String VOICE_EVENT_NAME = "Voice";
   public static final String EVENT_TYPE = "type";
   public static final String EVENT_ERROR = "error";
   public static final String EVENT_CALL_RINGING = "ringing";
@@ -22,6 +23,9 @@ public class AndroidEventEmitter {
   public static final String EVENT_CALL_RECONNECTED = "reconnect";
   public static final String EVENT_CALL_RECONNECTING= "reconnecting";
   public static final String CALL_UUID = "uuid";
+  public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
+  public static final String EVENT_REGISTERED = "registered";
+  public static final String EVENT_UNREGISTERED = "unregistered";
 
 
   public AndroidEventEmitter(ReactApplicationContext context) {

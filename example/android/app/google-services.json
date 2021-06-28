@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "201489538169",
+    "project_id": "voice-in-frontline-app",
+    "storage_bucket": "voice-in-frontline-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201489538169:android:2e9584cbf607efb92e08a8",
+        "android_client_info": {
+          "package_name": "com.example.twiliovoicereactnative"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "201489538169-tlberm5oppojr1imn0rhvruclgdh98r8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGeKKG8QVSzUCh_h3ymSrp16_cRCDuBxE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "201489538169-tlberm5oppojr1imn0rhvruclgdh98r8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

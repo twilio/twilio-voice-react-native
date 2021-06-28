@@ -1,8 +1,10 @@
 buildscript {
     ext.versions = [
       'androidGradlePlugin': '4.1.2',
-      'googleServices'     : '4.2.0',
-      'voiceAndroid'       : '5.7.2'
+      'googleServices'     : '4.3.8',
+      'voiceAndroid'       : '5.7.2',
+      'androidxLifecycle'  : '2.2.0',
+      'firebase'           : '17.6.0'
     ]
     if (project == rootProject) {
         repositories {
@@ -12,7 +14,7 @@ buildscript {
 
         dependencies {
             classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
-            classpath "com.google.gms:google-services:${versions.googleServices}"
+            classpath 'com.google.gms:google-services:4.3.8'
         }
     }
 }
@@ -49,17 +51,19 @@ android {
 }
 
 repositories {
-    mavenLocal()
-    maven {
-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-        url("$rootDir/../node_modules/react-native/android")
-    }
-    google()
-    jcenter()
+  google()
+  mavenCentral()
+  jcenter()
+  maven {
+    url 'https://maven.google.com/'
+    name 'Google'
+  }
 }
 
 dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation "com.twilio:voice-android:${versions.voiceAndroid}"
+    implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
+    implementation 'com.google.firebase:firebase-messaging:17.6.+'
 }

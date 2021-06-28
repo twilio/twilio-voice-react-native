@@ -36,13 +36,24 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 public class MainActivity extends ReactActivity {
   private static final String TAG = "MainActivity";
   private static final int MIC_PERMISSION_REQUEST_CODE = 1;
+  public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
+  public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
+  public static final String FCM_TOKEN = "FCM_TOKEN";
+  private VoiceBroadcastReceiver voiceBroadcastReceiver;
 
   private boolean checkPermissionForMicrophone() {
     int resultMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
@@ -59,6 +70,19 @@ public class MainActivity extends ReactActivity {
     if (!checkPermissionForMicrophone()) {
       requestPermissionForMicrophone();
     }
+
+    voiceBroadcastReceiver = new VoiceBroadcastReceiver();
+    registerReceiver();
+  }
+
+  private void requestToken() {
+    FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this, instanceIdResult -> {
+      String fcmToken = instanceIdResult.getToken();
+      Log.i(TAG, "Received token " + fcmToken);
+      Intent intent = new Intent(ACTION_FCM_TOKEN);
+      intent.putExtra(FCM_TOKEN, fcmToken);
+      LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    });
   }
 
   private void requestPermissionForMicrophone() {
@@ -69,6 +93,27 @@ public class MainActivity extends ReactActivity {
         this,
         new String[]{Manifest.permission.RECORD_AUDIO},
         MIC_PERMISSION_REQUEST_CODE);
+    }
+  }
+
+  private void registerReceiver() {
+    IntentFilter intentFilter = new IntentFilter();
+    intentFilter.addAction(ACTION_FCM_TOKEN_REQUEST);
+    LocalBroadcastManager.getInstance(this).registerReceiver(
+      voiceBroadcastReceiver, intentFilter);
+    Log.d(TAG, "Successfully registered Receiver");
+  }
+
+  private class VoiceBroadcastReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      String action = intent.getAction();
+      /*
+       * Handle the incoming or cancelled call invite
+       */
+      Log.d(TAG, "Successfully received FCM token " + action);
+      requestToken();
     }
   }
 
