@@ -10,11 +10,15 @@ import com.facebook.react.uimanager.ViewManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import android.util.Log;
 
 public class TwilioVoiceReactNativePackage implements ReactPackage {
+     private static final String TAG = "TwilioVoiceReactNativePackage";
+     
     @NonNull
     @Override
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
+        Log.d(TAG, "Created createNativeModules");
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new TwilioVoiceReactNativeModule(reactContext));
         return modules;

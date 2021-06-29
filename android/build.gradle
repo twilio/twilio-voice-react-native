@@ -3,8 +3,7 @@ buildscript {
       'androidGradlePlugin': '4.1.2',
       'googleServices'     : '4.3.8',
       'voiceAndroid'       : '5.7.2',
-      'androidxLifecycle'  : '2.2.0',
-      'firebase'           : '17.6.0'
+      'androidxLifecycle'  : '2.2.0'
     ]
     if (project == rootProject) {
         repositories {
@@ -65,5 +64,5 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation "com.twilio:voice-android:${versions.voiceAndroid}"
     implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
-    implementation 'com.google.firebase:firebase-messaging:17.6.+'
+    implementation 'com.google.firebase:firebase-messaging:19.0.+'
 }

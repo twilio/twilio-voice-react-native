@@ -48,7 +48,7 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_ERROR;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
-  public static final String TAG = "TwilioVoiceReactNative";
+  static final String TAG = "TwilioVoiceReactNative";
   static final Map<String, Call> callMap = new HashMap<>();
   private String fcmToken;
   private AndroidEventEmitter androidEventEmitter;
@@ -89,9 +89,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       /*
        * Handle the incoming or cancelled call invite
        */
-      Log.d(TAG, "Successfully received FCM token " + action);
-
-      Voice.register("accessToken", Voice.RegistrationChannel.FCM, "fcmToken", registrationListener);
+      Log.d(TAG, "Successfully received intent" + action);
+      switch (action) {
+        case Constants.ACTION_FCM_TOKEN:
+          fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
+          Log.d(TAG, "Successfully set token" + fcmToken);
+          break;
+        default:
+          break;
+      }
+      //Voice.register("accessToken", Voice.RegistrationChannel.FCM, "fcmToken", registrationListener);
     }
   }
 
@@ -235,7 +242,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_register(String token, String fcmToken, String channel, Promise promise) {
+  public void voice_register(String token, String channel, Promise promise) {
     //Intent intent = new Intent(ACTION_FCM_TOKEN_REQUEST);
     //LocalBroadcastManager.getInstance(reactContext).sendBroadcast(intent);
     Log.i(TAG, "Requesting fcm token ");
@@ -249,23 +256,21 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           }
 
           // Get new Instance ID token
-          String fcmToken = task.getResult().getToken();
+          fcmToken = task.getResult().getToken();
           if (fcmToken != null) {
             if (BuildConfig.DEBUG) {
-              Log.d(TAG, "Registering with FCM");
+              Log.d(TAG, "Registering with FCM with token "+fcmToken);
             }
             Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
           }
         }
       });
-    promise.resolve(token);
+    promise.resolve(null);
   }
 
 
    @ReactMethod
-  public void voice_unregister(String token, String fcmToken, String channel, Promise promise) {
-    //Intent intent = new Intent(ACTION_FCM_TOKEN_REQUEST);
-    //LocalBroadcastManager.getInstance(reactContext).sendBroadcast(intent);
+  public void voice_unregister(String token, String channel, Promise promise) {
     Log.i(TAG, "Requesting fcm token ");
     FirebaseInstanceId.getInstance().getInstanceId()
       .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
