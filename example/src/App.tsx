@@ -8,12 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {
-  Call,
-  CallInvite,
-  Voice,
-  RegistrationChannel,
-} from 'twilio-voice-react-native';
+import { Call, CallInvite, Voice } from 'twilio-voice-react-native';
 
 const voice = new Voice();
 
@@ -100,7 +95,7 @@ export default function App() {
   }, [handleCall, outgoingTo]);
 
   const registerHandler = React.useCallback(() => {
-    voice.register('foobar-device-token', RegistrationChannel.FCM);
+    voice.register('foobar-token');
   }, []);
 
   React.useEffect(() => {

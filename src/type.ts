@@ -1,11 +1,6 @@
 import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 
-export enum RegistrationChannel {
-  GCM = 'GCM',
-  FCM = 'FCM',
-}
-
 export type CallException = any;
 
 export type Uuid = string;
@@ -89,14 +84,6 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     params: Record<string, string>
   ): Promise<void>;
   voice_getVersion(): Promise<string>;
-  voice_register(
-    accessToken: string,
-    registrationToken: string,
-    registrationChannel?: RegistrationChannel
-  ): Promise<void>;
-  voice_unregister(
-    accessToken: string,
-    registrationToken: string,
-    registrationChannel?: RegistrationChannel
-  ): Promise<void>;
+  voice_register(accessToken: string): Promise<void>;
+  voice_unregister(accessToken: string): Promise<void>;
 }
