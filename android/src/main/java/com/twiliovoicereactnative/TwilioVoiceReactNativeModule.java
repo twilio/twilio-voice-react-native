@@ -22,6 +22,7 @@ import com.twilio.voice.CallException;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
+import com.twilio.voice.UnregistrationListener;
 import com.twilio.voice.LogLevel;
 
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_REGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_UNREGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_ERROR;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
@@ -53,6 +55,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
   private final ReactApplicationContext reactContext;
   RegistrationListener registrationListener = registrationListener();
+  UnregistrationListener unregistrationListener = unregistrationListener();
 
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -112,8 +115,28 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       public void onError(RegistrationException error, String accessToken, String fcmToken) {
         Log.e(TAG, String.format("Registration Error: %d, %s", error.getErrorCode(), error.getMessage()));
         WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_ERROR);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+      }
+    };
+  }
+
+  private UnregistrationListener unregistrationListener() {
+    return new UnregistrationListener() {
+      @Override
+      public void onUnregistered(String accessToken, String fcmToken) {
+        Log.d(TAG, "Successfully unregistered FCM");
+        WritableMap params = Arguments.createMap();
         params.putString(EVENT_TYPE, EVENT_UNREGISTERED);
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);;
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+      }
+
+      @Override
+      public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
+        Log.e(TAG, String.format("unregistration Error: %d, %s", registrationException.getErrorCode(), registrationException.getMessage()));
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_ERROR);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
       }
     };
   }
@@ -232,6 +255,34 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
               Log.d(TAG, "Registering with FCM");
             }
             Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
+          }
+        }
+      });
+    promise.resolve(token);
+  }
+
+
+   @ReactMethod
+  public void voice_unregister(String token, String fcmToken, String channel, Promise promise) {
+    //Intent intent = new Intent(ACTION_FCM_TOKEN_REQUEST);
+    //LocalBroadcastManager.getInstance(reactContext).sendBroadcast(intent);
+    Log.i(TAG, "Requesting fcm token ");
+    FirebaseInstanceId.getInstance().getInstanceId()
+      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+        @Override
+        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+          if (!task.isSuccessful()) {
+            Log.w(TAG, "getInstanceId failed", task.getException());
+            return;
+          }
+
+          // Get new Instance ID token
+          String fcmToken = task.getResult().getToken();
+          if (fcmToken != null) {
+            if (BuildConfig.DEBUG) {
+              Log.d(TAG, "UnRegistering with FCM");
+            }
+            Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
           }
         }
       });

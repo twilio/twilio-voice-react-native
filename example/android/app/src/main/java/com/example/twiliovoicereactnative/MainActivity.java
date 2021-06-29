@@ -36,7 +36,6 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import com.google.firebase.iid.FirebaseInstanceId;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -75,16 +74,6 @@ public class MainActivity extends ReactActivity {
     registerReceiver();
   }
 
-  private void requestToken() {
-    FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this, instanceIdResult -> {
-      String fcmToken = instanceIdResult.getToken();
-      Log.i(TAG, "Received token " + fcmToken);
-      Intent intent = new Intent(ACTION_FCM_TOKEN);
-      intent.putExtra(FCM_TOKEN, fcmToken);
-      LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    });
-  }
-
   private void requestPermissionForMicrophone() {
     if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
         Log.d(TAG, "Microphone permissions needed. Please allow in your application settings.");
@@ -109,11 +98,6 @@ public class MainActivity extends ReactActivity {
     @Override
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
-      /*
-       * Handle the incoming or cancelled call invite
-       */
-      Log.d(TAG, "Successfully received FCM token " + action);
-      requestToken();
     }
   }
 

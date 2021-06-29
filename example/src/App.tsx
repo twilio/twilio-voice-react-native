@@ -39,6 +39,7 @@ const getCallInfo = (call: Call) =>
 export default function App() {
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
+  const [unregistered, setUnRegistered] = React.useState<boolean>(false);
   const [callMethods, setCallMethods] = React.useState<
     CallMethods | undefined
   >();
@@ -103,9 +104,14 @@ export default function App() {
     voice.register('token', RegistrationChannel.FCM);
   }, []);
 
+  const unregisterHandler = React.useCallback(() => {
+    voice.unregister('token', RegistrationChannel.FCM);
+  }, []);
+
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
     voice.on(Voice.Event.Registered, () => setRegistered(true));
+    voice.on(Voice.Event.Unregistered, () => setUnRegistered(true));
     voice.on(Voice.Event.CallInvite, (_callInvite: CallInvite) => {
       // handling call invite
       // const call = callInvite.accept();
@@ -118,6 +124,7 @@ export default function App() {
       <View style={styles.header}>
         <Text>SDK Version: {String(sdkVersion)}</Text>
         <Text>Registered: {String(registered)}</Text>
+        <Text>Unregistered: {String(unregistered)}</Text>
       </View>
       {callInfo ? (
         <View>
@@ -172,6 +179,9 @@ export default function App() {
         </View>
         <View style={styles.button}>
           <Button title="Register" onPress={registerHandler} />
+        </View>
+        <View style={styles.button}>
+          <Button title="Unregister" onPress={unregisterHandler} />
         </View>
       </View>
     </View>
