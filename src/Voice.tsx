@@ -4,11 +4,7 @@ import { Call } from './Call';
 import { CanceledCallInvite } from './CanceledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
-import type {
-  CallException,
-  NativeMessageEvent,
-  RegistrationChannel,
-} from './type';
+import type { CallException, NativeMessageEvent } from './type';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.
@@ -150,28 +146,12 @@ export class Voice extends EventEmitter {
     return this._nativeModule.voice_getVersion();
   }
 
-  register(
-    token: string,
-    registrationToken: string,
-    registrationChannel?: RegistrationChannel
-  ): Promise<void> {
-    return this._nativeModule.voice_register(
-      token,
-      registrationToken,
-      registrationChannel
-    );
+  register(token: string): Promise<void> {
+    return this._nativeModule.voice_register(token);
   }
 
-  unregister(
-    token: string,
-    registrationToken: string,
-    registrationChannel?: RegistrationChannel
-  ): Promise<void> {
-    return this._nativeModule.voice_unregister(
-      token,
-      registrationToken,
-      registrationChannel
-    );
+  unregister(token: string): Promise<void> {
+    return this._nativeModule.voice_unregister(token);
   }
 }
 

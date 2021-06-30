@@ -242,7 +242,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_register(String token, String channel, Promise promise) {
+  public void voice_register(String token, Promise promise) {
     //Intent intent = new Intent(ACTION_FCM_TOKEN_REQUEST);
     //LocalBroadcastManager.getInstance(reactContext).sendBroadcast(intent);
     Log.i(TAG, "Requesting fcm token ");
@@ -270,7 +270,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
 
    @ReactMethod
-  public void voice_unregister(String token, String channel, Promise promise) {
+  public void voice_unregister(String token, Promise promise) {
     Log.i(TAG, "Requesting fcm token ");
     FirebaseInstanceId.getInstance().getInstanceId()
       .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
