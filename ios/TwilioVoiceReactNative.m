@@ -1,8 +1,21 @@
+//
+//  TwilioVoiceReactNative.m
+//  TwilioVoiceReactNative
+//
+//  Copyright © 2021 Twilio, Inc. All rights reserved.
+//
+
+#import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
+
+NSString * const kTwilioVoiceReactNativeEventVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 
 @import TwilioVoice;
 
 @interface TwilioVoiceReactNative () <TVOCallDelegate>
+
+@property(nonatomic, strong) NSData *deviceTokenData;
 
 @property (nonatomic, strong) NSMutableDictionary *callMap;
 @property (nonatomic, strong) TVOCall *activeCall;
@@ -18,9 +31,34 @@
         _callMap = [NSMutableDictionary dictionary];
         _audioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = _audioDevice;
+        
+        TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
+        
+        [self subscribeToNotifications];
     }
 
     return self;
+}
+
+- (void)subscribeToNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handlePushRegistryNotification:)
+                                                 name:kTwilioVoicePushRegistryNotification
+                                               object:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)handlePushRegistryNotification:(NSNotification *)notification {
+    NSDictionary *eventBody = notification.userInfo;
+    if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+        NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
+        self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
+    } else {
+        [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
+    }
 }
 
 RCT_EXPORT_MODULE();
@@ -29,19 +67,65 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[@"Voice", @"Call"];
+  return @[kTwilioVoiceReactNativeEventVoice, kTwilioVoiceReactNativeEventCall];
+}
+
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
 }
 
 #pragma mark - Bingings (Voice methods)
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_getVersion)
+RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    return TwilioVoiceSDK.sdkVersion;
+    resolve(TwilioVoiceSDK.sdkVersion);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_connect:(NSString *)uuid
-                                       accessToken:(NSString *)accessToken
-                                       params:(NSDictionary *)params)
+RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
+                  deviceToken:(NSString *)deviceToken
+                  channelType:(NSString *)channelType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [TwilioVoiceSDK registerWithAccessToken:accessToken
+                                deviceToken:self.deviceTokenData
+                                 completion:^(NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
+            NSLog(@"%@", errorMessage);
+            reject(@"Voice error", errorMessage, nil);
+        } else {
+            resolve(nil);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
+                  deviceToken:(NSString *)deviceToken
+                  channelType:(NSString *)channelType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [TwilioVoiceSDK unregisterWithAccessToken:accessToken
+                                  deviceToken:self.deviceTokenData
+                                   completion:^(NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
+            NSLog(@"%@", errorMessage);
+            reject(@"Voice error", errorMessage, nil);
+        } else {
+            resolve(nil);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
+                  accessToken:(NSString *)accessToken
+                  params:(NSDictionary *)params
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:accessToken
                                                                             block:^(TVOConnectOptionsBuilder *builder) {
@@ -51,22 +135,26 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(voice_connect:(NSString *)uuid
     self.activeCall = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     self.callMap[uuid] = self.activeCall;
 
-    return nil;
+    resolve(nil);
 }
 
 #pragma mark - Bingings (Call)
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_disconnect:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call disconnect];
     }
 
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getState:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     NSString *state = @"";
@@ -74,85 +162,108 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getState:(NSString *)uuid)
         state = [self stringOfState:call.state];
     }
     
-    return state;
+    resolve(state);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getSid:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getSid:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && call.state != TVOCallStateConnecting)? call.sid : @"";
+    NSString *callSid = (call && call.state != TVOCallStateConnecting)? call.sid : @"";
+    
+    resolve(callSid);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getFrom:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getFrom:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && [call.from length] > 0)? call.from : @"";
+    NSString *from = (call && [call.from length] > 0)? call.from : @"";
+    
+    resolve(from);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_getTo:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_getTo:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
-    return (call && [call.to length] > 0)? call.to : @"";
+    NSString *to = (call && [call.to length] > 0)? call.to : @"";
+    
+    resolve(to);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_hold:(NSString *)uuid
-                                       onHold:(BOOL)onHold)
+RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
+                  onHold:(BOOL)onHold
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
     }
     
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_isOnHold:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
-        return @(call.isOnHold);
+        resolve(@(call.isOnHold));
     } else {
-        return @(false);
+        resolve(@(false));
     }
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_mute:(NSString *)uuid
-                                       muted:(BOOL)muted)
+RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
+                  muted:(BOOL)muted
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
     }
     
-    return nil;
+    resolve(nil);
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_isMuted:(NSString *)uuid)
+RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
-        return @(call.isMuted);
+        resolve(@(call.isMuted));
     } else {
-        return @(false);
+        resolve(@(false));
     }
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(call_sendDigits:(NSString *)uuid
-                                       digits:(NSString *)digits)
+RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
+                  digits:(NSString *)digits
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call sendDigits:digits];
     }
     
-    return nil;
+    resolve(nil);
 }
 
 #pragma mark - utility
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
+RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    return [[NSUUID UUID] UUIDString];
+    resolve([[NSUUID UUID] UUIDString]);
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {
@@ -177,12 +288,12 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 - (void)callDidStartRinging:(TVOCall *)call {
     NSLog(@"Call ringing.");
     self.audioDevice.enabled = YES;
-    [self sendEventWithName:@"Call" body:@{@"type": @"ringing"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"ringing", @"uuid": [call.uuid UUIDString]}];
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
     NSLog(@"Call failed to connect: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"error": [error localizedDescription]}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 
     // TODO: disconnect call with CallKit if needed
     // TODO: CallKit completion handler
@@ -192,9 +303,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
     NSLog(@"Call disconnected with error: %@.", error);
     NSDictionary *messageBody = [NSDictionary dictionary];
     if (error) {
-        messageBody = @{@"type": @"disconnected", @"error": [error localizedDescription]};
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]};
     } else {
-        messageBody = @{@"type": @"disconnected"};
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString]};
     }
     
     [self sendEventWithName:@"Call" body:messageBody];
@@ -205,7 +316,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 
 - (void)callDidConnect:(TVOCall *)call {
     NSLog(@"Call connected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
 
     // TODO: CallKit completion handler
     // TODO: report connected to CallKit
@@ -213,12 +324,12 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(util_generateId)
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
     NSLog(@"Call reconnecting: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"error": [error localizedDescription]}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 }
 
 - (void)callDidReconnect:(TVOCall *)call {
     NSLog(@"Call reconnected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected"}];
+    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected", @"uuid": [call.uuid UUIDString]}];
 }
 
 - (void)call:(TVOCall *)call
