@@ -22,31 +22,44 @@ import com.twilio.voice.CallException;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
+import com.twilio.voice.UnregistrationListener;
 import com.twilio.voice.LogLevel;
 
 import java.util.HashMap;
 import java.util.UUID;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
+
+import static com.twiliovoicereactnative.AndroidEventEmitter.ACTION_FCM_TOKEN_REQUEST;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_REGISTERED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_UNREGISTERED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RINGING;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECTED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_DISCONNECTED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECT_FAILURE;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTED;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
-  public static final String TAG = "TwilioVoiceReactNative";
+  static final String TAG = "TwilioVoiceReactNative";
   static final Map<String, Call> callMap = new HashMap<>();
-
+  private String fcmToken;
   private AndroidEventEmitter androidEventEmitter;
-
+  private VoiceBroadcastReceiver voiceBroadcastReceiver;
+  private final ReactApplicationContext reactContext;
+  RegistrationListener registrationListener = registrationListener();
+  UnregistrationListener unregistrationListener = unregistrationListener();
 
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
+    this.reactContext = reactContext;
     if (BuildConfig.DEBUG) {
       Voice.setLogLevel(LogLevel.DEBUG);
     } else {
@@ -54,6 +67,39 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
 
     androidEventEmitter = new AndroidEventEmitter(reactContext);
+    voiceBroadcastReceiver = new VoiceBroadcastReceiver();
+    registerReceiver();
+  }
+
+  private void registerReceiver() {
+    IntentFilter intentFilter = new IntentFilter();
+    intentFilter.addAction(Constants.ACTION_INCOMING_CALL);
+    intentFilter.addAction(Constants.ACTION_CANCEL_CALL);
+    intentFilter.addAction(Constants.ACTION_FCM_TOKEN);
+    LocalBroadcastManager.getInstance(reactContext).registerReceiver(
+      voiceBroadcastReceiver, intentFilter);
+    Log.d(TAG, "Successfully registerReceiver");
+  }
+
+  private class VoiceBroadcastReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      String action = intent.getAction();
+      /*
+       * Handle the incoming or cancelled call invite
+       */
+      Log.d(TAG, "Successfully received intent" + action);
+      switch (action) {
+        case Constants.ACTION_FCM_TOKEN:
+          fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
+          Log.d(TAG, "Successfully set token" + fcmToken);
+          break;
+        default:
+          break;
+      }
+      //Voice.register("accessToken", Voice.RegistrationChannel.FCM, "fcmToken", registrationListener);
+    }
   }
 
   @Override
@@ -66,18 +112,38 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return new RegistrationListener() {
       @Override
       public void onRegistered(String accessToken, String fcmToken) {
-        if (BuildConfig.DEBUG) {
-          Log.d(TAG, "Successfully registered FCM");
-        }
-        //androidEventEmitter.sendEvent(EVENT_DEVICE_READY, null);
+        Log.d(TAG, "Successfully registered FCM");
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_REGISTERED);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
       }
 
       @Override
       public void onError(RegistrationException error, String accessToken, String fcmToken) {
         Log.e(TAG, String.format("Registration Error: %d, %s", error.getErrorCode(), error.getMessage()));
         WritableMap params = Arguments.createMap();
-        params.putString("err", error.getMessage());
-        //androidEventEmitter.sendEvent(EVENT_DEVICE_NOT_READY, params);
+        params.putString(EVENT_TYPE, EVENT_ERROR);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+      }
+    };
+  }
+
+  private UnregistrationListener unregistrationListener() {
+    return new UnregistrationListener() {
+      @Override
+      public void onUnregistered(String accessToken, String fcmToken) {
+        Log.d(TAG, "Successfully unregistered FCM");
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_UNREGISTERED);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+      }
+
+      @Override
+      public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
+        Log.e(TAG, String.format("unregistration Error: %d, %s", registrationException.getErrorCode(), registrationException.getMessage()));
+        WritableMap params = Arguments.createMap();
+        params.putString(EVENT_TYPE, EVENT_ERROR);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
       }
     };
   }
@@ -173,6 +239,55 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     if (activeCall != null) {
       activeCall.sendDigits(digits);
     }
+  }
+
+  @ReactMethod
+  public void voice_register(String token, Promise promise) {
+    FirebaseInstanceId.getInstance().getInstanceId()
+      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+        @Override
+        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+          if (!task.isSuccessful()) {
+            Log.w(TAG, "getInstanceId failed", task.getException());
+            return;
+          }
+
+          // Get new Instance ID token
+          fcmToken = task.getResult().getToken();
+          if (fcmToken != null) {
+            if (BuildConfig.DEBUG) {
+              Log.d(TAG, "Registering with FCM with token "+fcmToken);
+            }
+            Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
+          }
+        }
+      });
+    promise.resolve(null);
+  }
+
+
+   @ReactMethod
+  public void voice_unregister(String token, Promise promise) {
+    FirebaseInstanceId.getInstance().getInstanceId()
+      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+        @Override
+        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+          if (!task.isSuccessful()) {
+            Log.w(TAG, "getInstanceId failed", task.getException());
+            return;
+          }
+
+          // Get new Instance ID token
+          String fcmToken = task.getResult().getToken();
+          if (fcmToken != null) {
+            if (BuildConfig.DEBUG) {
+              Log.d(TAG, "UnRegistering with FCM");
+            }
+            Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
+          }
+        }
+      });
+    promise.resolve(token);
   }
 
 }
