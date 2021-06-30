@@ -19,14 +19,10 @@ NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenKey = @"deviceTo
 NSString * const kTwilioVoicePushRegistryNotificationCallInviteRecelved = @"callInvite";
 NSString * const kTwilioVoicePushRegistryNotificationCallInviteCancelled = @"canceledCallInvite";
 
-@interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, CXProviderDelegate, TVONotificationDelegate>
+@interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, TVONotificationDelegate>
 
 @property (nonatomic, strong) PKPushRegistry *voipRegistry;
-@property (nonatomic, strong) CXProvider *callKitProvider;
-@property (nonatomic, strong) CXCallController *callKitCallController;
-
-// TODO: a better place to keep the call invite other than this module
-@property (nonatomic, strong) TVOCallInvite *callInvite;
+@property (nonatomic, copy) NSString *callInviteUuid;
 
 @end
 
@@ -35,6 +31,20 @@ NSString * const kTwilioVoicePushRegistryNotificationCallInviteCancelled = @"can
 #pragma mark - TwilioVoicePushRegistry methods
 
 - (void)updatePushRegistry {
+    [self initializeCallKit];
+    [self createAudioDevice];
+    
+    self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
+    self.voipRegistry.delegate = self;
+    self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+}
+
+- (void)createAudioDevice {
+    self.audioDevice = [TVODefaultAudioDevice audioDevice];
+    TwilioVoiceSDK.audioDevice = self.audioDevice;
+}
+
+- (void)initializeCallKit {
     CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Voice"];
     configuration.maximumCallGroups = 1;
     configuration.maximumCallsPerCallGroup = 1;
@@ -42,10 +52,6 @@ NSString * const kTwilioVoicePushRegistryNotificationCallInviteCancelled = @"can
     self.callKitProvider = [[CXProvider alloc] initWithConfiguration:configuration];
     [self.callKitProvider setDelegate:self queue:nil];
     self.callKitCallController = [CXCallController new];
-    
-    self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
-    self.voipRegistry.delegate = self;
-    self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
 }
 
 #pragma mark - PKPushRegistryDelegate
@@ -101,26 +107,9 @@ withCompletionHandler:(void (^)(void))completion {
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
                                                       userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteRecelved}];
-    
-    self.callInvite = callInvite;
-    
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:callInvite.from];
 
-    CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
-    callUpdate.remoteHandle = callHandle;
-    callUpdate.supportsDTMF = YES;
-    callUpdate.supportsHolding = YES;
-    callUpdate.supportsGrouping = NO;
-    callUpdate.supportsUngrouping = NO;
-    callUpdate.hasVideo = NO;
-
-    [self.callKitProvider reportNewIncomingCallWithUUID:callInvite.uuid update:callUpdate completion:^(NSError *error) {
-        if (!error) {
-            NSLog(@"Incoming call successfully reported.");
-        } else {
-            NSLog(@"Failed to report incoming call: %@.", error);
-        }
-    }];
+    self.callInviteUuid = [callInvite.uuid UUIDString];
+    [self reportNewIncomingCall:callInvite];
 }
 
 - (void)cancelledCallInviteReceived:(TVOCancelledCallInvite *)cancelledCallInvite error:(NSError *)error {
@@ -131,24 +120,7 @@ withCompletionHandler:(void (^)(void))completion {
                                                         object:nil
                                                       userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteCancelled}];
     
-    CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:self.callInvite.uuid];
-    CXTransaction *transaction = [[CXTransaction alloc] initWithAction:endCallAction];
-    
-    [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
-        if (error) {
-            NSLog(@"Failed to submit end-call transaction request: %@", error);
-        } else {
-            NSLog(@"End-call transaction successfully done");
-        }
-    }];
-    
-    self.callInvite = nil;
-}
-
-#pragma mark - CXProviderDelegate
-
-- (void)providerDidReset:(CXProvider *)provider {
-    
+    [self endCallWithUuid:self.callInviteUuid];
 }
 
 @end
