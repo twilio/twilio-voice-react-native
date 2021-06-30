@@ -12,6 +12,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.module.annotations.ReactModule;
@@ -32,7 +34,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -152,12 +156,28 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void voice_connect(String uuid, String accessToken, ReadableMap params, Promise promise) {
     Log.e(TAG, String.format("Calling voice_connect"));
     HashMap<String, String> twiMLParams = new HashMap<>();
-    twiMLParams.put("To", "bob");
-    twiMLParams.put("Type", "client");
-    twiMLParams.put("From", "client:react_native_android");
-    twiMLParams.put("Mode", "Voice");
-    twiMLParams.put("PhoneNumber", "bob");
-    twiMLParams.put("answer_on_bridge", "true");
+
+    ReadableMapKeySetIterator iterator = params.keySetIterator();
+    while (iterator.hasNextKey()) {
+      String key = iterator.nextKey();
+      ReadableType readableType = params.getType(key);
+      switch (readableType) {
+        case Boolean:
+          twiMLParams.put(key, String.valueOf(params.getBoolean(key)));
+          break;
+        case Number:
+          // Can be int or double.
+          twiMLParams.put(key, String.valueOf(params.getDouble(key)));
+          break;
+        case String:
+          twiMLParams.put(key, params.getString(key));
+          break;
+        default:
+          Log.d(TAG, "Could not convert with key: " + key + ".");
+          break;
+      }
+    }
+
 
     ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
       .enableDscp(true)
@@ -273,7 +293,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           fcmToken = task.getResult().getToken();
           if (fcmToken != null) {
             if (BuildConfig.DEBUG) {
-              Log.d(TAG, "Registering with FCM with token "+fcmToken);
+              Log.d(TAG, "Registering with FCM with token " + fcmToken);
             }
             Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
           }
@@ -283,7 +303,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
 
-   @ReactMethod
+  @ReactMethod
   public void voice_unregister(String token, Promise promise) {
     FirebaseInstanceId.getInstance().getInstanceId()
       .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
