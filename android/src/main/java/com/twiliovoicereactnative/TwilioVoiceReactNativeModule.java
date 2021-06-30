@@ -162,9 +162,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       String key = iterator.nextKey();
       ReadableType readableType = params.getType(key);
       switch (readableType) {
-        case Null:
-          twiMLParams.put(key, "");
-          break;
         case Boolean:
           twiMLParams.put(key, String.valueOf(params.getBoolean(key)));
           break;
