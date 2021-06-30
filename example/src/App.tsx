@@ -8,14 +8,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {
-  Call,
-  CallInvite,
-  Voice,
-  RegistrationChannel,
-} from 'twilio-voice-react-native';
+import { Call, CallInvite, Voice } from 'twilio-voice-react-native';
 
 const voice = new Voice();
+
+const token = '';
 
 const noOp = () => {};
 
@@ -61,7 +58,7 @@ export default function App() {
           ..._callEvents,
           {
             id: `${_callEvents.length}`,
-            content: `${sid}: ${callEvent}`,
+            content: `${_sid}: ${callEvent}`,
           },
         ]);
 
@@ -95,12 +92,22 @@ export default function App() {
   }, []);
 
   const connectHandler = React.useCallback(async () => {
-    const call = await voice.connect('token', { to: outgoingTo });
+    const call = await voice.connect(token, { to: outgoingTo });
     handleCall(call);
   }, [handleCall, outgoingTo]);
 
   const registerHandler = React.useCallback(() => {
-    voice.register('foobar-device-token', RegistrationChannel.FCM);
+    voice.register(token).then(() => {
+      setRegistered(true);
+      console.log('registered');
+    });
+  }, []);
+
+  const unregisterHandler = React.useCallback(() => {
+    voice.unregister(token).then(() => {
+      setRegistered(false);
+      console.log('unregistered');
+    });
   }, []);
 
   React.useEffect(() => {
@@ -148,10 +155,10 @@ export default function App() {
       </View>
       <View>
         <View style={styles.button}>
-          {callMethods ? (
-            <Button title="Disconnect" onPress={callMethods.disconnect} />
-          ) : (
+          {!callMethods || callInfo?.state === 'DISCONNECTED' ? (
             <Button title="Connect" onPress={connectHandler} />
+          ) : (
+            <Button title="Disconnect" onPress={callMethods.disconnect} />
           )}
         </View>
         <View style={styles.buttonContainer}>
@@ -171,7 +178,11 @@ export default function App() {
           </View>
         </View>
         <View style={styles.button}>
-          <Button title="Register" onPress={registerHandler} />
+          {registered ? (
+            <Button title="Unregister" onPress={unregisterHandler} />
+          ) : (
+            <Button title="Register" onPress={registerHandler} />
+          )}
         </View>
       </View>
     </View>
