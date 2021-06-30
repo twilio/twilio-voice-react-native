@@ -89,7 +89,6 @@ export class Voice extends EventEmitter {
       canceledCallInvite: this._handleCanceledCallInvite,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
-      deviceTokenUpdated: this._deviceTokenUpdated,
     };
 
     this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
@@ -128,11 +127,6 @@ export class Voice extends EventEmitter {
 
   private _handleUnregistered = () => {
     this.emit(Voice.Event.Unregistered);
-  };
-
-  private _deviceTokenUpdated = () => {
-    console.log('Device token updated and ready for registration.');
-    // TODO: emit event to the app
   };
 
   async connect(

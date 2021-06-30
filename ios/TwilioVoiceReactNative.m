@@ -56,14 +56,6 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
     if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
         NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
         self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
-
-        /**
-           The listener might not have registered themselves at the time the pushRegistry:didUpdatePushCredentials:forType: callback is called.
-           A 2-second wait does the job and the React Native binding can receive the event properly.
-         */
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
-        });
     } else {
         [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
     }
