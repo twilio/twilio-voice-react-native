@@ -63,9 +63,9 @@ static TVODefaultAudioDevice *sAudioDevice;
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
         [self endCallWithUuid:self.callInvite.uuid];
-    } else {
-        [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
     }
+    
+    [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
 }
 
 + (TVODefaultAudioDevice *)audioDevice {
@@ -220,7 +220,7 @@ RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
     if (call) {
         resolve(@(call.isOnHold));
     } else {
-        resolve(@(false));
+        resolve(@(NO));
     }
 }
 
@@ -245,7 +245,7 @@ RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
     if (call) {
         resolve(@(call.isMuted));
     } else {
-        resolve(@(false));
+        resolve(@(NO));
     }
 }
 
@@ -260,6 +260,67 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     }
     
     resolve(nil);
+}
+
+#pragma mark - Bingings (Call Invite)
+
+RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuiid
+                  newCallUuid:(NSString *)newCallUuid
+                  acceptOptions:(NSDictionary *)acceptOptions
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: new util method in CallKit category for the accept flow
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: new util method in CallKit category for the accept flow
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: discuss with team. may not be needed
+    resolve(@(YES));
+}
+
+RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.callSid);
+    } else {
+        reject(@"Voice error", @"No call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.from);
+    } else {
+        reject(@"Voice error", @"No call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.to);
+    } else {
+        reject(@"Voice error", @"No call invite", nil);
+    }
 }
 
 #pragma mark - utility
