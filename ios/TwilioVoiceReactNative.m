@@ -19,8 +19,6 @@ static TVODefaultAudioDevice *sAudioDevice;
 
 @property(nonatomic, strong) NSData *deviceTokenData;
 
-@property (nonatomic, strong) NSMutableDictionary *callMap;
-
 @end
 
 
@@ -140,14 +138,7 @@ RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:accessToken
-                                                                            block:^(TVOConnectOptionsBuilder *builder) {
-        builder.params = params;
-        builder.uuid = [[NSUUID alloc] initWithUUIDString:uuid] ;
-    }];
-    self.activeCall = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
-    self.callMap[uuid] = self.activeCall;
-
+    [self makeCallWithUuid:uuid accessToken:accessToken params:params];
     resolve(nil);
 }
 

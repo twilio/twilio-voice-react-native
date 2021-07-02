@@ -65,6 +65,73 @@
     self.callInvite = nil;
 }
 
+- (void)makeCallWithUuid:(NSString *)uuidString
+             accessToken:(NSString *)accessToken
+                  params:(NSDictionary *)params {
+    self.accessToken = accessToken;
+    self.twimlParams = params;
+    
+    /* Replace the handle value of your choice */
+    NSString *handle = @"Twilio Frontline";
+    
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
+    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:uuidString];
+    CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
+    CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
+
+    [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
+        if (error) {
+            NSLog(@"StartCallAction transaction request failed: %@", [error localizedDescription]);
+        } else {
+            NSLog(@"StartCallAction transaction request successful");
+
+            CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
+            callUpdate.remoteHandle = callHandle;
+            callUpdate.supportsDTMF = YES;
+            callUpdate.supportsHolding = YES;
+            callUpdate.supportsGrouping = NO;
+            callUpdate.supportsUngrouping = NO;
+            callUpdate.hasVideo = NO;
+
+            [self.callKitProvider reportCallWithUUID:uuid updated:callUpdate];
+        }
+    }];
+}
+
+- (void)performVoiceCallWithUUID:(NSUUID *)uuid
+                          client:(NSString *)client
+                      completion:(void(^)(BOOL success))completionHandler {
+    TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:self.accessToken block:^(TVOConnectOptionsBuilder *builder) {
+        builder.params = self.twimlParams;
+        builder.uuid = uuid;
+    }];
+    TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
+    if (call) {
+        self.activeCall = call;
+        self.callMap[call.uuid.UUIDString] = call;
+    }
+    self.callKitCompletionCallback = completionHandler;
+}
+
+- (void)performAnswerVoiceCallWithUUID:(NSUUID *)uuid
+                            completion:(void(^)(BOOL success))completionHandler {
+    NSAssert(self.callInvite, @"No call invite");
+    
+    TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:self.callInvite block:^(TVOAcceptOptionsBuilder *builder) {
+        builder.uuid = uuid;
+    }];
+
+    TVOCall *call = [self.callInvite acceptWithOptions:acceptOptions delegate:self];
+
+    if (!call) {
+        completionHandler(NO);
+    } else {
+        self.callKitCompletionCallback = completionHandler;
+        self.activeCall = call;
+        self.callMap[call.uuid.UUIDString] = call;
+    }
+}
+
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
@@ -94,10 +161,29 @@
 }
 
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action {
+    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative audioDevice].block();
+
+    [self.callKitProvider reportOutgoingCallWithUUID:action.callUUID startedConnectingAtDate:[NSDate date]];
     
+    __weak typeof(self) weakSelf = self;
+    [self performVoiceCallWithUUID:action.callUUID client:nil completion:^(BOOL success) {
+        __strong typeof(self) strongSelf = weakSelf;
+        if (success) {
+            NSLog(@"performVoiceCallWithUUID successful");
+            [strongSelf.callKitProvider reportOutgoingCallWithUUID:action.callUUID connectedAtDate:[NSDate date]];
+        } else {
+            NSLog(@"performVoiceCallWithUUID failed");
+        }
+    }];
+    
+    [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
+    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative audioDevice].block();
+    
     TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:self.callInvite
                                                                         block:^(TVOAcceptOptionsBuilder *builder) {
         builder.uuid = self.callInvite.uuid;
@@ -109,15 +195,30 @@
 }
 
 - (void)provider:(CXProvider *)provider performSetHeldCallAction:(CXSetHeldCallAction *)action {
-    
+    if (self.activeCall) {
+        [self.activeCall setOnHold:action.isOnHold];
+        [action fulfill];
+    } else {
+        [action fail];
+    }
 }
 
 - (void)provider:(CXProvider *)provider performSetMutedCallAction:(CXSetMutedCallAction *)action {
-    
+    if (self.activeCall) {
+        [self.activeCall setMuted:action.isMuted];
+        [action fulfill];
+    } else {
+        [action fail];
+    }
 }
 
 - (void)provider:(CXProvider *)provider performPlayDTMFCallAction:(CXPlayDTMFCallAction *)action {
-    
+    if (self.activeCall) {
+        [self.activeCall sendDigits:action.digits];
+        [action fulfill];
+    } else {
+        [action fail];
+    }
 }
 
 #pragma mark - TVOCallDelegate
@@ -129,8 +230,7 @@
 - (void)callDidConnect:(TVOCall *)call {
     [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
 
-    // TODO: CallKit completion handler
-    // TODO: report connected to CallKit
+    self.callKitCompletionCallback(YES);
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
@@ -142,9 +242,6 @@
     }
     
     [self sendEventWithName:@"Call" body:messageBody];
-
-    // TODO: end call with CallKit (if not user initiated-disconnect)
-    // TODO: CallKit completion handler
     
     if (!self.userInitiatedDisconnect) {
         CXCallEndedReason reason = CXCallEndedReasonRemoteEnded;
@@ -154,16 +251,24 @@
         
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
-    
-    self.activeCall = nil;
-    self.userInitiatedDisconnect = NO;
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
     [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 
-    // TODO: disconnect call with CallKit if needed
-    // TODO: CallKit completion handler
+    self.callKitCompletionCallback(NO);
+    [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:CXCallEndedReasonFailed];
+    
+    [self callDisconnected:call];
+}
+
+- (void)callDisconnected:(TVOCall *)call {
+    if ([call isEqual:self.activeCall]) {
+        self.activeCall = nil;
+    }
+    [self.callMap removeObjectForKey:call.uuid.UUIDString];
+    
+    self.userInitiatedDisconnect = NO;
 }
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
