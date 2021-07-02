@@ -11,15 +11,15 @@
 NSString * const kTwilioVoiceReactNativeEventVoice = @"Voice";
 NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 
+static TVODefaultAudioDevice *sAudioDevice;
+
 @import TwilioVoice;
 
-@interface TwilioVoiceReactNative () <TVOCallDelegate>
+@interface TwilioVoiceReactNative ()
 
 @property(nonatomic, strong) NSData *deviceTokenData;
 
 @property (nonatomic, strong) NSMutableDictionary *callMap;
-@property (nonatomic, strong) TVOCall *activeCall;
-@property (nonatomic, strong) TVODefaultAudioDevice *audioDevice;
 
 @end
 
@@ -29,12 +29,13 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 - (instancetype)init {
     if (self = [super init]) {
         _callMap = [NSMutableDictionary dictionary];
-        _audioDevice = [TVODefaultAudioDevice audioDevice];
-        TwilioVoiceSDK.audioDevice = _audioDevice;
+        sAudioDevice = [TVODefaultAudioDevice audioDevice];
+        TwilioVoiceSDK.audioDevice = sAudioDevice;
         
         TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
         
         [self subscribeToNotifications];
+        [self initializeCallKit];
     }
 
     return self;
@@ -56,9 +57,21 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
     if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
         NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
         self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
+    } else if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationCallInviteRecelved]) {
+        TVOCallInvite *callInvite = eventBody[kTwilioVoicePushRegistryNotificationCallInviteKey];
+        NSAssert(callInvite != nil, @"Invalid call invite");
+        [self reportNewIncomingCall:callInvite];
+    } else if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationCallInviteCancelled]) {
+        TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
+        NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
+        [self endCallWithUuid:self.callInvite.uuid];
     } else {
         [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
     }
+}
+
++ (TVODefaultAudioDevice *)audioDevice {
+    return sAudioDevice;
 }
 
 RCT_EXPORT_MODULE();
@@ -281,61 +294,6 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
         default:
             return @"connecting";
     }
-}
-
-#pragma mark - TVOCallDelegate
-
-- (void)callDidStartRinging:(TVOCall *)call {
-    NSLog(@"Call ringing.");
-    self.audioDevice.enabled = YES;
-    [self sendEventWithName:@"Call" body:@{@"type": @"ringing", @"uuid": [call.uuid UUIDString]}];
-}
-
-- (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
-    NSLog(@"Call failed to connect: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
-
-    // TODO: disconnect call with CallKit if needed
-    // TODO: CallKit completion handler
-}
-
-- (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
-    NSLog(@"Call disconnected with error: %@.", error);
-    NSDictionary *messageBody = [NSDictionary dictionary];
-    if (error) {
-        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]};
-    } else {
-        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString]};
-    }
-    
-    [self sendEventWithName:@"Call" body:messageBody];
-
-    // TODO: end call with CallKit (if not user initiated-disconnect)
-    // TODO: CallKit completion handler
-}
-
-- (void)callDidConnect:(TVOCall *)call {
-    NSLog(@"Call connected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
-
-    // TODO: CallKit completion handler
-    // TODO: report connected to CallKit
-}
-
-- (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
-    NSLog(@"Call reconnecting: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
-}
-
-- (void)callDidReconnect:(TVOCall *)call {
-    NSLog(@"Call reconnected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected", @"uuid": [call.uuid UUIDString]}];
-}
-
-- (void)call:(TVOCall *)call
-didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
-previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
-    // TODO: process and emit warnings event
 }
 
 @end

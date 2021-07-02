@@ -7,7 +7,6 @@
 
 @import PushKit;
 @import Foundation;
-@import CallKit;
 @import TwilioVoice;
 
 #import "TwilioVoicePushRegistry.h"
@@ -18,6 +17,8 @@ NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenUpdated = @"devi
 NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenKey = @"deviceToken";
 NSString * const kTwilioVoicePushRegistryNotificationCallInviteRecelved = @"callInvite";
 NSString * const kTwilioVoicePushRegistryNotificationCallInviteCancelled = @"canceledCallInvite";
+NSString * const kTwilioVoicePushRegistryNotificationCallInviteKey = @"userInfoCallInvite";
+NSString * const kTwilioVoicePushRegistryNotificationCancelledCallInviteKey = @"userInfoCancelledCallInvite";
 
 @interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, TVONotificationDelegate>
 
@@ -31,27 +32,9 @@ NSString * const kTwilioVoicePushRegistryNotificationCallInviteCancelled = @"can
 #pragma mark - TwilioVoicePushRegistry methods
 
 - (void)updatePushRegistry {
-    [self initializeCallKit];
-    [self createAudioDevice];
-    
     self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
     self.voipRegistry.delegate = self;
     self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
-}
-
-- (void)createAudioDevice {
-    self.audioDevice = [TVODefaultAudioDevice audioDevice];
-    TwilioVoiceSDK.audioDevice = self.audioDevice;
-}
-
-- (void)initializeCallKit {
-    CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Voice"];
-    configuration.maximumCallGroups = 1;
-    configuration.maximumCallsPerCallGroup = 1;
-    
-    self.callKitProvider = [[CXProvider alloc] initWithConfiguration:configuration];
-    [self.callKitProvider setDelegate:self queue:nil];
-    self.callKitCallController = [CXCallController new];
 }
 
 #pragma mark - PKPushRegistryDelegate
@@ -101,26 +84,19 @@ withCompletionHandler:(void (^)(void))completion {
 #pragma mark - TVONotificationDelegate
 
 - (void)callInviteReceived:(TVOCallInvite *)callInvite {
-    NSLog(@"Call invite received");
-    
-    // TODO: more incoming call info in the userInfo dictionary
+    TVOCallInvite *invite = callInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteRecelved}];
-
-    self.callInviteUuid = [callInvite.uuid UUIDString];
-    [self reportNewIncomingCall:callInvite];
+                                                      userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteRecelved,
+                                                                 kTwilioVoicePushRegistryNotificationCallInviteKey: invite}];
 }
 
 - (void)cancelledCallInviteReceived:(TVOCancelledCallInvite *)cancelledCallInvite error:(NSError *)error {
-    NSLog(@"Call invite canceled");
-    
-    // TODO: more incoming call info in the userInfo dictionary
+    TVOCancelledCallInvite *cancelledInvite = cancelledCallInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteCancelled}];
-    
-    [self endCallWithUuid:self.callInviteUuid];
+                                                      userInfo:@{kTwilioVoicePushRegistryNotificationType: kTwilioVoicePushRegistryNotificationCallInviteCancelled,
+                                                                 kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite}];
 }
 
 @end

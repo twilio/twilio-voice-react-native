@@ -1,5 +1,5 @@
 //
-//  TwilioVoicePushRegistry+CallKit.m
+//  TwilioVoiceReactNative+CallKit.m
 //  TwilioVoiceReactNative
 //
 //  Copyright © 2021 Twilio, Inc. All rights reserved.
@@ -8,15 +8,25 @@
 @import CallKit;
 @import TwilioVoice;
 
-#import "TwilioVoicePushRegistry.h"
+#import "TwilioVoiceReactNative.h"
 
-@interface TwilioVoicePushRegistry (CallKit) <CXProviderDelegate, TVOCallDelegate>
+@interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate>
 
 @end
 
-@implementation TwilioVoicePushRegistry (CallKit)
+@implementation TwilioVoiceReactNative (CallKit)
 
 #pragma mark - CallKit helper methods
+
+- (void)initializeCallKit {
+    CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Voice"];
+    configuration.maximumCallGroups = 1;
+    configuration.maximumCallsPerCallGroup = 1;
+    
+    self.callKitProvider = [[CXProvider alloc] initWithConfiguration:configuration];
+    [self.callKitProvider setDelegate:self queue:nil];
+    self.callKitCallController = [CXCallController new];
+}
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInvite = callInvite;
@@ -40,8 +50,8 @@
     }];
 }
 
-- (void)endCallWithUuid:(NSString *)uuid {
-    CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:[[NSUUID alloc] initWithUUIDString:uuid]];
+- (void)endCallWithUuid:(NSUUID *)uuid {
+    CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:endCallAction];
     
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
@@ -58,7 +68,7 @@
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
-    self.audioDevice.enabled = NO;
+    [TwilioVoiceReactNative audioDevice].enabled = NO;
 }
 
 - (void)providerDidBegin:(CXProvider *)provider {
@@ -66,18 +76,18 @@
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession {
-    self.audioDevice.enabled = YES;
+    [TwilioVoiceReactNative audioDevice].enabled = YES;
 }
 
 - (void)provider:(CXProvider *)provider didDeactivateAudioSession:(AVAudioSession *)audioSession {
-    self.audioDevice.enabled = NO;
+    [TwilioVoiceReactNative audioDevice].enabled = NO;
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
     if (self.callInvite) {
         [self.callInvite reject];
-    } else if (self.call) {
-        [self.call disconnect];
+    } else if (self.activeCall) {
+        [self.activeCall disconnect];
     }
     
     [action fulfill];
@@ -93,7 +103,7 @@
         builder.uuid = self.callInvite.uuid;
     }];
     
-    self.call = [self.callInvite acceptWithOptions:acceptOptions delegate:self];
+    self.activeCall = [self.callInvite acceptWithOptions:acceptOptions delegate:self];
         
     [action fulfill];
 }
@@ -112,11 +122,30 @@
 
 #pragma mark - TVOCallDelegate
 
+- (void)callDidStartRinging:(TVOCall *)call {
+    [self sendEventWithName:@"Call" body:@{@"type": @"ringing", @"uuid": [call.uuid UUIDString]}];
+}
+
 - (void)callDidConnect:(TVOCall *)call {
-    
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
+
+    // TODO: CallKit completion handler
+    // TODO: report connected to CallKit
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
+    NSDictionary *messageBody = [NSDictionary dictionary];
+    if (error) {
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]};
+    } else {
+        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString]};
+    }
+    
+    [self sendEventWithName:@"Call" body:messageBody];
+
+    // TODO: end call with CallKit (if not user initiated-disconnect)
+    // TODO: CallKit completion handler
+    
     if (!self.userInitiatedDisconnect) {
         CXCallEndedReason reason = CXCallEndedReasonRemoteEnded;
         if (error) {
@@ -126,20 +155,30 @@
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
     
-    self.call = nil;
+    self.activeCall = nil;
     self.userInitiatedDisconnect = NO;
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
-    
+    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
+
+    // TODO: disconnect call with CallKit if needed
+    // TODO: CallKit completion handler
 }
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
-    
+    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
 }
 
 - (void)callDidReconnect:(TVOCall *)call {
-    
+    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected", @"uuid": [call.uuid UUIDString]}];
+}
+
+- (void)call:(TVOCall *)call
+didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
+previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
+    // TODO: process and emit warnings event
 }
 
 @end
+
