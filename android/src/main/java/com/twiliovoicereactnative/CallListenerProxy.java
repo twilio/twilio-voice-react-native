@@ -17,7 +17,7 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_DISCONNE
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_CONNECT_FAILURE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_RECONNECTING;
-import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_UUID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.UUID_KEY;
 
 class CallListenerProxy implements Call.Listener {
   private final String uuid;
@@ -33,7 +33,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_CONNECT_FAILURE);
     params.putString(EVENT_ERROR, callException.getMessage());
-    params.putString(CALL_UUID, this.uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
@@ -41,7 +41,7 @@ class CallListenerProxy implements Call.Listener {
   public void onRinging(@NonNull Call call) {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_RINGING);
-    params.putString(CALL_UUID, this.uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
@@ -49,7 +49,7 @@ class CallListenerProxy implements Call.Listener {
   public void onConnected(@NonNull Call call) {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_CONNECTED);
-    params.putString(CALL_UUID, this.uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
@@ -58,7 +58,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_RECONNECTING);
     params.putString(EVENT_ERROR, callException.getMessage());
-    params.putString(CALL_UUID, this.uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
@@ -66,7 +66,7 @@ class CallListenerProxy implements Call.Listener {
   public void onReconnected(@NonNull Call call) {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_RECONNECTED);
-    params.putString(CALL_UUID, this.uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
 
   }
@@ -75,7 +75,7 @@ class CallListenerProxy implements Call.Listener {
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_DISCONNECTED);
-    params.putString(CALL_UUID, uuid);
+    params.putString(UUID_KEY, uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 }

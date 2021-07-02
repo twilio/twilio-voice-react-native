@@ -22,10 +22,12 @@ public class AndroidEventEmitter {
   public static final String EVENT_CALL_CONNECT_FAILURE = "connectFailure";
   public static final String EVENT_CALL_RECONNECTED = "reconnect";
   public static final String EVENT_CALL_RECONNECTING= "reconnecting";
-  public static final String CALL_UUID = "uuid";
+  public static final String UUID_KEY = "uuid";
   public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
   public static final String EVENT_REGISTERED = "registered";
   public static final String EVENT_UNREGISTERED = "unregistered";
+  public static final String EVENT_CALL_INVITE = "callInvite";
+  public static final String EVENT_CANCELLED_CALL_INVITE = "canceledCallInvite";
 
 
   public AndroidEventEmitter(ReactApplicationContext context) {

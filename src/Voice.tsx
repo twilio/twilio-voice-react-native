@@ -109,6 +109,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCallInvite = ({ uuid }: NativeMessageEvent) => {
+    console.log(uuid);
     const callInvite = new CallInvite(uuid);
     this.emit(Voice.Event.CallInvite, callInvite);
   };

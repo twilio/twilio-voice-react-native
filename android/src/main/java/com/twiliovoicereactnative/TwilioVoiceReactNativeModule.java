@@ -20,8 +20,11 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.twilio.voice.Voice;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallInvite;
+import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.CallException;
 import com.twilio.voice.ConnectOptions;
+import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
 import com.twilio.voice.UnregistrationListener;
@@ -49,11 +52,15 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_UNREGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_ERROR;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CALL_INVITE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_CANCELLED_CALL_INVITE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.UUID_KEY;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
   static final Map<String, Call> callMap = new HashMap<>();
+  static final Map<String, CallInvite> callInviteMap = new HashMap<>();
   private String fcmToken;
   private AndroidEventEmitter androidEventEmitter;
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
@@ -98,6 +105,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         case Constants.ACTION_FCM_TOKEN:
           fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
           Log.d(TAG, "Successfully set token" + fcmToken);
+          break;
+        case Constants.ACTION_INCOMING_CALL:
+          Log.d(TAG, "Successfully received incoming notifiction");
+          WritableMap params = Arguments.createMap();
+          CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
+          UUID uuid = UUID.randomUUID();
+          params.putString(UUID_KEY, uuid.toString());
+          params.putString(EVENT_TYPE, EVENT_CALL_INVITE);
+          callInviteMap.put(uuid.toString(), callInvite);
+          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
           break;
         default:
           break;
@@ -278,6 +295,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
   }
 
+  // Register/UnRegister
+
   @ReactMethod
   public void voice_register(String token, Promise promise) {
     FirebaseInstanceId.getInstance().getInstanceId()
@@ -327,4 +346,50 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(token);
   }
 
+  // CallInvite
+
+  @ReactMethod
+  public void callInvite_getCallSid(String uuid, Promise promise) {
+    Log.d(TAG, "callInvite_getCallSid uuid" + uuid);
+    CallInvite activeCallInvite = callInviteMap.get(uuid);
+    if (activeCallInvite != null) {
+      String callSid = (activeCallInvite != null) ? activeCallInvite.getCallSid() : null;
+      promise.resolve(callSid);
+    }
+  }
+
+  @ReactMethod
+  public void callInvite_getTo(String uuid, Promise promise) {
+    Log.d(TAG, "callInvite_getTo uuid" + uuid);
+    CallInvite activeCallInvite = callInviteMap.get(uuid);
+    if (activeCallInvite != null) {
+      String callTo = (activeCallInvite != null) ? activeCallInvite.getTo() : null;
+      promise.resolve(callTo);
+    }
+  }
+
+  @ReactMethod
+  public void callInvite_getFrom(String uuid, Promise promise) {
+    Log.d(TAG, "callInvite_getFrom uuid" + uuid);
+    CallInvite activeCallInvite = callInviteMap.get(uuid);
+    if (activeCallInvite != null) {
+      String callFrom = (activeCallInvite != null) ? activeCallInvite.getFrom() : null;
+      promise.resolve(callFrom);
+    }
+  }
+
+  @ReactMethod
+  public void callInvite_accept(String uuid, String callUuid, AcceptOptions options, Promise promise) {
+    Log.d(TAG, "callInvite_getFrom uuid" + uuid);
+    CallInvite activeCallInvite = callInviteMap.get(uuid);
+
+    if (activeCallInvite != null) {
+      AcceptOptions acceptOptions = new AcceptOptions.Builder()
+        .enableDscp(true)
+        .build();
+      Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(uuid, androidEventEmitter));
+
+      promise.resolve(uuid);
+    }
+  }
 }

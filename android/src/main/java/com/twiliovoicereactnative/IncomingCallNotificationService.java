@@ -24,11 +24,12 @@ import com.twilio.voice.CallInvite;
 public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
+  private AndroidEventEmitter androidEventEmitter;
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     String action = intent.getAction();
-
+    Log.d(TAG, "Received command " + action);
     if (action != null) {
       CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, 0);
@@ -174,10 +175,13 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void handleIncomingCall(CallInvite callInvite, int notificationId) {
+    Log.d(TAG, "Calling handleIncomingCall for " + callInvite);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setCallInProgressNotification(callInvite, notificationId);
     }
-    sendCallInviteToActivity(callInvite, notificationId);
+    Intent intent = new Intent(Constants.ACTION_INCOMING_CALL);
+    intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
 
   private void endForeground() {
@@ -202,6 +206,7 @@ public class IncomingCallNotificationService extends Service {
     if (Build.VERSION.SDK_INT >= 29 && !isAppVisible()) {
       return;
     }
+
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
     intent.setAction(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
