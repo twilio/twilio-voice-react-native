@@ -3,12 +3,18 @@ import * as React from 'react';
 import {
   Button,
   FlatList,
+  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { Call, CallInvite, Voice } from 'twilio-voice-react-native';
+import {
+  Call,
+  CallInvite,
+  CanceledCallInvite,
+  Voice,
+} from 'twilio-voice-react-native';
 
 const voice = new Voice();
 
@@ -16,7 +22,7 @@ const token = '';
 
 const noOp = () => {};
 
-interface CallMethods {
+interface CallMethod {
   disconnect: () => void;
   hold: () => void;
   mute: () => void;
@@ -30,22 +36,34 @@ interface CallInfo {
   sid: string;
 }
 
+interface BoundCallInvite {
+  accept: () => void;
+  callSid: string;
+  from: string;
+  to: string;
+  reject: () => void;
+}
+
 const getCallInfo = (call: Call) =>
   Promise.all([call.getFrom(), call.getSid(), call.getState(), call.getTo()]);
 
 export default function App() {
-  const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
   const [registered, setRegistered] = React.useState<boolean>(false);
-  const [callMethods, setCallMethods] = React.useState<
-    CallMethods | undefined
-  >();
+  const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
+  const [digits, setDigits] = React.useState<string>('');
   const [callInfo, setCallInfo] = React.useState<CallInfo | undefined>();
-  const [callEvents, setCallEvents] = React.useState<
+  const [callInvites, setCallInvites] = React.useState<Array<BoundCallInvite>>(
+    []
+  );
+  const [callMethods, setCallMethods] = React.useState<
+    CallMethod | undefined
+  >();
+  const [events, setEvents] = React.useState<
     Array<{ id: string; content: string }>
   >([]);
-  const [outgoingTo, setOutgoingTo] = React.useState<string>('');
   const [isCallOnHold, setIsCallOnHold] = React.useState<boolean>(false);
   const [isCallMuted, setIsCallMuted] = React.useState<boolean>(false);
+  const [outgoingTo, setOutgoingTo] = React.useState<string>('');
 
   const handleCall = React.useCallback(async (call: Call) => {
     const [from, sid, state, to] = await getCallInfo(call);
@@ -54,10 +72,10 @@ export default function App() {
       call.on(callEvent, async () => {
         const [_from, _sid, _state, _to] = await getCallInfo(call);
 
-        setCallEvents((_callEvents) => [
-          ..._callEvents,
+        setEvents((_events) => [
+          ..._events,
           {
-            id: `${_callEvents.length}`,
+            id: `${_events.length}`,
             content: `${_sid}: ${callEvent}`,
           },
         ]);
@@ -85,14 +103,17 @@ export default function App() {
           return !_isCallMuted;
         });
       },
-      sendDigits: (digits: string) => call.sendDigits(digits),
+      sendDigits: (_digits: string) => () => call.sendDigits(_digits),
     });
 
     setCallInfo({ from, sid, state, to });
   }, []);
 
   const connectHandler = React.useCallback(async () => {
-    const call = await voice.connect(token, { to: outgoingTo });
+    const call = await voice.connect(token, {
+      recipientType: 'client',
+      To: outgoingTo,
+    });
     handleCall(call);
   }, [handleCall, outgoingTo]);
 
@@ -112,34 +133,101 @@ export default function App() {
 
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
-    voice.on(Voice.Event.Registered, () => setRegistered(true));
-    voice.on(Voice.Event.CallInvite, (_callInvite: CallInvite) => {
-      // handling call invite
-      // const call = callInvite.accept();
-      // handleCall(call);
+
+    voice.on(Voice.Event.CallInvite, async (_callInvite: CallInvite) => {
+      const [_callSid, _from, _to] = await Promise.all([
+        _callInvite.getCallSid(),
+        _callInvite.getFrom(),
+        _callInvite.getTo(),
+      ]);
+
+      setCallInvites((_callInvites) => [
+        ..._callInvites,
+        {
+          accept: () => _callInvite.accept(),
+          callSid: _callSid,
+          from: _from,
+          to: _to,
+          reject: () => _callInvite.reject(),
+        },
+      ]);
+
+      setEvents((_events) => [
+        ..._events,
+        {
+          id: `${_events.length}`,
+          content: `Call invite: ${_callSid}`,
+        },
+      ]);
     });
+
+    voice.on(
+      Voice.Event.CanceledCallInvite,
+      async (_canceledCallInvite: CanceledCallInvite) => {
+        const _callSid = await _canceledCallInvite.getCallSid();
+
+        setCallInvites((_callInvites) =>
+          _callInvites.filter(({ callSid }) => callSid !== _callSid)
+        );
+
+        setEvents((_events) => [
+          ..._events,
+          {
+            id: `${_events.length}`,
+            content: `Canceled call invite: ${_callSid}`,
+          },
+        ]);
+      }
+    );
   }, []);
 
+  const recentCallInvite = React.useMemo(
+    () =>
+      callInvites.length ? callInvites[callInvites.length - 1] : undefined,
+    [callInvites]
+  );
+
+  const button = React.useMemo(() => {
+    if (callMethods && callInfo?.state !== 'DISCONNECTED') {
+      return <Button title="Disconnect" onPress={callMethods.disconnect} />;
+    }
+
+    if (recentCallInvite) {
+      return (
+        <View>
+          <Button title="Accept" onPress={recentCallInvite.accept} />
+          <Button title="Reject" onPress={recentCallInvite.accept} />
+        </View>
+      );
+    }
+
+    return <Button title="Connect" onPress={connectHandler} />;
+  }, [callMethods, callInfo, connectHandler, recentCallInvite]);
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text>SDK Version: {String(sdkVersion)}</Text>
         <Text>Registered: {String(registered)}</Text>
       </View>
-      {callInfo ? (
-        <View>
-          <Text>Call Info</Text>
-          <Text>From: {String(callInfo.from)}</Text>
-          <Text>To: {String(callInfo.to)}</Text>
-          <Text>State: {String(callInfo.state)}</Text>
-          <Text>Sid: {String(callInfo.sid)}</Text>
-        </View>
-      ) : null}
+      <View style={styles.padded}>
+        <Text>Call Info</Text>
+        <Text>From: {String(callInfo?.from)}</Text>
+        <Text>To: {String(callInfo?.to)}</Text>
+        <Text>State: {String(callInfo?.state)}</Text>
+        <Text>SID: {String(callInfo?.sid)}</Text>
+      </View>
+      <View style={styles.padded}>
+        <Text>Call Invite</Text>
+        <Text>Call SID: {String(recentCallInvite?.callSid)}</Text>
+        <Text>From: {String(recentCallInvite?.from)}</Text>
+        <Text>To: {String(recentCallInvite?.to)}</Text>
+      </View>
       <View style={styles.eventsContainer}>
         <Text>Events</Text>
         <FlatList
           style={styles.eventsList}
-          data={callEvents}
+          data={events}
           renderItem={(info) => <Text>{info.item.content}</Text>}
         />
       </View>
@@ -152,15 +240,21 @@ export default function App() {
             onChangeText={(text) => setOutgoingTo(text)}
           />
         </View>
+        <View style={styles.input}>
+          <Text>Digits: </Text>
+          <TextInput
+            style={styles.textInput}
+            value={digits}
+            onChangeText={(text) => setDigits(text)}
+          />
+          <Button
+            title="Send"
+            onPress={callMethods?.sendDigits(digits) || noOp}
+          />
+        </View>
       </View>
       <View>
-        <View style={styles.button}>
-          {!callMethods || callInfo?.state === 'DISCONNECTED' ? (
-            <Button title="Connect" onPress={connectHandler} />
-          ) : (
-            <Button title="Disconnect" onPress={callMethods.disconnect} />
-          )}
-        </View>
+        <View style={styles.padded}>{button}</View>
         <View style={styles.buttonContainer}>
           <View style={styles.halfButton}>
             <Button
@@ -177,7 +271,7 @@ export default function App() {
             />
           </View>
         </View>
-        <View style={styles.button}>
+        <View style={styles.padded}>
           {registered ? (
             <Button title="Unregister" onPress={unregisterHandler} />
           ) : (
@@ -185,7 +279,7 @@ export default function App() {
           )}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -193,7 +287,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  button: {
+  padded: {
     padding: 5,
   },
   buttonContainer: {
