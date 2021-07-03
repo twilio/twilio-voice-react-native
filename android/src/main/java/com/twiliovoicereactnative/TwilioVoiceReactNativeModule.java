@@ -379,8 +379,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void callInvite_accept(String uuid, String callUuid, AcceptOptions options, Promise promise) {
-    Log.d(TAG, "callInvite_getFrom uuid" + uuid);
+  public void callInvite_accept(String uuid, String callUuid, ReadableMap options, Promise promise) {
+    Log.d(TAG, "callInvite_accept uuid" + uuid);
     CallInvite activeCallInvite = callInviteMap.get(uuid);
 
     if (activeCallInvite != null) {
@@ -389,6 +389,18 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         .build();
       Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(uuid, androidEventEmitter));
 
+      promise.resolve(uuid);
+    }
+  }
+
+  @ReactMethod
+  public void callInvite_reject(String uuid, Promise promise) {
+    Log.d(TAG, "callInvite_reject uuid" + uuid);
+    CallInvite activeCallInvite = callInviteMap.get(uuid);
+
+    if (activeCallInvite != null) {
+      activeCallInvite.reject(getReactApplicationContext());
+      callInviteMap.remove(uuid);
       promise.resolve(uuid);
     }
   }
