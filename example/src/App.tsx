@@ -196,7 +196,7 @@ export default function App() {
       return (
         <View>
           <Button title="Accept" onPress={recentCallInvite.accept} />
-          <Button title="Reject" onPress={recentCallInvite.accept} />
+          <Button title="Reject" onPress={recentCallInvite.reject} />
         </View>
       );
     }
