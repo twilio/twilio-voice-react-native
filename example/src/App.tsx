@@ -131,6 +131,26 @@ export default function App() {
     });
   }, []);
 
+  const callInviteAcceptHandler = React.useCallback(async () => {
+    if (!callInvites.length) {
+      return;
+    }
+
+    const callInvite = callInvites[callInvites.length - 1];
+    const call = await callInvite.accept();
+    handleCall(call);
+  }, [handleCall, callInvites]);
+
+  const callInviteRejectHandler = React.useCallback(async () => {
+    if (!callInvites.length) {
+      return;
+    }
+
+    const callInvite = callInvites[callInvites.length - 1];
+    const call = await callInvite.reject();
+    handleCall(call);
+  }, [handleCall, callInvites]);
+
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
 
@@ -195,8 +215,8 @@ export default function App() {
     if (recentCallInvite) {
       return (
         <View>
-          <Button title="Accept" onPress={recentCallInvite.accept} />
-          <Button title="Reject" onPress={recentCallInvite.reject} />
+          <Button title="Accept" onPress={callInviteAcceptHandler} />
+          <Button title="Reject" onPress={callInviteRejectHandler} />
         </View>
       );
     }
