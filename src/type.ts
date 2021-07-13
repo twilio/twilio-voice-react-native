@@ -1,17 +1,23 @@
 import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 
+export enum NativeEventScope {
+  'Call' = 'call',
+  'Voice' = 'voice',
+}
+
 export type CallException = any;
 
 export type Uuid = string;
 
-export type NativeCallEventType =
-  | 'connected'
-  | 'connectFailure'
-  | 'reconnecting'
-  | 'reconnected'
-  | 'disconnected'
-  | 'ringing';
+export enum NativeCallEventType {
+  'Connected' = 'connected',
+  'ConnectFailure' = 'connectFailure',
+  'Reconnecting' = 'reconnecting',
+  'Reconnected' = 'reconnected',
+  'Disconnected' = 'disconnected',
+  'Ringing' = 'ringing',
+}
 
 export interface NativeCallEvent {
   exception?: CallException;
@@ -19,7 +25,10 @@ export interface NativeCallEvent {
   uuid: Uuid;
 }
 
-export type NativeMessageEventType = 'callInvite' | 'canceledCallInvite';
+export enum NativeMessageEventType {
+  'CallInvite' = 'callInvite',
+  'CancelledCallInvite' = 'cancelledCallInvite',
+}
 
 export interface NativeMessageEvent {
   exception?: CallException;
@@ -27,12 +36,13 @@ export interface NativeMessageEvent {
   uuid: Uuid;
 }
 
-export type NativeCallState =
-  | 'connected'
-  | 'connecting'
-  | 'disconnected'
-  | 'reconnecting'
-  | 'ringing';
+export enum NativeCallState {
+  'Connected' = 'CONNECTED',
+  'Connecting' = 'CONNECTING',
+  'Disconnected' = 'DISCONNECTED',
+  'Reconnecting' = 'RECONNECTING',
+  'Ringing' = 'RINGING',
+}
 
 export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
@@ -69,11 +79,13 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
 
   /**
-   * CanceledCallInvite bindings.
+   * CancelledCallInvite bindings.
    */
-  canceledCallInvite_getFrom(canceledCallInviteUuid: Uuid): Promise<string>;
-  canceledCallInvite_getTo(canceledCallInviteUuid: Uuid): Promise<string>;
-  canceledCallInvite_getCallSid(canceledCallInviteUuid: Uuid): Promise<string>;
+  cancelledCallInvite_getFrom(cancelledCallInviteUuid: Uuid): Promise<string>;
+  cancelledCallInvite_getTo(cancelledCallInviteUuid: Uuid): Promise<string>;
+  cancelledCallInvite_getCallSid(
+    cancelledCallInviteUuid: Uuid
+  ): Promise<string>;
 
   /**
    * Voice bindings.

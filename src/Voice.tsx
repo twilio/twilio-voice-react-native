@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
-import { CanceledCallInvite } from './CanceledCallInvite';
+import { CancelledCallInvite } from './CancelledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
 import type { CallException, NativeMessageEvent } from './type';
@@ -15,8 +15,8 @@ export declare interface Voice {
    */
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
   emit(
-    voiceEvent: Voice.Event.CanceledCallInvite,
-    canceledCallInvite: CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
+    cancelledCallInvite: CancelledCallInvite,
     exception?: CallException
   ): boolean;
   emit(voiceEvent: Voice.Event.Registered): boolean;
@@ -41,16 +41,16 @@ export declare interface Voice {
   ): this;
 
   addEventListener(
-    voiceEvent: Voice.Event.CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
-      canceledCallInvite: CanceledCallInvite,
+      cancelledCallInvite: CancelledCallInvite,
       exception?: CallException
     ) => void
   ): this;
   on(
-    voiceEvent: Voice.Event.CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
-      canceledCallInvite: CanceledCallInvite,
+      cancelledCallInvite: CancelledCallInvite,
       exception?: CallException
     ) => void
   ): this;
@@ -86,7 +86,7 @@ export class Voice extends EventEmitter {
 
     this._nativeEventHandler = {
       callInvite: this._handleCallInvite,
-      canceledCallInvite: this._handleCanceledCallInvite,
+      cancelledCallInvite: this._handleCancelledCallInvite,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
     };
@@ -95,7 +95,6 @@ export class Voice extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
-    console.log(nativeMessageEvent);
     const { type } = nativeMessageEvent;
 
     const handler = this._nativeEventHandler[type];
@@ -109,17 +108,16 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCallInvite = ({ uuid }: NativeMessageEvent) => {
-    console.log(uuid);
     const callInvite = new CallInvite(uuid);
     this.emit(Voice.Event.CallInvite, callInvite);
   };
 
-  private _handleCanceledCallInvite = ({
+  private _handleCancelledCallInvite = ({
     exception,
     uuid,
   }: NativeMessageEvent) => {
-    const canceledCallInvite = new CanceledCallInvite(uuid);
-    this.emit(Voice.Event.CanceledCallInvite, canceledCallInvite, exception);
+    const cancelledCallInvite = new CancelledCallInvite(uuid);
+    this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
   };
 
   private _handleRegistered = () => {
@@ -159,7 +157,7 @@ export class Voice extends EventEmitter {
 export namespace Voice {
   export enum Event {
     'CallInvite' = 'callInvite',
-    'CanceledCallInvite' = 'canceledCallInvite',
+    'CancelledCallInvite' = 'cancelledCallInvite',
     'Registered' = 'registered',
     'Unregistered' = 'unregistered',
   }
