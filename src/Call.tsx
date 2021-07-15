@@ -1,7 +1,12 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
-import type { NativeCallEvent, NativeCallEventType, Uuid } from './type';
+import {
+  NativeCallEvent,
+  NativeCallEventType,
+  NativeEventScope,
+  Uuid,
+} from './type';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.
@@ -77,7 +82,7 @@ export class Call extends EventEmitter {
 
     this._uuid = uuid;
 
-    this._nativeScope = Call.name;
+    this._nativeScope = NativeEventScope.Call;
 
     this._nativeEventHandler = {
       connected: this._handleConnectedEvent,
@@ -132,17 +137,6 @@ export class Call extends EventEmitter {
   private _handleRinging = () => {
     this.emit(Call.Event.Ringing);
   };
-
-  /**
-   * Binding specific functions.
-   */
-  getUuid(): string {
-    return this._uuid;
-  }
-
-  getNativeScope(): string {
-    return this._nativeScope;
-  }
 
   /**
    * Native functionality.
