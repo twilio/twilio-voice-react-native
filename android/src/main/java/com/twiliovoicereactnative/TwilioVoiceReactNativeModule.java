@@ -317,7 +317,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return;
     }
 
-    boolean isMuted = activeCall.isMuted()
+    boolean isMuted = activeCall.isMuted();
     promise.resolve(isMuted);
   }
 
@@ -330,7 +330,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return;
     }
 
-    boolean isOnHold = activeCall.isOnHold()
+    boolean isOnHold = activeCall.isOnHold();
     promise.resolve(isOnHold);
   }
 
@@ -358,7 +358,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         public void onComplete(@NonNull Task<InstanceIdResult> task) {
           if (!task.isSuccessful()) {
             Log.w(TAG, "getInstanceId failed", task.getException());
-            promise.reject("getInstanceId failed" + task.getException())
+            promise.reject("getInstanceId failed" + task.getException());
             return;
           }
 
@@ -389,7 +389,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         public void onComplete(@NonNull Task<InstanceIdResult> task) {
           if (!task.isSuccessful()) {
             Log.w(TAG, "getInstanceId failed", task.getException());
-            promise.reject("getInstanceId failed" + task.getException())
+            promise.reject("getInstanceId failed" + task.getException());
             return;
           }
 
@@ -405,7 +405,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           if (BuildConfig.DEBUG) {
             Log.d(TAG, "UnRegistering with FCM with token " + fcmToken);
           }
-          Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
+          Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
           promise.resolve(null);
         }
       });
@@ -456,21 +456,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void callInvite_accept(String uuid, String callUuid, ReadableMap options, Promise promise) {
-    Log.d(TAG, "callInvite_accept uuid" + uuid);
-    CallInvite activeCallInvite = callInviteMap.get(uuid);
+  public void callInvite_accept(String callInviteUuid, String callUuid, ReadableMap options, Promise promise) {
+    Log.d(TAG, "callInvite_accept uuid" + callInviteUuid);
+    CallInvite activeCallInvite = callInviteMap.get(callInviteUuid);
 
     if (activeCallInvite == null) {
-      promise.reject("No such \"callInvite\" object exists with UUID" + uuid);
+      promise.reject("No such \"callInvite\" object exists with UUID" + callInviteUuid);
       return;
     }
 
     AcceptOptions acceptOptions = new AcceptOptions.Builder()
       .enableDscp(true)
       .build();
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(uuid, androidEventEmitter));
-
-    promise.resolve(uuid);
+    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid, androidEventEmitter));
+    promise.resolve(callUuid);
   }
 
   @ReactMethod
