@@ -71,29 +71,6 @@ export default function App() {
     []
   );
 
-  const recentCallInvite = React.useMemo(
-    () =>
-      callInvites.length ? callInvites[callInvites.length - 1] : undefined,
-    [callInvites]
-  );
-
-  const button = React.useMemo(() => {
-    if (callMethods && callInfo?.state !== 'DISCONNECTED') {
-      return <Button title="Disconnect" onPress={callMethods.disconnect} />;
-    }
-
-    if (recentCallInvite) {
-      return (
-        <View>
-          <Button title="Accept" onPress={recentCallInvite.accept} />
-          <Button title="Reject" onPress={recentCallInvite.accept} />
-        </View>
-      );
-    }
-
-    return <Button title="Connect" onPress={connectHandler} />;
-  }, [callMethods, callInfo, connectHandler, recentCallInvite]);
-
   return (
     <SafeAreaView style={styles.expand}>
       <View style={styles.padded}>

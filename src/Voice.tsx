@@ -87,6 +87,7 @@ export class Voice extends EventEmitter {
     this._nativeEventHandler = {
       callInvite: this._handleCallInvite,
       cancelledCallInvite: this._handleCancelledCallInvite,
+      callInviteAnswered: this._handleCallInviteAnswered,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
     };
@@ -118,6 +119,11 @@ export class Voice extends EventEmitter {
   }: NativeMessageEvent) => {
     const cancelledCallInvite = new CancelledCallInvite(uuid);
     this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
+  };
+
+  private _handleCallInviteAnswered = ({ uuid }: NativeMessageEvent) => {
+// TODO: define the contract
+    this.emit(Voice.Event.CallInvite);
   };
 
   private _handleRegistered = () => {

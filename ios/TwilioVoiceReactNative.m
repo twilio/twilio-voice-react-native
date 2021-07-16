@@ -7,9 +7,17 @@
 
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
+#import "TwilioVoiceReactNativeConstants.h"
 
-NSString * const kTwilioVoiceReactNativeEventVoice = @"Voice";
-NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventKeyVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventKeyCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
+NSString * const kTwilioVoiceReactNativeEventKeyUuid = @"uuid";
+NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
+
+NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"callInviteAnswered";
 
 static TVODefaultAudioDevice *sAudioDevice;
 
@@ -51,21 +59,29 @@ static TVODefaultAudioDevice *sAudioDevice;
 }
 
 - (void)handlePushRegistryNotification:(NSNotification *)notification {
-    NSDictionary *eventBody = notification.userInfo;
-    if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+    NSMutableDictionary *eventBody = [notification.userInfo mutableCopy];
+    if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
         NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
         self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
-    } else if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationCallInviteRecelved]) {
+        
+        // Skip the event emitting since 1, the listener has not registered and 2, the app does not need to know about this
+        return;
+    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteReceived]) {
         TVOCallInvite *callInvite = eventBody[kTwilioVoicePushRegistryNotificationCallInviteKey];
         NSAssert(callInvite != nil, @"Invalid call invite");
         [self reportNewIncomingCall:callInvite];
-    } else if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationCallInviteCancelled]) {
+        
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [callInvite.uuid UUIDString];
+    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
+        self.cancelledCallInvite = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
+        
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
     }
     
-    [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
+    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice body:eventBody];
 }
 
 + (TVODefaultAudioDevice *)audioDevice {
@@ -78,7 +94,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[kTwilioVoiceReactNativeEventVoice, kTwilioVoiceReactNativeEventCall];
+  return @[kTwilioVoiceReactNativeEventKeyVoice, kTwilioVoiceReactNativeEventKeyCall];
 }
 
 + (BOOL)requiresMainQueueSetup
@@ -264,21 +280,27 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
 
 #pragma mark - Bingings (Call Invite)
 
-RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                   newCallUuid:(NSString *)newCallUuid
                   acceptOptions:(NSDictionary *)acceptOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: new util method in CallKit category for the accept flow
-    resolve(nil);
+    [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
+                completion:^(BOOL success, NSError *error) {
+        if (success) {
+            resolve(nil);
+        } else {
+            reject(@"Voice error", @"Failed to answer the call invite", error);
+        }
+    }];
 }
 
 RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: new util method in CallKit category for the accept flow
+    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:callInviteUuiid]];
     resolve(nil);
 }
 
@@ -286,7 +308,6 @@ RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: discuss with team. may not be needed
     resolve(@(YES));
 }
 
@@ -297,7 +318,7 @@ RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
     if (self.callInvite) {
         resolve(self.callInvite.callSid);
     } else {
-        reject(@"Voice error", @"No call invite", nil);
+        reject(@"Voice error", @"No matching call invite", nil);
     }
 }
 
@@ -308,7 +329,7 @@ RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
     if (self.callInvite) {
         resolve(self.callInvite.from);
     } else {
-        reject(@"Voice error", @"No call invite", nil);
+        reject(@"Voice error", @"No matching call invite", nil);
     }
 }
 
@@ -319,7 +340,40 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
     if (self.callInvite) {
         resolve(self.callInvite.to);
     } else {
-        reject(@"Voice error", @"No call invite", nil);
+        reject(@"Voice error", @"No matching call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.callSid);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.from);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.to);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
     }
 }
 
