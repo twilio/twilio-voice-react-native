@@ -4,7 +4,7 @@ buildscript {
       'googleServices'     : '4.3.8',
       'voiceAndroid'       : '5.7.2',
       'androidxLifecycle'  : '2.2.0',
-      'firebaseMessaging'  : '21.1.0'
+      'firebaseMessaging'  : '20.1.2'
     ]
     if (project == rootProject) {
         repositories {
