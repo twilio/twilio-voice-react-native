@@ -39,9 +39,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.ACTION_FCM_TOKEN_REQUEST;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_REGISTERED;
@@ -280,51 +278,55 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void voice_register(String token, Promise promise) {
-    FirebaseInstanceId.getInstance().getInstanceId()
-      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-        @Override
-        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-          if (!task.isSuccessful()) {
-            Log.w(TAG, "getInstanceId failed", task.getException());
-            return;
-          }
+    FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                          if (!task.isSuccessful()) {
+                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                          }
 
-          // Get new Instance ID token
-          fcmToken = task.getResult().getToken();
-          if (fcmToken != null) {
-            if (BuildConfig.DEBUG) {
-              Log.d(TAG, "Registering with FCM with token " + fcmToken);
-            }
-            Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
-          }
-        }
-      });
+                          // Get new FCM registration token
+                          String fcmToken = task.getResult();
+
+                          // Log and toast
+                          if (fcmToken != null) {
+                            if (BuildConfig.DEBUG) {
+                              Log.d(TAG, "Registering with FCM with token " + fcmToken);
+                            }
+                            Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
+                          }
+                        }
+                    });
     promise.resolve(null);
   }
 
 
   @ReactMethod
   public void voice_unregister(String token, Promise promise) {
-    FirebaseInstanceId.getInstance().getInstanceId()
-      .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-        @Override
-        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-          if (!task.isSuccessful()) {
-            Log.w(TAG, "getInstanceId failed", task.getException());
-            return;
-          }
+    FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                          if (!task.isSuccessful()) {
+                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                          }
 
-          // Get new Instance ID token
-          String fcmToken = task.getResult().getToken();
-          if (fcmToken != null) {
-            if (BuildConfig.DEBUG) {
-              Log.d(TAG, "UnRegistering with FCM");
-            }
-            Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
-          }
-        }
-      });
-    promise.resolve(token);
+                          // Get new FCM registration token
+                          String fcmToken = task.getResult();
+
+                          // Log and toast
+                          if (fcmToken != null) {
+                            if (BuildConfig.DEBUG) {
+                              Log.d(TAG, "Registering with FCM with token " + fcmToken);
+                            }
+                            Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
+                          }
+                        }
+                      });
+    promise.resolve(null);
   }
 
 }
