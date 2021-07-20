@@ -469,6 +469,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .enableDscp(true)
       .build();
     Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid, androidEventEmitter));
+    callMap.put(callUuid, call);
     promise.resolve(callUuid);
   }
 

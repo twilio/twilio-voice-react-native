@@ -4,7 +4,7 @@ import { Call } from './Call';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
-import type { CallException, NativeMessageEvent } from './type';
+import { CallException, NativeMessageEvent, NativeEventScope } from './type';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.
@@ -91,7 +91,10 @@ export class Voice extends EventEmitter {
       unregistered: this._handleUnregistered,
     };
 
-    this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
+    this._nativeEventEmitter.addListener(
+      NativeEventScope.Voice,
+      this._handleNativeEvent
+    );
   }
 
   private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {

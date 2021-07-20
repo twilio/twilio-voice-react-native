@@ -110,6 +110,12 @@ export function useCallInvites(
 ) {
   const [callInvites, setCallInvites] = React.useState<BoundCallInvite[]>([]);
 
+  const removeCallInvite = React.useCallback((callSid: string) => {
+    setCallInvites((_callInvites) =>
+      _callInvites.filter(({ callSid: _callSid }) => _callSid !== callSid)
+    );
+  }, []);
+
   const callInviteHandler = React.useCallback(
     async (callInvite: CallInvite) => {
       const { callSid, from, to } = await getCallInviteInfo(callInvite);
@@ -118,6 +124,7 @@ export function useCallInvites(
         ..._callInvites,
         {
           accept: async () => {
+            removeCallInvite(await callInvite.getCallSid());
             const call = await callInvite.accept();
             callHandler(call);
           },
@@ -125,30 +132,24 @@ export function useCallInvites(
           from,
           to,
           reject: async () => {
+            removeCallInvite(await callInvite.getCallSid());
             await callInvite.reject();
-            setCallInvites((__callInvites) =>
-              __callInvites.filter(
-                ({ callSid: _callSid }) => _callSid !== callSid
-              )
-            );
           },
         },
       ]);
 
       logEvent(`Call invite: ${callSid}`);
     },
-    [callHandler, logEvent]
+    [callHandler, logEvent, removeCallInvite]
   );
 
   const cancelledCallInviteHandler = React.useCallback(
     async (cancelledCallInvite: CancelledCallInvite) => {
       const { callSid } = await getCancelledCallInviteInfo(cancelledCallInvite);
-      setCallInvites((_callInvites) =>
-        _callInvites.filter(({ callSid: _callSid }) => _callSid !== callSid)
-      );
+      removeCallInvite(callSid);
       logEvent(`Cancelled call invite: ${callSid}`);
     },
-    [logEvent]
+    [logEvent, removeCallInvite]
   );
 
   const recentCallInvite = React.useMemo(

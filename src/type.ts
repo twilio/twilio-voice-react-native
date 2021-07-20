@@ -2,8 +2,8 @@ import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 
 export enum NativeEventScope {
-  'Call' = 'call',
-  'Voice' = 'voice',
+  'Call' = 'Call',
+  'Voice' = 'Voice',
 }
 
 export type CallException = any;
