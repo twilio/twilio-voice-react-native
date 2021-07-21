@@ -24,6 +24,8 @@ export default function Dialer({
   const disconnectNoOp = useNoOp('disconnect');
   const muteNoOp = useNoOp('mute');
   const holdNoOp = useNoOp('hold');
+  const acceptNoOp = useNoOp('accept');
+  const rejectNoOp = useNoOp('reject');
 
   const connectHandler = React.useCallback(
     () => onConnect(outgoingTo),
@@ -38,26 +40,6 @@ export default function Dialer({
   const callButtons = React.useMemo(
     () => [
       [
-        <View style={styles.padded}>
-          <Button
-            title={callInfo?.isMuted ? 'Unmute' : 'Mute'}
-            onPress={callMethod?.mute || muteNoOp}
-          />
-        </View>,
-        <View style={styles.padded}>
-          <Button
-            title={callInfo?.isOnHold ? 'Unhold' : 'Hold'}
-            onPress={callMethod?.hold || holdNoOp}
-          />
-        </View>,
-      ],
-    ],
-    [callInfo, callMethod, holdNoOp, muteNoOp]
-  );
-
-  if (activeCall) {
-    return (
-      <View style={styles.padded}>
         <View style={styles.input}>
           <Text style={styles.padded}>Digits</Text>
           <TextInput
@@ -71,22 +53,70 @@ export default function Dialer({
               onPress={callMethod?.sendDigits(digits) || sendDigitsNoOp}
             />
           </View>
-        </View>
-        <Grid gridComponents={callButtons} />
+        </View>,
+      ],
+      [
+        <Button
+          title={callInfo?.isMuted ? 'Unmute' : 'Mute'}
+          onPress={callMethod?.mute || muteNoOp}
+        />,
+        <Button
+          title={callInfo?.isOnHold ? 'Unhold' : 'Hold'}
+          onPress={callMethod?.hold || holdNoOp}
+        />,
+      ],
+      [
         <Button
           title="Disconnect"
           onPress={callMethod?.disconnect || disconnectNoOp}
-        />
-      </View>
+        />,
+      ],
+    ],
+    [
+      callInfo?.isMuted,
+      callInfo?.isOnHold,
+      callMethod,
+      digits,
+      disconnectNoOp,
+      holdNoOp,
+      muteNoOp,
+      sendDigitsNoOp,
+    ]
+  );
+
+  const callInviteButtons = React.useMemo(
+    () => [
+      [
+        <Button
+          title="Accept"
+          onPress={recentCallInvite?.accept || acceptNoOp}
+        />,
+        <Button
+          title="Reject"
+          onPress={recentCallInvite?.reject || rejectNoOp}
+        />,
+      ],
+    ],
+    [acceptNoOp, rejectNoOp, recentCallInvite?.accept, recentCallInvite?.reject]
+  );
+
+  if (activeCall) {
+    return (
+      <Grid
+        gridComponents={callButtons}
+        horizontalGapSize={5}
+        verticalGapSize={5}
+      />
     );
   }
 
   if (recentCallInvite) {
     return (
-      <View style={composedStyles.incomingButton}>
-        <Button title="Accept" onPress={recentCallInvite.accept} />
-        <Button title="Reject" onPress={recentCallInvite.reject} />
-      </View>
+      <Grid
+        gridComponents={callInviteButtons}
+        horizontalGapSize={5}
+        verticalGapSize={5}
+      />
     );
   }
 

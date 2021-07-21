@@ -63,33 +63,31 @@ export function useCall(logEvent: (event: string) => void) {
 
       setCallMethod({
         disconnect: () => call.disconnect(),
-        hold: () => {
-          setCallInfo((_callInfo) => {
-            if (_callInfo === null) {
-              return null;
-            }
-
-            const isCallOnHold = !_callInfo.isOnHold;
-            call.hold(!isCallOnHold);
-            return {
-              ..._callInfo,
-              isCallOnHold,
-            };
-          });
+        hold: async () => {
+          let isOnHold = await call.isOnHold();
+          await call.hold(!isOnHold);
+          isOnHold = await call.isOnHold();
+          setCallInfo((_callInfo) =>
+            _callInfo
+              ? {
+                  ..._callInfo,
+                  isOnHold,
+                }
+              : null
+          );
         },
-        mute: () => {
-          setCallInfo((_callInfo) => {
-            if (_callInfo === null) {
-              return null;
-            }
-
-            const isCallMuted = !_callInfo.isMuted;
-            call.mute(isCallMuted);
-            return {
-              ..._callInfo,
-              isCallMuted,
-            };
-          });
+        mute: async () => {
+          let isMuted = await call.isMuted();
+          await call.mute(!isMuted);
+          isMuted = await call.isMuted();
+          setCallInfo((_callInfo) =>
+            _callInfo
+              ? {
+                  ..._callInfo,
+                  isMuted,
+                }
+              : null
+          );
         },
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
       });
