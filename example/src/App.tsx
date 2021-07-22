@@ -8,7 +8,6 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import { useVoice } from './hook';
 import type { EventLogItem } from './type';
 import Dialer from './Dialer';
