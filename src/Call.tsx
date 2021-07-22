@@ -69,7 +69,6 @@ export class Call extends EventEmitter {
   >;
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
-  private _nativeScope: string;
   private _uuid: Uuid;
 
   constructor(uuid: Uuid, options: Partial<Call.Options> = {}) {
@@ -82,8 +81,6 @@ export class Call extends EventEmitter {
 
     this._uuid = uuid;
 
-    this._nativeScope = NativeEventScope.Call;
-
     this._nativeEventHandler = {
       connected: this._handleConnectedEvent,
       connectFailure: this._handleConnectFailure,
@@ -94,7 +91,7 @@ export class Call extends EventEmitter {
     };
 
     this._nativeEventEmitter.addListener(
-      this._nativeScope,
+      NativeEventScope.Call,
       this._handleNativeEvent
     );
   }

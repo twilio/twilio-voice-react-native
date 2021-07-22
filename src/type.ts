@@ -2,8 +2,8 @@ import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 
 export enum NativeEventScope {
-  'Call' = 'call',
-  'Voice' = 'voice',
+  'Call' = 'Call',
+  'Voice' = 'Voice',
 }
 
 export type CallException = any;
@@ -25,14 +25,17 @@ export interface NativeCallEvent {
   uuid: Uuid;
 }
 
-export enum NativeMessageEventType {
+export enum NativeVoiceEventType {
   'CallInvite' = 'callInvite',
   'CancelledCallInvite' = 'cancelledCallInvite',
+  'Error' = 'error',
+  'Registered' = 'registered',
+  'Unregistered' = 'unregistered',
 }
 
-export interface NativeMessageEvent {
+export interface NativeVoiceEvent {
   exception?: CallException;
-  type: NativeMessageEventType;
+  type: NativeVoiceEventType;
   uuid: Uuid;
 }
 

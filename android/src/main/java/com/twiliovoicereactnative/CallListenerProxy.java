@@ -83,7 +83,7 @@ class CallListenerProxy implements Call.Listener {
     Log.d(TAG, "onDisconnected");
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_TYPE, EVENT_CALL_DISCONNECTED);
-    params.putString(UUID_KEY, uuid);
+    params.putString(UUID_KEY, this.uuid);
     androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 }

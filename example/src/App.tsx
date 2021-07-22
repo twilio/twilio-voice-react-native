@@ -45,10 +45,8 @@ export default function App() {
         <Text>From: {String(callInfo?.from)}</Text>,
         <Text>To: {String(callInfo?.to)}</Text>,
       ],
-      [
-        <Text>SID: {String(callInfo?.sid)}</Text>,
-        <Text>State: {String(callInfo?.state)}</Text>,
-      ],
+      [<Text>State: {String(callInfo?.state)}</Text>],
+      [<Text>SID: {String(callInfo?.sid)}</Text>],
     ],
     [callInfo]
   );
@@ -66,10 +64,17 @@ export default function App() {
 
   const eventLogItemRender = React.useCallback(
     (info: ListRenderItemInfo<EventLogItem>) => (
-      <Text>{info.item.content}</Text>
+      <Text>{info.item.content + '\n'}</Text>
     ),
     []
   );
+
+  const registrationButton = React.useMemo(() => {
+    const [title, handler] = registered
+      ? ['Unregister', unregisterHandler]
+      : ['Register', registerHandler];
+    return <Button title={title} onPress={handler} />;
+  }, [registerHandler, registered, unregisterHandler]);
 
   return (
     <SafeAreaView style={styles.expand}>
@@ -91,18 +96,21 @@ export default function App() {
           <FlatList data={events} renderItem={eventLogItemRender} />
         </View>
       </View>
-      <Dialer
-        callInfo={callInfo}
-        callMethod={callMethod}
-        onConnect={connectHandler}
-        recentCallInvite={recentCallInvite}
-      />
       <View style={styles.padded}>
-        {registered ? (
-          <Button title="Unregister" onPress={unregisterHandler} />
-        ) : (
-          <Button title="Register" onPress={registerHandler} />
-        )}
+        <Grid
+          verticalGapSize={5}
+          gridComponents={[
+            [
+              <Dialer
+                callInfo={callInfo}
+                callMethod={callMethod}
+                onConnect={connectHandler}
+                recentCallInvite={recentCallInvite}
+              />,
+            ],
+            [registrationButton],
+          ]}
+        />
       </View>
     </SafeAreaView>
   );
