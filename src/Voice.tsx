@@ -1,10 +1,15 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
-import { CanceledCallInvite } from './CanceledCallInvite';
+import { CancelledCallInvite } from './CancelledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
-import type { CallException, NativeMessageEvent } from './type';
+import {
+  CallException,
+  NativeVoiceEvent,
+  NativeEventScope,
+  NativeVoiceEventType,
+} from './type';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.
@@ -15,8 +20,8 @@ export declare interface Voice {
    */
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
   emit(
-    voiceEvent: Voice.Event.CanceledCallInvite,
-    canceledCallInvite: CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
+    cancelledCallInvite: CancelledCallInvite,
     exception?: CallException
   ): boolean;
   emit(voiceEvent: Voice.Event.Registered): boolean;
@@ -41,16 +46,16 @@ export declare interface Voice {
   ): this;
 
   addEventListener(
-    voiceEvent: Voice.Event.CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
-      canceledCallInvite: CanceledCallInvite,
+      cancelledCallInvite: CancelledCallInvite,
       exception?: CallException
     ) => void
   ): this;
   on(
-    voiceEvent: Voice.Event.CanceledCallInvite,
+    voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
-      canceledCallInvite: CanceledCallInvite,
+      cancelledCallInvite: CancelledCallInvite,
       exception?: CallException
     ) => void
   ): this;
@@ -72,8 +77,8 @@ export class Voice extends EventEmitter {
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
   private _nativeEventHandler: Record<
-    Voice.Event,
-    (messageEvent: NativeMessageEvent) => void
+    NativeVoiceEventType,
+    (messageEvent: NativeVoiceEvent) => void
   >;
 
   constructor(options: Partial<Voice.Options> = {}) {
@@ -86,16 +91,19 @@ export class Voice extends EventEmitter {
 
     this._nativeEventHandler = {
       callInvite: this._handleCallInvite,
-      canceledCallInvite: this._handleCanceledCallInvite,
+      cancelledCallInvite: this._handleCancelledCallInvite,
+      error: this._handleError,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
     };
 
-    this._nativeEventEmitter.addListener(Voice.name, this._handleNativeEvent);
+    this._nativeEventEmitter.addListener(
+      NativeEventScope.Voice,
+      this._handleNativeEvent
+    );
   }
 
-  private _handleNativeEvent = (nativeMessageEvent: NativeMessageEvent) => {
-    console.log(nativeMessageEvent);
+  private _handleNativeEvent = (nativeMessageEvent: NativeVoiceEvent) => {
     const { type } = nativeMessageEvent;
 
     const handler = this._nativeEventHandler[type];
@@ -108,17 +116,21 @@ export class Voice extends EventEmitter {
     handler(nativeMessageEvent);
   };
 
-  private _handleCallInvite = ({ uuid }: NativeMessageEvent) => {
+  private _handleCallInvite = ({ uuid }: NativeVoiceEvent) => {
     const callInvite = new CallInvite(uuid);
     this.emit(Voice.Event.CallInvite, callInvite);
   };
 
-  private _handleCanceledCallInvite = ({
+  private _handleCancelledCallInvite = ({
     exception,
     uuid,
-  }: NativeMessageEvent) => {
-    const canceledCallInvite = new CanceledCallInvite(uuid);
-    this.emit(Voice.Event.CanceledCallInvite, canceledCallInvite, exception);
+  }: NativeVoiceEvent) => {
+    const cancelledCallInvite = new CancelledCallInvite(uuid);
+    this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
+  };
+
+  private _handleError = (error: any) => {
+    console.log(error);
   };
 
   private _handleRegistered = () => {
@@ -158,7 +170,8 @@ export class Voice extends EventEmitter {
 export namespace Voice {
   export enum Event {
     'CallInvite' = 'callInvite',
-    'CanceledCallInvite' = 'canceledCallInvite',
+    'CancelledCallInvite' = 'cancelledCallInvite',
+    'Error' = 'error',
     'Registered' = 'registered',
     'Unregistered' = 'unregistered',
   }
