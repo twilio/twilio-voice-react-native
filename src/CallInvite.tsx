@@ -48,6 +48,11 @@ export class CallInvite {
     await this._nativeModule.callInvite_reject(this._uuid);
   }
 
+  async answeredCall(): Promise<Call> {
+    const call = new Call(this._uuid); 
+    return call;
+  }
+
   isValid(): Promise<boolean> {
     return this._nativeModule.callInvite_isValid(this._uuid);
   }

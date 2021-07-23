@@ -164,11 +164,7 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    TVOCall *call = self.callMap[uuid];
-    if (call) {
-        [call disconnect];
-    }
-
+    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
     resolve(nil);
 }
 
