@@ -28,7 +28,7 @@ export interface NativeCallEvent {
 export enum NativeVoiceEventType {
   'CallInvite' = 'callInvite',
   'CancelledCallInvite' = 'cancelledCallInvite',
-  'CallInviteAnswered' = 'callInviteAnswered',
+  'AnsweredCallInvite' = 'answeredCallInvite',
   'Error' = 'error',
   'Registered' = 'registered',
   'Unregistered' = 'unregistered',

@@ -19,7 +19,7 @@ export declare interface Voice {
    * Emit typings.
    */
   emit(voiceEvent: Voice.Event.CallInvite,
-       voiceEvent: Voice.Event.CallInviteAnswered,
+       voiceEvent: Voice.Event.AnsweredCallInvite,
        callInvite: CallInvite): boolean;
   emit(
     voiceEvent: Voice.Event.CancelledCallInvite,
@@ -63,11 +63,11 @@ export declare interface Voice {
   ): this;
 
   addEventListener(
-    voiceEvent: Voice.Event.CallInviteAnswered,
+    voiceEvent: Voice.Event.AnsweredCallInvite,
     listener: (callInvite: CallInvite) => void
   ): this;
   on(
-    voiceEvent: Voice.Event.CallInviteAnswered,
+    voiceEvent: Voice.Event.AnsweredCallInvite,
     listener: (callInvite: CallInvite) => void
   ): this;
 
@@ -103,7 +103,7 @@ export class Voice extends EventEmitter {
     this._nativeEventHandler = {
       callInvite: this._handleCallInvite,
       cancelledCallInvite: this._handleCancelledCallInvite,
-      callInviteAnswered: this._handleCallInviteAnswered,
+      answeredCallInvite: this._handleAnsweredCallInvite,
       error: this._handleError,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
@@ -141,9 +141,9 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
   };
 
-  private _handleCallInviteAnswered = ({ uuid }: NativeVoiceEvent) => {
+  private _handleAnsweredCallInvite = ({ uuid }: NativeVoiceEvent) => {
     const callInvite = new CallInvite(uuid);
-    this.emit(Voice.Event.callInviteAnswered, callInvite);
+    this.emit(Voice.Event.AnsweredCallInvite, callInvite);
   };
 
   private _handleError = (error: any) => {
@@ -188,7 +188,7 @@ export namespace Voice {
   export enum Event {
     'CallInvite' = 'callInvite',
     'CancelledCallInvite' = 'cancelledCallInvite',
-    'CallInviteAnswered' = 'callInviteAnswered',
+    'AnsweredCallInvite' = 'answeredCallInvite',
     'Error' = 'error',
     'Registered' = 'registered',
     'Unregistered' = 'unregistered',

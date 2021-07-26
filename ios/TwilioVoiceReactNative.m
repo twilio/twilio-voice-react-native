@@ -17,7 +17,7 @@ NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
-NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"callInviteAnswered";
+NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"answeredCallInvite";
 
 static TVODefaultAudioDevice *sAudioDevice;
 
@@ -77,6 +77,7 @@ static TVODefaultAudioDevice *sAudioDevice;
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
         self.cancelledCallInvite = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
+        self.callInvite = nil;
         
         eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
     }
