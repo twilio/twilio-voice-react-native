@@ -27,12 +27,13 @@ export class CallInvite {
       );
     }
 
-    const call = new Call(this._uuid, {
+    const callUuid = await this._nativeModule.util_generateId();
+    const call = new Call(callUuid, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
 
-    await this._nativeModule.callInvite_accept(this._uuid, this._uuid, options);
+    await this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
 
     return call;
   }
@@ -45,14 +46,6 @@ export class CallInvite {
     }
 
     await this._nativeModule.callInvite_reject(this._uuid);
-  }
-
-  async answeredCall(): Promise<Call> {
-    const call = new Call(this._uuid, {
-      nativeEventEmitter: this._nativeEventEmitter,
-      nativeModule: this._nativeModule,
-    });
-    return call;
   }
 
   isValid(): Promise<boolean> {

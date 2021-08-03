@@ -150,17 +150,6 @@ export function useCallInvites(
     [logEvent, removeCallInvite]
   );
 
-  const answeredCallInviteHandler = React.useCallback(
-    async (callInvite: CallInvite) => {
-      const { callSid, from, to } = await getCallInviteInfo(callInvite);
-      removeCallInvite(callSid);
-      const call = await callInvite.answeredCall();
-      callHandler(call);
-      logEvent(`Call invite answered: ${callSid}`);
-    },
-    [callHandler, logEvent, removeCallInvite]
-  );
-
   const recentCallInvite = React.useMemo(
     () => (callInvites.length ? callInvites[callInvites.length - 1] : null),
     [callInvites]
@@ -170,7 +159,6 @@ export function useCallInvites(
     callInvites,
     callInviteHandler,
     cancelledCallInviteHandler,
-    answeredCallInviteHandler,
     recentCallInvite,
   };
 }
@@ -183,7 +171,7 @@ export function useVoice(token: string) {
 
   const { events, logEvent } = useEventLog();
   const { callInfo, callMethod, callHandler } = useCall(logEvent);
-  const { callInviteHandler, cancelledCallInviteHandler, answeredCallInviteHandler, recentCallInvite } =
+  const { callInviteHandler, cancelledCallInviteHandler, recentCallInvite } =
     useCallInvites(logEvent, callHandler);
 
   const connectHandler = React.useCallback(
@@ -213,8 +201,7 @@ export function useVoice(token: string) {
     voice.getVersion().then(setSdkVersion);
     voice.on(Voice.Event.CallInvite, callInviteHandler);
     voice.on(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
-    voice.on(Voice.Event.AnsweredCallInvite, answeredCallInviteHandler);
-  }, [callInviteHandler, cancelledCallInviteHandler, answeredCallInviteHandler, voice]);
+  }, [callInviteHandler, cancelledCallInviteHandler, voice]);
 
   return {
     registered,
