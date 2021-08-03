@@ -7,19 +7,25 @@
 
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
+#import "TwilioVoiceReactNativeConstants.h"
 
-NSString * const kTwilioVoiceReactNativeEventVoice = @"Voice";
-NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventKeyVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventKeyCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
+NSString * const kTwilioVoiceReactNativeEventKeyUuid = @"uuid";
+NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
+
+NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"answeredCallInvite";
+
+static TVODefaultAudioDevice *sAudioDevice;
 
 @import TwilioVoice;
 
-@interface TwilioVoiceReactNative () <TVOCallDelegate>
+@interface TwilioVoiceReactNative ()
 
 @property(nonatomic, strong) NSData *deviceTokenData;
-
-@property (nonatomic, strong) NSMutableDictionary *callMap;
-@property (nonatomic, strong) TVOCall *activeCall;
-@property (nonatomic, strong) TVODefaultAudioDevice *audioDevice;
 
 @end
 
@@ -29,12 +35,13 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 - (instancetype)init {
     if (self = [super init]) {
         _callMap = [NSMutableDictionary dictionary];
-        _audioDevice = [TVODefaultAudioDevice audioDevice];
-        TwilioVoiceSDK.audioDevice = _audioDevice;
+        sAudioDevice = [TVODefaultAudioDevice audioDevice];
+        TwilioVoiceSDK.audioDevice = sAudioDevice;
         
         TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
         
         [self subscribeToNotifications];
+        [self initializeCallKit];
     }
 
     return self;
@@ -52,13 +59,34 @@ NSString * const kTwilioVoiceReactNativeEventCall = @"Call";
 }
 
 - (void)handlePushRegistryNotification:(NSNotification *)notification {
-    NSDictionary *eventBody = notification.userInfo;
-    if ([eventBody[kTwilioVoicePushRegistryNotificationType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+    NSMutableDictionary *eventBody = [notification.userInfo mutableCopy];
+    if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
         NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
         self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
-    } else {
-        [self sendEventWithName:kTwilioVoiceReactNativeEventVoice body:eventBody];
+        
+        // Skip the event emitting since 1, the listener has not registered and 2, the app does not need to know about this
+        return;
+    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteReceived]) {
+        TVOCallInvite *callInvite = eventBody[kTwilioVoicePushRegistryNotificationCallInviteKey];
+        NSAssert(callInvite != nil, @"Invalid call invite");
+        [self reportNewIncomingCall:callInvite];
+        
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [callInvite.uuid UUIDString];
+    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
+        TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
+        NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
+        self.cancelledCallInvite = cancelledCallInvite;
+        [self endCallWithUuid:self.callInvite.uuid];
+        self.callInvite = nil;
+        
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
     }
+    
+    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice body:eventBody];
+}
+
++ (TVODefaultAudioDevice *)audioDevice {
+    return sAudioDevice;
 }
 
 RCT_EXPORT_MODULE();
@@ -67,7 +95,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[kTwilioVoiceReactNativeEventVoice, kTwilioVoiceReactNativeEventCall];
+  return @[kTwilioVoiceReactNativeEventKeyVoice, kTwilioVoiceReactNativeEventKeyCall];
 }
 
 + (BOOL)requiresMainQueueSetup
@@ -127,14 +155,7 @@ RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:accessToken
-                                                                            block:^(TVOConnectOptionsBuilder *builder) {
-        builder.params = params;
-        builder.uuid = [[NSUUID alloc] initWithUUIDString:uuid] ;
-    }];
-    self.activeCall = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
-    self.callMap[uuid] = self.activeCall;
-
+    [self makeCallWithUuid:uuid accessToken:accessToken params:params];
     resolve(nil);
 }
 
@@ -144,11 +165,7 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    TVOCall *call = self.callMap[uuid];
-    if (call) {
-        [call disconnect];
-    }
-
+    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
     resolve(nil);
 }
 
@@ -216,7 +233,7 @@ RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
     if (call) {
         resolve(@(call.isOnHold));
     } else {
-        resolve(@(false));
+        resolve(@(NO));
     }
 }
 
@@ -241,7 +258,7 @@ RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
     if (call) {
         resolve(@(call.isMuted));
     } else {
-        resolve(@(false));
+        resolve(@(NO));
     }
 }
 
@@ -256,6 +273,105 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     }
     
     resolve(nil);
+}
+
+#pragma mark - Bingings (Call Invite)
+
+RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
+                  newCallUuid:(NSString *)newCallUuid
+                  acceptOptions:(NSDictionary *)acceptOptions
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
+                completion:^(BOOL success, NSError *error) {
+        if (success) {
+            resolve(nil);
+        } else {
+            reject(@"Voice error", @"Failed to answer the call invite", error);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:callInviteUuiid]];
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve(@(YES));
+}
+
+RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.callSid);
+    } else {
+        reject(@"Voice error", @"No matching call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.from);
+    } else {
+        reject(@"Voice error", @"No matching call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.callInvite) {
+        resolve(self.callInvite.to);
+    } else {
+        reject(@"Voice error", @"No matching call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.callSid);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.from);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInvite) {
+        resolve(self.cancelledCallInvite.to);
+    } else {
+        reject(@"Voice error", @"No matching cancelled call invite", nil);
+    }
 }
 
 #pragma mark - utility
@@ -281,61 +397,6 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
         default:
             return @"connecting";
     }
-}
-
-#pragma mark - TVOCallDelegate
-
-- (void)callDidStartRinging:(TVOCall *)call {
-    NSLog(@"Call ringing.");
-    self.audioDevice.enabled = YES;
-    [self sendEventWithName:@"Call" body:@{@"type": @"ringing", @"uuid": [call.uuid UUIDString]}];
-}
-
-- (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
-    NSLog(@"Call failed to connect: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connectFailure", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
-
-    // TODO: disconnect call with CallKit if needed
-    // TODO: CallKit completion handler
-}
-
-- (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
-    NSLog(@"Call disconnected with error: %@.", error);
-    NSDictionary *messageBody = [NSDictionary dictionary];
-    if (error) {
-        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]};
-    } else {
-        messageBody = @{@"type": @"disconnected", @"uuid": [call.uuid UUIDString]};
-    }
-    
-    [self sendEventWithName:@"Call" body:messageBody];
-
-    // TODO: end call with CallKit (if not user initiated-disconnect)
-    // TODO: CallKit completion handler
-}
-
-- (void)callDidConnect:(TVOCall *)call {
-    NSLog(@"Call connected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString]}];
-
-    // TODO: CallKit completion handler
-    // TODO: report connected to CallKit
-}
-
-- (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
-    NSLog(@"Call reconnecting: %@.", error);
-    [self sendEventWithName:@"Call" body:@{@"type": @"connected", @"uuid": [call.uuid UUIDString], @"error": [error localizedDescription]}];
-}
-
-- (void)callDidReconnect:(TVOCall *)call {
-    NSLog(@"Call reconnected.");
-    [self sendEventWithName:@"Call" body:@{@"type": @"reconnected", @"uuid": [call.uuid UUIDString]}];
-}
-
-- (void)call:(TVOCall *)call
-didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
-previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
-    // TODO: process and emit warnings event
 }
 
 @end
