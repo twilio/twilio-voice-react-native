@@ -12,10 +12,8 @@ export class CallInvite {
 
   constructor(uuid: Uuid, options: Partial<CallInvite.Options> = {}) {
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
-
     this._nativeEventEmitter =
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
-
     this._uuid = uuid;
     this._state = CallInvite.State.Pending;
   }
@@ -23,17 +21,32 @@ export class CallInvite {
   async accept(options: CallInvite.AcceptOptions = {}): Promise<Call> {
     if (this._state !== CallInvite.State.Pending) {
       throw new InvalidStateError(
-        `Call in state "${this._state}", expected state "${CallInvite.State.Pending}"`
+        `Call in state "${this._state}", expected state "${CallInvite.State.Pending}".`
       );
     }
 
     const callUuid = await this._nativeModule.util_generateId();
+
+    const bind = () =>
+      new Promise<void>((resolve) => {
+        setImmediate(async () => {
+          await this._nativeModule.callInvite_accept(
+            this._uuid,
+            callUuid,
+            options
+          );
+          resolve();
+        });
+      });
+
+    // const bind = () =>
+    //   this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
+
     const call = new Call(callUuid, {
+      bind,
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-
-    await this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
 
     return call;
   }
@@ -74,8 +87,8 @@ export namespace CallInvite {
   }
 
   export enum State {
-    Pending = 'PENDING',
-    Accepted = 'ACCEPTED',
-    Rejected = 'REJECTED',
+    Pending = 'pending',
+    Accepted = 'accepted',
+    Rejected = 'rejected',
   }
 }

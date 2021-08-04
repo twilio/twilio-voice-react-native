@@ -63,6 +63,7 @@ export declare interface Call {
 }
 
 export class Call extends EventEmitter {
+  private _bindPromise: Promise<any> | undefined;
   private _nativeEventHandler: Record<
     NativeCallEventType,
     (callEvent: NativeCallEvent) => void
@@ -78,6 +79,8 @@ export class Call extends EventEmitter {
 
     this._nativeEventEmitter =
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
+
+    this._bindPromise = options.bind?.();
 
     this._uuid = uuid;
 
@@ -138,43 +141,53 @@ export class Call extends EventEmitter {
   /**
    * Native functionality.
    */
-  disconnect(): void {
+  async disconnect(): Promise<void> {
+    await this._bindPromise;
     this._nativeModule.call_disconnect(this._uuid);
   }
 
-  isOnHold(): Promise<boolean> {
+  async isOnHold(): Promise<boolean> {
+    await this._bindPromise;
     return this._nativeModule.call_isOnHold(this._uuid);
   }
 
-  isMuted(): Promise<boolean> {
+  async isMuted(): Promise<boolean> {
+    await this._bindPromise;
     return this._nativeModule.call_isMuted(this._uuid);
   }
 
-  getFrom(): Promise<string> {
+  async getFrom(): Promise<string> {
+    await this._bindPromise;
     return this._nativeModule.call_getFrom(this._uuid);
   }
 
-  getTo(): Promise<string> {
+  async getTo(): Promise<string> {
+    await this._bindPromise;
     return this._nativeModule.call_getTo(this._uuid);
   }
 
-  getState(): Promise<string> {
+  async getState(): Promise<string> {
+    await this._bindPromise;
     return this._nativeModule.call_getState(this._uuid);
   }
 
-  getSid(): Promise<string> {
+  async getSid(): Promise<string> {
+    await this._bindPromise;
     return this._nativeModule.call_getSid(this._uuid);
   }
 
-  hold(hold: boolean): Promise<void> {
+  async hold(hold: boolean): Promise<void> {
+    await this._bindPromise;
     return this._nativeModule.call_hold(this._uuid, hold);
   }
 
-  mute(mute: boolean): Promise<void> {
+  async mute(mute: boolean): Promise<void> {
+    await this._bindPromise;
     return this._nativeModule.call_mute(this._uuid, mute);
   }
 
-  sendDigits(digits: string): Promise<void> {
+  async sendDigits(digits: string): Promise<void> {
+    await this._bindPromise;
     return this._nativeModule.call_sendDigits(this._uuid, digits);
   }
 }
@@ -189,7 +202,13 @@ export namespace Call {
     'Ringing' = 'ringing',
   }
 
+  export enum State {
+    'Disconnected' = 'disconnected',
+    // TODO
+  }
+
   export interface Options {
+    bind: () => Promise<any>;
     nativeEventEmitter: NativeEventEmitter;
     nativeModule: typeof TwilioVoiceReactNative;
   }

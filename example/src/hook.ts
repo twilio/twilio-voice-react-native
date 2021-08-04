@@ -199,9 +199,43 @@ export function useVoice(token: string) {
 
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
+
+    const bootstrap = async () => {
+      const calls = await voice.getCalls();
+
+      for (const call of calls.values()) {
+        console.log('call', await call.getSid(), await call.getState());
+        callHandler(call);
+      }
+
+      const callInvites = await voice.getCallInvites();
+
+      for (const callInvite of callInvites.values()) {
+        console.log('call invite', await callInvite.getCallSid());
+        callInviteHandler(callInvite);
+      }
+
+      const cancelledCallInvites = await voice.getCancelledCallInvites();
+
+      for (const cancelledCallInvite of cancelledCallInvites.values()) {
+        console.log(
+          'cancelled call invite',
+          await cancelledCallInvite.getCallSid()
+        );
+        cancelledCallInviteHandler(cancelledCallInvite);
+      }
+    };
+
+    bootstrap();
+
     voice.on(Voice.Event.CallInvite, callInviteHandler);
     voice.on(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
-  }, [callInviteHandler, cancelledCallInviteHandler, voice]);
+
+    return () => {
+      voice.off(Voice.Event.CallInvite, callInviteHandler);
+      voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
+    };
+  }, [callHandler, callInviteHandler, cancelledCallInviteHandler, voice]);
 
   return {
     registered,

@@ -22,10 +22,13 @@ import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
+
 import com.twiliovoicereactnative.IncomingCallNotificationService;
+import com.twiliovoicereactnative.Storage;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -79,18 +82,28 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   }
 
   private void handleInvite(CallInvite callInvite, int notificationId) {
+    String uuid = UUID.randomUUID().toString();
+
     Intent intent = new Intent(this, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    intent.putExtra(Constants.UUID, uuid);
+
+    Storage.callInviteMap.put(uuid, callInvite);
 
     startService(intent);
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite) {
+    String uuid = UUID.randomUUID().toString();
+
     Intent intent = new Intent(this, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
+    intent.putExtra(Constants.UUID, uuid);
+
+    Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
     startService(intent);
   }
