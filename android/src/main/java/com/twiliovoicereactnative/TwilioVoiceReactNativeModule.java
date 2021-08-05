@@ -91,6 +91,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     intentFilter.addAction(Constants.ACTION_INCOMING_CALL);
     intentFilter.addAction(Constants.ACTION_CANCEL_CALL);
     intentFilter.addAction(Constants.ACTION_FCM_TOKEN);
+    intentFilter.addAction(Constants.ACTION_ACCEPT);
     LocalBroadcastManager.getInstance(reactContext).registerReceiver(
       voiceBroadcastReceiver, intentFilter);
     Log.d(TAG, "Successfully registerReceiver");
@@ -104,34 +105,35 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       /*
        * Handle the incoming or cancelled call invite
        */
-      Log.d(TAG, "Successfully received intent" + action);
+      Log.d(TAG, "Successfully received intent " + action);
+      String uuid = intent.getStringExtra(Constants.UUID);
+      if(uuid == null) {
+        uuid = UUID.randomUUID().toString();
+      }
+      WritableMap params = Arguments.createMap();
       switch (action) {
         case Constants.ACTION_FCM_TOKEN:
           fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
           Log.d(TAG, "Successfully set token" + fcmToken);
           break;
-        case Constants.ACTION_INCOMING_CALL: {
+        case Constants.ACTION_INCOMING_CALL:
           Log.d(TAG, "Successfully received incoming notification");
-
-          String uuid = intent.getStringExtra(Constants.UUID);
-
-          WritableMap params = Arguments.createMap();
           params.putString(EVENT_KEY_UUID, uuid);
           params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE);
           androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
           break;
-        }
-        case Constants.ACTION_CANCEL_CALL: {
+        case Constants.ACTION_ACCEPT:
+          Log.d(TAG, "Accepted Call CallInvite UUID " + uuid);
+          params.putString(EVENT_KEY_UUID, uuid);
+          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
+          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+          break;
+        case Constants.ACTION_CANCEL_CALL:
           Log.d(TAG, "Successfully received cancel notification");
-
-          String uuid = intent.getStringExtra(Constants.UUID);
-
-          WritableMap params = Arguments.createMap();
           params.putString(EVENT_KEY_UUID, uuid);
           params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE);
           androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
           break;
-        }
         default:
           break;
       }

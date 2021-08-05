@@ -48,6 +48,7 @@ public class AndroidEventEmitter {
   public static final String EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE = "cancelledCallInvite";
   public static final String EVENT_TYPE_VOICE_REGISTERED = "registered";
   public static final String EVENT_TYPE_VOICE_UNREGISTERED = "unregistered";
+  //public static final String EVENT_TYPE_VOICE_CALL_INVITE_ANSWERED = "callAnswered";
 
 
   public AndroidEventEmitter(ReactApplicationContext context) {

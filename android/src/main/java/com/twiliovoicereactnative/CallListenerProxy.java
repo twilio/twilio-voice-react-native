@@ -2,6 +2,7 @@ package com.twiliovoicereactnative;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.util.Log;
 
 import com.twilio.voice.Call;
@@ -23,7 +24,11 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
-  private final AndroidEventEmitter androidEventEmitter;
+  private AndroidEventEmitter androidEventEmitter = null;
+
+  public CallListenerProxy(String uuid) {
+    this.uuid = uuid;
+  }
 
   public CallListenerProxy(String uuid, AndroidEventEmitter androidEventEmitter) {
     this.uuid = uuid;
@@ -33,57 +38,68 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
-    params.putString(EVENT_KEY_ERROR, callException.getMessage());
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
+      params.putString(EVENT_KEY_ERROR, callException.getMessage());
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onReconnecting");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
-    params.putString(EVENT_KEY_ERROR, callException.getMessage());
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
+      params.putString(EVENT_KEY_ERROR, callException.getMessage());
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 
   @Override
   public void onReconnected(@NonNull Call call) {
     Log.d(TAG, "onReconnected");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
-    params.putString(EVENT_KEY_UUID, this.uuid);
-    androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    if (androidEventEmitter != null) {
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
+      params.putString(EVENT_KEY_UUID, this.uuid);
+      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    }
   }
 }

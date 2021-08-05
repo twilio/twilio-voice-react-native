@@ -19,7 +19,10 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
+import com.twilio.voice.AcceptOptions;
+import java.util.UUID;
 
 public class IncomingCallNotificationService extends Service {
 
@@ -34,12 +37,13 @@ public class IncomingCallNotificationService extends Service {
       CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, 0);
       String uuid = intent.getStringExtra(Constants.UUID);
+      Log.e(TAG, "CallInvite UUID " + uuid + " action " + action + " intent " + intent.toString());
       switch (action) {
         case Constants.ACTION_INCOMING_CALL:
           handleIncomingCall(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_ACCEPT:
-          accept(callInvite, notificationId);
+          accept(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_REJECT:
           reject(callInvite);
@@ -59,11 +63,12 @@ public class IncomingCallNotificationService extends Service {
     return null;
   }
 
-  private Notification createNotification(CallInvite callInvite, int notificationId, int channelImportance) {
+  private Notification createNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance) {
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
     intent.setAction(Constants.ACTION_INCOMING_CALL_NOTIFICATION);
     intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    intent.putExtra(Constants.UUID, uuid);
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     PendingIntent pendingIntent =
       PendingIntent.getActivity(this, notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -80,6 +85,7 @@ public class IncomingCallNotificationService extends Service {
         extras,
         callInvite,
         notificationId,
+        uuid,
         createChannel(channelImportance));
     } else {
       //noinspection deprecation
@@ -107,6 +113,7 @@ public class IncomingCallNotificationService extends Service {
   private Notification buildNotification(String text, PendingIntent pendingIntent, Bundle extras,
                                          final CallInvite callInvite,
                                          int notificationId,
+                                         String uuid,
                                          String channelId) {
     Intent rejectIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
     rejectIntent.setAction(Constants.ACTION_REJECT);
@@ -118,6 +125,7 @@ public class IncomingCallNotificationService extends Service {
     acceptIntent.setAction(Constants.ACTION_ACCEPT);
     acceptIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     acceptIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    acceptIntent.putExtra(Constants.UUID, uuid);
     PendingIntent piAcceptIntent = PendingIntent.getService(getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     Notification.Builder builder =
@@ -154,15 +162,25 @@ public class IncomingCallNotificationService extends Service {
     return channelId;
   }
 
-  private void accept(CallInvite callInvite, int notificationId) {
+  private void accept(CallInvite callInvite, int notificationId, String uuid) {
+    Log.e(TAG, "CallInvite UUID accept " + uuid);
     endForeground();
     Intent activeCallIntent = new Intent(this, getMainActivityClass(getApplicationContext()));
-    activeCallIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    activeCallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    activeCallIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
-    activeCallIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
     activeCallIntent.setAction(Constants.ACTION_ACCEPT);
-    startActivity(activeCallIntent);
+    activeCallIntent.putExtra(Constants.UUID, uuid);
+    // Need to answer the call here in case TwilioVoiceReactNative is not loaded
+    AcceptOptions acceptOptions = new AcceptOptions.Builder()
+      .enableDscp(true)
+      .build();
+
+    Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid));
+    Storage.callMap.put(uuid, call);
+    Storage.callMap.forEach((key, value) -> Log.e(TAG, "CallInvite UUID accept map value " + key + ":" + value));
+
+    NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.cancel(notificationId);
+    // Send the broadcast in case TwilioVoiceReactNative is loaded, it can emit the event
+    LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
   }
 
   private void reject(CallInvite callInvite) {
@@ -176,9 +194,9 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void handleIncomingCall(CallInvite callInvite, int notificationId, String uuid) {
-    Log.d(TAG, "Calling handleIncomingCall for " + callInvite);
+    Log.d(TAG, "Calling handleIncomingCall for " + callInvite + " with CallInvite UUID " + uuid);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      setCallInProgressNotification(callInvite, notificationId);
+      setCallInProgressNotification(callInvite, notificationId, uuid);
     }
     Intent intent = new Intent(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -191,13 +209,13 @@ public class IncomingCallNotificationService extends Service {
   }
 
   @TargetApi(Build.VERSION_CODES.O)
-  private void setCallInProgressNotification(CallInvite callInvite, int notificationId) {
+  private void setCallInProgressNotification(CallInvite callInvite, int notificationId, String uuid) {
     if (isAppVisible()) {
-      Log.i(TAG, "setCallInProgressNotification - app is visible.");
+      Log.i(TAG, "setCallInProgressNotification - app is visible with CallInvite UUID " + uuid);
     } else {
-      Log.i(TAG, "setCallInProgressNotification - app is NOT visible.");
+      Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + uuid);
     }
-    startForeground(notificationId, createNotification(callInvite, notificationId, NotificationManager.IMPORTANCE_HIGH));
+    startForeground(notificationId, createNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH));
   }
 
   /*

@@ -19,7 +19,7 @@ export declare interface Voice {
   /**
    * Emit typings.
    */
-  // emit(voiceEvent: Voice.Event.Call, call: Call): boolean;
+  emit(voiceEvent: Voice.Event.Call, call: Call): boolean;
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
   emit(
     voiceEvent: Voice.Event.CancelledCallInvite,
@@ -38,11 +38,11 @@ export declare interface Voice {
   ): this;
   on(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
 
-  // addEventListener(
-  //   voiceEvent: Voice.Event.Call,
-  //   listener: (call: Call) => void
-  // ): this;
-  // on(voiceEvent: Voice.Event.Call, listener: (call: Call) => void): this;
+  addEventListener(
+    voiceEvent: Voice.Event.Call,
+    listener: (call: Call) => void
+  ): this;
+  on(voiceEvent: Voice.Event.Call, listener: (call: Call) => void): this;
 
   addEventListener(
     voiceEvent: Voice.Event.CallInvite,
@@ -104,7 +104,7 @@ export class Voice extends EventEmitter {
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._nativeEventHandler = {
-      // call: this._handleCall,
+      call: this._handleCall,
       callInvite: this._handleCallInvite,
       cancelledCallInvite: this._handleCancelledCallInvite,
       error: this._handleError,
@@ -168,16 +168,16 @@ export class Voice extends EventEmitter {
     handler(nativeMessageEvent);
   };
 
-  // private _handleCall = ({ uuid }: NativeVoiceEvent) => {
-  //   const call = new Call(uuid, {
-  //     nativeEventEmitter: this._nativeEventEmitter,
-  //     nativeModule: this._nativeModule,
-  //   });
+  private _handleCall = ({ uuid }: NativeVoiceEvent) => {
+    const call = new Call(uuid, {
+      nativeEventEmitter: this._nativeEventEmitter,
+      nativeModule: this._nativeModule,
+    });
 
-  //   this._calls.set(uuid, call);
+    this._calls.set(uuid, call);
 
-  //   this.emit(Voice.Event.Call, call);
-  // };
+    this.emit(Voice.Event.Call, call);
+  };
 
   private _handleCallInvite = ({ uuid }: NativeVoiceEvent) => {
     const callInvite = new CallInvite(uuid, {
@@ -275,7 +275,7 @@ export class Voice extends EventEmitter {
 
 export namespace Voice {
   export enum Event {
-    // 'Call' = 'call',
+    'Call' = 'call',
     'CallInvite' = 'callInvite',
     'CancelledCallInvite' = 'cancelledCallInvite',
     'Error' = 'error',

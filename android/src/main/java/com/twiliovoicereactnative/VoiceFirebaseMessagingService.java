@@ -91,6 +91,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     intent.putExtra(Constants.UUID, uuid);
 
     Storage.callInviteMap.put(uuid, callInvite);
+    Log.e(TAG, "CallInvite UUID handleInvite " + uuid);
 
     startService(intent);
   }
