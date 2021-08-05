@@ -15,4 +15,5 @@ public class Constants {
   public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
   public static final String FCM_TOKEN = "FCM_TOKEN";
   public static final String UUID = "UUID";
+  public static final String CALL_LISTENER = "CALL_LISTENER";
 }

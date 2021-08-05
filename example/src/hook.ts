@@ -141,6 +141,25 @@ export function useCallInvites(
     [callHandler, logEvent, removeCallInvite]
   );
 
+  const callInviteAcceptedHandler = React.useCallback(
+    async (callInvite: CallInvite, call: Call) => {
+      const callSid = await callInvite.getCallSid();
+      removeCallInvite(callSid);
+      callHandler(call);
+      logEvent(`Call invite accepted: ${callSid}`);
+    },
+    [callHandler, logEvent, removeCallInvite]
+  );
+
+  const callInviteRejectedHandler = React.useCallback(
+    async (callInvite: CallInvite) => {
+      const callSid = await callInvite.getCallSid();
+      removeCallInvite(await callInvite.getCallSid());
+      logEvent(`Call invite rejected: ${callSid}`);
+    },
+    [logEvent, removeCallInvite]
+  );
+
   const cancelledCallInviteHandler = React.useCallback(
     async (cancelledCallInvite: CancelledCallInvite) => {
       const { callSid } = await getCancelledCallInviteInfo(cancelledCallInvite);
@@ -158,6 +177,8 @@ export function useCallInvites(
   return {
     callInvites,
     callInviteHandler,
+    callInviteAcceptedHandler,
+    callInviteRejectedHandler,
     cancelledCallInviteHandler,
     recentCallInvite,
   };
@@ -171,8 +192,13 @@ export function useVoice(token: string) {
 
   const { events, logEvent } = useEventLog();
   const { callInfo, callMethod, callHandler } = useCall(logEvent);
-  const { callInviteHandler, cancelledCallInviteHandler, recentCallInvite } =
-    useCallInvites(logEvent, callHandler);
+  const {
+    callInviteHandler,
+    callInviteAcceptedHandler,
+    callInviteRejectedHandler,
+    cancelledCallInviteHandler,
+    recentCallInvite,
+  } = useCallInvites(logEvent, callHandler);
 
   const connectHandler = React.useCallback(
     async (to: string) => {
@@ -229,13 +255,22 @@ export function useVoice(token: string) {
     bootstrap();
 
     voice.on(Voice.Event.CallInvite, callInviteHandler);
+    voice.on(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
+    voice.on(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
     voice.on(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
       voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
     };
-  }, [callHandler, callInviteHandler, cancelledCallInviteHandler, voice]);
+  }, [
+    callHandler,
+    callInviteHandler,
+    callInviteAcceptedHandler,
+    callInviteRejectedHandler,
+    cancelledCallInviteHandler,
+    voice,
+  ]);
 
   return {
     registered,

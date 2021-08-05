@@ -43,13 +43,12 @@ public class AndroidEventEmitter {
   /**
    * Voice events.
    */
-  public static final String EVENT_TYPE_VOICE_CALL = "call";
   public static final String EVENT_TYPE_VOICE_CALL_INVITE = "callInvite";
+  public static final String EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED = "callInviteAccepted";
+  public static final String EVENT_TYPE_VOICE_CALL_INVITE_REJECTED = "callInviteRejected";
   public static final String EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE = "cancelledCallInvite";
   public static final String EVENT_TYPE_VOICE_REGISTERED = "registered";
   public static final String EVENT_TYPE_VOICE_UNREGISTERED = "unregistered";
-  //public static final String EVENT_TYPE_VOICE_CALL_INVITE_ANSWERED = "callAnswered";
-
 
   public AndroidEventEmitter(ReactApplicationContext context) {
     mContext = context;

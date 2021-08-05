@@ -21,18 +21,14 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_REC
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 
+import static com.twiliovoicereactnative.Storage.androidEventEmitter;
+
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
-  private AndroidEventEmitter androidEventEmitter = null;
 
   public CallListenerProxy(String uuid) {
     this.uuid = uuid;
-  }
-
-  public CallListenerProxy(String uuid, AndroidEventEmitter androidEventEmitter) {
-    this.uuid = uuid;
-    this.androidEventEmitter = androidEventEmitter;
   }
 
   @Override

@@ -57,16 +57,17 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_REGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_UNREGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_REJECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE;
 
 import com.twiliovoicereactnative.Storage;
+import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
   private String fcmToken;
-  private AndroidEventEmitter androidEventEmitter;
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
   private final ReactApplicationContext reactContext;
 
@@ -92,6 +93,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     intentFilter.addAction(Constants.ACTION_CANCEL_CALL);
     intentFilter.addAction(Constants.ACTION_FCM_TOKEN);
     intentFilter.addAction(Constants.ACTION_ACCEPT);
+    intentFilter.addAction(Constants.ACTION_REJECT);
     LocalBroadcastManager.getInstance(reactContext).registerReceiver(
       voiceBroadcastReceiver, intentFilter);
     Log.d(TAG, "Successfully registerReceiver");
@@ -107,9 +109,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
        */
       Log.d(TAG, "Successfully received intent " + action);
       String uuid = intent.getStringExtra(Constants.UUID);
-      if(uuid == null) {
-        uuid = UUID.randomUUID().toString();
-      }
       WritableMap params = Arguments.createMap();
       switch (action) {
         case Constants.ACTION_FCM_TOKEN:
@@ -125,7 +124,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         case Constants.ACTION_ACCEPT:
           Log.d(TAG, "Accepted Call CallInvite UUID " + uuid);
           params.putString(EVENT_KEY_UUID, uuid);
-          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
+          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
+          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+          break;
+        case Constants.ACTION_REJECT:
+          Log.d(TAG, "Rejected Call CallInvite UUID " + uuid);
+          params.putString(EVENT_KEY_UUID, uuid);
+          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_REJECTED);
           androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
           break;
         case Constants.ACTION_CANCEL_CALL:
@@ -228,7 +233,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     // eventParams.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
     // androidEventEmitter.sendEvent(VOICE_EVENT_NAME, eventParams);
 
-    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, androidEventEmitter));
+    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid));
     Storage.callMap.put(uuid, call);
 
     promise.resolve(uuid);
@@ -525,13 +530,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .enableDscp(true)
       .build();
 
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid, androidEventEmitter));
+    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid));
     Storage.callMap.put(callUuid, call);
 
-    WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_UUID, callUuid);
-    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
-    androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+    // WritableMap params = Arguments.createMap();
+    // params.putString(EVENT_KEY_UUID, callUuid);
+    // params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
+    // androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
 
     Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), "accept");
 

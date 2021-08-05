@@ -192,6 +192,11 @@ public class IncomingCallNotificationService extends Service {
     endForeground();
     callInvite.reject(getApplicationContext());
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), "reject");
+
+    Intent rejectCallInviteIntent = new Intent(Constants.ACTION_REJECT);
+    rejectCallInviteIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    rejectCallInviteIntent.putExtra(Constants.UUID, uuid);
+    LocalBroadcastManager.getInstance(this).sendBroadcast(rejectCallInviteIntent);
   }
 
   private void handleCancelledCall(Intent intent, String callSid, String uuid) {
