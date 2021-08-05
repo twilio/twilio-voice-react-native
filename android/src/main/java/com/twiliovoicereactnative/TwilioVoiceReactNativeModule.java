@@ -533,8 +533,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
     androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
 
-    Storage.callInviteMap.remove(callInviteUuid);
-    Storage.callInviteMap.forEach((key, value) -> Log.e(TAG, "Cleaning up CallInvite UUID, call accepted. callInviteMap value " + key + ":" + ((CallInvite)value).getCallSid()));
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), "accept");
 
     promise.resolve(callUuid);
   }
@@ -550,8 +549,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
 
     activeCallInvite.reject(getReactApplicationContext());
-    Storage.callInviteMap.remove(uuid);
-    Storage.callInviteMap.forEach((key, value) -> Log.e(TAG, "Cleaning up CallInvite UUID, call rejected. callInviteMap value " + key + ":" + ((CallInvite)value).getCallSid()));
+    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), "reject");
 
     promise.resolve(uuid);
   }
