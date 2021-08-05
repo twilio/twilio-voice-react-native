@@ -21,6 +21,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
+import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.AcceptOptions;
 import java.util.UUID;
 
@@ -35,21 +36,23 @@ public class IncomingCallNotificationService extends Service {
     Log.d(TAG, "Received command " + action);
     if (action != null) {
       CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
+      CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, 0);
       String uuid = intent.getStringExtra(Constants.UUID);
-      Log.e(TAG, "CallInvite UUID " + uuid + " action " + action + " intent " + intent.toString());
+      Log.d(TAG, "CallInvite UUID " + uuid + " action " + action + " intent " + intent.toString());
       switch (action) {
         case Constants.ACTION_INCOMING_CALL:
           handleIncomingCall(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_ACCEPT:
           accept(callInvite, notificationId, uuid);
+          sendCallInviteToActivity(callInvite, notificationId);
           break;
         case Constants.ACTION_REJECT:
-          reject(callInvite);
+          reject(callInvite, uuid);
           break;
         case Constants.ACTION_CANCEL_CALL:
-          handleCancelledCall(intent);
+          handleCancelledCall(intent, cancelledCallInvite.getCallSid(), uuid);
           break;
         default:
           break;
@@ -119,6 +122,7 @@ public class IncomingCallNotificationService extends Service {
     rejectIntent.setAction(Constants.ACTION_REJECT);
     rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     rejectIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    rejectIntent.putExtra(Constants.UUID, uuid);
     PendingIntent piRejectIntent = PendingIntent.getService(getApplicationContext(), 0, rejectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     Intent acceptIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
@@ -175,7 +179,8 @@ public class IncomingCallNotificationService extends Service {
 
     Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid));
     Storage.callMap.put(uuid, call);
-    Storage.callMap.forEach((key, value) -> Log.e(TAG, "CallInvite UUID accept map value " + key + ":" + value));
+    Storage.callMap.forEach((key, value) -> Log.e(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
+    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), "accept");
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.cancel(notificationId);
@@ -183,13 +188,15 @@ public class IncomingCallNotificationService extends Service {
     LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
   }
 
-  private void reject(CallInvite callInvite) {
+  private void reject(CallInvite callInvite, String uuid) {
     endForeground();
     callInvite.reject(getApplicationContext());
+    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), "reject");
   }
 
-  private void handleCancelledCall(Intent intent) {
+  private void handleCancelledCall(Intent intent, String callSid, String uuid) {
     endForeground();
+    Storage.releaseCallInviteStorage(uuid, callSid, "cancel");
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
 

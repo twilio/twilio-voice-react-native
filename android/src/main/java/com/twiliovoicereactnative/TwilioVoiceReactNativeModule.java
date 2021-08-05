@@ -525,13 +525,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .enableDscp(true)
       .build();
 
-    // WritableMap params = Arguments.createMap();
-    // params.putString(EVENT_KEY_UUID, callUuid);
-    // params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
-    // androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
-
     Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid, androidEventEmitter));
     Storage.callMap.put(callUuid, call);
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_UUID, callUuid);
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL);
+    androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+
+    Storage.callInviteMap.remove(callInviteUuid);
+    Storage.callInviteMap.forEach((key, value) -> Log.e(TAG, "Cleaning up CallInvite UUID, call accepted. callInviteMap value " + key + ":" + ((CallInvite)value).getCallSid()));
 
     promise.resolve(callUuid);
   }
@@ -547,6 +550,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
 
     activeCallInvite.reject(getReactApplicationContext());
+    Storage.callInviteMap.remove(uuid);
+    Storage.callInviteMap.forEach((key, value) -> Log.e(TAG, "Cleaning up CallInvite UUID, call rejected. callInviteMap value " + key + ":" + ((CallInvite)value).getCallSid()));
+
     promise.resolve(uuid);
   }
 

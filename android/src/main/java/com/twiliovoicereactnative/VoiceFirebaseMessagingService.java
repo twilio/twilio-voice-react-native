@@ -91,13 +91,14 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     intent.putExtra(Constants.UUID, uuid);
 
     Storage.callInviteMap.put(uuid, callInvite);
-    Log.e(TAG, "CallInvite UUID handleInvite " + uuid);
+    Storage.callInviteCallSidUuidMap.put(callInvite.getCallSid(), uuid);
+    Log.d(TAG, "CallInvite UUID handleInvite " + uuid);
 
     startService(intent);
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite) {
-    String uuid = UUID.randomUUID().toString();
+    String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
 
     Intent intent = new Intent(this, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
