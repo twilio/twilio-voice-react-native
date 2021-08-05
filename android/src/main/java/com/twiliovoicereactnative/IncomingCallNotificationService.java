@@ -194,11 +194,10 @@ public class IncomingCallNotificationService extends Service {
   private void setCallInProgressNotification(CallInvite callInvite, int notificationId) {
     if (isAppVisible()) {
       Log.i(TAG, "setCallInProgressNotification - app is visible.");
-      startForeground(notificationId, createNotification(callInvite, notificationId, NotificationManager.IMPORTANCE_LOW));
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible.");
-      startForeground(notificationId, createNotification(callInvite, notificationId, NotificationManager.IMPORTANCE_HIGH));
     }
+    startForeground(notificationId, createNotification(callInvite, notificationId, NotificationManager.IMPORTANCE_HIGH));
   }
 
   /*
