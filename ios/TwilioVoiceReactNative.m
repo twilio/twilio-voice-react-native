@@ -159,14 +159,38 @@ RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
     resolve(nil);
 }
 
+RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve([self.callMap allKeys]);
+}
+
+RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: return a list of UUIDs associated with pending call invites
+    resolve(@[]);
+}
+
+RCT_EXPORT_METHOD(voice_getCancelledCallInvites:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    // TODO: return a list of UUIDs associated with cancelled call invites
+    resolve(@[]);
+}
+
 #pragma mark - Bingings (Call)
 
 RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
-    resolve(nil);
+    if (self.callMap[uuid]) {
+        [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
 }
 
 RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
@@ -220,9 +244,10 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
@@ -245,9 +270,10 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
@@ -270,9 +296,10 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call sendDigits:digits];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 #pragma mark - Bingings (Call Invite)
