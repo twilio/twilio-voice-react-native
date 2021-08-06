@@ -35,6 +35,9 @@ static TVODefaultAudioDevice *sAudioDevice;
 - (instancetype)init {
     if (self = [super init]) {
         _callMap = [NSMutableDictionary dictionary];
+        _callInviteMap = [NSMutableDictionary dictionary];
+        _cancelledCallInviteMap = [NSMutableDictionary dictionary];
+        
         sAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sAudioDevice;
         
@@ -76,8 +79,8 @@ static TVODefaultAudioDevice *sAudioDevice;
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
         self.cancelledCallInvite = cancelledCallInvite;
+        self.cancelledCallInviteMap[self.callInvite.uuid.UUIDString] = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
-        self.callInvite = nil;
         
         eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
     }
@@ -168,15 +171,13 @@ RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: return a list of UUIDs associated with pending call invites
-    resolve(@[]);
+    resolve([self.callInviteMap allKeys]);
 }
 
 RCT_EXPORT_METHOD(voice_getCancelledCallInvites:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    // TODO: return a list of UUIDs associated with cancelled call invites
-    resolve(@[]);
+    resolve([self.cancelledCallInviteMap allKeys]);
 }
 
 #pragma mark - Bingings (Call)

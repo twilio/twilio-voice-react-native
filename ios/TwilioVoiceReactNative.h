@@ -20,9 +20,14 @@
 @property (nonatomic, strong) TVOCall *activeCall;
 @property (nonatomic, strong) TVOCallInvite *callInvite;
 @property (nonatomic, strong) TVOCancelledCallInvite *cancelledCallInvite;
-@property (nonatomic, readonly, strong) NSMutableDictionary *callMap;
+
+@property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCall *> *callMap;
+@property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCallInvite *> *callInviteMap;
+@property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCancelledCallInvite *> *cancelledCallInviteMap;
+
 @property (nonatomic, strong) CXProvider *callKitProvider;
 @property (nonatomic, strong) CXCallController *callKitCallController;
+
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSDictionary *twimlParams;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL);

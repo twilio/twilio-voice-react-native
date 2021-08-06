@@ -31,6 +31,7 @@
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInvite = callInvite;
+    self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
 
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:callInvite.from];
 
@@ -79,6 +80,7 @@
         }
     }];
     
+    [self.callInviteMap removeObjectForKey:uuid.UUIDString];
     self.callInvite = nil;
 }
 
