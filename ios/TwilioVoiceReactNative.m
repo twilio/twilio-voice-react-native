@@ -17,7 +17,8 @@ NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
-NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"answeredCallInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteAccepted = @"callInviteAccepted";
+NSString * const kTwilioVoiceReactNativeEventCallInviteRejected = @"callInviteRejected";
 
 static TVODefaultAudioDevice *sAudioDevice;
 
@@ -74,7 +75,7 @@ static TVODefaultAudioDevice *sAudioDevice;
         NSAssert(callInvite != nil, @"Invalid call invite");
         [self reportNewIncomingCall:callInvite];
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [callInvite.uuid UUIDString];
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = callInvite.uuid.UUIDString;
     } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
@@ -82,7 +83,7 @@ static TVODefaultAudioDevice *sAudioDevice;
         self.cancelledCallInviteMap[self.callInvite.uuid.UUIDString] = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
+        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = self.callInvite.uuid.UUIDString;
     }
     
     [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice body:eventBody];
@@ -407,7 +408,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
 RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve([[NSUUID UUID] UUIDString]);
+    resolve([NSUUID UUID].UUIDString);
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {
