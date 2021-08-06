@@ -11,11 +11,6 @@ import type {
   BoundCallMethod,
   EventLogItem,
 } from './type';
-import {
-  getCallInfo,
-  getCallInviteInfo,
-  getCancelledCallInviteInfo,
-} from './util';
 
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
@@ -51,11 +46,25 @@ export function useCall(logEvent: (event: string) => void) {
 
   const callHandler = React.useCallback(
     async (call: Call) => {
-      setCallInfo(await getCallInfo(call));
+      setCallInfo({
+        from: call.getFrom(),
+        isMuted: call.isMuted(),
+        isOnHold: call.isOnHold(),
+        state: call.getState(),
+        sid: call.getSid(),
+        to: call.getTo(),
+      });
 
       Object.values(Call.Event).forEach((callEvent) => {
         call.on(callEvent, async () => {
-          const _callInfo = await getCallInfo(call);
+          const _callInfo = {
+            from: call.getFrom(),
+            isMuted: call.isMuted(),
+            isOnHold: call.isOnHold(),
+            state: call.getState(),
+            sid: call.getSid(),
+            to: call.getTo(),
+          };
           logEvent(`${_callInfo.sid}: ${callEvent}`);
           setCallInfo(_callInfo);
         });
@@ -64,9 +73,8 @@ export function useCall(logEvent: (event: string) => void) {
       setCallMethod({
         disconnect: () => call.disconnect(),
         hold: async () => {
-          let isOnHold = await call.isOnHold();
-          await call.hold(!isOnHold);
-          isOnHold = await call.isOnHold();
+          let isOnHold = call.isOnHold();
+          isOnHold = await call.hold(!isOnHold);
           setCallInfo((_callInfo) =>
             _callInfo
               ? {
@@ -77,9 +85,8 @@ export function useCall(logEvent: (event: string) => void) {
           );
         },
         mute: async () => {
-          let isMuted = await call.isMuted();
-          await call.mute(!isMuted);
-          isMuted = await call.isMuted();
+          let isMuted = call.isMuted();
+          isMuted = await call.mute(!isMuted);
           setCallInfo((_callInfo) =>
             _callInfo
               ? {
@@ -116,13 +123,15 @@ export function useCallInvites(
 
   const callInviteHandler = React.useCallback(
     async (callInvite: CallInvite) => {
-      const { callSid, from, to } = await getCallInviteInfo(callInvite);
+      const callSid = callInvite.getCallSid();
+      const from = callInvite.getFrom();
+      const to = callInvite.getTo();
 
       setCallInvites((_callInvites) => [
         ..._callInvites,
         {
           accept: async () => {
-            removeCallInvite(await callInvite.getCallSid());
+            removeCallInvite(callInvite.getCallSid());
             const call = await callInvite.accept();
             callHandler(call);
           },
@@ -130,7 +139,7 @@ export function useCallInvites(
           from,
           to,
           reject: async () => {
-            removeCallInvite(await callInvite.getCallSid());
+            removeCallInvite(callInvite.getCallSid());
             await callInvite.reject();
           },
         },
@@ -143,7 +152,7 @@ export function useCallInvites(
 
   const callInviteAcceptedHandler = React.useCallback(
     async (callInvite: CallInvite, call: Call) => {
-      const callSid = await callInvite.getCallSid();
+      const callSid = callInvite.getCallSid();
       removeCallInvite(callSid);
       callHandler(call);
       logEvent(`Call invite accepted: ${callSid}`);
@@ -153,8 +162,8 @@ export function useCallInvites(
 
   const callInviteRejectedHandler = React.useCallback(
     async (callInvite: CallInvite) => {
-      const callSid = await callInvite.getCallSid();
-      removeCallInvite(await callInvite.getCallSid());
+      const callSid = callInvite.getCallSid();
+      removeCallInvite(callSid);
       logEvent(`Call invite rejected: ${callSid}`);
     },
     [logEvent, removeCallInvite]
@@ -162,7 +171,7 @@ export function useCallInvites(
 
   const cancelledCallInviteHandler = React.useCallback(
     async (cancelledCallInvite: CancelledCallInvite) => {
-      const { callSid } = await getCancelledCallInviteInfo(cancelledCallInvite);
+      const callSid = cancelledCallInvite.getCallSid();
       removeCallInvite(callSid);
       logEvent(`Cancelled call invite: ${callSid}`);
     },
@@ -230,25 +239,15 @@ export function useVoice(token: string) {
       const calls = await voice.getCalls();
 
       for (const call of calls.values()) {
-        console.log('call', await call.getSid(), await call.getState());
+        console.log('call', call.getSid(), call.getState());
         callHandler(call);
       }
 
       const callInvites = await voice.getCallInvites();
 
       for (const callInvite of callInvites.values()) {
-        console.log('call invite', await callInvite.getCallSid());
+        console.log('call invite', callInvite.getCallSid());
         callInviteHandler(callInvite);
-      }
-
-      const cancelledCallInvites = await voice.getCancelledCallInvites();
-
-      for (const cancelledCallInvite of cancelledCallInvites.values()) {
-        console.log(
-          'cancelled call invite',
-          await cancelledCallInvite.getCallSid()
-        );
-        cancelledCallInviteHandler(cancelledCallInvite);
       }
     };
 
@@ -261,6 +260,8 @@ export function useVoice(token: string) {
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
+      voice.off(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
+      voice.off(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
       voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
     };
   }, [

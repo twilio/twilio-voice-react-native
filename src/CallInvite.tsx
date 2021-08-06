@@ -1,20 +1,32 @@
 import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
 import { TwilioVoiceReactNative } from './const';
-import type { Uuid } from './type';
+import type { NativeCallInviteInfo, Uuid } from './type';
 import { InvalidStateError } from './error/InvalidStateError';
 
 export class CallInvite {
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
   private _state: CallInvite.State;
-  private _uuid: Uuid;
 
-  constructor(uuid: Uuid, options: Partial<CallInvite.Options> = {}) {
+  private _uuid: Uuid;
+  private _callSid: string;
+  private _from: string;
+  private _to: string;
+
+  constructor(
+    { uuid, callSid, from, to }: NativeCallInviteInfo,
+    options: Partial<CallInvite.Options> = {}
+  ) {
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
     this._nativeEventEmitter =
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
+
     this._uuid = uuid;
+    this._callSid = callSid;
+    this._from = from;
+    this._to = to;
+
     this._state = CallInvite.State.Pending;
   }
 
@@ -25,25 +37,12 @@ export class CallInvite {
       );
     }
 
-    const callUuid = await this._nativeModule.util_generateId();
+    const callInfo = await this._nativeModule.callInvite_accept(
+      this._uuid,
+      options
+    );
 
-    const bind = () =>
-      new Promise<void>((resolve) => {
-        setImmediate(async () => {
-          await this._nativeModule.callInvite_accept(
-            this._uuid,
-            callUuid,
-            options
-          );
-          resolve();
-        });
-      });
-
-    // const bind = () =>
-    //   this._nativeModule.callInvite_accept(this._uuid, callUuid, options);
-
-    const call = new Call(callUuid, {
-      bind,
+    const call = new Call(callInfo, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
@@ -65,16 +64,16 @@ export class CallInvite {
     return this._nativeModule.callInvite_isValid(this._uuid);
   }
 
-  getCallSid(): Promise<string> {
-    return this._nativeModule.callInvite_getCallSid(this._uuid);
+  getCallSid(): string {
+    return this._callSid;
   }
 
-  getFrom(): Promise<string> {
-    return this._nativeModule.callInvite_getFrom(this._uuid);
+  getFrom(): string {
+    return this._from;
   }
 
-  getTo(): Promise<string> {
-    return this._nativeModule.callInvite_getTo(this._uuid);
+  getTo(): string {
+    return this._to;
   }
 }
 
