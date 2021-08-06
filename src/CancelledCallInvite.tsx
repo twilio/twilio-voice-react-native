@@ -1,33 +1,25 @@
-import { TwilioVoiceReactNative } from './const';
-import type { Uuid } from './type';
+import type { NativeCancelledCallInviteInfo } from './type';
 
 export class CancelledCallInvite {
-  private _nativeModule: typeof TwilioVoiceReactNative;
-  private _uuid: Uuid;
+  private _callSid: string;
+  private _from: string;
+  private _to: string;
 
-  constructor(uuid: Uuid, options: Partial<CancelledCallInvite.Options> = {}) {
-    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
-
-    this._uuid = uuid;
+  constructor({ callSid, from, to }: NativeCancelledCallInviteInfo) {
+    this._callSid = callSid;
+    this._from = from;
+    this._to = to;
   }
 
-  getFrom(): Promise<string> {
-    return this._nativeModule.cancelledCallInvite_getFrom(this._uuid);
+  getCallSid(): string {
+    return this._callSid;
   }
 
-  getTo(): Promise<string> {
-    return this._nativeModule.cancelledCallInvite_getTo(this._uuid);
+  getFrom(): string {
+    return this._from;
   }
 
-  getCallSid(): Promise<string> {
-    return this._nativeModule.cancelledCallInvite_getCallSid(this._uuid);
-  }
-}
-
-export namespace CancelledCallInvite {
-  export interface AcceptOptions {}
-
-  export interface Options {
-    nativeModule: typeof TwilioVoiceReactNative;
+  getTo(): string {
+    return this._to;
   }
 }

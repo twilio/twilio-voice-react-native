@@ -169,8 +169,8 @@ public class IncomingCallNotificationService extends Service {
   private void accept(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
     endForeground();
-    Intent activeCallIntent = new Intent(this, getMainActivityClass(getApplicationContext()));
-    activeCallIntent.setAction(Constants.ACTION_ACCEPT);
+    Intent activeCallIntent = new Intent(Constants.ACTION_ACCEPT);
+    activeCallIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     activeCallIntent.putExtra(Constants.UUID, uuid);
     // Need to answer the call here in case TwilioVoiceReactNative is not loaded
     AcceptOptions acceptOptions = new AcceptOptions.Builder()

@@ -19,7 +19,12 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DIS
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECT_FAILURE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
+
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
 
 import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
@@ -31,6 +36,15 @@ class CallListenerProxy implements Call.Listener {
     this.uuid = uuid;
   }
 
+  private WritableMap getCallInfo(String uuid, Call call) {
+    WritableMap callInfo = Arguments.createMap();
+    callInfo.putString(EVENT_KEY_UUID, uuid);
+    callInfo.putString(EVENT_KEY_CALL_SID, call.getSid());
+    callInfo.putString(EVENT_KEY_CALL_FROM, call.getFrom());
+    callInfo.putString(EVENT_KEY_CALL_TO, call.getTo());
+    return callInfo;
+  }
+
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
@@ -38,7 +52,7 @@ class CallListenerProxy implements Call.Listener {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
       params.putString(EVENT_KEY_ERROR, callException.getMessage());
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
@@ -49,7 +63,7 @@ class CallListenerProxy implements Call.Listener {
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
@@ -60,7 +74,7 @@ class CallListenerProxy implements Call.Listener {
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
@@ -72,7 +86,7 @@ class CallListenerProxy implements Call.Listener {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
       params.putString(EVENT_KEY_ERROR, callException.getMessage());
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
@@ -83,7 +97,7 @@ class CallListenerProxy implements Call.Listener {
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
@@ -94,7 +108,7 @@ class CallListenerProxy implements Call.Listener {
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
-      params.putString(EVENT_KEY_UUID, this.uuid);
+      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
   }
