@@ -127,6 +127,7 @@
     if (call) {
         self.activeCall = call;
         self.callMap[call.uuid.UUIDString] = call;
+        self.callPromiseResolver([self callInfo:call]);
     }
     self.callKitCompletionCallback = completionHandler;
 }

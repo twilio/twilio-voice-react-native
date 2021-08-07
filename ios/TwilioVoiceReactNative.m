@@ -197,7 +197,7 @@ RCT_EXPORT_METHOD(voice_connect:(NSString *)accessToken
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self makeCallWithAccessToken:accessToken params:params];
-    resolve(nil);
+    self.callPromiseResolver = resolve;
 }
 
 RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
@@ -348,7 +348,6 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
 #pragma mark - Bingings (Call Invite)
 
 RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
-                  newCallUuid:(NSString *)newCallUuid
                   acceptOptions:(NSDictionary *)acceptOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -356,7 +355,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
                 completion:^(BOOL success, NSError *error) {
         if (success) {
-            resolve(nil);
+            resolve([self callInfo:self.activeCall]);
         } else {
             reject(@"Voice error", @"Failed to answer the call invite", error);
         }

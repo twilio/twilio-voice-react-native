@@ -31,6 +31,7 @@
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSDictionary *twimlParams;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL);
+@property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
 
 // Indicates if the disconnect is triggered from app UI, instead of the system Call UI
 @property (nonatomic, assign) BOOL userInitiatedDisconnect;
