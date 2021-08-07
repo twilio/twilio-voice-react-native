@@ -13,10 +13,10 @@ NSString * const kTwilioVoiceReactNativeEventScopeVoice = @"Voice";
 NSString * const kTwilioVoiceReactNativeEventScopeCall = @"Call";
 
 NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
-NSString * const kTwilioVoiceReactNativeEventKeyUuid = @"uuid";
 NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
 NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
+NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
@@ -98,7 +98,7 @@ static TVODefaultAudioDevice *sAudioDevice;
         self.cancelledCallInviteMap[self.callInvite.uuid.UUIDString] = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = self.callInvite.uuid.UUIDString;
+        eventBody[kTwilioVoiceReactNativeEventKeyCancelledCallInvite] = [self cancelledCallInviteInfo:cancelledCallInvite];
     }
     
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice body:eventBody];
@@ -220,12 +220,6 @@ RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
         [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
     }
     resolve(callInviteInfoArray);
-}
-
-RCT_EXPORT_METHOD(voice_getCancelledCallInvites:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    resolve([self.cancelledCallInviteMap allKeys]);
 }
 
 #pragma mark - Bingings (Call)
