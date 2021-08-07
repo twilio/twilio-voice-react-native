@@ -151,7 +151,7 @@
 
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
                        body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteAccepted,
-                              kTwilioVoiceReactNativeEventKeyUuid: uuid.UUIDString}];
+                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:self.callInvite]}];
 }
 
 #pragma mark - CXProviderDelegate
@@ -177,7 +177,7 @@
         [self.callInvite reject];
         [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
                            body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteRejected,
-                                  kTwilioVoiceReactNativeEventKeyUuid: self.callInvite.uuid.UUIDString}];
+                                  kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:self.callInvite]}];
     } else if (self.activeCall) {
         [self.activeCall disconnect];
     }

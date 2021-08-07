@@ -90,7 +90,7 @@ static TVODefaultAudioDevice *sAudioDevice;
         NSAssert(callInvite != nil, @"Invalid call invite");
         [self reportNewIncomingCall:callInvite];
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = callInvite.uuid.UUIDString;
+        eventBody[kTwilioVoiceReactNativeEventKeyCallInvite] = [self callInviteInfo:callInvite];
     } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
@@ -214,7 +214,12 @@ RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve([self.callInviteMap allKeys]);
+    NSMutableArray *callInviteInfoArray = [NSMutableArray array];
+    for (NSString *uuid in [self.callInviteMap allKeys]) {
+        TVOCallInvite *callInvite = self.callInviteMap[uuid];
+        [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
+    }
+    resolve(callInviteInfoArray);
 }
 
 RCT_EXPORT_METHOD(voice_getCancelledCallInvites:(RCTPromiseResolveBlock)resolve
