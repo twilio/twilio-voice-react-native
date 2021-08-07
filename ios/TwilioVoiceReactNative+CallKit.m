@@ -84,9 +84,8 @@
     self.callInvite = nil;
 }
 
-- (void)makeCallWithUuid:(NSString *)uuidString
-             accessToken:(NSString *)accessToken
-                  params:(NSDictionary *)params {
+- (void)makeCallWithAccessToken:(NSString *)accessToken
+                         params:(NSDictionary *)params {
     self.accessToken = accessToken;
     self.twimlParams = params;
     
@@ -94,7 +93,7 @@
     NSString *handle = @"Twilio Frontline";
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
-    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:uuidString];
+    NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
 

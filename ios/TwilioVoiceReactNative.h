@@ -42,9 +42,8 @@
 @interface TwilioVoiceReactNative (CallKit)
 
 - (void)initializeCallKit;
-- (void)makeCallWithUuid:(NSString *)uuidString
-             accessToken:(NSString *)accessToken
-                  params:(NSDictionary *)params;
+- (void)makeCallWithAccessToken:(NSString *)accessToken
+                         params:(NSDictionary *)params;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */

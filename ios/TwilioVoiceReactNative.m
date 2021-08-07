@@ -191,20 +191,24 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
     }];
 }
 
-RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
-                  accessToken:(NSString *)accessToken
+RCT_EXPORT_METHOD(voice_connect:(NSString *)accessToken
                   params:(NSDictionary *)params
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self makeCallWithUuid:uuid accessToken:accessToken params:params];
+    [self makeCallWithAccessToken:accessToken params:params];
     resolve(nil);
 }
 
 RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve([self.callMap allKeys]);
+    NSMutableArray *callInfoArray = [NSMutableArray array];
+    for (NSString *uuid in [self.callMap allKeys]) {
+        TVOCall *call = self.callMap[uuid];
+        [callInfoArray addObject:[self callInfo:call]];
+    }
+    resolve(callInfoArray);
 }
 
 RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
