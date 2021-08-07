@@ -9,16 +9,31 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
-NSString * const kTwilioVoiceReactNativeEventKeyVoice = @"Voice";
-NSString * const kTwilioVoiceReactNativeEventKeyCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventScopeVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventScopeCall = @"Call";
+
 NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
 NSString * const kTwilioVoiceReactNativeEventKeyUuid = @"uuid";
 NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
+NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
+NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteAccepted = @"callInviteAccepted";
 NSString * const kTwilioVoiceReactNativeEventCallInviteRejected = @"callInviteRejected";
+
+NSString * const kTwilioVoiceCallInfoUuid = @"uuid";
+NSString * const kTwilioVoiceCallInfoFrom = @"from";
+NSString * const kTwilioVoiceCallInfoIsMuted = @"isMuted";
+NSString * const kTwilioVoiceCallInfoInOnHold = @"isOnHold";
+NSString * const kTwilioVoiceCallInfoSid = @"sid";
+NSString * const kTwilioVoiceCallInfoTo = @"to";
+
+NSString * const kTwilioVoiceCallInviteInfoUuid = @"uuid";
+NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
+NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
+NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
 
 static TVODefaultAudioDevice *sAudioDevice;
 
@@ -86,11 +101,34 @@ static TVODefaultAudioDevice *sAudioDevice;
         eventBody[kTwilioVoiceReactNativeEventKeyUuid] = self.callInvite.uuid.UUIDString;
     }
     
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice body:eventBody];
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice body:eventBody];
 }
 
 + (TVODefaultAudioDevice *)audioDevice {
     return sAudioDevice;
+}
+
+// TODO: Move to separate utility file someday
+- (NSDictionary *)callInfo:(TVOCall *)call {
+    return @{kTwilioVoiceCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
+             kTwilioVoiceCallInfoFrom: call.from? call.from : @"",
+             kTwilioVoiceCallInfoIsMuted: @(call.isMuted),
+             kTwilioVoiceCallInfoInOnHold: @(call.isOnHold),
+             kTwilioVoiceCallInfoSid: call.sid,
+             kTwilioVoiceCallInfoTo: call.to? call.to : @""};
+}
+
+- (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite {
+    return @{kTwilioVoiceCallInviteInfoUuid: callInvite.uuid.UUIDString,
+             kTwilioVoiceCallInviteInfoCallSid: callInvite.callSid,
+             kTwilioVoiceCallInviteInfoFrom: callInvite.from,
+             kTwilioVoiceCallInviteInfoTo: callInvite.to};
+}
+
+- (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite {
+    return @{kTwilioVoiceCallInviteInfoCallSid: cancelledCallInvite.callSid,
+             kTwilioVoiceCallInviteInfoFrom: cancelledCallInvite.from,
+             kTwilioVoiceCallInviteInfoTo: cancelledCallInvite.to};
 }
 
 RCT_EXPORT_MODULE();
@@ -99,7 +137,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[kTwilioVoiceReactNativeEventKeyVoice, kTwilioVoiceReactNativeEventKeyCall];
+  return @[kTwilioVoiceReactNativeEventScopeVoice, kTwilioVoiceReactNativeEventScopeCall];
 }
 
 + (BOOL)requiresMainQueueSetup

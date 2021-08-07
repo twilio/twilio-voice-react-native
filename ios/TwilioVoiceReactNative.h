@@ -47,9 +47,13 @@
                   params:(NSDictionary *)params;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
-
 /* Initiate the answering from the app UI */
 - (void)answerCallInvite:(NSUUID *)uuid
               completion:(void(^)(BOOL success, NSError *error))completionHandler;
+
+/* Utility */
+- (NSDictionary *)callInfo:(TVOCall *)call;
+- (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite;
+- (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite;
 
 @end
