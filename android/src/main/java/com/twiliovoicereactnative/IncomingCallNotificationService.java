@@ -234,10 +234,6 @@ public class IncomingCallNotificationService extends Service {
    * Send the CallInvite to the VoiceActivity. Start the activity if it is not running already.
    */
   private void sendCallInviteToActivity(CallInvite callInvite, int notificationId) {
-    if (Build.VERSION.SDK_INT >= 29 && !isAppVisible()) {
-      return;
-    }
-
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
     intent.setAction(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
