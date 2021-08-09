@@ -9,15 +9,31 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
-NSString * const kTwilioVoiceReactNativeEventKeyVoice = @"Voice";
-NSString * const kTwilioVoiceReactNativeEventKeyCall = @"Call";
+NSString * const kTwilioVoiceReactNativeEventScopeVoice = @"Voice";
+NSString * const kTwilioVoiceReactNativeEventScopeCall = @"Call";
+
 NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
-NSString * const kTwilioVoiceReactNativeEventKeyUuid = @"uuid";
 NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
+NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
+NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
+NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
-NSString * const kTwilioVoiceReactNativeEventCallInviteAnswered = @"answeredCallInvite";
+NSString * const kTwilioVoiceReactNativeEventCallInviteAccepted = @"callInviteAccepted";
+NSString * const kTwilioVoiceReactNativeEventCallInviteRejected = @"callInviteRejected";
+
+NSString * const kTwilioVoiceCallInfoUuid = @"uuid";
+NSString * const kTwilioVoiceCallInfoFrom = @"from";
+NSString * const kTwilioVoiceCallInfoIsMuted = @"isMuted";
+NSString * const kTwilioVoiceCallInfoInOnHold = @"isOnHold";
+NSString * const kTwilioVoiceCallInfoSid = @"sid";
+NSString * const kTwilioVoiceCallInfoTo = @"to";
+
+NSString * const kTwilioVoiceCallInviteInfoUuid = @"uuid";
+NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
+NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
+NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
 
 static TVODefaultAudioDevice *sAudioDevice;
 
@@ -35,6 +51,9 @@ static TVODefaultAudioDevice *sAudioDevice;
 - (instancetype)init {
     if (self = [super init]) {
         _callMap = [NSMutableDictionary dictionary];
+        _callInviteMap = [NSMutableDictionary dictionary];
+        _cancelledCallInviteMap = [NSMutableDictionary dictionary];
+        
         sAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sAudioDevice;
         
@@ -71,22 +90,45 @@ static TVODefaultAudioDevice *sAudioDevice;
         NSAssert(callInvite != nil, @"Invalid call invite");
         [self reportNewIncomingCall:callInvite];
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [callInvite.uuid UUIDString];
+        eventBody[kTwilioVoiceReactNativeEventKeyCallInvite] = [self callInviteInfo:callInvite];
     } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
         self.cancelledCallInvite = cancelledCallInvite;
+        self.cancelledCallInviteMap[self.callInvite.uuid.UUIDString] = cancelledCallInvite;
         [self endCallWithUuid:self.callInvite.uuid];
-        self.callInvite = nil;
         
-        eventBody[kTwilioVoiceReactNativeEventKeyUuid] = [self.callInvite.uuid UUIDString];
+        eventBody[kTwilioVoiceReactNativeEventKeyCancelledCallInvite] = [self cancelledCallInviteInfo:cancelledCallInvite];
     }
     
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice body:eventBody];
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice body:eventBody];
 }
 
 + (TVODefaultAudioDevice *)audioDevice {
     return sAudioDevice;
+}
+
+// TODO: Move to separate utility file someday
+- (NSDictionary *)callInfo:(TVOCall *)call {
+    return @{kTwilioVoiceCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
+             kTwilioVoiceCallInfoFrom: call.from? call.from : @"",
+             kTwilioVoiceCallInfoIsMuted: @(call.isMuted),
+             kTwilioVoiceCallInfoInOnHold: @(call.isOnHold),
+             kTwilioVoiceCallInfoSid: call.sid,
+             kTwilioVoiceCallInfoTo: call.to? call.to : @""};
+}
+
+- (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite {
+    return @{kTwilioVoiceCallInviteInfoUuid: callInvite.uuid.UUIDString,
+             kTwilioVoiceCallInviteInfoCallSid: callInvite.callSid,
+             kTwilioVoiceCallInviteInfoFrom: callInvite.from,
+             kTwilioVoiceCallInviteInfoTo: callInvite.to};
+}
+
+- (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite {
+    return @{kTwilioVoiceCallInviteInfoCallSid: cancelledCallInvite.callSid,
+             kTwilioVoiceCallInviteInfoFrom: cancelledCallInvite.from,
+             kTwilioVoiceCallInviteInfoTo: cancelledCallInvite.to};
 }
 
 RCT_EXPORT_MODULE();
@@ -95,7 +137,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[kTwilioVoiceReactNativeEventKeyVoice, kTwilioVoiceReactNativeEventKeyCall];
+  return @[kTwilioVoiceReactNativeEventScopeVoice, kTwilioVoiceReactNativeEventScopeCall];
 }
 
 + (BOOL)requiresMainQueueSetup
@@ -149,14 +191,35 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
     }];
 }
 
-RCT_EXPORT_METHOD(voice_connect:(NSString *)uuid
-                  accessToken:(NSString *)accessToken
+RCT_EXPORT_METHOD(voice_connect:(NSString *)accessToken
                   params:(NSDictionary *)params
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self makeCallWithUuid:uuid accessToken:accessToken params:params];
-    resolve(nil);
+    [self makeCallWithAccessToken:accessToken params:params];
+    self.callPromiseResolver = resolve;
+}
+
+RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSMutableArray *callInfoArray = [NSMutableArray array];
+    for (NSString *uuid in [self.callMap allKeys]) {
+        TVOCall *call = self.callMap[uuid];
+        [callInfoArray addObject:[self callInfo:call]];
+    }
+    resolve(callInfoArray);
+}
+
+RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSMutableArray *callInviteInfoArray = [NSMutableArray array];
+    for (NSString *uuid in [self.callInviteMap allKeys]) {
+        TVOCallInvite *callInvite = self.callInviteMap[uuid];
+        [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
+    }
+    resolve(callInviteInfoArray);
 }
 
 #pragma mark - Bingings (Call)
@@ -165,8 +228,12 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
-    resolve(nil);
+    if (self.callMap[uuid]) {
+        [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
 }
 
 RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
@@ -220,9 +287,10 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
@@ -245,9 +313,10 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
@@ -270,15 +339,15 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call sendDigits:digits];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
-    
-    resolve(nil);
 }
 
 #pragma mark - Bingings (Call Invite)
 
 RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
-                  newCallUuid:(NSString *)newCallUuid
                   acceptOptions:(NSDictionary *)acceptOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -286,7 +355,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
                 completion:^(BOOL success, NSError *error) {
         if (success) {
-            resolve(nil);
+            resolve([self callInfo:self.activeCall]);
         } else {
             reject(@"Voice error", @"Failed to answer the call invite", error);
         }
@@ -379,7 +448,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
 RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve([[NSUUID UUID] UUIDString]);
+    resolve([NSUUID UUID].UUIDString);
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {

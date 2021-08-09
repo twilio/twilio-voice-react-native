@@ -31,6 +31,7 @@
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInvite = callInvite;
+    self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
 
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:callInvite.from];
 
@@ -79,12 +80,12 @@
         }
     }];
     
+    [self.callInviteMap removeObjectForKey:uuid.UUIDString];
     self.callInvite = nil;
 }
 
-- (void)makeCallWithUuid:(NSString *)uuidString
-             accessToken:(NSString *)accessToken
-                  params:(NSDictionary *)params {
+- (void)makeCallWithAccessToken:(NSString *)accessToken
+                         params:(NSDictionary *)params {
     self.accessToken = accessToken;
     self.twimlParams = params;
     
@@ -92,7 +93,7 @@
     NSString *handle = @"Twilio Frontline";
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
-    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:uuidString];
+    NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
 
@@ -126,6 +127,7 @@
     if (call) {
         self.activeCall = call;
         self.callMap[call.uuid.UUIDString] = call;
+        self.callPromiseResolver([self callInfo:call]);
     }
     self.callKitCompletionCallback = completionHandler;
 }
@@ -148,9 +150,9 @@
         self.callMap[call.uuid.UUIDString] = call;
     }
 
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyVoice
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteAnswered,
-                              kTwilioVoiceReactNativeEventKeyUuid: [uuid UUIDString]}];
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
+                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteAccepted,
+                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:self.callInvite]}];
 }
 
 #pragma mark - CXProviderDelegate
@@ -174,6 +176,9 @@
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
     if (self.callInvite) {
         [self.callInvite reject];
+        [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
+                           body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteRejected,
+                                  kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:self.callInvite]}];
     } else if (self.activeCall) {
         [self.activeCall disconnect];
     }
@@ -246,15 +251,15 @@
 #pragma mark - TVOCallDelegate
 
 - (void)callDidStartRinging:(TVOCall *)call {
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"ringing",
-                              kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString]}];
+                              kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
 - (void)callDidConnect:(TVOCall *)call {
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connected",
-                              kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString]}];
+                              kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 
     self.callKitCompletionCallback(YES);
 }
@@ -263,14 +268,14 @@
     NSDictionary *messageBody = [NSDictionary dictionary];
     if (error) {
         messageBody = @{kTwilioVoiceReactNativeEventKeyType: @"disconnected",
-                        kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString],
+                        kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                         kTwilioVoiceReactNativeEventKeyError: [error localizedDescription]};
     } else {
         messageBody = @{kTwilioVoiceReactNativeEventKeyType: @"disconnected",
-                        kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString]};
+                        kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]};
     }
     
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall body:messageBody];
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall body:messageBody];
     
     if (!self.userInitiatedDisconnect) {
         CXCallEndedReason reason = CXCallEndedReasonRemoteEnded;
@@ -283,9 +288,9 @@
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connectFailure",
-                              kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString],
+                              kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeEventKeyError: [error localizedDescription]}];
 
     self.callKitCompletionCallback(NO);
@@ -304,16 +309,16 @@
 }
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connected",
-                              kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString],
+                              kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeEventKeyError: [error localizedDescription]}];
 }
 
 - (void)callDidReconnect:(TVOCall *)call {
-    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyCall
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"reconnected",
-                              kTwilioVoiceReactNativeEventKeyUuid: [call.uuid UUIDString]}];
+                              kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
 - (void)call:(TVOCall *)call
