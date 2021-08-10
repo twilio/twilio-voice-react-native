@@ -45,8 +45,9 @@ static TVODefaultAudioDevice *sAudioDevice;
 
 @end
 
-
-@implementation TwilioVoiceReactNative
+@implementation TwilioVoiceReactNative {
+    BOOL _hasObserver;
+}
 
 - (instancetype)init {
     if (self = [super init]) {
@@ -145,12 +146,45 @@ RCT_EXPORT_MODULE();
   return YES;
 }
 
+- (void)startObserving {
+    NSLog(@"Started observing");
+    _hasObserver = YES;
+}
+
+- (void)stopObserving {
+    NSLog(@"Stopped observing");
+    _hasObserver = NO;
+}
+
+- (void)sendEventWithName:(NSString *)eventName body:(id)body {
+    if (_hasObserver) {
+        [super sendEventWithName:eventName body:body];
+    } else {
+        NSLog(@"No event observer registered yet. Omitting event: %@, event body: %@", eventName, body);
+    }
+}
+
 #pragma mark - Bingings (Voice methods)
 
 RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     resolve(TwilioVoiceSDK.sdkVersion);
+}
+
+RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.deviceTokenData) {
+        const char *tokenBytes = (const char *)[self.deviceTokenData bytes];
+        NSMutableString *deviceTokenString = [NSMutableString string];
+        for (NSUInteger i = 0; i < [self.deviceTokenData length]; ++i) {
+            [deviceTokenString appendFormat:@"%02.2hhx", tokenBytes[i]];
+        }
+        resolve(deviceTokenString);
+    } else {
+        resolve(@"");
+    }
 }
 
 RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken

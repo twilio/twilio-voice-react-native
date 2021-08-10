@@ -309,6 +309,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void voice_getDeviceToken(Promise promise) {
+    // No-op
+    promise.resolve("");
+  }
+
+  @ReactMethod
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
 

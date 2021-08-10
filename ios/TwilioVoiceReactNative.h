@@ -40,6 +40,13 @@
 
 @end
 
+@interface TwilioVoiceReactNative (EventEmitter)
+
+// Override so we can check the event observer before emitting events
+- (void)sendEventWithName:(NSString *)eventName body:(id)body;
+
+@end
+
 @interface TwilioVoiceReactNative (CallKit)
 
 - (void)initializeCallKit;
