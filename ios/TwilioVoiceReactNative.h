@@ -17,10 +17,6 @@
 
 @interface TwilioVoiceReactNative : RCTEventEmitter <RCTBridgeModule>
 
-@property (nonatomic, strong) TVOCall *activeCall;
-@property (nonatomic, strong) TVOCallInvite *callInvite;
-@property (nonatomic, strong) TVOCancelledCallInvite *cancelledCallInvite;
-
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCall *> *callMap;
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCallInvite *> *callInviteMap;
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCancelledCallInvite *> *cancelledCallInviteMap;
