@@ -396,7 +396,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
-                completion:^(BOOL success, NSError *error) {
+                completion:^(BOOL success) {
         if (success) {
             BOOL found = NO;
             for (NSString *uuidKey in [self.callMap allKeys]) {
@@ -411,7 +411,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                 reject(@"Voice error", @"No matching call", nil);
             }
         } else {
-            reject(@"Voice error", @"Failed to answer the call invite", error);
+            reject(@"Voice error", @"Failed to answer the call invite", nil);
         }
     }];
 }

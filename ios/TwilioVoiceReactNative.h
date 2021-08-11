@@ -52,7 +52,7 @@
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */
 - (void)answerCallInvite:(NSUUID *)uuid
-              completion:(void(^)(BOOL success, NSError *error))completionHandler;
+              completion:(void(^)(BOOL success))completionHandler;
 
 /* Utility */
 - (NSDictionary *)callInfo:(TVOCall *)call;

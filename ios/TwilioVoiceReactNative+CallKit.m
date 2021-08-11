@@ -54,17 +54,16 @@
 }
 
 - (void)answerCallInvite:(NSUUID *)uuid
-              completion:(void(^)(BOOL success, NSError *error))completionHandler {
+              completion:(void(^)(BOOL success))completionHandler {
+    self.callKitCompletionCallback = completionHandler;
     CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:answerCallAction];
-    
+
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
             NSLog(@"Failed to submit answer-call transaction request: %@", error);
-            completionHandler(NO, error);
         } else {
             NSLog(@"Answer-call transaction successfully done");
-            completionHandler(YES, nil);
         }
     }];
 }
@@ -145,7 +144,6 @@
     } else {
         self.callMap[call.uuid.UUIDString] = call;
         [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
-        self.callKitCompletionCallback = completionHandler;
     }
 
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
@@ -265,7 +263,10 @@
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connected",
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 
-    self.callKitCompletionCallback(YES);
+    if (self.callKitCompletionCallback) {
+        self.callKitCompletionCallback(YES);
+        self.callKitCompletionCallback = nil;
+    }
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
@@ -297,7 +298,10 @@
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeEventKeyError: [error localizedDescription]}];
 
-    self.callKitCompletionCallback(NO);
+    if (self.callKitCompletionCallback) {
+        self.callKitCompletionCallback(NO);
+        self.callKitCompletionCallback = nil;
+    }
     [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:CXCallEndedReasonFailed];
     
     [self callDisconnected:call];
