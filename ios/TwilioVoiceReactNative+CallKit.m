@@ -23,6 +23,8 @@
     CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Frontline"];
     configuration.maximumCallGroups = 1;
     configuration.maximumCallsPerCallGroup = 1;
+    UIImage *callkitIcon = [UIImage imageNamed:@"iconMask80"];
+    configuration.iconTemplateImageData = UIImagePNGRepresentation(callkitIcon);
     
     self.callKitProvider = [[CXProvider alloc] initWithConfiguration:configuration];
     [self.callKitProvider setDelegate:self queue:nil];
@@ -79,9 +81,6 @@
             NSLog(@"End-call transaction successfully done");
         }
     }];
-    
-    [self.callInviteMap removeObjectForKey:uuid.UUIDString];
-    self.callInvite = nil;
 }
 
 - (void)makeCallWithAccessToken:(NSString *)accessToken
@@ -179,6 +178,8 @@
         [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
                            body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteRejected,
                                   kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:self.callInvite]}];
+        [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
+        self.callInvite = nil;
     } else if (self.activeCall) {
         [self.activeCall disconnect];
     }
