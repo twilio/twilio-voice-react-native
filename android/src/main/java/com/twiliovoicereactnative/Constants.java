@@ -9,10 +9,12 @@ public class Constants {
   public static final String INCOMING_CALL_NOTIFICATION_ID = "INCOMING_CALL_NOTIFICATION_ID";
   public static final String ACTION_ACCEPT = "ACTION_ACCEPT";
   public static final String ACTION_REJECT = "ACTION_REJECT";
+  public static final String ACTION_CANCEL_NOTIFICATION = "ACTION_CANCEL_NOTIFICATION";
   public static final String ACTION_INCOMING_CALL_NOTIFICATION = "ACTION_INCOMING_CALL_NOTIFICATION";
   public static final String ACTION_INCOMING_CALL = "ACTION_INCOMING_CALL";
   public static final String ACTION_CANCEL_CALL = "ACTION_CANCEL_CALL";
   public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
   public static final String FCM_TOKEN = "FCM_TOKEN";
   public static final String UUID = "UUID";
+  public static final String NOTIFICATION_CONTENT = "Calling from ";
 }

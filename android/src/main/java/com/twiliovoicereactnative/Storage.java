@@ -15,13 +15,15 @@ public class Storage {
   static final Map<String, Call> callMap = new HashMap<>();
   static final Map<String, CallInvite> callInviteMap = new HashMap<>();
   static final Map<String, String> callInviteCallSidUuidMap = new HashMap<>();
+  static final Map<String, Integer> callInviteUuidNotificaionIdMap = new HashMap<>();
   static final Map<String, CancelledCallInvite> cancelledCallInviteMap = new HashMap<>();
 
   static AndroidEventEmitter androidEventEmitter = null;
 
-  static void releaseCallInviteStorage(String uuid, String callSid, String action) {
-    Log.d(TAG, "Removing items in callInviteMap uuid:" + uuid + " callSid:" + callSid + " action:" + action);
+  static void releaseCallInviteStorage(String uuid, String callSid, int notificationId, String action) {
+    Log.d(TAG, "Removing items in callInviteMap uuid:" + uuid + " callSid:" + callSid + " notificationId: " + notificationId + " action:" + action);
     Storage.callInviteMap.remove(uuid);
     Storage.callInviteCallSidUuidMap.remove(callSid);
+    Storage.callInviteUuidNotificaionIdMap.remove(uuid);
   }
 }

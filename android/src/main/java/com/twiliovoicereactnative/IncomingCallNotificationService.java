@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.media.RingtoneManager;
 
 import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.Lifecycle;
@@ -24,6 +25,8 @@ import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.AcceptOptions;
 import java.util.UUID;
+import android.media.AudioAttributes;
+import android.net.Uri;
 
 public class IncomingCallNotificationService extends Service {
 
@@ -49,10 +52,16 @@ public class IncomingCallNotificationService extends Service {
           sendCallInviteToActivity(callInvite, notificationId);
           break;
         case Constants.ACTION_REJECT:
-          reject(callInvite, uuid);
+          reject(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_CANCEL_CALL:
-          handleCancelledCall(intent, cancelledCallInvite.getCallSid(), uuid);
+          handleCancelledCall(intent, cancelledCallInvite.getCallSid(), notificationId, uuid);
+          break;
+        case Constants.ACTION_CANCEL_NOTIFICATION:
+          endForeground();
+          NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+          Log.d(TAG, "Cancelling notifiation uuid:" + uuid + " notificationId: " + notificationId);
+          notificationManager.cancel(notificationId);
           break;
         default:
           break;
@@ -83,13 +92,15 @@ public class IncomingCallNotificationService extends Service {
     extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      return buildNotification(callInvite.getFrom() + " is calling.",
+      Notification notification = buildNotification(callInvite.getFrom(),
         pendingIntent,
         extras,
         callInvite,
         notificationId,
         uuid,
         createChannel(channelImportance));
+      notification.flags |= Notification.FLAG_INSISTENT;
+      return notification;
     } else {
       //noinspection deprecation
       return new NotificationCompat.Builder(this)
@@ -135,8 +146,43 @@ public class IncomingCallNotificationService extends Service {
     Notification.Builder builder =
       new Notification.Builder(getApplicationContext(), channelId)
         .setSmallIcon(R.drawable.ic_call_end_white_24dp)
-        .setContentTitle(getString(R.string.app_name))
-        .setContentText(text)
+        .setContentTitle(text)
+        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
+        .setCategory(Notification.CATEGORY_CALL)
+        .setExtras(extras)
+        .setAutoCancel(true)
+        .addAction(android.R.drawable.ic_menu_delete, getString(R.string.decline), piRejectIntent)
+        .addAction(android.R.drawable.ic_menu_call, getString(R.string.answer), piAcceptIntent)
+        .setFullScreenIntent(pendingIntent, true);
+
+    return builder.build();
+  }
+
+  @TargetApi(Build.VERSION_CODES.O)
+  private Notification buildNotification1(String text, PendingIntent pendingIntent, Bundle extras,
+                                         final CallInvite callInvite,
+                                         int notificationId,
+                                         String uuid,
+                                         String channelId) {
+    Intent rejectIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
+    rejectIntent.setAction(Constants.ACTION_REJECT);
+    rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    rejectIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    rejectIntent.putExtra(Constants.UUID, uuid);
+    PendingIntent piRejectIntent = PendingIntent.getService(getApplicationContext(), 0, rejectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    Intent acceptIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
+    acceptIntent.setAction(Constants.ACTION_ACCEPT);
+    acceptIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    acceptIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    acceptIntent.putExtra(Constants.UUID, uuid);
+    PendingIntent piAcceptIntent = PendingIntent.getService(getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    Notification.Builder builder =
+      new Notification.Builder(getApplicationContext(), channelId)
+        .setSmallIcon(R.drawable.ic_call_end_white_24dp)
+        .setContentTitle(text)
+        .setContentText(getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -153,6 +199,17 @@ public class IncomingCallNotificationService extends Service {
       "Primary Voice Channel", NotificationManager.IMPORTANCE_HIGH);
     String channelId = Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 
+    Uri soundUri = Uri.parse(
+      "android.resource://" +
+        getApplicationContext().getPackageName() +
+        "/" +
+        R.raw.incoming);
+
+    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+      .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+      .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+      .build();
+
     if (channelImportance == NotificationManager.IMPORTANCE_LOW) {
       callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_LOW_IMPORTANCE,
         "Primary Voice Channel", NotificationManager.IMPORTANCE_LOW);
@@ -160,6 +217,7 @@ public class IncomingCallNotificationService extends Service {
     }
     callInviteChannel.setLightColor(Color.GREEN);
     callInviteChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+    callInviteChannel.setSound(soundUri, audioAttributes);
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.createNotificationChannel(callInviteChannel);
 
@@ -180,7 +238,7 @@ public class IncomingCallNotificationService extends Service {
     Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid));
     Storage.callMap.put(uuid, call);
     Storage.callMap.forEach((key, value) -> Log.e(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
-    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), "accept");
+    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "accept");
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.cancel(notificationId);
@@ -188,10 +246,10 @@ public class IncomingCallNotificationService extends Service {
     LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
   }
 
-  private void reject(CallInvite callInvite, String uuid) {
+  private void reject(CallInvite callInvite, int notificationId, String uuid) {
     endForeground();
     callInvite.reject(getApplicationContext());
-    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), "reject");
+    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "reject");
 
     Intent rejectCallInviteIntent = new Intent(Constants.ACTION_REJECT);
     rejectCallInviteIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -199,9 +257,9 @@ public class IncomingCallNotificationService extends Service {
     LocalBroadcastManager.getInstance(this).sendBroadcast(rejectCallInviteIntent);
   }
 
-  private void handleCancelledCall(Intent intent, String callSid, String uuid) {
+  private void handleCancelledCall(Intent intent, String callSid, int notificationId, String uuid) {
     endForeground();
-    Storage.releaseCallInviteStorage(uuid, callSid, "cancel");
+    Storage.releaseCallInviteStorage(uuid, callSid, notificationId, "cancel");
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
 
@@ -223,11 +281,13 @@ public class IncomingCallNotificationService extends Service {
   @TargetApi(Build.VERSION_CODES.O)
   private void setCallInProgressNotification(CallInvite callInvite, int notificationId, String uuid) {
     if (isAppVisible()) {
-      Log.i(TAG, "setCallInProgressNotification - app is visible with CallInvite UUID " + uuid);
+      Log.i(TAG, "setCallInProgressNotification - app is visible with CallInvite UUID " + uuid + " notificationId" + notificationId);
     } else {
-      Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + uuid);
+      Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
     startForeground(notificationId, createNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH));
+    Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
+    Storage.callInviteUuidNotificaionIdMap.put(uuid, notificationId);
   }
 
   /*

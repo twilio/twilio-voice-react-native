@@ -18,6 +18,8 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Callback;
+
+import android.app.NotificationManager;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.twilio.voice.Voice;
@@ -509,7 +511,22 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid));
     Storage.callMap.put(callUuid, call);
 
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), "accept");
+    // Send Event to upstream
+    WritableMap params = Arguments.createMap();
+    WritableMap callInviteInfo = getCallInviteInfo(callInviteUuid, activeCallInvite);
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
+    params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
+    androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+
+    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid);
+    Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
+    acceptIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+    acceptIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    acceptIntent.putExtra(Constants.UUID, callInviteUuid);
+
+    getReactApplicationContext().startService(acceptIntent);
+
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid), "accept");
 
     WritableMap callInfo = getCallInfo(callUuid, call);
 
@@ -527,7 +544,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
 
     activeCallInvite.reject(getReactApplicationContext());
-    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), "reject");
+
+    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(uuid);
+    Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
+    rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+    rejectIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    rejectIntent.putExtra(Constants.UUID, uuid);
+    getReactApplicationContext().startService(rejectIntent);
+
+    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(uuid), "reject");
 
     promise.resolve(uuid);
   }
