@@ -312,8 +312,28 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void voice_getDeviceToken(Promise promise) {
-    // No-op
-    promise.resolve("");
+    FirebaseMessaging.getInstance().getToken()
+      .addOnCompleteListener(new OnCompleteListener<String>() {
+        @Override
+        public void onComplete(@NonNull Task<String> task) {
+          if (!task.isSuccessful()) {
+            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+            promise.reject("Fetching FCM registration token failed" + task.getException());
+            return;
+          }
+
+          // Get FCM registration token
+          String fcmToken = task.getResult();
+
+          if (fcmToken == null) {
+            Log.d(TAG, "FCM token is \"null\".");
+            promise.reject("FCM token is \"null\".");
+            return;
+          } else {
+            promise.resolve(fcmToken);
+          }
+        }
+      });
   }
 
   @ReactMethod
