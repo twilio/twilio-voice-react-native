@@ -295,6 +295,10 @@ export class Voice extends EventEmitter {
     return this._nativeModule.voice_getVersion();
   }
 
+  getDeviceToken(): Promise<string> {
+    return this._nativeModule.voice_getDeviceToken();
+  }
+
   async getCalls(): Promise<ReadonlyMap<Uuid, Call>> {
     await this._bootstrapCallsPromise;
     return this._calls;

@@ -45,8 +45,9 @@ static TVODefaultAudioDevice *sAudioDevice;
 
 @end
 
-
-@implementation TwilioVoiceReactNative
+@implementation TwilioVoiceReactNative {
+    BOOL _hasObserver;
+}
 
 - (instancetype)init {
     if (self = [super init]) {
@@ -94,9 +95,18 @@ static TVODefaultAudioDevice *sAudioDevice;
     } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
-        self.cancelledCallInvite = cancelledCallInvite;
-        self.cancelledCallInviteMap[self.callInvite.uuid.UUIDString] = cancelledCallInvite;
-        [self endCallWithUuid:self.callInvite.uuid];
+        
+        NSString *uuid;
+        for (NSString *uuidKey in [self.callInviteMap allKeys]) {
+            TVOCallInvite *callInvite = self.callInviteMap[uuidKey];
+            if ([callInvite.callSid isEqualToString:cancelledCallInvite.callSid]) {
+                uuid = uuidKey;
+                break;
+            }
+        }
+        NSAssert(uuid, @"No matching call invite");
+        self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
+        [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
         
         eventBody[kTwilioVoiceReactNativeEventKeyCancelledCallInvite] = [self cancelledCallInviteInfo:cancelledCallInvite];
     }
@@ -145,6 +155,24 @@ RCT_EXPORT_MODULE();
   return YES;
 }
 
+- (void)startObserving {
+    NSLog(@"Started observing");
+    _hasObserver = YES;
+}
+
+- (void)stopObserving {
+    NSLog(@"Stopped observing");
+    _hasObserver = NO;
+}
+
+- (void)sendEventWithName:(NSString *)eventName body:(id)body {
+    if (_hasObserver) {
+        [super sendEventWithName:eventName body:body];
+    } else {
+        NSLog(@"No event observer registered yet. Omitting event: %@, event body: %@", eventName, body);
+    }
+}
+
 #pragma mark - Bingings (Voice methods)
 
 RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
@@ -153,9 +181,22 @@ RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
     resolve(TwilioVoiceSDK.sdkVersion);
 }
 
+RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.deviceTokenData) {
+        const char *tokenBytes = (const char *)[self.deviceTokenData bytes];
+        NSMutableString *deviceTokenString = [NSMutableString string];
+        for (NSUInteger i = 0; i < [self.deviceTokenData length]; ++i) {
+            [deviceTokenString appendFormat:@"%02.2hhx", tokenBytes[i]];
+        }
+        resolve(deviceTokenString);
+    } else {
+        resolve(@"");
+    }
+}
+
 RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
-                  deviceToken:(NSString *)deviceToken
-                  channelType:(NSString *)channelType
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -173,8 +214,6 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
 }
 
 RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
-                  deviceToken:(NSString *)deviceToken
-                  channelType:(NSString *)channelType
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -353,11 +392,22 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
-                completion:^(BOOL success, NSError *error) {
+                completion:^(BOOL success) {
         if (success) {
-            resolve([self callInfo:self.activeCall]);
+            BOOL found = NO;
+            for (NSString *uuidKey in [self.callMap allKeys]) {
+                if ([uuidKey isEqualToString:callInviteUuid]) {
+                    found = YES;
+                    TVOCall *call = self.callMap[uuidKey];
+                    resolve([self callInfo:call]);
+                }
+            }
+
+            if (!found) {
+                reject(@"Voice error", @"No matching call", nil);
+            }
         } else {
-            reject(@"Voice error", @"Failed to answer the call invite", error);
+            reject(@"Voice error", @"Failed to answer the call invite", nil);
         }
     }];
 }
@@ -381,8 +431,9 @@ RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInvite) {
-        resolve(self.callInvite.callSid);
+    if (self.callInviteMap[callInviteUuiid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+        resolve(callInvite.callSid);
     } else {
         reject(@"Voice error", @"No matching call invite", nil);
     }
@@ -392,8 +443,9 @@ RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInvite) {
-        resolve(self.callInvite.from);
+    if (self.callInviteMap[callInviteUuiid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+        resolve(callInvite.from);
     } else {
         reject(@"Voice error", @"No matching call invite", nil);
     }
@@ -403,8 +455,9 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInvite) {
-        resolve(self.callInvite.to);
+    if (self.callInviteMap[callInviteUuiid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+        resolve(callInvite.to);
     } else {
         reject(@"Voice error", @"No matching call invite", nil);
     }
@@ -414,8 +467,9 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInvite
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInvite) {
-        resolve(self.cancelledCallInvite.callSid);
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+        resolve(cancelledCallInvite.callSid);
     } else {
         reject(@"Voice error", @"No matching cancelled call invite", nil);
     }
@@ -425,8 +479,9 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUui
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInvite) {
-        resolve(self.cancelledCallInvite.from);
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+        resolve(cancelledCallInvite.from);
     } else {
         reject(@"Voice error", @"No matching cancelled call invite", nil);
     }
@@ -436,8 +491,9 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInvite) {
-        resolve(self.cancelledCallInvite.to);
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+        resolve(cancelledCallInvite.to);
     } else {
         reject(@"Voice error", @"No matching cancelled call invite", nil);
     }
