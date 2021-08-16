@@ -197,8 +197,6 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
 }
 
 RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
-                  deviceToken:(NSString *)deviceToken
-                  channelType:(NSString *)channelType
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -216,8 +214,6 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
 }
 
 RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
-                  deviceToken:(NSString *)deviceToken
-                  channelType:(NSString *)channelType
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
