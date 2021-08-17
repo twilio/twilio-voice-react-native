@@ -528,14 +528,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return;
     }
 
-    String callUuid = UUID.randomUUID().toString();
-
     AcceptOptions acceptOptions = new AcceptOptions.Builder()
       .enableDscp(true)
       .build();
 
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callUuid));
-    Storage.callMap.put(callUuid, call);
+    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid));
+    Storage.callMap.put(callInviteUuid, call);
 
     // Send Event to upstream
     WritableMap params = Arguments.createMap();
@@ -554,7 +552,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid), "accept");
 
-    WritableMap callInfo = getCallInfo(callUuid, call);
+    WritableMap callInfo = getCallInfo(callInviteUuid, call);
 
     promise.resolve(callInfo);
   }
