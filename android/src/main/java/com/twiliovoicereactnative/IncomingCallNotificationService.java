@@ -24,7 +24,12 @@ import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.AcceptOptions;
+import android.widget.RemoteViews;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 import java.util.UUID;
+
 import android.media.AudioAttributes;
 import android.net.Uri;
 
@@ -124,7 +129,9 @@ public class IncomingCallNotificationService extends Service {
    * @return the builder
    */
   @TargetApi(Build.VERSION_CODES.O)
-  private Notification buildNotification(String text, PendingIntent pendingIntent, Bundle extras,
+  private Notification buildNotification(String title,
+                                         PendingIntent pendingIntent,
+                                         Bundle extras,
                                          final CallInvite callInvite,
                                          int notificationId,
                                          String uuid,
@@ -143,27 +150,41 @@ public class IncomingCallNotificationService extends Service {
     acceptIntent.putExtra(Constants.UUID, uuid);
     PendingIntent piAcceptIntent = PendingIntent.getService(getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+    Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_call_end_white_24dp);
+
+    RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
+    remoteViews.setTextViewText(R.id.notif_title, title);
+    remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + getString(R.string.app_name));
+
+    remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
+    remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
+
+    Intent notification_intent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
+    PendingIntent pendingIntentNew = PendingIntent.getActivity(getApplicationContext(), 0, notification_intent, 0);
+
     Notification.Builder builder =
       new Notification.Builder(getApplicationContext(), channelId)
         .setSmallIcon(R.drawable.ic_call_end_white_24dp)
-        .setContentTitle(text)
+        .setLargeIcon(icon)
+        .setContentTitle(title)
         .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
-        .addAction(android.R.drawable.ic_menu_delete, getString(R.string.decline), piRejectIntent)
-        .addAction(android.R.drawable.ic_menu_call, getString(R.string.answer), piAcceptIntent)
-        .setFullScreenIntent(pendingIntent, true);
+        .setCustomContentView(remoteViews)
+        .setCustomBigContentView(remoteViews)
+        .setContentIntent(pendingIntentNew)
+        .setFullScreenIntent(pendingIntentNew, true);
 
     return builder.build();
   }
 
   @TargetApi(Build.VERSION_CODES.O)
   private Notification buildNotification1(String text, PendingIntent pendingIntent, Bundle extras,
-                                         final CallInvite callInvite,
-                                         int notificationId,
-                                         String uuid,
-                                         String channelId) {
+                                          final CallInvite callInvite,
+                                          int notificationId,
+                                          String uuid,
+                                          String channelId) {
     Intent rejectIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
     rejectIntent.setAction(Constants.ACTION_REJECT);
     rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -291,7 +312,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   /*
-   * Send the CallInvite to the VoiceActivity. Start the activity if it is not running already.
+   * Send the CallInvite to the main activity. Start the activity if it is not running already.
    */
   private void sendCallInviteToActivity(CallInvite callInvite, int notificationId) {
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
