@@ -6,9 +6,12 @@ import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
 import {
   CallException,
-  NativeVoiceEvent,
+  NativeCallInfo,
+  NativeCallInviteInfo,
   NativeEventScope,
+  NativeVoiceEvent,
   NativeVoiceEventType,
+  Uuid,
 } from './type';
 
 /**
@@ -18,7 +21,17 @@ export declare interface Voice {
   /**
    * Emit typings.
    */
+  emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
+  emit(
+    voiceEvent: Voice.Event.CallInviteAccepted,
+    callInvite: CallInvite,
+    call: Call
+  ): boolean;
+  emit(
+    voiceEvent: Voice.Event.CallInviteRejected,
+    callInvite: CallInvite
+  ): boolean;
   emit(
     voiceEvent: Voice.Event.CancelledCallInvite,
     cancelledCallInvite: CancelledCallInvite,
@@ -42,6 +55,24 @@ export declare interface Voice {
   ): this;
   on(
     voiceEvent: Voice.Event.CallInvite,
+    listener: (callInvite: CallInvite) => void
+  ): this;
+
+  addEventListener(
+    voiceEvent: Voice.Event.CallInviteAccepted,
+    listener: (callInvite: CallInvite, call: Call) => void
+  ): this;
+  on(
+    voiceEvent: Voice.Event.CallInviteAccepted,
+    listener: (callInvite: CallInvite, call: Call) => void
+  ): this;
+
+  addEventListener(
+    voiceEvent: Voice.Event.CallInviteRejected,
+    listener: (callInvite: CallInvite) => void
+  ): this;
+  on(
+    voiceEvent: Voice.Event.CallInviteRejected,
     listener: (callInvite: CallInvite) => void
   ): this;
 
@@ -74,6 +105,10 @@ export declare interface Voice {
 }
 
 export class Voice extends EventEmitter {
+  private _bootstrapCallsPromise: Promise<void>;
+  private _bootstrapCallInvitesPromise: Promise<void>;
+  private _calls: Map<Uuid, Call> = new Map();
+  private _callInvites: Map<Uuid, CallInvite> = new Map();
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
   private _nativeEventHandler: Record<
@@ -91,6 +126,8 @@ export class Voice extends EventEmitter {
 
     this._nativeEventHandler = {
       callInvite: this._handleCallInvite,
+      callInviteAccepted: this._handleCallInviteAccepted,
+      callInviteRejected: this._handleCallInviteRejected,
       cancelledCallInvite: this._handleCancelledCallInvite,
       error: this._handleError,
       registered: this._handleRegistered,
@@ -101,10 +138,36 @@ export class Voice extends EventEmitter {
       NativeEventScope.Voice,
       this._handleNativeEvent
     );
+
+    this._bootstrapCallsPromise = this._nativeModule
+      .voice_getCalls()
+      .then((callInfos: NativeCallInfo[]) => {
+        callInfos.forEach((callInfo: NativeCallInfo) => {
+          const call = new Call(callInfo, {
+            nativeEventEmitter: this._nativeEventEmitter,
+            nativeModule: this._nativeModule,
+          });
+          this._calls.set(callInfo.uuid, call);
+        });
+      });
+
+    this._bootstrapCallInvitesPromise = this._nativeModule
+      .voice_getCallInvites()
+      .then((callInviteInfos: NativeCallInviteInfo[]) => {
+        callInviteInfos.forEach((callInviteInfo: NativeCallInviteInfo) => {
+          const callInvite = new CallInvite(callInviteInfo, {
+            nativeEventEmitter: this._nativeEventEmitter,
+            nativeModule: this._nativeModule,
+          });
+          this._callInvites.set(callInviteInfo.uuid, callInvite);
+        });
+      });
   }
 
-  private _handleNativeEvent = (nativeMessageEvent: NativeVoiceEvent) => {
-    const { type } = nativeMessageEvent;
+  private _handleNativeEvent = (nativeVoiceEvent: NativeVoiceEvent) => {
+    console.log(nativeVoiceEvent);
+
+    const { type } = nativeVoiceEvent;
 
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
@@ -113,19 +176,90 @@ export class Voice extends EventEmitter {
       );
     }
 
-    handler(nativeMessageEvent);
+    handler(nativeVoiceEvent);
   };
 
-  private _handleCallInvite = ({ uuid }: NativeVoiceEvent) => {
-    const callInvite = new CallInvite(uuid);
+  private _handleCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInvite) {
+      throw new Error(
+        `Incorrect "voice#callInvite" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const { callInvite: callInviteInfo } = nativeVoiceEvent;
+
+    const callInvite = new CallInvite(callInviteInfo, {
+      nativeEventEmitter: this._nativeEventEmitter,
+      nativeModule: this._nativeModule,
+    });
+
+    this._callInvites.set(callInviteInfo.uuid, callInvite);
+
     this.emit(Voice.Event.CallInvite, callInvite);
   };
 
-  private _handleCancelledCallInvite = ({
-    exception,
-    uuid,
-  }: NativeVoiceEvent) => {
-    const cancelledCallInvite = new CancelledCallInvite(uuid);
+  private _handleCallInviteAccepted = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInviteAccepted) {
+      throw new Error(
+        `Incorrect "voice#callInviteAccepted" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const { callInvite: callInviteInfo } = nativeVoiceEvent;
+
+    const callInvite = this._callInvites.get(callInviteInfo.uuid);
+    if (typeof callInvite === 'undefined') {
+      return;
+    }
+
+    const callInfo = {
+      uuid: callInviteInfo.uuid,
+      sid: callInviteInfo.callSid,
+      from: callInviteInfo.from,
+      to: callInviteInfo.to,
+    };
+
+    const call = new Call(callInfo, {
+      nativeEventEmitter: this._nativeEventEmitter,
+      nativeModule: this._nativeModule,
+    });
+
+    this._calls.set(callInfo.uuid, call);
+
+    this.emit(Voice.Event.CallInviteAccepted, callInvite, call);
+  };
+
+  private _handleCallInviteRejected = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInviteRejected) {
+      throw new Error(
+        `Incorrect "voice#callInviteRejected" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const { callInvite: callInviteInfo } = nativeVoiceEvent;
+
+    const callInvite = this._callInvites.get(callInviteInfo.uuid);
+    if (typeof callInvite === 'undefined') {
+      return;
+    }
+
+    this.emit(Voice.Event.CallInviteRejected, callInvite);
+  };
+
+  private _handleCancelledCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.CancelledCallInvite) {
+      throw new Error(
+        `Incorrect "voice#cancelledCallInvite" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const { cancelledCallInvite: cancelledCallInviteInfo, exception } =
+      nativeVoiceEvent;
+
+    const cancelledCallInvite = new CancelledCallInvite(
+      cancelledCallInviteInfo
+    );
+
     this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
   };
 
@@ -145,17 +279,34 @@ export class Voice extends EventEmitter {
     token: string,
     params: Record<string, string> = {}
   ): Promise<Call> {
-    const callUuid = await this._nativeModule.util_generateId();
-    const call = new Call(callUuid, {
+    const callInfo = await this._nativeModule.voice_connect(token, params);
+
+    const call = new Call(callInfo, {
       nativeEventEmitter: this._nativeEventEmitter,
       nativeModule: this._nativeModule,
     });
-    this._nativeModule.voice_connect(callUuid, token, params);
+
+    this._calls.set(callInfo.uuid, call);
+
     return call;
   }
 
   getVersion(): Promise<string> {
     return this._nativeModule.voice_getVersion();
+  }
+
+  getDeviceToken(): Promise<string> {
+    return this._nativeModule.voice_getDeviceToken();
+  }
+
+  async getCalls(): Promise<ReadonlyMap<Uuid, Call>> {
+    await this._bootstrapCallsPromise;
+    return this._calls;
+  }
+
+  async getCallInvites(): Promise<ReadonlyMap<Uuid, CallInvite>> {
+    await this._bootstrapCallInvitesPromise;
+    return this._callInvites;
   }
 
   register(token: string): Promise<void> {
@@ -170,6 +321,8 @@ export class Voice extends EventEmitter {
 export namespace Voice {
   export enum Event {
     'CallInvite' = 'callInvite',
+    'CallInviteAccepted' = 'callInviteAccepted',
+    'CallInviteRejected' = 'callInviteRejected',
     'CancelledCallInvite' = 'cancelledCallInvite',
     'Error' = 'error',
     'Registered' = 'registered',

@@ -6,12 +6,12 @@ export interface BoundCallMethod {
 }
 
 export interface BoundCallInfo {
-  from: string;
-  to: string;
-  state: string;
-  sid: string;
-  isMuted: boolean;
-  isOnHold: boolean;
+  from?: string;
+  to?: string;
+  state?: string;
+  sid?: string;
+  isMuted?: boolean;
+  isOnHold?: boolean;
 }
 
 export interface BoundCallInvite {

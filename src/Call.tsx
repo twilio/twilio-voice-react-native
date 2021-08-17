@@ -4,6 +4,7 @@ import { TwilioVoiceReactNative } from './const';
 import {
   NativeCallEvent,
   NativeCallEventType,
+  NativeCallInfo,
   NativeEventScope,
   Uuid,
 } from './type';
@@ -63,15 +64,33 @@ export declare interface Call {
 }
 
 export class Call extends EventEmitter {
+  private _eventTypeStateMap: Record<NativeCallEventType, Call.State> = {
+    [NativeCallEventType.Connected]: Call.State.Connected,
+    [NativeCallEventType.ConnectFailure]: Call.State.Disconnected,
+    [NativeCallEventType.Reconnecting]: Call.State.Reconnecting,
+    [NativeCallEventType.Reconnected]: Call.State.Connected,
+    [NativeCallEventType.Disconnected]: Call.State.Disconnected,
+    [NativeCallEventType.Ringing]: Call.State.Ringing,
+  };
   private _nativeEventHandler: Record<
     NativeCallEventType,
     (callEvent: NativeCallEvent) => void
   >;
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
-  private _uuid: Uuid;
 
-  constructor(uuid: Uuid, options: Partial<Call.Options> = {}) {
+  private _uuid: Uuid;
+  private _from?: string;
+  private _isMuted?: boolean;
+  private _isOnHold?: boolean;
+  private _sid?: string;
+  private _state: Call.State = Call.State.Connecting;
+  private _to?: string;
+
+  constructor(
+    { uuid, from, sid, to, isMuted, isOnHold }: NativeCallInfo,
+    options: Partial<Call.Options> = {}
+  ) {
     super();
 
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
@@ -80,6 +99,11 @@ export class Call extends EventEmitter {
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._uuid = uuid;
+    this._from = from;
+    this._sid = sid;
+    this._to = to;
+    this._isMuted = isMuted;
+    this._isOnHold = isOnHold;
 
     this._nativeEventHandler = {
       connected: this._handleConnectedEvent,
@@ -97,7 +121,7 @@ export class Call extends EventEmitter {
   }
 
   private _handleNativeEvent = (nativeCallEvent: NativeCallEvent) => {
-    const { type, uuid } = nativeCallEvent;
+    const { type, call: callInfo } = nativeCallEvent;
 
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
@@ -106,72 +130,129 @@ export class Call extends EventEmitter {
       );
     }
 
-    if (uuid === this._uuid) {
+    if (callInfo.uuid === this._uuid) {
       handler(nativeCallEvent);
     }
   };
 
-  private _handleConnectedEvent = () => {
+  private _update({ type, call: { from, sid, to } }: NativeCallEvent) {
+    this._state = this._eventTypeStateMap[type];
+    this._from = from;
+    this._sid = sid;
+    this._to = to;
+  }
+
+  private _handleConnectedEvent = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.Connected) {
+      throw new Error(
+        `Incorrect "call#connected" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.Connected);
   };
 
-  private _handleConnectFailure = () => {
+  private _handleConnectFailure = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.ConnectFailure) {
+      throw new Error(
+        `Incorrect "call#connectFailure" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.ConnectFailure);
   };
 
-  private _handleDisconnected = () => {
+  private _handleDisconnected = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.Disconnected) {
+      throw new Error(
+        `Incorrect "call#disconnected" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.Disconnected);
   };
 
-  private _handleReconnecting = () => {
+  private _handleReconnecting = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.Reconnecting) {
+      throw new Error(
+        `Incorrect "call#reconnecting" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.Reconnecting);
   };
 
-  private _handleReconnected = () => {
+  private _handleReconnected = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.Reconnected) {
+      throw new Error(
+        `Incorrect "call#reconnected" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.Reconnected);
   };
 
-  private _handleRinging = () => {
+  private _handleRinging = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.Ringing) {
+      throw new Error(
+        `Incorrect "call#ringing" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
     this.emit(Call.Event.Ringing);
   };
 
   /**
    * Native functionality.
    */
-  disconnect(): void {
-    this._nativeModule.call_disconnect(this._uuid);
+  disconnect(): Promise<void> {
+    return this._nativeModule.call_disconnect(this._uuid);
   }
 
-  isOnHold(): Promise<boolean> {
-    return this._nativeModule.call_isOnHold(this._uuid);
+  isMuted(): boolean | undefined {
+    return this._isMuted;
   }
 
-  isMuted(): Promise<boolean> {
-    return this._nativeModule.call_isMuted(this._uuid);
+  isOnHold(): boolean | undefined {
+    return this._isOnHold;
   }
 
-  getFrom(): Promise<string> {
-    return this._nativeModule.call_getFrom(this._uuid);
+  getFrom(): string | undefined {
+    return this._from;
   }
 
-  getTo(): Promise<string> {
-    return this._nativeModule.call_getTo(this._uuid);
+  getSid(): string | undefined {
+    return this._sid;
   }
 
-  getState(): Promise<string> {
-    return this._nativeModule.call_getState(this._uuid);
+  getState(): Call.State {
+    return this._state;
   }
 
-  getSid(): Promise<string> {
-    return this._nativeModule.call_getSid(this._uuid);
+  getTo(): string | undefined {
+    return this._to;
   }
 
-  hold(hold: boolean): Promise<void> {
-    return this._nativeModule.call_hold(this._uuid, hold);
+  async hold(hold: boolean): Promise<boolean> {
+    this._isOnHold = await this._nativeModule.call_hold(this._uuid, hold);
+    return this._isOnHold;
   }
 
-  mute(mute: boolean): Promise<void> {
-    return this._nativeModule.call_mute(this._uuid, mute);
+  async mute(mute: boolean): Promise<boolean> {
+    this._isMuted = await this._nativeModule.call_mute(this._uuid, mute);
+    return this._isMuted;
   }
 
   sendDigits(digits: string): Promise<void> {
@@ -186,6 +267,14 @@ export namespace Call {
     'Reconnecting' = 'reconnecting',
     'Reconnected' = 'reconnected',
     'Disconnected' = 'disconnected',
+    'Ringing' = 'ringing',
+  }
+
+  export enum State {
+    'Connected' = 'connected',
+    'Connecting' = 'connecting',
+    'Disconnected' = 'disconnected',
+    'Reconnecting' = 'reconnected',
     'Ringing' = 'ringing',
   }
 

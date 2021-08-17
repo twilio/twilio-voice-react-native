@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Call } from 'twilio-voice-react-native';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNoOp } from './hook';
 import type { BoundCallMethod, BoundCallInfo, BoundCallInvite } from './type';
@@ -33,7 +34,7 @@ export default function Dialer({
   );
 
   const activeCall = React.useMemo(
-    () => callMethod && callInfo?.state !== 'DISCONNECTED',
+    () => callMethod && callInfo?.state !== Call.State.Disconnected,
     [callMethod, callInfo]
   );
 

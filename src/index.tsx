@@ -1,4 +1,4 @@
 export { Call } from './Call';
-export type { CallInvite } from './CallInvite';
-export type { CancelledCallInvite } from './CancelledCallInvite';
+export { CallInvite } from './CallInvite';
+export { CancelledCallInvite } from './CancelledCallInvite';
 export { Voice } from './Voice';
