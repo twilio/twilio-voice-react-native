@@ -4,6 +4,7 @@ import { Call } from './Call';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
+import { AudioDevice } from './AudioDevice';
 import {
   CallException,
   NativeCallInfo,
@@ -12,7 +13,6 @@ import {
   NativeVoiceEvent,
   NativeVoiceEventType,
   Uuid,
-  AudioDevice,
 } from './type';
 
 /**
@@ -42,7 +42,7 @@ export declare interface Voice {
   emit(voiceEvent: Voice.Event.Unregistered): boolean;
   emit(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
-    newDevices: Map<AudioDevice, String>[],
+    newDevices: AudioDevice[],
   ): boolean;
 
   /**
@@ -110,19 +110,21 @@ export declare interface Voice {
 
   addEventListener(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
-    listener: (newDevices: Map<AudioDevice, String>[]) => void
+    listener: (newDevices: AudioDevice[]) => void
   ): this;
   on(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
-    listener: (newDevices: Map<AudioDevice, String>[]) => void
+    listener: (newDevices: AudioDevice[]) => void
   ): this;
 }
 
 export class Voice extends EventEmitter {
   private _bootstrapCallsPromise: Promise<void>;
   private _bootstrapCallInvitesPromise: Promise<void>;
+  private _bootstrapAudioDevicesPromise: Promise<void>;
   private _calls: Map<Uuid, Call> = new Map();
   private _callInvites: Map<Uuid, CallInvite> = new Map();
+  private _audioDevices: Map<Uuid, AudioDevice> = new Map();
   private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
   private _nativeEventHandler: Record<
@@ -175,6 +177,15 @@ export class Voice extends EventEmitter {
             nativeModule: this._nativeModule,
           });
           this._callInvites.set(callInviteInfo.uuid, callInvite);
+        });
+      });
+
+    this._bootstrapAudioDevicesPromise = this._nativeModule
+      .voice_getAudioDevices()
+      .then((audioDeviceInfos: NativeAudioDeviceInfo[]) => {
+        audioDeviceInfos.forEach((audioDeviceInfo: NativeAudioDeviceInfo) => {
+          const audioDevice = new AudioDevice(audioDeviceInfo);
+          this._audioDevices.set(audioDeviceInfo.uuid, audioDevice);
         });
       });
   }
@@ -291,6 +302,19 @@ export class Voice extends EventEmitter {
   };
 
   private _handleAudioDevicesUpdated = () => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.AudioDevicesUpdated) {
+      throw new Error(
+        `Incorrect "voice#audioDevicesUpdated" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const { newDevices: audioDeviceInfos } = nativeVoiceEvent;
+
+    audioDeviceInfos.forEach((audioDeviceInfo: NativeAudioDeviceInfo) => {
+      const audioDevice = new AudioDevice(audioDeviceInfo);
+      this._audioDevices.set(audioDeviceInfo.uuid, audioDevice);
+    });
+
     this.emit(Voice.Event.AudioDevicesUpdated);
   };
 
@@ -334,6 +358,11 @@ export class Voice extends EventEmitter {
 
   unregister(token: string): Promise<void> {
     return this._nativeModule.voice_unregister(token);
+  }
+
+  async getAudioDevices(): Promise<ReadonlyMap<Uuid, AudioDevice>> {
+    await this._bootstrapAudioDevicesPromise;
+    return this._audioDevices;
   }
 }
 

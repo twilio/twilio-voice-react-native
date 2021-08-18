@@ -1,5 +1,6 @@
 import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
+import type { AudioDevice } from './AudioDevice';
 
 export interface NativeCallInviteInfo {
   uuid: Uuid;
@@ -21,6 +22,12 @@ export interface NativeCallInfo {
   isOnHold?: boolean;
   sid?: string;
   to?: string;
+}
+
+export interface NativeAudioDeviceInfo {
+  uuid: Uuid;
+  type: AudioDevice.Type;
+  name: String;
 }
 
 export enum NativeEventScope {
@@ -80,12 +87,6 @@ export type NativeCallEvent =
   | NativeCallDisconnectedEvent
   | NativeCallRingingEvent;
 
-export enum AudioDevice {
-  'Earpiece' = 'earpiece',
-  'Speaker' = 'speaker',
-  'Bluetooth' = 'bluetooth',
-}
-
 export enum NativeVoiceEventType {
   'CallInvite' = 'callInvite',
   'CallInviteAccepted' = 'callInviteAccepted',
@@ -118,12 +119,9 @@ export interface NativeCancelledCallInviteEvent {
   exception?: CallException;
 }
 
-export interface NativeCancelledCallInviteEvent {
+export interface NativeAudioDevicesUpdatedEvent {
   type: NativeVoiceEventType.AudioDevicesUpdated;
-  newDevices: [
-    device: AudioDevice,
-    name?: String,
-  ];
+  newDevices: NativeAudioDeviceInfo[];
 }
 
 export type NativeVoiceEvent =
@@ -175,4 +173,5 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   voice_register(accessToken: string): Promise<void>;
   voice_unregister(accessToken: string): Promise<void>;
   voice_selectAudioDevice(audioDeviceUuid: Uuid): Promise<void>;
+  voice_getAudioDevices(): Promise<NativeAudioDeviceInfo[]>;
 }
