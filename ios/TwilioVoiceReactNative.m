@@ -72,6 +72,11 @@ static TVODefaultAudioDevice *sAudioDevice;
                                              selector:@selector(handlePushRegistryNotification:)
                                                  name:kTwilioVoicePushRegistryNotification
                                                object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleRouteChange:)
+                                                 name:AVAudioSessionRouteChangeNotification
+                                               object:nil];
 }
 
 - (void)dealloc {
@@ -116,6 +121,77 @@ static TVODefaultAudioDevice *sAudioDevice;
 
 + (TVODefaultAudioDevice *)audioDevice {
     return sAudioDevice;
+}
+
+// TODO: parse notification content and emit event
+- (void)handleRouteChange:(NSNotification *)notification {
+    // TODO: remove me
+    NSLog(@"debug checkpoint: audio route change notification: %@", notification.userInfo);
+
+    NSLog(@"debug checkpoint - available inputs");
+    NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+    for (AVAudioSessionPortDescription *port in availableInputs) {
+        NSLog(@"input found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
+              port.portType, port.portName, port.UID);
+    }
+
+    AVAudioSessionRouteDescription *currentRoute = [[AVAudioSession sharedInstance] currentRoute];
+    NSArray *inputs = currentRoute.inputs;
+    NSArray *outputs = currentRoute.outputs;
+    NSLog(@"debug checkpoint - current route");
+    NSLog(@"current route inputs");
+    for (AVAudioSessionPortDescription *port in inputs) {
+        NSLog(@"input found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
+              port.portType, port.portName, port.UID);
+    }
+    for (AVAudioSessionPortDescription *port in outputs) {
+        NSLog(@"output found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
+              port.portType, port.portName, port.UID);
+    }
+
+    // https://developer.apple.com/documentation/avfaudio/avaudiosession/responding_to_audio_session_route_changes
+    /*
+        notification
+            - name: AVAudioSessionRouteChangeNotification
+            - object: AVAudioSession
+            - userInfo: {
+                    AVAudioSessionRouteChangeReasonKey: AVAudioSessionRouteChangeReason
+                    AVAudioSessionRouteChangePreviousRouteKey:
+                        - AVAudioSessionRouteDescription
+
+                }
+
+        AVAudioSessionRouteChangeReason
+    */
+}
+
+// TODO: parameterize device option
+- (void)selectAudioDevice {
+    NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+    AVAudioSessionPortDescription *bluetooth = nil;
+    for (AVAudioSessionPortDescription *port in availableInputs) {
+        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+            bluetooth = port;
+            break;
+        }
+    }
+
+    if (!bluetooth) {
+        NSLog(@"Not found");
+        return;
+    }
+
+    NSError *outputError;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&outputError];
+    if (outputError) {
+        NSLog(@"Failed to override output port: %@", outputError);
+    }
+
+    NSError *inputError;
+    [[AVAudioSession sharedInstance] setPreferredInput:bluetooth error:&inputError];
+    if (inputError) {
+        NSLog(@"Failed to set preferred input: %@", inputError);
+    }
 }
 
 // TODO: Move to separate utility file someday
@@ -259,6 +335,13 @@ RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
         [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
     }
     resolve(callInviteInfoArray);
+}
+
+RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve(nil);
 }
 
 #pragma mark - Bingings (Call)

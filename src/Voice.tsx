@@ -12,6 +12,7 @@ import {
   NativeVoiceEvent,
   NativeVoiceEventType,
   Uuid,
+  AudioDevice,
 } from './type';
 
 /**
@@ -39,6 +40,10 @@ export declare interface Voice {
   ): boolean;
   emit(voiceEvent: Voice.Event.Registered): boolean;
   emit(voiceEvent: Voice.Event.Unregistered): boolean;
+  emit(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    newDevices: Map<AudioDevice, String>[],
+  ): boolean;
 
   /**
    * Listener typings.
@@ -102,6 +107,15 @@ export declare interface Voice {
     listener: () => void
   ): this;
   on(voiceEvent: Voice.Event.Unregistered, listener: () => void): this;
+
+  addEventListener(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    listener: (newDevices: Map<AudioDevice, String>[]) => void
+  ): this;
+  on(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    listener: (newDevices: Map<AudioDevice, String>[]) => void
+  ): this;
 }
 
 export class Voice extends EventEmitter {
@@ -132,6 +146,7 @@ export class Voice extends EventEmitter {
       error: this._handleError,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
+      audioDevicesUpdated: this._handleAudioDevicesUpdated,
     };
 
     this._nativeEventEmitter.addListener(
@@ -275,6 +290,10 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.Unregistered);
   };
 
+  private _handleAudioDevicesUpdated = () => {
+    this.emit(Voice.Event.AudioDevicesUpdated);
+  };
+
   async connect(
     token: string,
     params: Record<string, string> = {}
@@ -327,6 +346,7 @@ export namespace Voice {
     'Error' = 'error',
     'Registered' = 'registered',
     'Unregistered' = 'unregistered',
+    'AudioDevicesUpdated' = 'audioDevicesUpdated',
   }
 
   export interface Options {
