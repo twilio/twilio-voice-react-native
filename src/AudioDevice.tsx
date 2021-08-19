@@ -1,20 +1,18 @@
-import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
 import type { NativeAudioDeviceInfo, Uuid } from './type';
 
 export class AudioDevice {
-  private _nativeEventEmitter: NativeEventEmitter;
   private _nativeModule: typeof TwilioVoiceReactNative;
 
   private _uuid: Uuid;
   private _type: AudioDevice.Type;
-  private _name: String;
+  private _name: string;
 
   constructor(
-    { uuid, type, name }: NativeAudioDeviceInfo
+    { uuid, type, name }: NativeAudioDeviceInfo,
+    options: Partial<AudioDevice.Options> = {}
   ) {
-    this._nativeModule = TwilioVoiceReactNative;
-    this._nativeEventEmitter = new NativeEventEmitter(this._nativeModule);
+    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
     this._uuid = uuid;
     this._type = type;
@@ -22,15 +20,19 @@ export class AudioDevice {
   }
 
   getUuid(): Uuid {
-  	return this._uuid;
+    return this._uuid;
   }
 
   getType(): AudioDevice.Type {
-  	return this._type;
+    return this._type;
   }
 
-  getName(): String {
-  	return this._name;
+  getName(): string {
+    return this._name;
+  }
+
+  select(): void {
+    this._nativeModule.voice_selectAudioDevice(this._uuid);
   }
 }
 
@@ -39,5 +41,9 @@ export namespace AudioDevice {
     Earpiece = 'earpiece',
     Speaker = 'speaker',
     Bluetooth = 'bluetooth',
+  }
+
+  export interface Options {
+    nativeModule: typeof TwilioVoiceReactNative;
   }
 }
