@@ -13,6 +13,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyError;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCall;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCallInvite;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteReceived;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled;

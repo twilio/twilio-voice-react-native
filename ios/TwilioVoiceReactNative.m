@@ -17,6 +17,7 @@ NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
 NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
+NSString * const kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated = @"audioDevicesUpdated";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
@@ -35,13 +36,15 @@ NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
 NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
 NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
 
-static TVODefaultAudioDevice *sAudioDevice;
+static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @import TwilioVoice;
 
 @interface TwilioVoiceReactNative ()
 
 @property(nonatomic, strong) NSData *deviceTokenData;
+@property(nonatomic, strong) NSMutableDictionary *audioDevices;
+@property(nonatomic, strong) NSDictionary *selectedAudioDevice;
 
 @end
 
@@ -54,14 +57,16 @@ static TVODefaultAudioDevice *sAudioDevice;
         _callMap = [NSMutableDictionary dictionary];
         _callInviteMap = [NSMutableDictionary dictionary];
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
+        _audioDevices = [NSMutableDictionary dictionary];
         
-        sAudioDevice = [TVODefaultAudioDevice audioDevice];
-        TwilioVoiceSDK.audioDevice = sAudioDevice;
+        sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
+        TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
         
         TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
         
         [self subscribeToNotifications];
         [self initializeCallKit];
+        [self initializeAudioDeviceList];
     }
 
     return self;
@@ -119,78 +124,129 @@ static TVODefaultAudioDevice *sAudioDevice;
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice body:eventBody];
 }
 
-+ (TVODefaultAudioDevice *)audioDevice {
-    return sAudioDevice;
++ (TVODefaultAudioDevice *)twilioAudioDevice {
+    return sTwilioAudioDevice;
 }
 
-// TODO: parse notification content and emit event
 - (void)handleRouteChange:(NSNotification *)notification {
-    // TODO: remove me
-    NSLog(@"debug checkpoint: audio route change notification: %@", notification.userInfo);
+    NSLog(@"AVAudioSessionRouteChangeNotification");
+    [self sendEventWithName:kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated
+                       body:[self availableAudioDevices]];
+}
 
-    NSLog(@"debug checkpoint - available inputs");
+- (void)initializeAudioDeviceList {
+    // TODO: use constant macro
+    NSUUID *receiverUuid = [NSUUID UUID];
+    NSDictionary *builtInReceiver = @{ @"uuid": receiverUuid.UUIDString,
+                                       @"type": @"Earpiece",
+                                       @"name": @"iPhone",
+                                       @"uid": AVAudioSessionPortBuiltInReceiver};
+    self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
+    
+    NSUUID *speakerUuid = [NSUUID UUID];
+    NSDictionary *builtInSpeaker = @{ @"uuid": speakerUuid.UUIDString,
+                                      @"type": @"Speaker",
+                                      @"name": @"Speaker",
+                                      @"uid": AVAudioSessionPortBuiltInSpeaker};
+    self.audioDevices[speakerUuid.UUIDString] = builtInSpeaker;
+    
+    [self availableAudioDevices];
+}
+
+- (NSDictionary *)availableAudioDevices {
+    // Pop all except the built-in earpiece and speaker
+    for (NSString *key in [self.audioDevices allKeys]) {
+        if ([key isEqualToString:AVAudioSessionPortBuiltInMic] &&
+            [key isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
+            [self.audioDevices removeObjectForKey:key];
+        }
+    }
+    
+    NSLog(@"Available audio input devices");
     NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
     for (AVAudioSessionPortDescription *port in availableInputs) {
-        NSLog(@"input found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
-              port.portType, port.portName, port.UID);
+        NSLog(@"\t%@, %@, %@", port.portType, port. portName, port.UID);
+        
+        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+            NSUUID *uuid = [NSUUID UUID];
+            NSDictionary *bluetoothHfpDevice = @{ @"uuid": uuid.UUIDString,
+                                                  @"type": @"Bluetooth",
+                                                  @"name": port.portName };
+            self.audioDevices[uuid.UUIDString] = bluetoothHfpDevice;
+        }
     }
-
+    
+    NSLog(@"Current route, inputs");
     AVAudioSessionRouteDescription *currentRoute = [[AVAudioSession sharedInstance] currentRoute];
     NSArray *inputs = currentRoute.inputs;
-    NSArray *outputs = currentRoute.outputs;
-    NSLog(@"debug checkpoint - current route");
-    NSLog(@"current route inputs");
     for (AVAudioSessionPortDescription *port in inputs) {
-        NSLog(@"input found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
-              port.portType, port.portName, port.UID);
+        NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
     }
+    
+    NSLog(@"Current route, outputs");
+    NSArray *outputs = currentRoute.outputs;
     for (AVAudioSessionPortDescription *port in outputs) {
-        NSLog(@"output found\n\t- port type: %@\n\t- port name: %@\n\t- UID: %@",
-              port.portType, port.portName, port.UID);
+        NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
+        
+        for (NSString *key in [self.audioDevices allKeys]) {
+            NSDictionary *device = self.audioDevices[key];
+            if ([device[@"uid"] isEqualToString:port.UID]) {
+                self.selectedAudioDevice = self.audioDevices[key];
+            }
+        }
     }
 
-    // https://developer.apple.com/documentation/avfaudio/avaudiosession/responding_to_audio_session_route_changes
-    /*
-        notification
-            - name: AVAudioSessionRouteChangeNotification
-            - object: AVAudioSession
-            - userInfo: {
-                    AVAudioSessionRouteChangeReasonKey: AVAudioSessionRouteChangeReason
-                    AVAudioSessionRouteChangePreviousRouteKey:
-                        - AVAudioSessionRouteDescription
-
-                }
-
-        AVAudioSessionRouteChangeReason
-    */
+    return self.audioDevices;
 }
 
-// TODO: parameterize device option
-- (void)selectAudioDevice {
+- (void)selectAudioDevice:(NSString *)uuid {
+    NSString *portUid;
+    NSString *portType;
+
+    for (NSString *key in [self.audioDevices allKeys]) {
+        NSDictionary *device = self.audioDevices[key];
+        if ([device[@"uuid"] isEqualToString:uuid]) {
+            portUid = device[@"uid"];
+            portType = device[@"type"];
+            break;
+        }
+    }
+    
+    if (portUid == nil || portType == nil) {
+        NSLog(@"No matching audio device found for %@", uuid);
+        return;
+    }
+    
+    // Find port description with matching port type & UID in available input devices
+    AVAudioSessionPortDescription *portDescription = nil;
     NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
-    AVAudioSessionPortDescription *bluetooth = nil;
     for (AVAudioSessionPortDescription *port in availableInputs) {
-        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
-            bluetooth = port;
+        if ([port.portType isEqualToString:portType] && [port.UID isEqualToString:portUid]) {
+            portDescription = port;
             break;
         }
     }
 
-    if (!bluetooth) {
-        NSLog(@"Not found");
+    if (!portDescription) {
+        NSLog(@"No matching device with %@ found in the available devices", uuid);
         return;
     }
 
-    NSError *outputError;
-    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&outputError];
-    if (outputError) {
-        NSLog(@"Failed to override output port: %@", outputError);
-    }
-
+    // Update preferred input
     NSError *inputError;
-    [[AVAudioSession sharedInstance] setPreferredInput:bluetooth error:&inputError];
+    [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
     if (inputError) {
         NSLog(@"Failed to set preferred input: %@", inputError);
+    }
+    
+    // Override output to speaker if speaker is selected, otherwise choose "none"
+    AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:AVAudioSessionPortBuiltInSpeaker])?
+                                                AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone;
+    
+    NSError *outputError;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
+    if (outputError) {
+        NSLog(@"Failed to override output port: %@", outputError);
     }
 }
 
@@ -335,6 +391,17 @@ RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
         [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
     }
     resolve(callInviteInfoArray);
+}
+
+RCT_EXPORT_METHOD(voice_getAudioDevices:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSMutableArray *nativeAudioDeviceInfos = [NSMutableArray array];
+    for (NSString *key in [self.audioDevices allKeys]) {
+        [nativeAudioDeviceInfos addObject:self.audioDevices[key]];
+    }
+    resolve(@{@"audioDevices": nativeAudioDeviceInfos,
+              @"selectedDevice": self.selectedAudioDevice});
 }
 
 RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
