@@ -297,7 +297,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .params(parsedTwimlParams)
       .build();
 
-    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid));
+    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, reactContext));
     Storage.callMap.put(uuid, call);
 
     WritableMap callInfo = getCallInfo(uuid, call);
@@ -532,7 +532,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .enableDscp(true)
       .build();
 
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid));
+    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid, reactContext));
     Storage.callMap.put(callInviteUuid, call);
 
     // Send Event to upstream
@@ -542,15 +542,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
     androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
 
-    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid);
+    int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
     Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     acceptIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    acceptIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     acceptIntent.putExtra(Constants.UUID, callInviteUuid);
 
     getReactApplicationContext().startService(acceptIntent);
 
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid), "accept");
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
 
     WritableMap callInfo = getCallInfo(callInviteUuid, call);
 
@@ -569,14 +569,14 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     activeCallInvite.reject(getReactApplicationContext());
 
-    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(uuid);
+    int notificationId = Storage.uuidNotificaionIdMap.get(uuid);
     Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    rejectIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     rejectIntent.putExtra(Constants.UUID, uuid);
     getReactApplicationContext().startService(rejectIntent);
 
-    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(uuid), "reject");
+    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "reject");
 
     promise.resolve(uuid);
   }

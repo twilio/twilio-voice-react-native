@@ -15,7 +15,7 @@ public class Storage {
   static final Map<String, Call> callMap = new HashMap<>();
   static final Map<String, CallInvite> callInviteMap = new HashMap<>();
   static final Map<String, String> callInviteCallSidUuidMap = new HashMap<>();
-  static final Map<String, Integer> callInviteUuidNotificaionIdMap = new HashMap<>();
+  static final Map<String, Integer> uuidNotificaionIdMap = new HashMap<>();
   static final Map<String, CancelledCallInvite> cancelledCallInviteMap = new HashMap<>();
 
   static AndroidEventEmitter androidEventEmitter = null;
@@ -24,6 +24,6 @@ public class Storage {
     Log.d(TAG, "Removing items in callInviteMap uuid:" + uuid + " callSid:" + callSid + " notificationId: " + notificationId + " action:" + action);
     Storage.callInviteMap.remove(uuid);
     Storage.callInviteCallSidUuidMap.remove(callSid);
-    Storage.callInviteUuidNotificaionIdMap.remove(uuid);
+    Storage.uuidNotificaionIdMap.remove(uuid);
   }
 }

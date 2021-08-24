@@ -9,6 +9,9 @@ import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
+import android.content.Intent;
+import android.content.Context;
+import com.facebook.react.bridge.ReactApplicationContext;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
@@ -31,9 +34,11 @@ import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
+  private final Context reactContext;
 
-  public CallListenerProxy(String uuid) {
+  public CallListenerProxy(String uuid, Context reactContext) {
     this.uuid = uuid;
+    this.reactContext = reactContext;
   }
 
   private WritableMap getCallInfo(String uuid, Call call) {
@@ -55,17 +60,20 @@ class CallListenerProxy implements Call.Listener {
       params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
+    cancelNotification();
   }
 
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
+    final int notificationId = (int) System.currentTimeMillis();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
       params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
+    raiseNotification(notificationId, call);
   }
 
   @Override
@@ -111,5 +119,26 @@ class CallListenerProxy implements Call.Listener {
       params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
+    cancelNotification();
+   }
+
+   private void cancelNotification() {
+     Intent intent = new Intent(reactContext, IncomingCallNotificationService.class);
+     intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+     intent.putExtra(Constants.UUID, this.uuid);
+     intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificaionIdMap.get(this.uuid));
+
+     reactContext.startService(intent);
+   }
+
+  private void raiseNotification(int notificationId, Call call) {
+    Log.d(TAG, "Raising call in progress notifiation uuid:" + uuid + " notificationId: " + notificationId);
+    Intent intent = new Intent(reactContext, IncomingCallNotificationService.class);
+    intent.setAction(Constants.ACTION_OUTGOING_CALL);
+    intent.putExtra(Constants.UUID, this.uuid);
+    intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
+    intent.putExtra(Constants.CALL_SID_KEY, call.getSid());
+    Storage.uuidNotificaionIdMap.put(uuid, notificationId);
+    reactContext.startService(intent);
   }
 }

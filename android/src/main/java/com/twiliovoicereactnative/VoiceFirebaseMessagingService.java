@@ -29,6 +29,8 @@ import com.twiliovoicereactnative.Storage;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import android.os.PowerManager;
+import android.os.Build;
 
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -59,6 +61,13 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Log.d(TAG, "Bundle data: " + remoteMessage.getData());
     Log.d(TAG, "From: " + remoteMessage.getFrom());
 
+    PowerManager pm = (PowerManager) this.getSystemService(this.POWER_SERVICE);
+    boolean isScreenOn = Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn(); // check if screen is on
+    if (!isScreenOn) {
+      PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "VoiceFirebaseMessagingService:notificationLock");
+      wl.acquire(30000); //set your time in milliseconds
+    }
+
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
       boolean valid = Voice.handleMessage(this, remoteMessage.getData(), new MessageListener() {
@@ -86,7 +95,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
     Intent intent = new Intent(this, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_INCOMING_CALL);
-    intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     intent.putExtra(Constants.UUID, uuid);
 
