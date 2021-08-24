@@ -32,7 +32,7 @@
 // Indicates if the disconnect is triggered from app UI, instead of the system Call UI
 @property (nonatomic, assign) BOOL userInitiatedDisconnect;
 
-+ (TVODefaultAudioDevice *)audioDevice;
++ (TVODefaultAudioDevice *)twilioAudioDevice;
 
 @end
 
