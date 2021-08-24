@@ -14,6 +14,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCall;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCallInvite;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyAudioDevices;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeySelectedDevice;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteReceived;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled;
@@ -37,3 +39,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoUuid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoCallSid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoFrom;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoTo;
+
+FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceUuid;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceType;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceName;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceUid;
