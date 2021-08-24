@@ -1,47 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/notification"
-  android:orientation="vertical"
   android:layout_width="match_parent"
+  android:layout_height="@dimen/notification_window_size"
   android:background="@drawable/layout_bg"
-  android:layout_height="@dimen/notification_window_size">
+  android:orientation="vertical">
 
-  <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginBottom="@dimen/activity_horizontal_margin"
-    android:orientation="horizontal">
-
-    <ImageView
-      android:id="@+id/notif_icon"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_alignParentLeft="true"
-      android:layout_centerVertical="true"
-      android:layout_marginLeft="7dp"
-      android:layout_marginRight="3dp"
-      android:src="@drawable/ic_launcher" />
-
-    <TextView
-      android:id="@+id/notif_title"
-      android:layout_height="wrap_content"
-      android:layout_width="wrap_content"
-      android:layout_marginTop="22dp"
-      android:layout_marginRight="@dimen/activity_horizontal_margin"
-      android:layout_marginLeft="@dimen/activity_horizontal_margin"
-      android:textSize="20dp"
-      android:textStyle="bold"
-      android:textColor="@color/colorContentTitle"
-      android:visibility="visible"/>
-  </LinearLayout>
+  <TextView
+    android:id="@+id/notif_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="22dp"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:textColor="@color/colorContentTitle"
+    android:textSize="20dp"
+    android:textStyle="bold"
+    android:visibility="visible" />
 
   <TextView
     android:id="@+id/notif_content"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/activity_horizontal_margin"
     android:layout_marginLeft="@dimen/activity_horizontal_margin"
     android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginBottom="@dimen/activity_horizontal_margin"
     android:textColor="@color/colorContent"
     android:visibility="visible" />
 
@@ -55,28 +38,28 @@
       android:id="@+id/button_decline"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginRight="@dimen/activity_horizontal_margin"
       android:layout_marginLeft="@dimen/activity_horizontal_margin"
+      android:layout_marginRight="@dimen/activity_horizontal_margin"
       android:layout_weight="0.5"
-      android:radius="10dp"
-      android:textStyle="bold"
-      android:textSize="16dp"
-      android:textColor="@color/colorButtonText"
       android:background="@drawable/button_background_red"
-      android:text="@string/decline" />
+      android:radius="10dp"
+      android:text="@string/decline"
+      android:textColor="@color/colorButtonText"
+      android:textSize="16dp"
+      android:textStyle="bold" />
 
     <Button
       android:id="@+id/button_answer"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginRight="@dimen/activity_horizontal_margin"
       android:layout_marginLeft="@dimen/activity_horizontal_margin"
+      android:layout_marginRight="@dimen/activity_horizontal_margin"
       android:layout_weight="0.5"
-      android:textStyle="bold"
-      android:textSize="16dp"
-      android:textColor="@color/colorButtonText"
       android:background="@drawable/button_background_green"
-      android:text="@string/answer" />
+      android:text="@string/answer"
+      android:textColor="@color/colorButtonText"
+      android:textSize="16dp"
+      android:textStyle="bold" />
 
   </LinearLayout>
 
