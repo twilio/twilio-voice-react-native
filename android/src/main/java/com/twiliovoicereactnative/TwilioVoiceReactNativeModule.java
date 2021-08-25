@@ -40,6 +40,7 @@ import java.util.UUID;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CUSTOM_PARAMETERS;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_TO;
@@ -100,12 +101,26 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Log.d(TAG, "Successfully registerReceiver");
   }
 
+  private WritableMap getCallInviteCustomParameters(CallInvite callInvite) {
+    WritableMap customParameters = Arguments.createMap();
+
+    callInvite.getCustomParameters().forEach((customParamKey, customParamVal) -> {
+      customParameters.putString(customParamKey, customParamVal);
+    });
+
+    return customParameters;
+  }
+
   private WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
     WritableMap callInviteInfo = Arguments.createMap();
     callInviteInfo.putString(EVENT_KEY_UUID, uuid);
     callInviteInfo.putString(EVENT_KEY_CALL_INVITE_CALL_SID, callInvite.getCallSid());
     callInviteInfo.putString(EVENT_KEY_CALL_INVITE_FROM, callInvite.getFrom());
     callInviteInfo.putString(EVENT_KEY_CALL_INVITE_TO, callInvite.getTo());
+
+    WritableMap customParameters = getCallInviteCustomParameters(callInvite);
+    callInviteInfo.putMap(EVENT_KEY_CALL_INVITE_CUSTOM_PARAMETERS, customParameters);
+
     return callInviteInfo;
   }
 
@@ -123,6 +138,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     callInfo.putString(EVENT_KEY_CALL_SID, call.getSid());
     callInfo.putString(EVENT_KEY_CALL_FROM, call.getFrom());
     callInfo.putString(EVENT_KEY_CALL_TO, call.getTo());
+
+    CallInvite callInvite = Storage.callInviteMap.get(uuid);
+    if (callInvite != null) {
+      WritableMap customParams = getCallInviteCustomParameters(callInvite);
+      callInfo.putMap(EVENT_KEY_CALL_CUSTOM_PARAMETERS, customParams);
+    }
+
     return callInfo;
   }
 

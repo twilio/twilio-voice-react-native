@@ -214,6 +214,7 @@ export class Voice extends EventEmitter {
 
     const callInfo = {
       uuid: callInviteInfo.uuid,
+      customParameters: callInviteInfo.customParameters,
       sid: callInviteInfo.callSid,
       from: callInviteInfo.from,
       to: callInviteInfo.to,
@@ -277,7 +278,7 @@ export class Voice extends EventEmitter {
 
   async connect(
     token: string,
-    params: Record<string, string> = {}
+    params: Record<string, any> = {}
   ): Promise<Call> {
     const callInfo = await this._nativeModule.voice_connect(token, params);
 

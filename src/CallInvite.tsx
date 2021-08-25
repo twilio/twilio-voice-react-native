@@ -1,7 +1,7 @@
 import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
 import { TwilioVoiceReactNative } from './const';
-import type { NativeCallInviteInfo, Uuid } from './type';
+import type { CustomParameters, NativeCallInviteInfo, Uuid } from './type';
 import { InvalidStateError } from './error/InvalidStateError';
 
 export class CallInvite {
@@ -11,11 +11,12 @@ export class CallInvite {
 
   private _uuid: Uuid;
   private _callSid: string;
+  private _customParameters: CustomParameters;
   private _from: string;
   private _to: string;
 
   constructor(
-    { uuid, callSid, from, to }: NativeCallInviteInfo,
+    { uuid, callSid, customParameters, from, to }: NativeCallInviteInfo,
     options: Partial<CallInvite.Options> = {}
   ) {
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
@@ -24,6 +25,7 @@ export class CallInvite {
 
     this._uuid = uuid;
     this._callSid = callSid;
+    this._customParameters = { ...customParameters };
     this._from = from;
     this._to = to;
 
@@ -66,6 +68,10 @@ export class CallInvite {
 
   getCallSid(): string {
     return this._callSid;
+  }
+
+  getCustomParameters(): CustomParameters {
+    return this._customParameters;
   }
 
   getFrom(): string {
