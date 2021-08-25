@@ -17,4 +17,5 @@ public class Constants {
   public static final String FCM_TOKEN = "FCM_TOKEN";
   public static final String UUID = "UUID";
   public static final String NOTIFICATION_CONTENT = "Calling from ";
+  public static final String DISPLAY_NAME = "displayName";
 }

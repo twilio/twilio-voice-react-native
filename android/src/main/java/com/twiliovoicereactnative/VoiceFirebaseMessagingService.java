@@ -59,9 +59,11 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Log.d(TAG, "Bundle data: " + remoteMessage.getData());
     Log.d(TAG, "From: " + remoteMessage.getFrom());
 
+    Map<String, String> remoteData = remoteMessage.getData();
+
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      boolean valid = Voice.handleMessage(this, remoteMessage.getData(), new MessageListener() {
+      boolean valid = Voice.handleMessage(this, remoteData, new MessageListener() {
         @Override
         public void onCallInvite(@NonNull CallInvite callInvite) {
           final int notificationId = (int) System.currentTimeMillis();

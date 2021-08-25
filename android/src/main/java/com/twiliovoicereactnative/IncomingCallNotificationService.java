@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import android.media.AudioAttributes;
 import android.net.Uri;
+import java.net.URLDecoder;
+import java.util.Map;
 
 public class IncomingCallNotificationService extends Service {
 
@@ -96,8 +98,10 @@ public class IncomingCallNotificationService extends Service {
     Bundle extras = new Bundle();
     extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
 
+    String title = getDisplayName(callInvite);
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Notification notification = buildNotification(callInvite.getFrom(),
+      Notification notification = buildNotification(title,
         pendingIntent,
         extras,
         callInvite,
@@ -111,7 +115,7 @@ public class IncomingCallNotificationService extends Service {
       return new NotificationCompat.Builder(this)
         .setSmallIcon(R.drawable.ic_call_end_white_24dp)
         .setContentTitle("Incoming call")
-        .setContentText(callInvite.getFrom() + " is calling.")
+        .setContentText(title + " is calling.")
         .setAutoCancel(true)
         .setExtras(extras)
         .setContentIntent(pendingIntent)
@@ -342,5 +346,14 @@ public class IncomingCallNotificationService extends Service {
       e.printStackTrace();
       return null;
     }
+  }
+
+  private String getDisplayName(CallInvite callInvite) {
+    String title = callInvite.getFrom();
+    Map<String, String> customParameters = callInvite.getCustomParameters();
+    if (customParameters.get(Constants.DISPLAY_NAME) != null) {
+      title = URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
+    }
+    return title;
   }
 }
