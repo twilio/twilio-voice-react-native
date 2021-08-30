@@ -17,6 +17,9 @@ NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
 NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
+NSString * const kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated = @"audioDevicesUpdated";
+NSString * const kTwilioVoiceReactNativeEventKeyAudioDevices = @"audioDevices";
+NSString * const kTwilioVoiceReactNativeEventKeySelectedDevice = @"selectedDevice";
 
 NSString * const kTwilioVoiceReactNativeEventCallInviteReceived = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled = @"cancelledCallInvite";
@@ -35,13 +38,20 @@ NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
 NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
 NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
 
-static TVODefaultAudioDevice *sAudioDevice;
+NSString * const kTwilioVoiceAudioDeviceUuid = @"uuid";
+NSString * const kTwilioVoiceAudioDeviceType = @"type";
+NSString * const kTwilioVoiceAudioDeviceName = @"name";
+NSString * const kTwilioVoiceAudioDeviceUid = @"uid";
+
+static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @import TwilioVoice;
 
 @interface TwilioVoiceReactNative ()
 
 @property(nonatomic, strong) NSData *deviceTokenData;
+@property(nonatomic, strong) NSMutableDictionary *audioDevices;
+@property(nonatomic, strong) NSDictionary *selectedAudioDevice;
 
 @end
 
@@ -54,14 +64,16 @@ static TVODefaultAudioDevice *sAudioDevice;
         _callMap = [NSMutableDictionary dictionary];
         _callInviteMap = [NSMutableDictionary dictionary];
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
+        _audioDevices = [NSMutableDictionary dictionary];
         
-        sAudioDevice = [TVODefaultAudioDevice audioDevice];
-        TwilioVoiceSDK.audioDevice = sAudioDevice;
+        sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
+        TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
         
         TwilioVoiceSDK.logLevel = TVOLogLevelTrace;
         
         [self subscribeToNotifications];
         [self initializeCallKit];
+        [self initializeAudioDeviceList];
     }
 
     return self;
@@ -71,6 +83,11 @@ static TVODefaultAudioDevice *sAudioDevice;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handlePushRegistryNotification:)
                                                  name:kTwilioVoicePushRegistryNotification
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleRouteChange:)
+                                                 name:AVAudioSessionRouteChangeNotification
                                                object:nil];
 }
 
@@ -114,8 +131,139 @@ static TVODefaultAudioDevice *sAudioDevice;
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice body:eventBody];
 }
 
-+ (TVODefaultAudioDevice *)audioDevice {
-    return sAudioDevice;
++ (TVODefaultAudioDevice *)twilioAudioDevice {
+    return sTwilioAudioDevice;
+}
+
+- (void)handleRouteChange:(NSNotification *)notification {
+    NSLog(@"AVAudioSessionRouteChangeNotification");
+    
+    [self availableAudioDevices];
+    
+    NSMutableArray *nativeAudioDeviceInfos = [NSMutableArray array];
+    for (NSString *key in [self.audioDevices allKeys]) {
+        [nativeAudioDeviceInfos addObject:self.audioDevices[key]];
+    }
+
+    [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
+                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated,
+                              kTwilioVoiceReactNativeEventKeyAudioDevices: nativeAudioDeviceInfos,
+                              kTwilioVoiceReactNativeEventKeySelectedDevice: self.selectedAudioDevice}];
+}
+
+- (void)initializeAudioDeviceList {
+    NSUUID *receiverUuid = [NSUUID UUID];
+    NSDictionary *builtInReceiver = @{ kTwilioVoiceAudioDeviceUuid: receiverUuid.UUIDString,
+                                       kTwilioVoiceAudioDeviceType: @"Earpiece",
+                                       kTwilioVoiceAudioDeviceName: @"iPhone",
+                                       kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInReceiver};
+    self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
+    
+    NSUUID *speakerUuid = [NSUUID UUID];
+    NSDictionary *builtInSpeaker = @{ kTwilioVoiceAudioDeviceUuid: speakerUuid.UUIDString,
+                                      kTwilioVoiceAudioDeviceType: @"Speaker",
+                                      kTwilioVoiceAudioDeviceName: @"Speaker",
+                                      kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInSpeaker};
+    self.audioDevices[speakerUuid.UUIDString] = builtInSpeaker;
+    
+    [self availableAudioDevices];
+}
+
+- (NSDictionary *)availableAudioDevices {
+    // Pop all except the built-in earpiece and speaker
+    for (NSString *key in [self.audioDevices allKeys]) {
+        if ([key isEqualToString:AVAudioSessionPortBuiltInMic] &&
+            [key isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
+            [self.audioDevices removeObjectForKey:key];
+        }
+    }
+    
+    NSLog(@"Available audio input devices");
+    NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+    for (AVAudioSessionPortDescription *port in availableInputs) {
+        NSLog(@"\t%@, %@, %@", port.portType, port. portName, port.UID);
+        
+        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+            NSUUID *uuid = [NSUUID UUID];
+            NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                                                  kTwilioVoiceAudioDeviceType: @"Bluetooth",
+                                                  kTwilioVoiceAudioDeviceName: port.portName };
+            self.audioDevices[uuid.UUIDString] = bluetoothHfpDevice;
+        }
+    }
+    
+    NSLog(@"Current route, inputs");
+    AVAudioSessionRouteDescription *currentRoute = [[AVAudioSession sharedInstance] currentRoute];
+    NSArray *inputs = currentRoute.inputs;
+    for (AVAudioSessionPortDescription *port in inputs) {
+        NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
+    }
+    
+    NSLog(@"Current route, outputs");
+    NSArray *outputs = currentRoute.outputs;
+    for (AVAudioSessionPortDescription *port in outputs) {
+        NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
+        
+        for (NSString *key in [self.audioDevices allKeys]) {
+            NSDictionary *device = self.audioDevices[key];
+            if ([device[kTwilioVoiceAudioDeviceUid] isEqualToString:port.UID]) {
+                self.selectedAudioDevice = self.audioDevices[key];
+            }
+        }
+    }
+
+    return self.audioDevices;
+}
+
+- (void)selectAudioDevice:(NSString *)uuid {
+    NSString *portUid;
+    NSString *portType;
+
+    for (NSString *key in [self.audioDevices allKeys]) {
+        NSDictionary *device = self.audioDevices[key];
+        if ([device[kTwilioVoiceAudioDeviceUuid] isEqualToString:uuid]) {
+            portUid = device[kTwilioVoiceAudioDeviceUid];
+            portType = device[kTwilioVoiceAudioDeviceType];
+            break;
+        }
+    }
+    
+    if (portUid == nil || portType == nil) {
+        NSLog(@"No matching audio device found for %@", uuid);
+        return;
+    }
+    
+    // Find port description with matching port type & UID in available input devices
+    AVAudioSessionPortDescription *portDescription = nil;
+    NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+    for (AVAudioSessionPortDescription *port in availableInputs) {
+        if ([port.portType isEqualToString:portType] && [port.UID isEqualToString:portUid]) {
+            portDescription = port;
+            break;
+        }
+    }
+
+    if (!portDescription) {
+        NSLog(@"No matching device with %@ found in the available devices", uuid);
+        return;
+    }
+
+    // Update preferred input
+    NSError *inputError;
+    [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
+    if (inputError) {
+        NSLog(@"Failed to set preferred input: %@", inputError);
+    }
+    
+    // Override output to speaker if speaker is selected, otherwise choose "none"
+    AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:AVAudioSessionPortBuiltInSpeaker])?
+                                                AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone;
+    
+    NSError *outputError;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
+    if (outputError) {
+        NSLog(@"Failed to override output port: %@", outputError);
+    }
 }
 
 // TODO: Move to separate utility file someday
@@ -259,6 +407,24 @@ RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
         [callInviteInfoArray addObject:[self callInviteInfo:callInvite]];
     }
     resolve(callInviteInfoArray);
+}
+
+RCT_EXPORT_METHOD(voice_getAudioDevices:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSMutableArray *nativeAudioDeviceInfos = [NSMutableArray array];
+    for (NSString *key in [self.audioDevices allKeys]) {
+        [nativeAudioDeviceInfos addObject:self.audioDevices[key]];
+    }
+    resolve(@{kTwilioVoiceReactNativeEventKeyAudioDevices: nativeAudioDeviceInfos,
+              kTwilioVoiceReactNativeEventKeySelectedDevice: self.selectedAudioDevice});
+}
+
+RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    resolve(nil);
 }
 
 #pragma mark - Bingings (Call)
