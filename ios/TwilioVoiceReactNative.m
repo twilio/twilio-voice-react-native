@@ -204,11 +204,23 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     for (AVAudioSessionPortDescription *port in outputs) {
         NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
         
+        BOOL found = NO;
         for (NSString *key in [self.audioDevices allKeys]) {
             NSDictionary *device = self.audioDevices[key];
             if ([device[kTwilioVoiceAudioDeviceUid] isEqualToString:port.UID]) {
+                found = YES;
                 self.selectedAudioDevice = self.audioDevices[key];
             }
+        }
+        
+        if (!found) {
+            NSLog(@"current output route not found in available inputs");
+            NSUUID *uuid = [NSUUID UUID];
+            NSDictionary *selectedDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                                              kTwilioVoiceAudioDeviceType: port.portType,
+                                              kTwilioVoiceAudioDeviceName: port.portName };
+            self.audioDevices[uuid] = selectedDevice;
+            self.selectedAudioDevice = selectedDevice;
         }
     }
 
