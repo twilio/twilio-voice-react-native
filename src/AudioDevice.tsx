@@ -4,9 +4,9 @@ import type { NativeAudioDeviceInfo, Uuid } from './type';
 export class AudioDevice {
   private _nativeModule: typeof TwilioVoiceReactNative;
 
-  private _uuid: Uuid;
-  private _type: AudioDevice.Type;
-  private _name: string;
+  uuid: Uuid;
+  type: AudioDevice.Type;
+  name: string;
 
   constructor(
     { uuid, type, name }: NativeAudioDeviceInfo,
@@ -14,25 +14,13 @@ export class AudioDevice {
   ) {
     this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
 
-    this._uuid = uuid;
-    this._type = type;
-    this._name = name;
-  }
-
-  getUuid(): Uuid {
-    return this._uuid;
-  }
-
-  getType(): AudioDevice.Type {
-    return this._type;
-  }
-
-  getName(): string {
-    return this._name;
+    this.uuid = uuid;
+    this.type = type;
+    this.name = name;
   }
 
   select(): void {
-    this._nativeModule.voice_selectAudioDevice(this._uuid);
+    this._nativeModule.voice_selectAudioDevice(this.uuid);
   }
 }
 
