@@ -121,10 +121,8 @@ export declare interface Voice {
 }
 
 export class Voice extends EventEmitter {
-  private _audioDevices: Map<Uuid, AudioDevice> = new Map();
   private _bootstrapCallsPromise: Promise<void>;
   private _bootstrapCallInvitesPromise: Promise<void>;
-  private _bootstrapAudioDevicesPromise: Promise<void>;
   private _calls: Map<Uuid, Call> = new Map();
   private _callInvites: Map<Uuid, CallInvite> = new Map();
   private _nativeEventEmitter: NativeEventEmitter;
@@ -133,7 +131,6 @@ export class Voice extends EventEmitter {
     NativeVoiceEventType,
     (messageEvent: NativeVoiceEvent) => void
   >;
-  private _selectedAudioDevice: AudioDevice | null = null;
 
   constructor(options: Partial<Voice.Options> = {}) {
     super();
@@ -182,22 +179,6 @@ export class Voice extends EventEmitter {
           this._callInvites.set(callInviteInfo.uuid, callInvite);
         });
       });
-
-    this._bootstrapAudioDevicesPromise = this._nativeModule
-      .voice_getAudioDevices()
-      .then(
-        ({
-          audioDevices: audioDeviceInfos,
-          selectedDevice: selectedDeviceInfo,
-        }) => {
-          audioDeviceInfos.forEach((audioDeviceInfo: NativeAudioDeviceInfo) => {
-            const audioDevice = new AudioDevice(audioDeviceInfo);
-            this._audioDevices.set(audioDeviceInfo.uuid, audioDevice);
-          });
-
-          this._selectedAudioDevice = new AudioDevice(selectedDeviceInfo);
-        }
-      );
   }
 
   private _handleNativeEvent = (nativeVoiceEvent: NativeVoiceEvent) => {
@@ -376,14 +357,22 @@ export class Voice extends EventEmitter {
   }
 
   async getAudioDevices(): Promise<{
-    audioDevices: ReadonlyMap<Uuid, AudioDevice>;
+    audioDevices: AudioDevice[];
     selectedDevice: AudioDevice | null;
   }> {
-    await this._bootstrapAudioDevicesPromise;
-    return {
-      audioDevices: this._audioDevices,
-      selectedDevice: this._selectedAudioDevice,
-    };
+    const {
+      audioDevices: audioDeviceInfos,
+      selectedDevice: selectedDeviceInfo,
+    } = await this._nativeModule.voice_getAudioDevices();
+
+    const audioDevices = audioDeviceInfos.map(
+      (audioDeviceInfo: NativeAudioDeviceInfo) =>
+        new AudioDevice(audioDeviceInfo)
+    );
+
+    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+
+    return { audioDevices, selectedDevice };
   }
 }
 
