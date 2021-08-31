@@ -52,7 +52,7 @@ public class MainActivity extends ReactActivity {
   public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
   public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
   public static final String FCM_TOKEN = "FCM_TOKEN";
-  private VoiceBroadcastReceiver voiceBroadcastReceiver;
+  //private VoiceBroadcastReceiver voiceBroadcastReceiver;
 
   private boolean checkPermissionForMicrophone() {
     int resultMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
@@ -70,8 +70,8 @@ public class MainActivity extends ReactActivity {
       requestPermissionForMicrophone();
     }
 
-    voiceBroadcastReceiver = new VoiceBroadcastReceiver();
-    registerReceiver();
+//    voiceBroadcastReceiver = new VoiceBroadcastReceiver();
+//    registerReceiver();
   }
 
   private void requestPermissionForMicrophone() {
@@ -85,21 +85,21 @@ public class MainActivity extends ReactActivity {
     }
   }
 
-  private void registerReceiver() {
-    IntentFilter intentFilter = new IntentFilter();
-    intentFilter.addAction(ACTION_FCM_TOKEN_REQUEST);
-    LocalBroadcastManager.getInstance(this).registerReceiver(
-      voiceBroadcastReceiver, intentFilter);
-    Log.d(TAG, "Successfully registered Receiver");
-  }
-
-  private class VoiceBroadcastReceiver extends BroadcastReceiver {
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      String action = intent.getAction();
-    }
-  }
+//  private void registerReceiver() {
+//    IntentFilter intentFilter = new IntentFilter();
+//    intentFilter.addAction(ACTION_FCM_TOKEN_REQUEST);
+//    LocalBroadcastManager.getInstance(this).registerReceiver(
+//      voiceBroadcastReceiver, intentFilter);
+//    Log.d(TAG, "Successfully registered Receiver");
+//  }
+//
+//  private class VoiceBroadcastReceiver extends BroadcastReceiver {
+//
+//    @Override
+//    public void onReceive(Context context, Intent intent) {
+//      String action = intent.getAction();
+//    }
+//  }
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule

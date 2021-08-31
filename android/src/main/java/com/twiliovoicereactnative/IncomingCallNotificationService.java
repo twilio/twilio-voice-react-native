@@ -1,39 +1,24 @@
 package com.twiliovoicereactnative;
 
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
-import android.media.RingtoneManager;
-import android.content.res.Resources;
 
-import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
-import com.twilio.voice.AcceptOptions;
-
-import android.widget.RemoteViews;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 import java.util.UUID;
-
-import android.media.AudioAttributes;
-import android.net.Uri;
 
 public class IncomingCallNotificationService extends Service {
 
@@ -58,11 +43,11 @@ public class IncomingCallNotificationService extends Service {
           handleIncomingCall(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_ACCEPT:
-          accept(callInvite, notificationId, uuid);
+          acceptCall(callInvite, notificationId, uuid);
           sendCallInviteToActivity(callInvite, notificationId);
           break;
         case Constants.ACTION_REJECT:
-          reject(callInvite, notificationId, uuid);
+          rejectCall(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_CANCEL_CALL:
           handleCancelledCall(intent, cancelledCallInvite.getCallSid(), notificationId, uuid);
@@ -93,215 +78,7 @@ public class IncomingCallNotificationService extends Service {
     return null;
   }
 
-  private Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance) {
-
-    Bundle extras = new Bundle();
-    extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
-
-    Resources res = this.getResources();
-    String packageName = this.getPackageName();
-    int smallIconResId = 0;
-    smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
-
-    Intent rejectIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-    rejectIntent.setAction(Constants.ACTION_REJECT);
-    rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
-    rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
-    rejectIntent.putExtra(Constants.UUID, uuid);
-    PendingIntent piRejectIntent = PendingIntent.getService(getApplicationContext(), 0, rejectIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-    Intent acceptIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-    acceptIntent.setAction(Constants.ACTION_ACCEPT);
-    acceptIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
-    acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
-    acceptIntent.putExtra(Constants.UUID, uuid);
-    PendingIntent piAcceptIntent = PendingIntent.getService(getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-    Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_call_end_white_24dp);
-
-    RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification_incoming);
-    remoteViews.setTextViewText(R.id.notif_title, callInvite.getFrom());
-    remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + getString(R.string.app_name));
-
-    remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
-
-    Intent notification_intent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-    PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notification_intent, 0);
-
-    remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Notification notification = new Notification.Builder(getApplicationContext(), createChannel(channelImportance))
-        .setSmallIcon(smallIconResId)
-        .setLargeIcon(icon)
-        .setContentTitle(callInvite.getFrom())
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    } else {
-      Notification notification = new NotificationCompat.Builder(this)
-        .setSmallIcon(smallIconResId)
-        .setLargeIcon(icon)
-        .setContentTitle(callInvite.getFrom())
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    }
-  }
-
-  private Notification createCallAnsweredNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance) {
-
-    Bundle extras = new Bundle();
-    extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
-
-    Resources res = this.getResources();
-    String packageName = this.getPackageName();
-    int smallIconResId = 0;
-    smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
-
-    RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_call_answer);
-    remoteViews.setTextViewText(R.id.notif_title, callInvite.getFrom());
-    remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + getString(R.string.app_name));
-
-    Intent notification_intent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-    PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notification_intent, 0);
-
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, pendingIntent);
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Notification notification = new Notification.Builder(getApplicationContext(), createChannel(channelImportance))
-        .setSmallIcon(smallIconResId)
-        .setContentTitle(callInvite.getFrom())
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    } else {
-      Notification notification = new NotificationCompat.Builder(this)
-        .setSmallIcon(smallIconResId)
-        .setContentTitle(callInvite.getFrom())
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    }
-  }
-
-  private Notification createOutgoingCallNotification(String callSid, int notificationId, String uuid, int channelImportance) {
-
-    Bundle extras = new Bundle();
-    extras.putString(Constants.CALL_SID_KEY, callSid);
-    extras.putInt(Constants.NOTIFICATION_ID, notificationId);
-
-    Resources res = this.getResources();
-    String packageName = this.getPackageName();
-    int smallIconResId = 0;
-    smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
-
-    RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.custom_outgoing_call);
-    remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + getString(R.string.app_name));
-
-    Intent notification_intent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-    PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notification_intent, 0);
-
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, pendingIntent);
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Intent endCallIntent = new Intent(getApplicationContext(), IncomingCallNotificationService.class);
-      endCallIntent.setAction(Constants.ACTION_CALL_DISCONNECT);
-      endCallIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
-      endCallIntent.putExtra(Constants.UUID, uuid);
-      PendingIntent piEndCallIntent = PendingIntent.getService(getApplicationContext(), 0, endCallIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-      remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
-
-      Notification notification = new Notification.Builder(getApplicationContext(), createChannel(channelImportance))
-        .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    } else {
-      Notification notification = new NotificationCompat.Builder(this)
-        .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + getString(R.string.app_name))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    }
-  }
-
-  @TargetApi(Build.VERSION_CODES.O)
-  private String createChannel(int channelImportance) {
-    NotificationChannel callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_HIGH_IMPORTANCE,
-      "Primary Voice Channel", NotificationManager.IMPORTANCE_HIGH);
-    String channelId = Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
-
-    Uri soundUri = Uri.parse(
-      "android.resource://" +
-        getApplicationContext().getPackageName() +
-        "/" +
-        R.raw.incoming);
-
-    AudioAttributes audioAttributes = new AudioAttributes.Builder()
-      .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-      .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-      .build();
-
-    if (channelImportance == NotificationManager.IMPORTANCE_LOW) {
-      callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_LOW_IMPORTANCE,
-        "Primary Voice Channel", NotificationManager.IMPORTANCE_LOW);
-      channelId = Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
-    }
-    callInviteChannel.setLightColor(Color.GREEN);
-    callInviteChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-    callInviteChannel.setSound(soundUri, audioAttributes);
-    NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    notificationManager.createNotificationChannel(callInviteChannel);
-
-    return channelId;
-  }
-
-  private void accept(CallInvite callInvite, int notificationId, String uuid) {
+  private void acceptCall(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
     endForeground();
     Intent activeCallIntent = new Intent(Constants.ACTION_ACCEPT);
@@ -321,12 +98,12 @@ public class IncomingCallNotificationService extends Service {
     notificationManager.cancel(notificationId);
 
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
-    startForeground(notificationId, createCallAnsweredNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_LOW));
+    startForeground(notificationId, NotificationUtility.createCallAnsweredNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_LOW, this));
     // Send the broadcast in case TwilioVoiceReactNative is loaded, it can emit the event
     LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
   }
 
-  private void reject(CallInvite callInvite, int notificationId, String uuid) {
+  private void rejectCall(CallInvite callInvite, int notificationId, String uuid) {
     endForeground();
     callInvite.reject(getApplicationContext());
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "reject");
@@ -347,7 +124,7 @@ public class IncomingCallNotificationService extends Service {
     Log.e(TAG, "Outgoing Call UUID " + uuid + " notificationId " + notificationId + " callSid " + callSid);
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    startForeground(notificationId, createOutgoingCallNotification(callSid, notificationId, uuid, NotificationManager.IMPORTANCE_LOW));
+    startForeground(notificationId, NotificationUtility.createOutgoingCallNotification(callSid, notificationId, uuid, NotificationManager.IMPORTANCE_LOW, this));
   }
 
   private void handleCancelledCall(Intent intent, String callSid, int notificationId, String uuid) {
@@ -378,7 +155,7 @@ public class IncomingCallNotificationService extends Service {
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
-    startForeground(notificationId, createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH));
+    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, this));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
   }
