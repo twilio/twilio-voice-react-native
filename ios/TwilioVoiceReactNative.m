@@ -43,6 +43,10 @@ NSString * const kTwilioVoiceAudioDeviceType = @"type";
 NSString * const kTwilioVoiceAudioDeviceName = @"name";
 NSString * const kTwilioVoiceAudioDeviceUid = @"uid";
 
+NSString * const kTwilioVoiceAudioDeviceEarpiece = @"Earpiece";
+NSString * const kTwilioVoiceAudioDeviceSpeaker = @"Speaker";
+NSString * const kTwilioVoiceAudioDeviceBluetooth = @"Bluetooth";
+
 static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @import TwilioVoice;
@@ -154,14 +158,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 - (void)initializeAudioDeviceList {
     NSUUID *receiverUuid = [NSUUID UUID];
     NSDictionary *builtInReceiver = @{ kTwilioVoiceAudioDeviceUuid: receiverUuid.UUIDString,
-                                       kTwilioVoiceAudioDeviceType: @"Earpiece",
+                                       kTwilioVoiceAudioDeviceType: kTwilioVoiceAudioDeviceEarpiece,
                                        kTwilioVoiceAudioDeviceName: @"iPhone",
                                        kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInReceiver};
     self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
     
     NSUUID *speakerUuid = [NSUUID UUID];
     NSDictionary *builtInSpeaker = @{ kTwilioVoiceAudioDeviceUuid: speakerUuid.UUIDString,
-                                      kTwilioVoiceAudioDeviceType: @"Speaker",
+                                      kTwilioVoiceAudioDeviceType: kTwilioVoiceAudioDeviceSpeaker,
                                       kTwilioVoiceAudioDeviceName: @"Speaker",
                                       kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInSpeaker};
     self.audioDevices[speakerUuid.UUIDString] = builtInSpeaker;
@@ -172,8 +176,9 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 - (NSDictionary *)availableAudioDevices {
     // Pop all except the built-in earpiece and speaker
     for (NSString *key in [self.audioDevices allKeys]) {
-        if ([key isEqualToString:AVAudioSessionPortBuiltInMic] &&
-            [key isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
+        NSDictionary *audioDevice = self.audioDevices[key];
+        if (![audioDevice[kTwilioVoiceAudioDeviceUid] isEqualToString:AVAudioSessionPortBuiltInMic] &&
+            ![audioDevice[kTwilioVoiceAudioDeviceUid] isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
             [self.audioDevices removeObjectForKey:key];
         }
     }
@@ -183,10 +188,11 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     for (AVAudioSessionPortDescription *port in availableInputs) {
         NSLog(@"\t%@, %@, %@", port.portType, port. portName, port.UID);
         
-        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+        if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP] ||
+            [port.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
             NSUUID *uuid = [NSUUID UUID];
             NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
-                                                  kTwilioVoiceAudioDeviceType: @"Bluetooth",
+                                                  kTwilioVoiceAudioDeviceType: kTwilioVoiceAudioDeviceBluetooth,
                                                   kTwilioVoiceAudioDeviceName: port.portName };
             self.audioDevices[uuid.UUIDString] = bluetoothHfpDevice;
         }
@@ -214,12 +220,12 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         }
         
         if (!found) {
-            NSLog(@"current output route not found in available inputs");
             NSUUID *uuid = [NSUUID UUID];
+            
             NSDictionary *selectedDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
-                                              kTwilioVoiceAudioDeviceType: port.portType,
+                                              kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
                                               kTwilioVoiceAudioDeviceName: port.portName };
-            self.audioDevices[uuid] = selectedDevice;
+            self.audioDevices[uuid.UUIDString] = selectedDevice;
             self.selectedAudioDevice = selectedDevice;
         }
     }
@@ -227,17 +233,27 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     return self.audioDevices;
 }
 
+- (NSString *)audioPortTypeMapping:(NSString *)portType {
+    if ([portType isEqualToString:AVAudioSessionPortBuiltInReceiver]) {
+        return kTwilioVoiceAudioDeviceEarpiece;
+    } else if ([portType isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
+        return kTwilioVoiceAudioDeviceSpeaker;
+    } else if ([portType isEqualToString:AVAudioSessionPortBluetoothHFP] ||
+               [portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+        return kTwilioVoiceAudioDeviceBluetooth;
+    }
+
+    return portType;
+}
+
 - (void)selectAudioDevice:(NSString *)uuid {
     NSString *portUid;
     NSString *portType;
-
-    for (NSString *key in [self.audioDevices allKeys]) {
-        NSDictionary *device = self.audioDevices[key];
-        if ([device[kTwilioVoiceAudioDeviceUuid] isEqualToString:uuid]) {
-            portUid = device[kTwilioVoiceAudioDeviceUid];
-            portType = device[kTwilioVoiceAudioDeviceType];
-            break;
-        }
+    
+    if (self.audioDevices[uuid]) {
+        NSDictionary *device = self.audioDevices[uuid];
+        portUid = device[kTwilioVoiceAudioDeviceUid];
+        portType = device[kTwilioVoiceAudioDeviceType];
     }
     
     if (portUid == nil || portType == nil) {
