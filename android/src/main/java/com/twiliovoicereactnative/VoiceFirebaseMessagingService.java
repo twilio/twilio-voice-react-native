@@ -62,7 +62,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Log.d(TAG, "Bundle data: " + remoteMessage.getData());
     Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-    PowerManager pm = (PowerManager) this.getSystemService(this.POWER_SERVICE);
+    PowerManager pm = (PowerManager) this.context.getSystemService(this.context.POWER_SERVICE);
     boolean isScreenOn = Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn(); // check if screen is on
     if (!isScreenOn) {
       PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "VoiceFirebaseMessagingService:notificationLock");
