@@ -253,15 +253,26 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     }
     
     NSDictionary *device = self.audioDevices[uuid];
-    
     NSString *portUid = device[kTwilioVoiceAudioDeviceUid];
     NSString *portType = device[kTwilioVoiceAudioDeviceType];
 
     NSLog(@"Selecting %@(%@), %@", device[kTwilioVoiceAudioDeviceName], device[kTwilioVoiceAudioDeviceType], device[kTwilioVoiceAudioDeviceUid]);
     
-    if (![portType isEqualToString:kTwilioVoiceAudioDeviceSpeaker]) {
-        // Find port description with matching port type & UID in available input devices
-        AVAudioSessionPortDescription *portDescription = nil;
+    AVAudioSessionPortDescription *portDescription = nil;
+    if ([portType isEqualToString:kTwilioVoiceAudioDeviceEarpiece]) {
+        NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+        for (AVAudioSessionPortDescription *port in availableInputs) {
+            if ([port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+                portDescription = port;
+                break;
+            }
+        }
+        
+        if (!portDescription) {
+            NSLog(@"Built-in mic not found");
+            return NO;
+        }
+    } else if ([portType isEqualToString:kTwilioVoiceAudioDeviceBluetooth]) {
         NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
         for (AVAudioSessionPortDescription *port in availableInputs) {
             if ([port.UID isEqualToString:portUid]) {
@@ -269,25 +280,24 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
                 break;
             }
         }
-
+        
         if (!portDescription) {
-            NSLog(@"No matching device with %@ found in the available devices", uuid);
+            NSLog(@"Bluetooth device %@ not found", device[kTwilioVoiceAudioDeviceName]);
             return NO;
         }
-
-        // Update preferred input
-        NSError *inputError;
-        [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
-        if (inputError) {
-            NSLog(@"Failed to set preferred input: %@", inputError);
-            return NO;
-        }
+    }
+    
+    // Update preferred input
+    NSError *inputError;
+    [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
+    if (inputError) {
+        NSLog(@"Failed to set preferred input: %@", inputError);
+        return NO;
     }
 
     // Override output to speaker if speaker is selected, otherwise choose "none"
     AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:kTwilioVoiceAudioDeviceSpeaker])?
                                                 AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone;
-    
     NSError *outputError;
     [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
     if (outputError) {
