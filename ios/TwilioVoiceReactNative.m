@@ -247,45 +247,45 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 }
 
 - (BOOL)selectAudioDevice:(NSString *)uuid {
-    NSString *portUid;
-    NSString *portType;
-    
-    if (self.audioDevices[uuid]) {
-        NSDictionary *device = self.audioDevices[uuid];
-        portUid = device[kTwilioVoiceAudioDeviceUid];
-        portType = device[kTwilioVoiceAudioDeviceType];
-    }
-    
-    if (portUid == nil || portType == nil) {
+    if (!self.audioDevices[uuid]) {
         NSLog(@"No matching audio device found for %@", uuid);
         return NO;
     }
     
-    // Find port description with matching port type & UID in available input devices
-    AVAudioSessionPortDescription *portDescription = nil;
-    NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
-    for (AVAudioSessionPortDescription *port in availableInputs) {
-        if ([port.portType isEqualToString:portType] && [port.UID isEqualToString:portUid]) {
-            portDescription = port;
-            break;
+    NSDictionary *device = self.audioDevices[uuid];
+    
+    NSString *portUid = device[kTwilioVoiceAudioDeviceUid];
+    NSString *portType = device[kTwilioVoiceAudioDeviceType];
+
+    NSLog(@"Selecting %@(%@), %@", device[kTwilioVoiceAudioDeviceName], device[kTwilioVoiceAudioDeviceType], device[kTwilioVoiceAudioDeviceUid]);
+    
+    if (![portType isEqualToString:kTwilioVoiceAudioDeviceSpeaker]) {
+        // Find port description with matching port type & UID in available input devices
+        AVAudioSessionPortDescription *portDescription = nil;
+        NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+        for (AVAudioSessionPortDescription *port in availableInputs) {
+            if ([port.UID isEqualToString:portUid]) {
+                portDescription = port;
+                break;
+            }
+        }
+
+        if (!portDescription) {
+            NSLog(@"No matching device with %@ found in the available devices", uuid);
+            return NO;
+        }
+
+        // Update preferred input
+        NSError *inputError;
+        [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
+        if (inputError) {
+            NSLog(@"Failed to set preferred input: %@", inputError);
+            return NO;
         }
     }
 
-    if (!portDescription) {
-        NSLog(@"No matching device with %@ found in the available devices", uuid);
-        return NO;
-    }
-
-    // Update preferred input
-    NSError *inputError;
-    [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
-    if (inputError) {
-        NSLog(@"Failed to set preferred input: %@", inputError);
-        return NO;
-    }
-    
     // Override output to speaker if speaker is selected, otherwise choose "none"
-    AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:AVAudioSessionPortBuiltInSpeaker])?
+    AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:kTwilioVoiceAudioDeviceSpeaker])?
                                                 AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone;
     
     NSError *outputError;
