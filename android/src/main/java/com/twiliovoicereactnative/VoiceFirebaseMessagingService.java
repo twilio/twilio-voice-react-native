@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import android.content.Intent;
 import android.os.Build;
 import android.os.PowerManager;
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,17 @@ import java.util.UUID;
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
   public static String TAG = "VoiceFirebaseMessagingService";
+  private Context context;
+
+  public VoiceFirebaseMessagingService() {
+    super();
+    this.context = this;
+  }
+
+  public VoiceFirebaseMessagingService(FirebaseMessagingService delegate) {
+    super();
+    this.context = delegate;
+  }
 
   @Override
   public void onCreate() {
@@ -59,7 +71,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      boolean valid = Voice.handleMessage(this, remoteMessage.getData(), new MessageListener() {
+      boolean valid = Voice.handleMessage(this.context, remoteMessage.getData(), new MessageListener() {
         @Override
         public void onCallInvite(@NonNull CallInvite callInvite) {
           final int notificationId = (int) System.currentTimeMillis();
@@ -82,7 +94,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   private void handleInvite(CallInvite callInvite, int notificationId) {
     String uuid = UUID.randomUUID().toString();
 
-    Intent intent = new Intent(this, IncomingCallNotificationService.class);
+    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -92,19 +104,19 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Storage.callInviteCallSidUuidMap.put(callInvite.getCallSid(), uuid);
     Log.d(TAG, "CallInvite UUID handleInvite " + uuid);
 
-    startService(intent);
+    this.context.startService(intent);
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite) {
     String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
 
-    Intent intent = new Intent(this, IncomingCallNotificationService.class);
+    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
     intent.putExtra(Constants.UUID, uuid);
 
     Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
-    startService(intent);
+    this.context.startService(intent);
   }
 }
