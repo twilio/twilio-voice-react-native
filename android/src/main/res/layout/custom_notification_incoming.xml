@@ -3,7 +3,7 @@
   android:orientation="vertical"
   android:layout_width="match_parent"
   android:background="@drawable/layout_bg"
-  android:layout_height="@dimen/notification_window_size">
+  android:layout_height="140dp">
 
   <TextView
     android:id="@+id/notif_title"
