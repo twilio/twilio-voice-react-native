@@ -246,7 +246,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     return portType;
 }
 
-- (void)selectAudioDevice:(NSString *)uuid {
+- (BOOL)selectAudioDevice:(NSString *)uuid {
     NSString *portUid;
     NSString *portType;
     
@@ -258,7 +258,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     
     if (portUid == nil || portType == nil) {
         NSLog(@"No matching audio device found for %@", uuid);
-        return;
+        return NO;
     }
     
     // Find port description with matching port type & UID in available input devices
@@ -273,7 +273,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
     if (!portDescription) {
         NSLog(@"No matching device with %@ found in the available devices", uuid);
-        return;
+        return NO;
     }
 
     // Update preferred input
@@ -281,6 +281,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
     if (inputError) {
         NSLog(@"Failed to set preferred input: %@", inputError);
+        return NO;
     }
     
     // Override output to speaker if speaker is selected, otherwise choose "none"
@@ -291,7 +292,10 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
     if (outputError) {
         NSLog(@"Failed to override output port: %@", outputError);
+        return NO;
     }
+    
+    return YES;
 }
 
 // TODO: Move to separate utility file someday
@@ -452,7 +456,12 @@ RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    resolve(nil);
+    if ([self selectAudioDevice:uuid]) {
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Failed to select audio device %@", uuid], nil);
+    }
+    
 }
 
 #pragma mark - Bingings (Call)
