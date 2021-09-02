@@ -210,24 +210,35 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     for (AVAudioSessionPortDescription *port in outputs) {
         NSLog(@"\t%@, %@, %@", port.portType, port.portName, port.UID);
         
-        BOOL found = NO;
-        for (NSString *key in [self.audioDevices allKeys]) {
-            NSDictionary *device = self.audioDevices[key];
-            if ([device[kTwilioVoiceAudioDeviceUid] isEqualToString:port.UID]) {
-                found = YES;
-                self.selectedAudioDevice = self.audioDevices[key];
+        if ([port.portType isEqualToString:AVAudioSessionPortBuiltInReceiver]) {
+            for (NSString *key in [self.audioDevices allKeys]) {
+                NSDictionary *device = self.audioDevices[key];
+                if ([device[kTwilioVoiceAudioDeviceType] isEqualToString:kTwilioVoiceAudioDeviceEarpiece]) {
+                    self.selectedAudioDevice = device;
+                    break;
+                }
             }
-        }
-        
-        if (!found && [port.portType isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
-            NSLog(@"Current output: speaker");
-            NSUUID *uuid = [NSUUID UUID];
-            NSDictionary *selectedDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
-                                              kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
-                                              kTwilioVoiceAudioDeviceName: port.portName,
-                                              kTwilioVoiceAudioDeviceUid: port.UID };
-            self.audioDevices[uuid.UUIDString] = selectedDevice;
-            self.selectedAudioDevice = selectedDevice;
+        } else if ([port.portType isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
+            for (NSString *key in [self.audioDevices allKeys]) {
+                NSDictionary *device = self.audioDevices[key];
+                if ([device[kTwilioVoiceAudioDeviceType] isEqualToString:kTwilioVoiceAudioDeviceSpeaker]) {
+                    self.selectedAudioDevice = device;
+                }
+            }
+        } else {
+            BOOL found = NO;
+            for (NSString *key in [self.audioDevices allKeys]) {
+                NSDictionary *device = self.audioDevices[key];
+                if ([device[kTwilioVoiceAudioDeviceUid] isEqualToString:port.UID]) {
+                    found = YES;
+                    self.selectedAudioDevice = device;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                NSLog(@"Unidentified output device selected: %@, %@, %@", port.portType, port.portName, port.UID);
+            }
         }
     }
 
