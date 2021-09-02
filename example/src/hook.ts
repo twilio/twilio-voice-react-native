@@ -235,6 +235,8 @@ export function useVoice(token: string) {
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
 
+    voice.getAudioDevices().then(console.log);
+
     const bootstrap = async () => {
       const calls = await voice.getCalls();
 

@@ -19,8 +19,8 @@ export class AudioDevice {
     this.name = name;
   }
 
-  select(): void {
-    this._nativeModule.voice_selectAudioDevice(this.uuid);
+  select(): Promise<void> {
+    return this._nativeModule.voice_selectAudioDevice(this.uuid);
   }
 }
 
