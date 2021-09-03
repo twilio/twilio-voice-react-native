@@ -16,6 +16,7 @@ public class Constants {
   public static final String ACTION_CALL_DISCONNECT = "ACTION_CALL_DISCONNECT";
   public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
   public static final String ACTION_OUTGOING_CALL = "ACTION_OUTGOING_CALL";
+  public static final String ACTION_PUSH_APP_TO_FOREGROUND = "ACTION_PUSH_APP_TO_FOREGROUND";
 
   public static final String FCM_TOKEN = "FCM_TOKEN";
   public static final String UUID = "UUID";
