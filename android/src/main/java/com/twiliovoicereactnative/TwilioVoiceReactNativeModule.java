@@ -1,84 +1,64 @@
 package com.twiliovoicereactnative;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import android.util.Log;
-
-import java.util.Map;
-
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.Callback;
-
-import android.app.NotificationManager;
-import com.facebook.react.module.annotations.ReactModule;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.twilio.voice.Voice;
-import com.twilio.voice.Call;
-import com.twilio.voice.CallInvite;
-import com.twilio.voice.CancelledCallInvite;
-import com.twilio.voice.CallException;
-import com.twilio.voice.ConnectOptions;
-import com.twilio.voice.AcceptOptions;
-import com.twilio.voice.RegistrationException;
-import com.twilio.voice.RegistrationListener;
-import com.twilio.voice.UnregistrationListener;
-import com.twilio.voice.LogLevel;
-
-import java.util.HashMap;
-import java.util.UUID;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.module.annotations.ReactModule;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.twilio.voice.AcceptOptions;
+import com.twilio.voice.Call;
+import com.twilio.voice.CallInvite;
+import com.twilio.voice.CancelledCallInvite;
+import com.twilio.voice.ConnectOptions;
+import com.twilio.voice.LogLevel;
+import com.twilio.voice.RegistrationException;
+import com.twilio.voice.RegistrationListener;
+import com.twilio.voice.UnregistrationListener;
+import com.twilio.voice.Voice;
+import com.twiliovoicereactnative.Storage;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.ACTION_FCM_TOKEN_REQUEST;
+import java.util.HashMap;
+import java.util.UUID;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
-
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_FROM;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_TO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_FROM;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_TO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
-
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CALL_SID;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_FROM;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_TO;
-
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_FROM;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_TO;
-
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
-
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_REGISTERED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_UNREGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_REJECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE;
-
-import com.twiliovoicereactnative.Storage;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_REGISTERED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_UNREGISTERED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
 import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
@@ -546,15 +526,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
     androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
 
-    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid);
+    int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
     Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     acceptIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    acceptIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     acceptIntent.putExtra(Constants.UUID, callInviteUuid);
 
     getReactApplicationContext().startService(acceptIntent);
 
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(callInviteUuid), "accept");
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
 
     WritableMap callInfo = getCallInfo(callInviteUuid, call);
 
@@ -573,14 +553,14 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     activeCallInvite.reject(getReactApplicationContext());
 
-    int notificationId = Storage.callInviteUuidNotificaionIdMap.get(uuid);
+    int notificationId = Storage.uuidNotificaionIdMap.get(uuid);
     Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    rejectIntent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     rejectIntent.putExtra(Constants.UUID, uuid);
     getReactApplicationContext().startService(rejectIntent);
 
-    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.callInviteUuidNotificaionIdMap.get(uuid), "reject");
+    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "reject");
 
     promise.resolve(uuid);
   }
