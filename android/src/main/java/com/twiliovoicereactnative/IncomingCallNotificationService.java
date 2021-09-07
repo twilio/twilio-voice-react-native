@@ -260,7 +260,7 @@ public class IncomingCallNotificationService extends Service {
       .enableDscp(true)
       .build();
 
-    Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid));
+    Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid, getApplicationContext()));
     Storage.callMap.put(uuid, call);
     Storage.callMap.forEach((key, value) -> Log.e(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "accept");

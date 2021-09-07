@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.twilio.voice.Call;
@@ -31,9 +32,15 @@ import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
+  private Context context;
 
   public CallListenerProxy(String uuid) {
     this.uuid = uuid;
+  }
+
+  public CallListenerProxy(String uuid, Context context) {
+    this.uuid = uuid;
+    this.context = context;
   }
 
   private WritableMap getCallInfo(String uuid, Call call) {
@@ -48,6 +55,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
+    SoundPoolManager.getInstance(this.context).stopRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
@@ -60,6 +68,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
+    SoundPoolManager.getInstance(this.context).playRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
@@ -71,6 +80,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
+    SoundPoolManager.getInstance(this.context).stopRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
@@ -105,6 +115,8 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
+    SoundPoolManager.getInstance(this.context).stopRinging();
+    SoundPoolManager.getInstance(this.context).playDisconnect();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
