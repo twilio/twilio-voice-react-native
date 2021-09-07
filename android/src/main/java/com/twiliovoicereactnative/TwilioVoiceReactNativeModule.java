@@ -87,6 +87,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   private String fcmToken;
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
   private final ReactApplicationContext reactContext;
+  private SoundPoolManager soundPoolManager;
 
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -102,6 +103,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     androidEventEmitter = new AndroidEventEmitter(reactContext);
     voiceBroadcastReceiver = new VoiceBroadcastReceiver();
     registerReceiver();
+
+    //Preload the audio files
+    soundPoolManager = SoundPoolManager.getInstance(reactContext);
   }
 
   private void registerReceiver() {
@@ -297,7 +301,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .params(parsedTwimlParams)
       .build();
 
-    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid));
+    Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, reactContext));
     Storage.callMap.put(uuid, call);
 
     WritableMap callInfo = getCallInfo(uuid, call);
@@ -532,7 +536,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .enableDscp(true)
       .build();
 
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid));
+    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid, reactContext));
     Storage.callMap.put(callInviteUuid, call);
 
     // Send Event to upstream
