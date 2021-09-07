@@ -63,6 +63,7 @@ class CallListenerProxy implements Call.Listener {
       params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
+    Storage.callMap.remove(uuid);
   }
 
   @Override
@@ -123,5 +124,6 @@ class CallListenerProxy implements Call.Listener {
       params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
+    Storage.callMap.remove(uuid);
   }
 }
