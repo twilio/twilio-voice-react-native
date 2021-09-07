@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.util.Map;
@@ -45,6 +46,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -381,6 +383,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       });
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
@@ -393,6 +396,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(callInfos);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
@@ -415,11 +419,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     AudioDevice audioDevice = audioDeviceMap.get(uuid);
 
     if (audioDevice == null) {
-      promise.reject("No such \"audioDevice\" object exists with UUID " + uuid)
+      promise.reject("No such \"audioDevice\" object exists with UUID " + uuid);
       return;
     }
 
-    audioSwitch.select(audioDevice);
+    audioSwitch.selectDevice(audioDevice);
 
     audioSwitch.activate();
 
