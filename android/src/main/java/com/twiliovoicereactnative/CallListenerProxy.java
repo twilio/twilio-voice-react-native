@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 
@@ -31,12 +32,13 @@ import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
-  private final Context reactContext;
-  private int notificationId;
 
-  public CallListenerProxy(String uuid, Context reactContext) {
+  private int notificationId;
+  private Context context;
+
+  public CallListenerProxy(String uuid, Context context) {
     this.uuid = uuid;
-    this.reactContext = reactContext;
+    this.context = context;
   }
 
   private WritableMap getCallInfo(String uuid, Call call) {
@@ -51,6 +53,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
+    SoundPoolManager.getInstance(this.context).stopRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
@@ -59,12 +62,14 @@ class CallListenerProxy implements Call.Listener {
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
     cancelNotification();
+    Storage.callMap.remove(uuid);
   }
 
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
     this.notificationId = (int) System.currentTimeMillis();
+    SoundPoolManager.getInstance(this.context).playRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
@@ -77,6 +82,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
+    SoundPoolManager.getInstance(this.context).stopRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
@@ -111,6 +117,8 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
+    SoundPoolManager.getInstance(this.context).stopRinging();
+    SoundPoolManager.getInstance(this.context).playDisconnect();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
       params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
@@ -118,27 +126,27 @@ class CallListenerProxy implements Call.Listener {
       androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
     }
     cancelNotification();
+    Storage.callMap.remove(uuid);
   }
 
   private void cancelNotification() {
-    Intent intent = new Intent(reactContext, IncomingCallNotificationService.class);
+    Intent intent = new Intent(context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
     intent.putExtra(Constants.UUID, this.uuid);
     intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificaionIdMap.get(this.uuid));
     intent.putExtra(Constants.NOTIFICATION_ID, this.notificationId);
-
-    reactContext.startService(intent);
+    context.startService(intent);
   }
 
   private void raiseNotification(Call call) {
-    Log.d(TAG, "Raising call in progress notifiation uuid:" + uuid + " notificationId: " + this.notificationId);
-    Intent intent = new Intent(reactContext, IncomingCallNotificationService.class);
+    Log.d(TAG, "Raising call in progress notification uuid:" + uuid + " notificationId: " + this.notificationId);
+    Intent intent = new Intent(context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_OUTGOING_CALL);
     intent.putExtra(Constants.UUID, this.uuid);
     intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.CALL_SID_KEY, call.getSid());
     Storage.uuidNotificaionIdMap.put(uuid, this.notificationId);
 
-    reactContext.startService(intent);
+    context.startService(intent);
   }
 }

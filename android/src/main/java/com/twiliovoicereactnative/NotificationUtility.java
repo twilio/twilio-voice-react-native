@@ -22,6 +22,9 @@ import androidx.core.app.NotificationCompat;
 
 import com.twilio.voice.CallInvite;
 
+import java.net.URLDecoder;
+import java.util.Map;
+
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
@@ -63,11 +66,13 @@ public class NotificationUtility {
 
     remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
 
+    String title = getDisplayName(callInvite);
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
-        .setContentTitle(callInvite.getFrom())
+        .setContentTitle(title)
         .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
@@ -82,7 +87,7 @@ public class NotificationUtility {
       Notification notification = new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
-        .setContentTitle(callInvite.getFrom())
+        .setContentTitle(title)
         .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
@@ -108,8 +113,9 @@ public class NotificationUtility {
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
     remoteViews.setTextViewText(R.id.make_call_text, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
+    String title = getDisplayName(callInvite);
 
-    Log.i(TAG, "createCallAnsweredNotification KKG" + uuid + " notificationId" + notificationId);
+    Log.i(TAG, "createCallAnsweredNotification " + uuid + " notificationId" + notificationId);
 
     Intent notification_intent = new Intent(context.getApplicationContext(), IncomingCallNotificationService.class);
     notification_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND);
@@ -131,7 +137,7 @@ public class NotificationUtility {
 
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
         .setSmallIcon(smallIconResId)
-        .setContentTitle(callInvite.getFrom())
+        .setContentTitle(title)
         .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
@@ -145,7 +151,7 @@ public class NotificationUtility {
     } else {
       Notification notification = new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
-        .setContentTitle(callInvite.getFrom())
+        .setContentTitle(title)
         .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
@@ -165,7 +171,7 @@ public class NotificationUtility {
     extras.putString(Constants.CALL_SID_KEY, callSid);
     extras.putInt(Constants.NOTIFICATION_ID, notificationId);
 
-    Log.i(TAG, "createOutgoingCallNotification KKG" + uuid + " notificationId" + notificationId);
+    Log.i(TAG, "createOutgoingCallNotification " + uuid + " notificationId" + notificationId);
 
     Resources res = context.getResources();
     String packageName = context.getPackageName();
@@ -231,7 +237,7 @@ public class NotificationUtility {
     int smallIconResId = 0;
     smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
 
-    Log.i(TAG, "createWakeupAppNotification KKG" + uuid + " notificationId" + notificationId);
+    Log.i(TAG, "createWakeupAppNotification " + uuid + " notificationId" + notificationId);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
     remoteViews.setTextViewText(R.id.make_call_text, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
@@ -319,6 +325,15 @@ public class NotificationUtility {
     notificationManager.createNotificationChannel(voiceChannel);
 
     return channelId;
+  }
+
+  private static String getDisplayName(CallInvite callInvite) {
+    String title = callInvite.getFrom();
+    Map<String, String> customParameters = callInvite.getCustomParameters();
+    if (customParameters.get(Constants.DISPLAY_NAME) != null) {
+      title = URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
+    }
+    return title;
   }
 
 }

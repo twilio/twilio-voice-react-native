@@ -59,7 +59,7 @@ public class IncomingCallNotificationService extends Service {
           Storage.uuidNotificaionIdMap.remove(uuid);
           break;
         case Constants.ACTION_CALL_DISCONNECT:
-          Log.i(TAG, "ACTION_CALL_DISCONNECT KKG" + uuid + " notificationId" + notificationId);
+          Log.i(TAG, "ACTION_CALL_DISCONNECT " + uuid + " notificationId" + notificationId);
           Storage.uuidNotificaionIdMap.remove(uuid);
           disconnectCall(notificationId, uuid);
           break;
@@ -68,7 +68,7 @@ public class IncomingCallNotificationService extends Service {
           handleOutgoingCall(callSid, notificationId, uuid);
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
-          Log.i(TAG, "ACTION_PUSH_APP_TO_FOREGROUND KKG" + uuid + " notificationId" + notificationId);
+          Log.i(TAG, "ACTION_PUSH_APP_TO_FOREGROUND " + uuid + " notificationId" + notificationId);
           bringAppToForeground(callSid, notificationId, uuid);
         default:
           break;
@@ -95,9 +95,9 @@ public class IncomingCallNotificationService extends Service {
       .build();
 
     Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid, this));
-    Log.i(TAG, "acceptCall KKG" + uuid + " notificationId" + notificationId);
+    Log.i(TAG, "acceptCall" + uuid + " notificationId" + notificationId);
     Storage.callMap.put(uuid, call);
-    Storage.callMap.forEach((key, value) -> Log.i(TAG, "KKG CallInvite UUID accept callMap value " + key + ":" + value));
+    Storage.callMap.forEach((key, value) -> Log.i(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "accept");
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -188,7 +188,7 @@ public class IncomingCallNotificationService extends Service {
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.cancel(notificationId);
     sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
-    Log.i(TAG, "bringAppToForeground KKG" + uuid + " notificationId" + notificationId);
+    Log.i(TAG, "bringAppToForeground " + uuid + " notificationId" + notificationId);
     startForeground(notificationId, NotificationUtility.createWakeupAppNotification(callSid, notificationId, uuid, NotificationManager.IMPORTANCE_LOW, this));
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);

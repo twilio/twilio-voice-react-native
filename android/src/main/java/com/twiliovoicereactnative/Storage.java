@@ -26,7 +26,7 @@ public class Storage {
   static AndroidEventEmitter androidEventEmitter = null;
 
   static void releaseCallInviteStorage(String uuid, String callSid, int notificationId, String action) {
-    Log.d(TAG, "KKG Removing items in callInviteMap" +
+    Log.d(TAG, "Removing items in callInviteMap" +
       "uuid:" + uuid +
       " callSid:" + callSid +
       " notificationId: " + notificationId +
