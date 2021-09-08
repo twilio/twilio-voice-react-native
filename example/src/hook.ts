@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  AudioDevice,
   Call,
   CallInvite,
   CancelledCallInvite,
@@ -198,6 +199,7 @@ export function useVoice(token: string) {
 
   const [registered, setRegistered] = React.useState<boolean>(false);
   const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
+  const [audioDeviceIdx, setAudioDeviceIdx] = React.useState<number>(0);
 
   const { events, logEvent } = useEventLog();
   const { callInfo, callMethod, callHandler } = useCall(logEvent);
@@ -232,10 +234,31 @@ export function useVoice(token: string) {
     });
   }, [token, voice]);
 
+  const logAudioDevicesHandler = React.useCallback(() => {
+    voice
+      .getAudioDevices()
+      .then((audioDevices) => logEvent(JSON.stringify(audioDevices, null, 2)));
+  }, [voice, logEvent]);
+
+  const selectAudioDeviceHandler = React.useCallback(() => {
+    const idx = audioDeviceIdx + 1;
+    logEvent(`setting audio device idx ${idx}`);
+    voice.getAudioDevices().then(({ audioDevices }) => {
+      audioDevices[idx % audioDevices.length].select();
+    });
+    setAudioDeviceIdx(idx);
+  }, [voice, audioDeviceIdx, setAudioDeviceIdx, logEvent]);
+
+  const audioDevicesUpdateHandler = React.useCallback(
+    (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => {
+      logEvent(JSON.stringify(audioDevices, null, 2));
+      logEvent(JSON.stringify(selectedDevice, null, 2));
+    },
+    [logEvent]
+  );
+
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
-
-    voice.getAudioDevices().then(console.log);
 
     const bootstrap = async () => {
       const calls = await voice.getCalls();
@@ -259,14 +282,17 @@ export function useVoice(token: string) {
     voice.on(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
     voice.on(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
     voice.on(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
+    voice.on(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
       voice.off(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
       voice.off(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
       voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
+      voice.off(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
     };
   }, [
+    audioDevicesUpdateHandler,
     callHandler,
     callInviteHandler,
     callInviteAcceptedHandler,
@@ -285,5 +311,7 @@ export function useVoice(token: string) {
     connectHandler,
     registerHandler,
     unregisterHandler,
+    logAudioDevicesHandler,
+    selectAudioDeviceHandler,
   };
 }
