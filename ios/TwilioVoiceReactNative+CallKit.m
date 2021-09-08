@@ -154,7 +154,6 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         completionHandler(NO);
     } else {
         self.callMap[call.uuid.UUIDString] = call;
-        [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
     }
 
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
@@ -326,6 +325,9 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
             break;
         }
     }
+
+    // Remove the corresponding call invite only when the incoming call is finished.
+    [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
     
     self.userInitiatedDisconnect = NO;
 }
