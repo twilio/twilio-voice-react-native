@@ -99,7 +99,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     registerReceiver();
 
     audioDeviceTypeMap.put("Speakerphone", "speaker");
-    audioDeviceTypeMap.put("Bluetooth", "bluetooth");
+    audioDeviceTypeMap.put("BluetoothHeadset", "bluetooth");
+    audioDeviceTypeMap.put("WiredHeadset", "earpiece");
     audioDeviceTypeMap.put("Earpiece", "earpiece");
 
     audioDeviceMap = new HashMap();
@@ -112,7 +113,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         String uuid = UUID.randomUUID().toString();
         audioDeviceMap.put(uuid, audioDevice);
 
-        if (audioDevice == selectedDevice) {
+        if (audioDevice.equals(selectedDevice)) {
           selectedDeviceUuid = uuid;
         }
       });
