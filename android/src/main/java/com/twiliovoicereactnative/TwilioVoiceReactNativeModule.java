@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Build;
 import android.util.Log;
 
@@ -70,14 +71,14 @@ import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
+
   static final String TAG = "TwilioVoiceReactNative";
+  private final ReactApplicationContext reactContext;
   private String fcmToken;
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
-  private final ReactApplicationContext reactContext;
+  private WritableMap audioDevicesInfo;
   private final AudioSwitch audioSwitch;
   private final Map<String, AudioDevice> audioDeviceMap;
-  private WritableMap audioDevicesInfo;
-  private SoundPoolManager soundPoolManager;
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
@@ -96,8 +97,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     registerReceiver();
 
     audioDeviceMap = new HashMap();
-
-    audioSwitch = new AudioSwitch(reactContext);
+    audioSwitch = AudioSwitchManager.getInstance(reactContext).getAudioSwitch();
 
     audioSwitch.start((audioDevices, selectedDevice) -> {
       audioDeviceMap.clear();
@@ -121,7 +121,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return null;
     });
     //Preload the audio files
-    soundPoolManager = SoundPoolManager.getInstance(reactContext);
+    SoundPoolManager.getInstance(reactContext);
   }
 
   private void registerReceiver() {
