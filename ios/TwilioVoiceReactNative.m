@@ -225,6 +225,30 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
                     self.selectedAudioDevice = device;
                 }
             }
+        } else if ([port.portType isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+            // Some bluetooth headsets are recognized both as HFP intput and A2DP output.
+            // The portName values will be the same, but the UID will be slights different.
+            BOOL found = NO;
+            for (NSString *key in [self.audioDevices allKeys]) {
+                NSDictionary *device = self.audioDevices[key];
+                if ([device[kTwilioVoiceAudioDeviceName] isEqualToString:port.portName]) {
+                    found = YES;
+                    self.selectedAudioDevice = device;
+                    break;
+                }
+            }
+            
+            if (!found) {
+                NSLog(@"Bluetooth A2DP device not found as HFP input device");
+
+                NSUUID *uuid = [NSUUID UUID];
+                NSDictionary *device = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                                          kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
+                                          kTwilioVoiceAudioDeviceName: port.portName,
+                                          kTwilioVoiceAudioDeviceUid: port.UID };
+                self.selectedAudioDevice = device;
+                self.audioDevices[uuid.UUIDString] = device;
+            }
         } else {
             BOOL found = NO;
             for (NSString *key in [self.audioDevices allKeys]) {
@@ -238,6 +262,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
             
             if (!found) {
                 NSLog(@"Unidentified output device selected: %@, %@, %@", port.portType, port.portName, port.UID);
+
+                NSUUID *uuid = [NSUUID UUID];
+                NSDictionary *device = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                                          kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
+                                          kTwilioVoiceAudioDeviceName: port.portName,
+                                          kTwilioVoiceAudioDeviceUid: port.UID };
+                self.selectedAudioDevice = device;
+                self.audioDevices[uuid.UUIDString] = device;
             }
         }
     }

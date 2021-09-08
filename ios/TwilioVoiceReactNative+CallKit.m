@@ -290,6 +290,8 @@
         
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
+    
+    [self callDisconnected:call];
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
