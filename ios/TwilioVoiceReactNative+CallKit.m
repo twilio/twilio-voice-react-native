@@ -11,6 +11,8 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
+NSString * const kCustomParametersKeyDisplayName = @"displayName";
+
 @interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate>
 
 @end
@@ -33,8 +35,17 @@
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
+    
+    // Frontline specific logic
+    NSString *handleName = callInvite.from;
+    NSDictionary *customParams = callInvite.customParameters;
+    if (customParams[kCustomParametersKeyDisplayName]) {
+        NSString *callerDisplayName = customParams[kCustomParametersKeyDisplayName];
+        callerDisplayName = [callerDisplayName stringByReplacingOccurrencesOfString:@"+" withString:@" "];
+        handleName = callerDisplayName;
+    }
 
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:callInvite.from];
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;

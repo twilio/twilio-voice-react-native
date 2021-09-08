@@ -1,38 +1,39 @@
 package com.twiliovoicereactnative;
 
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.PowerManager;
 import android.util.Log;
 
-import com.facebook.react.ReactApplication;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
-
-import com.google.firebase.messaging.FirebaseMessagingService;
-import com.google.firebase.messaging.RemoteMessage;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 import com.twilio.voice.CallException;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
 
-import com.twiliovoicereactnative.IncomingCallNotificationService;
-import com.twiliovoicereactnative.Storage;
-
-import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
   public static String TAG = "VoiceFirebaseMessagingService";
+  private Context context;
+
+  public VoiceFirebaseMessagingService() {
+    super();
+    this.context = this;
+  }
+
+  public VoiceFirebaseMessagingService(FirebaseMessagingService delegate) {
+    super();
+    this.context = delegate;
+  }
 
   @Override
   public void onCreate() {
@@ -59,9 +60,16 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Log.d(TAG, "Bundle data: " + remoteMessage.getData());
     Log.d(TAG, "From: " + remoteMessage.getFrom());
 
+    PowerManager pm = (PowerManager) this.context.getSystemService(this.context.POWER_SERVICE);
+    boolean isScreenOn = Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn(); // check if screen is on
+    if (!isScreenOn) {
+      PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "VoiceFirebaseMessagingService:notificationLock");
+      wl.acquire(30000); //set your time in milliseconds
+    }
+
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      boolean valid = Voice.handleMessage(this, remoteMessage.getData(), new MessageListener() {
+      boolean valid = Voice.handleMessage(this.context, remoteMessage.getData(), new MessageListener() {
         @Override
         public void onCallInvite(@NonNull CallInvite callInvite) {
           final int notificationId = (int) System.currentTimeMillis();
@@ -84,9 +92,9 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   private void handleInvite(CallInvite callInvite, int notificationId) {
     String uuid = UUID.randomUUID().toString();
 
-    Intent intent = new Intent(this, IncomingCallNotificationService.class);
+    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_INCOMING_CALL);
-    intent.putExtra(Constants.INCOMING_CALL_NOTIFICATION_ID, notificationId);
+    intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     intent.putExtra(Constants.UUID, uuid);
 
@@ -94,19 +102,19 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     Storage.callInviteCallSidUuidMap.put(callInvite.getCallSid(), uuid);
     Log.d(TAG, "CallInvite UUID handleInvite " + uuid);
 
-    startService(intent);
+    this.context.startService(intent);
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite) {
     String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
 
-    Intent intent = new Intent(this, IncomingCallNotificationService.class);
+    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
     intent.putExtra(Constants.UUID, uuid);
 
     Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
-    startService(intent);
+    this.context.startService(intent);
   }
 }

@@ -1,9 +1,11 @@
 <resources>
-    <string name="app_name">Voice Quickstart</string>
+    <string name="app_name">twiliovoicereactnative</string>
     <string name="audio_device">Audio Device</string>
     <string name="callee">client identity or phone number</string>
-    <string name="answer">Answer</string>
-    <string name="decline">Decline</string>
+    <string name="answer">ANSWER</string>
+    <string name="decline">DECLINE</string>
+    <string name="tapToApp">Tap to return to call</string>
+    <string name="end_call">End Call</string>
     <string name="callHint">Dial a client name or phone number. Leaving the field empty results in an automated response.</string>
     <string name="digitHint">A string of digits to be sent. Valid values are "0" - "9", "*", "#", and "w". Each "w" will cause a 500 ms pause between digits sent. </string>
     <string name="select_device">Select Audio Device</string>
