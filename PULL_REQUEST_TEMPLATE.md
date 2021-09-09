@@ -4,6 +4,10 @@
  - [ ] Tested code changes and observed the expected behavior on example app
  - [ ] A visual inspection of the `Files changed` tab was made prior to submitting the pull request ensuring the style guide was followed
 
+> All third-party contributors acknowledge that any contributions they provide will be made under the same open-source license that the open-source project is provided under.
+
+- [ ] I acknowledge that all my contributions will be made under the project's license.
+
 ## Description
 
 [Description of the Pull Request]
