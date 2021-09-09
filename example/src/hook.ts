@@ -47,6 +47,7 @@ export function useCall(logEvent: (event: string) => void) {
   const callHandler = React.useCallback(
     async (call: Call) => {
       setCallInfo({
+        customParameters: call.getCustomParameters(),
         from: call.getFrom(),
         isMuted: call.isMuted(),
         isOnHold: call.isOnHold(),
@@ -58,6 +59,7 @@ export function useCall(logEvent: (event: string) => void) {
       Object.values(Call.Event).forEach((callEvent) => {
         call.on(callEvent, async () => {
           const _callInfo = {
+            customParameters: call.getCustomParameters(),
             from: call.getFrom(),
             isMuted: call.isMuted(),
             isOnHold: call.isOnHold(),
@@ -65,7 +67,7 @@ export function useCall(logEvent: (event: string) => void) {
             sid: call.getSid(),
             to: call.getTo(),
           };
-          logEvent(`${_callInfo.sid}: ${callEvent}`);
+          logEvent(`call event ${_callInfo.sid}: ${callEvent}`);
           setCallInfo(_callInfo);
         });
       });
@@ -98,6 +100,15 @@ export function useCall(logEvent: (event: string) => void) {
         },
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
       });
+
+      logEvent(`call sid: ${call.getSid()}`);
+      logEvent(
+        `call custom params: ${JSON.stringify(
+          call.getCustomParameters(),
+          null,
+          2
+        )}`
+      );
     },
     [logEvent]
   );
@@ -136,6 +147,7 @@ export function useCallInvites(
             callHandler(call);
           },
           callSid,
+          customParameters: callInvite.getCustomParameters(),
           from,
           to,
           reject: async () => {
@@ -145,7 +157,14 @@ export function useCallInvites(
         },
       ]);
 
-      logEvent(`Call invite: ${callSid}`);
+      logEvent(`call invite: ${callSid}`);
+      logEvent(
+        `call invite custom params: ${JSON.stringify(
+          callInvite.getCustomParameters(),
+          null,
+          2
+        )}`
+      );
     },
     [callHandler, logEvent, removeCallInvite]
   );
@@ -153,9 +172,9 @@ export function useCallInvites(
   const callInviteAcceptedHandler = React.useCallback(
     async (callInvite: CallInvite, call: Call) => {
       const callSid = callInvite.getCallSid();
+      logEvent(`call invite accepted: ${callSid}`);
       removeCallInvite(callSid);
       callHandler(call);
-      logEvent(`Call invite accepted: ${callSid}`);
     },
     [callHandler, logEvent, removeCallInvite]
   );
@@ -163,8 +182,8 @@ export function useCallInvites(
   const callInviteRejectedHandler = React.useCallback(
     async (callInvite: CallInvite) => {
       const callSid = callInvite.getCallSid();
+      logEvent(`call invite rejected: ${callSid}`);
       removeCallInvite(callSid);
-      logEvent(`Call invite rejected: ${callSid}`);
     },
     [logEvent, removeCallInvite]
   );
@@ -172,8 +191,8 @@ export function useCallInvites(
   const cancelledCallInviteHandler = React.useCallback(
     async (cancelledCallInvite: CancelledCallInvite) => {
       const callSid = cancelledCallInvite.getCallSid();
+      logEvent(`cancelled call invite: ${callSid}`);
       removeCallInvite(callSid);
-      logEvent(`Cancelled call invite: ${callSid}`);
     },
     [logEvent, removeCallInvite]
   );
@@ -239,14 +258,14 @@ export function useVoice(token: string) {
       const calls = await voice.getCalls();
 
       for (const call of calls.values()) {
-        console.log('call', call.getSid(), call.getState());
+        console.log('existing call', call.getSid(), call.getState());
         callHandler(call);
       }
 
       const callInvites = await voice.getCallInvites();
 
       for (const callInvite of callInvites.values()) {
-        console.log('call invite', callInvite.getCallSid());
+        console.log('existing call invite', callInvite.getCallSid());
         callInviteHandler(callInvite);
       }
     };

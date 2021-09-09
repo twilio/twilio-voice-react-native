@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
@@ -33,11 +35,11 @@ import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
 import com.twilio.voice.UnregistrationListener;
 import com.twilio.voice.Voice;
-import com.twiliovoicereactnative.Storage;
 
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_CUSTOM_PARAMETERS;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CALL_SID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CUSTOM_PARAMETERS;
@@ -101,6 +103,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Log.d(TAG, "Successfully registerReceiver");
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   private WritableMap getCallInviteCustomParameters(CallInvite callInvite) {
     WritableMap customParameters = Arguments.createMap();
 
@@ -111,6 +114,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return customParameters;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   private WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
     WritableMap callInviteInfo = Arguments.createMap();
     callInviteInfo.putString(EVENT_KEY_UUID, uuid);
@@ -132,6 +136,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return cancelledCallInviteInfo;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   private WritableMap getCallInfo(String uuid, Call call) {
     WritableMap callInfo = Arguments.createMap();
     callInfo.putString(EVENT_KEY_UUID, uuid);
@@ -150,6 +155,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   private class VoiceBroadcastReceiver extends BroadcastReceiver {
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
@@ -270,6 +276,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     };
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_connect(String accessToken, ReadableMap twimlParams, Promise promise) {
     Log.e(TAG, String.format("Calling voice_connect"));
@@ -342,6 +349,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       });
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
@@ -354,6 +362,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(callInfos);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
@@ -524,6 +533,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   // CallInvite
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
     Log.d(TAG, "callInvite_accept uuid" + callInviteUuid);
@@ -556,9 +566,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     getReactApplicationContext().startService(acceptIntent);
 
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
-
     WritableMap callInfo = getCallInfo(callInviteUuid, call);
+
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
 
     promise.resolve(callInfo);
   }
