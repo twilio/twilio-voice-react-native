@@ -6,6 +6,7 @@ export interface BoundCallMethod {
 }
 
 export interface BoundCallInfo {
+  customParameters: Record<any, any>;
   from?: string;
   to?: string;
   state?: string;
@@ -17,6 +18,7 @@ export interface BoundCallInfo {
 export interface BoundCallInvite {
   accept: () => void;
   callSid: string;
+  customParameters: Record<any, any>;
   from: string;
   to: string;
   reject: () => void;

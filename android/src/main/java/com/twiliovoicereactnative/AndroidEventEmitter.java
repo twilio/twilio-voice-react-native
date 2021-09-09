@@ -45,6 +45,7 @@ public class AndroidEventEmitter {
    * Call keys.
    */
   public static final String EVENT_KEY_CALL_INFO = "call";
+  public static final String EVENT_KEY_CALL_CUSTOM_PARAMETERS = "customParameters";
   public static final String EVENT_KEY_CALL_FROM = "from";
   public static final String EVENT_KEY_CALL_IS_MUTED = "isMuted";
   public static final String EVENT_KEY_CALL_IS_ON_HOLD = "isOnHold";
@@ -57,6 +58,7 @@ public class AndroidEventEmitter {
    */
   public static final String EVENT_KEY_CALL_INVITE_INFO = "callInvite";
   public static final String EVENT_KEY_CALL_INVITE_CALL_SID = "callSid";
+  public static final String EVENT_KEY_CALL_INVITE_CUSTOM_PARAMETERS = "customParameters";
   public static final String EVENT_KEY_CALL_INVITE_FROM = "from";
   public static final String EVENT_KEY_CALL_INVITE_TO = "to";
 
