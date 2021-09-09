@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
@@ -23,6 +25,8 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.twilio.audioswitch.AudioDevice;
+import com.twilio.audioswitch.AudioSwitch;
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
@@ -33,11 +37,15 @@ import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
 import com.twilio.voice.UnregistrationListener;
 import com.twilio.voice.Voice;
-import com.twiliovoicereactnative.Storage;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_NAME;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_CALL_SID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_FROM;
@@ -52,6 +60,7 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_AUDIO_DEVICES_UPDATED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_REJECTED;
@@ -63,12 +72,17 @@ import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
+
   static final String TAG = "TwilioVoiceReactNative";
+  private final ReactApplicationContext reactContext;
   private String fcmToken;
   private VoiceBroadcastReceiver voiceBroadcastReceiver;
-  private final ReactApplicationContext reactContext;
-  private SoundPoolManager soundPoolManager;
+  private final AudioSwitch audioSwitch;
+  private final Map<String, AudioDevice> audioDeviceMap;
+  private String selectedDeviceUuid;
+  private Map<String, String> audioDeviceTypeMap = new HashMap();
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
@@ -84,8 +98,38 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     voiceBroadcastReceiver = new VoiceBroadcastReceiver();
     registerReceiver();
 
+    audioDeviceTypeMap.put("Speakerphone", "speaker");
+    audioDeviceTypeMap.put("BluetoothHeadset", "bluetooth");
+    audioDeviceTypeMap.put("WiredHeadset", "earpiece");
+    audioDeviceTypeMap.put("Earpiece", "earpiece");
+
+    audioDeviceMap = new HashMap();
+    audioSwitch = AudioSwitchManager.getInstance(reactContext).getAudioSwitch();
+
+    audioSwitch.start((audioDevices, selectedDevice) -> {
+      audioDeviceMap.clear();
+
+      audioDevices.forEach((audioDevice) -> {
+        String uuid = UUID.randomUUID().toString();
+        audioDeviceMap.put(uuid, audioDevice);
+
+        if (audioDevice.equals(selectedDevice)) {
+          selectedDeviceUuid = uuid;
+        }
+      });
+
+      WritableMap params = Arguments.createMap();
+      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_AUDIO_DEVICES_UPDATED);
+      params.putArray(EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES, getAudioDeviceInfoArray(audioDeviceMap));
+      params.putMap(EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE, getAudioDeviceInfoMap(selectedDeviceUuid, selectedDevice));
+
+      androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+
+      return null;
+    });
+
     //Preload the audio files
-    soundPoolManager = SoundPoolManager.getInstance(reactContext);
+    SoundPoolManager.getInstance(reactContext);
   }
 
   private void registerReceiver() {
@@ -124,6 +168,33 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     callInfo.putString(EVENT_KEY_CALL_FROM, call.getFrom());
     callInfo.putString(EVENT_KEY_CALL_TO, call.getTo());
     return callInfo;
+  }
+
+  private WritableMap getAudioDeviceInfoMap(String uuid, AudioDevice audioDevice) {
+    WritableMap audioDeviceInfo = Arguments.createMap();
+    audioDeviceInfo.putString(EVENT_KEY_UUID, uuid);
+    audioDeviceInfo.putString(EVENT_KEY_AUDIO_DEVICES_NAME, audioDevice.getName());
+    String type = audioDevice.getClass().getSimpleName();
+    audioDeviceInfo.putString(EVENT_KEY_AUDIO_DEVICES_TYPE, audioDeviceTypeMap.get(type));
+    return audioDeviceInfo;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  private WritableArray getAudioDeviceInfoArray(Map<String, AudioDevice> audioDevices) {
+    WritableArray audioDeviceInfoArray = Arguments.createArray();
+    audioDevices.forEach((uuid, audioDevice) -> {
+      WritableMap audioDeviceInfoMap = getAudioDeviceInfoMap(uuid, audioDevice);
+      audioDeviceInfoArray.pushMap(audioDeviceInfoMap);
+    });
+    return audioDeviceInfoArray;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  private WritableMap getAudioDeviceInfo() {
+    WritableMap audioDevicesInfo = Arguments.createMap();
+    audioDevicesInfo.putArray(EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES, getAudioDeviceInfoArray(audioDeviceMap));
+    audioDevicesInfo.putMap(EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE, getAudioDeviceInfoMap(selectedDeviceUuid, audioSwitch.getSelectedAudioDevice()));
+    return audioDevicesInfo;
   }
 
   private class VoiceBroadcastReceiver extends BroadcastReceiver {
@@ -320,6 +391,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       });
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
@@ -332,6 +404,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(callInfos);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
@@ -344,12 +417,37 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(callInviteInfos);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void voice_getAudioDevices(Promise promise) {
+    promise.resolve(getAudioDeviceInfo());
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void voice_selectAudioDevice(String uuid, Promise promise) {
+    AudioDevice audioDevice = audioDeviceMap.get(uuid);
+
+    if (audioDevice == null) {
+      promise.reject("No such \"audioDevice\" object exists with UUID " + uuid);
+      return;
+    }
+
+    audioSwitch.selectDevice(audioDevice);
+
+    promise.resolve(getAudioDeviceInfo());
+  }
+
+  /**
+   * Call methods.
+   */
+
   @ReactMethod
   public void call_getState(String uuid, Promise promise) {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -361,7 +459,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -373,7 +471,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -385,7 +483,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -398,7 +496,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -413,7 +511,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -428,7 +526,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call activeCall = Storage.callMap.get(uuid);
 
     if (activeCall == null) {
-      promise.reject("No such \"call\" object exists with UUID" + uuid);
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
       return;
     }
 
@@ -508,7 +606,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     CallInvite activeCallInvite = Storage.callInviteMap.get(callInviteUuid);
 
     if (activeCallInvite == null) {
-      promise.reject("No such \"callInvite\" object exists with UUID" + callInviteUuid);
+      promise.reject("No such \"callInvite\" object exists with UUID " + callInviteUuid);
       return;
     }
 
@@ -547,7 +645,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     CallInvite activeCallInvite = Storage.callInviteMap.get(uuid);
 
     if (activeCallInvite == null) {
-      promise.reject("No such \"callInvite\" object exists with UUID" + uuid);
+      promise.reject("No such \"callInvite\" object exists with UUID " + uuid);
       return;
     }
 

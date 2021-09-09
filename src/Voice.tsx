@@ -58,11 +58,17 @@ export declare interface Voice {
 
   addEventListener(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
-    listener: (audioDevices: AudioDevice[], selectedDevice: AudioDevice) => void
+    listener: (
+      audioDevices: AudioDevice[],
+      selectedDevice: AudioDevice | null
+    ) => void
   ): this;
   on(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
-    listener: (audioDevices: AudioDevice[], selectedDevice: AudioDevice) => void
+    listener: (
+      audioDevices: AudioDevice[],
+      selectedDevice: AudioDevice | null
+    ) => void
   ): this;
 
   addEventListener(
