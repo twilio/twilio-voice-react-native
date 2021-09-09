@@ -180,16 +180,16 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
-    if (self.callInviteMap[action.callUUID.UUIDString]) {
+    if (self.callMap[action.callUUID.UUIDString]) {
+        TVOCall *call = self.callMap[action.callUUID.UUIDString];
+        [call disconnect];
+    } else if (self.callInviteMap[action.callUUID.UUIDString]) {
         TVOCallInvite *callInvite = self.callInviteMap[action.callUUID.UUIDString];
         [callInvite reject];
         [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
                            body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteRejected,
                                   kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
         [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
-    } else if (self.callMap[action.callUUID.UUIDString]) {
-        TVOCall *call = self.callMap[action.callUUID.UUIDString];
-        [call disconnect];
     }
     
     [action fulfill];
