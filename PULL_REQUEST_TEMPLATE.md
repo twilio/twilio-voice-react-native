@@ -1,6 +1,6 @@
 ## Submission Checklist
 
- - [ ] The `CHANGELOG.md` reflects any **feature**, **bug fixes**, or **known issues** made in the source code
+ - [ ] Updated the `CHANGELOG.md` to reflect any **feature**, **bug fixes**, or **known issues** made in the source code
  - [ ] Tested code changes and observed the expected behavior on example app
  - [ ] A visual inspection of the `Files changed` tab was made prior to submitting the pull request ensuring the style guide was followed
 
