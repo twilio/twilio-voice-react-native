@@ -2,7 +2,7 @@
 
  - [ ] Updated the `CHANGELOG.md` to reflect any **feature**, **bug fixes**, or **known issues** made in the source code
  - [ ] Tested code changes and observed expected behavior in the example app
- - [ ] A visual inspection of the `Files changed` tab was made prior to submitting the pull request ensuring the style guide was followed
+ - [ ] Performed a visual inspection of the `Files changed` tab prior to submitting the pull request for review to ensure proper usage of the style guide
 
 > All third-party contributors acknowledge that any contributions they provide will be made under the same open-source license that the open-source project is provided under.
 
