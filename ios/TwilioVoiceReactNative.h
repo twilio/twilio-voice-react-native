@@ -36,7 +36,7 @@
 
 @property (nonatomic, strong) AVAudioPlayer *ringbackPlayer;
 
-+ (TVODefaultAudioDevice *)audioDevice;
++ (TVODefaultAudioDevice *)twilioAudioDevice;
 
 @end
 

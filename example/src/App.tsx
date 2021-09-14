@@ -26,6 +26,8 @@ export default function App() {
     connectHandler,
     registerHandler,
     unregisterHandler,
+    logAudioDevicesHandler,
+    selectAudioDeviceHandler,
   } = useVoice(token);
 
   const headerComponents = React.useMemo(
@@ -75,6 +77,16 @@ export default function App() {
     return <Button title={title} onPress={handler} />;
   }, [registerHandler, registered, unregisterHandler]);
 
+  const audioDeviceButtons = React.useMemo(() => {
+    return [
+      <Button title={'Log Audio Devices'} onPress={logAudioDevicesHandler} />,
+      <Button
+        title={'Select Next Audio Device'}
+        onPress={selectAudioDeviceHandler}
+      />,
+    ];
+  }, [logAudioDevicesHandler, selectAudioDeviceHandler]);
+
   return (
     <SafeAreaView style={styles.expand}>
       <View style={styles.padded}>
@@ -108,6 +120,7 @@ export default function App() {
               />,
             ],
             [registrationButton],
+            audioDeviceButtons,
           ]}
         />
       </View>
