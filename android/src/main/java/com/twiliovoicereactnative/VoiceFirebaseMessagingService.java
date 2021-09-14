@@ -1,9 +1,9 @@
 package com.twiliovoicereactnative;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.PowerManager;
-import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -17,8 +17,6 @@ import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
-import com.twiliovoicereactnative.IncomingCallNotificationService;
-import com.twiliovoicereactnative.Storage;
 
 import java.util.UUID;
 

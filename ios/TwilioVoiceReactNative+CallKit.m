@@ -165,7 +165,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)providerDidBegin:(CXProvider *)provider {
@@ -173,11 +173,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession {
-    [TwilioVoiceReactNative audioDevice].enabled = YES;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = YES;
 }
 
 - (void)provider:(CXProvider *)provider didDeactivateAudioSession:(AVAudioSession *)audioSession {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
@@ -197,8 +197,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
-    [TwilioVoiceReactNative audioDevice].block();
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].block();
 
     [self.callKitProvider reportOutgoingCallWithUUID:action.callUUID startedConnectingAtDate:[NSDate date]];
     
@@ -217,8 +217,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
-    [TwilioVoiceReactNative audioDevice].block();
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].block();
     
     [self performAnswerVoiceCallWithUUID:action.callUUID completion:^(BOOL success) {
         if (success) {
