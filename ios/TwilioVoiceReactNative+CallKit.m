@@ -13,7 +13,7 @@
 
 NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
-@interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate>
+@interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate, AVAudioPlayerDelegate>
 
 @end
 
@@ -264,12 +264,16 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - TVOCallDelegate
 
 - (void)callDidStartRinging:(TVOCall *)call {
+    [self playRingback];
+
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"ringing",
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
 - (void)callDidConnect:(TVOCall *)call {
+    [self stopRingback];
+
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connected",
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
@@ -301,6 +305,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
+    
+    [self callDisconnected:call];
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
@@ -326,7 +332,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
             break;
         }
     }
-    
+
+    [self stopRingback];
     self.userInitiatedDisconnect = NO;
 }
 
@@ -347,6 +354,48 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
 previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     // TODO: process and emit warnings event
+}
+
+#pragma mark - Ringback
+
+- (void)playRingback {
+    NSString *ringtonePath = [[NSBundle mainBundle] pathForResource:@"ringtone" ofType:@"wav"];
+    if ([ringtonePath length] <= 0) {
+        NSLog(@"Can't find sound file");
+        return;
+    }
+    
+    NSError *error;
+    self.ringbackPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:ringtonePath] error:&error];
+    if (error != nil) {
+        NSLog(@"Failed to initialize audio player: %@", error);
+    } else {
+        self.ringbackPlayer.delegate = self;
+        self.ringbackPlayer.numberOfLoops = -1;
+        
+        self.ringbackPlayer.volume = 1.0f;
+        [self.ringbackPlayer play];
+    }
+}
+
+- (void)stopRingback {
+    if (!self.ringbackPlayer.isPlaying) {
+        return;
+    }
+    
+    [self.ringbackPlayer stop];
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+    if (flag) {
+        NSLog(@"Audio player finished playing successfully");
+    } else {
+        NSLog(@"Audio player finished playing with some error");
+    }
+}
+
+- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error {
+    NSLog(@"Decode error occurred: %@", error);
 }
 
 @end
