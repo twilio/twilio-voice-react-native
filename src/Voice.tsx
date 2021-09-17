@@ -4,8 +4,10 @@ import { Call } from './Call';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { CallInvite } from './CallInvite';
 import { TwilioVoiceReactNative } from './const';
+import { AudioDevice } from './AudioDevice';
 import {
   CallException,
+  NativeAudioDeviceInfo,
   NativeCallInfo,
   NativeCallInviteInfo,
   NativeEventScope,
@@ -22,6 +24,11 @@ export declare interface Voice {
    * Emit typings.
    */
   emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
+  emit(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    audioDevices: AudioDevice[],
+    selectedDevice: AudioDevice
+  ): boolean;
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
   emit(
     voiceEvent: Voice.Event.CallInviteAccepted,
@@ -48,6 +55,21 @@ export declare interface Voice {
     listener: (...args: any[]) => void
   ): this;
   on(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
+
+  addEventListener(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    listener: (
+      audioDevices: AudioDevice[],
+      selectedDevice: AudioDevice | null
+    ) => void
+  ): this;
+  on(
+    voiceEvent: Voice.Event.AudioDevicesUpdated,
+    listener: (
+      audioDevices: AudioDevice[],
+      selectedDevice: AudioDevice | null
+    ) => void
+  ): this;
 
   addEventListener(
     voiceEvent: Voice.Event.CallInvite,
@@ -132,6 +154,7 @@ export class Voice extends EventEmitter {
       error: this._handleError,
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
+      audioDevicesUpdated: this._handleAudioDevicesUpdated,
     };
 
     this._nativeEventEmitter.addListener(
@@ -276,6 +299,28 @@ export class Voice extends EventEmitter {
     this.emit(Voice.Event.Unregistered);
   };
 
+  private _handleAudioDevicesUpdated = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.AudioDevicesUpdated) {
+      throw new Error(
+        `Incorrect "voice#audioDevicesUpdated" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const {
+      audioDevices: audioDeviceInfos,
+      selectedDevice: selectedDeviceInfo,
+    } = nativeVoiceEvent;
+
+    const audioDevices = audioDeviceInfos.map(
+      (audioDeviceInfo: NativeAudioDeviceInfo) =>
+        new AudioDevice(audioDeviceInfo)
+    );
+
+    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+
+    this.emit(Voice.Event.AudioDevicesUpdated, audioDevices, selectedDevice);
+  };
+
   async connect(
     token: string,
     params: Record<string, any> = {}
@@ -317,10 +362,30 @@ export class Voice extends EventEmitter {
   unregister(token: string): Promise<void> {
     return this._nativeModule.voice_unregister(token);
   }
+
+  async getAudioDevices(): Promise<{
+    audioDevices: AudioDevice[];
+    selectedDevice: AudioDevice | null;
+  }> {
+    const {
+      audioDevices: audioDeviceInfos,
+      selectedDevice: selectedDeviceInfo,
+    } = await this._nativeModule.voice_getAudioDevices();
+
+    const audioDevices = audioDeviceInfos.map(
+      (audioDeviceInfo: NativeAudioDeviceInfo) =>
+        new AudioDevice(audioDeviceInfo)
+    );
+
+    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+
+    return { audioDevices, selectedDevice };
+  }
 }
 
 export namespace Voice {
   export enum Event {
+    'AudioDevicesUpdated' = 'audioDevicesUpdated',
     'CallInvite' = 'callInvite',
     'CallInviteAccepted' = 'callInviteAccepted',
     'CallInviteRejected' = 'callInviteRejected',

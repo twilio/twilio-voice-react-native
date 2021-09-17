@@ -47,7 +47,7 @@ public class SoundPoolManager {
             }
 
         });
-        ringingSoundId = soundPool.load(context, R.raw.outgoing, 1);
+        ringingSoundId = soundPool.load(context, R.raw.ringtone, 1);
         disconnectSoundId = soundPool.load(context, R.raw.disconnect, 1);
     }
 

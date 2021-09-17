@@ -53,9 +53,10 @@ public class NotificationUtility {
     PendingIntent piAcceptIntent = PendingIntent.getService(context.getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_call_end_white_24dp);
+    String title = getDisplayName(callInvite);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
-    remoteViews.setTextViewText(R.id.notif_title, callInvite.getFrom());
+    remoteViews.setTextViewText(R.id.notif_title, title);
     remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
 
     remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
@@ -65,8 +66,6 @@ public class NotificationUtility {
     PendingIntent pendingIntent = PendingIntent.getActivity(context.getApplicationContext(), 0, notification_intent, 0);
 
     remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
-
-    String title = getDisplayName(callInvite);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))

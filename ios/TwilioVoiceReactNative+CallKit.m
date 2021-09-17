@@ -13,7 +13,7 @@
 
 NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
-@interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate>
+@interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate, AVAudioPlayerDelegate>
 
 @end
 
@@ -164,7 +164,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)providerDidBegin:(CXProvider *)provider {
@@ -172,11 +172,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession {
-    [TwilioVoiceReactNative audioDevice].enabled = YES;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = YES;
 }
 
 - (void)provider:(CXProvider *)provider didDeactivateAudioSession:(AVAudioSession *)audioSession {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
@@ -196,8 +196,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
-    [TwilioVoiceReactNative audioDevice].block();
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].block();
 
     [self.callKitProvider reportOutgoingCallWithUUID:action.callUUID startedConnectingAtDate:[NSDate date]];
     
@@ -216,8 +216,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
-    [TwilioVoiceReactNative audioDevice].enabled = NO;
-    [TwilioVoiceReactNative audioDevice].block();
+    [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
+    [TwilioVoiceReactNative twilioAudioDevice].block();
     
     [self performAnswerVoiceCallWithUUID:action.callUUID completion:^(BOOL success) {
         if (success) {
@@ -263,12 +263,16 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - TVOCallDelegate
 
 - (void)callDidStartRinging:(TVOCall *)call {
+    [self playRingback];
+
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"ringing",
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
 - (void)callDidConnect:(TVOCall *)call {
+    [self stopRingback];
+
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: @"connected",
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
@@ -300,6 +304,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
+    
+    [self callDisconnected:call];
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
@@ -329,6 +335,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     // Remove the corresponding call invite only when the incoming call is finished.
     [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
     
+    [self stopRingback];
     self.userInitiatedDisconnect = NO;
 }
 
@@ -349,6 +356,48 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
 previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     // TODO: process and emit warnings event
+}
+
+#pragma mark - Ringback
+
+- (void)playRingback {
+    NSString *ringtonePath = [[NSBundle mainBundle] pathForResource:@"ringtone" ofType:@"wav"];
+    if ([ringtonePath length] <= 0) {
+        NSLog(@"Can't find sound file");
+        return;
+    }
+    
+    NSError *error;
+    self.ringbackPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:ringtonePath] error:&error];
+    if (error != nil) {
+        NSLog(@"Failed to initialize audio player: %@", error);
+    } else {
+        self.ringbackPlayer.delegate = self;
+        self.ringbackPlayer.numberOfLoops = -1;
+        
+        self.ringbackPlayer.volume = 1.0f;
+        [self.ringbackPlayer play];
+    }
+}
+
+- (void)stopRingback {
+    if (!self.ringbackPlayer.isPlaying) {
+        return;
+    }
+    
+    [self.ringbackPlayer stop];
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+    if (flag) {
+        NSLog(@"Audio player finished playing successfully");
+    } else {
+        NSLog(@"Audio player finished playing with some error");
+    }
+}
+
+- (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error {
+    NSLog(@"Decode error occurred: %@", error);
 }
 
 @end

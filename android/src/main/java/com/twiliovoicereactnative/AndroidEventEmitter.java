@@ -79,6 +79,15 @@ public class AndroidEventEmitter {
   public static final String EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE = "cancelledCallInvite";
   public static final String EVENT_TYPE_VOICE_REGISTERED = "registered";
   public static final String EVENT_TYPE_VOICE_UNREGISTERED = "unregistered";
+  public static final String EVENT_TYPE_VOICE_AUDIO_DEVICES_UPDATED = "audioDevicesUpdated";
+
+  /**
+   * AudioDevice event keys.
+   */
+  public static final String EVENT_KEY_AUDIO_DEVICES_NAME = "name";
+  public static final String EVENT_KEY_AUDIO_DEVICES_TYPE = "type";
+  public static final String EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES = "audioDevices";
+  public static final String EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE = "selectedDevice";
 
   public AndroidEventEmitter(ReactApplicationContext context) {
     mContext = context;
