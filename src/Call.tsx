@@ -2,6 +2,7 @@ import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './const';
 import {
+  CustomParameters,
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
@@ -80,6 +81,7 @@ export class Call extends EventEmitter {
   private _nativeModule: typeof TwilioVoiceReactNative;
 
   private _uuid: Uuid;
+  private _customParameters: CustomParameters;
   private _from?: string;
   private _isMuted?: boolean;
   private _isOnHold?: boolean;
@@ -88,7 +90,15 @@ export class Call extends EventEmitter {
   private _to?: string;
 
   constructor(
-    { uuid, from, sid, to, isMuted, isOnHold }: NativeCallInfo,
+    {
+      uuid,
+      customParameters,
+      from,
+      sid,
+      to,
+      isMuted,
+      isOnHold,
+    }: NativeCallInfo,
     options: Partial<Call.Options> = {}
   ) {
     super();
@@ -99,6 +109,7 @@ export class Call extends EventEmitter {
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._uuid = uuid;
+    this._customParameters = { ...customParameters };
     this._from = from;
     this._sid = sid;
     this._to = to;
@@ -227,6 +238,10 @@ export class Call extends EventEmitter {
 
   isOnHold(): boolean | undefined {
     return this._isOnHold;
+  }
+
+  getCustomParameters(): CustomParameters {
+    return this._customParameters;
   }
 
   getFrom(): string | undefined {

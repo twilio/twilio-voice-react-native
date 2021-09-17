@@ -2,9 +2,12 @@ import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 import type { AudioDevice } from './AudioDevice';
 
+export type CustomParameters = Record<string, any>;
+
 export interface NativeCallInviteInfo {
   uuid: Uuid;
   callSid: string;
+  customParameters?: CustomParameters;
   from: string;
   to: string;
 }
@@ -17,6 +20,7 @@ export interface NativeCancelledCallInviteInfo {
 
 export interface NativeCallInfo {
   uuid: Uuid;
+  customParameters?: CustomParameters;
   from?: string;
   isMuted?: boolean;
   isOnHold?: boolean;
@@ -169,7 +173,7 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
    */
   voice_connect(
     token: string,
-    twimlParams: Record<string, string>
+    twimlParams: Record<string, any>
   ): Promise<NativeCallInfo>;
   voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
   voice_getCalls(): Promise<NativeCallInfo[]>;

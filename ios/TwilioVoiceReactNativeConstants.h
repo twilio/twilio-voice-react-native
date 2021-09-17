@@ -34,11 +34,13 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoIsMuted;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoInOnHold;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoSid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoTo;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoCustomParameters;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoUuid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoCallSid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoFrom;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoTo;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInviteInfoCustomParameters;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceUuid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceAudioDeviceType;

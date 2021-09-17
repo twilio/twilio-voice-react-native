@@ -32,11 +32,13 @@ NSString * const kTwilioVoiceCallInfoIsMuted = @"isMuted";
 NSString * const kTwilioVoiceCallInfoInOnHold = @"isOnHold";
 NSString * const kTwilioVoiceCallInfoSid = @"sid";
 NSString * const kTwilioVoiceCallInfoTo = @"to";
+NSString * const kTwilioVoiceCallInfoCustomParameters = @"customParameters";
 
 NSString * const kTwilioVoiceCallInviteInfoUuid = @"uuid";
 NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
 NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
 NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
+NSString * const kTwilioVoiceCallInviteInfoCustomParameters = @"customParameters";
 
 NSString * const kTwilioVoiceAudioDeviceUuid = @"uuid";
 NSString * const kTwilioVoiceAudioDeviceType = @"type";
@@ -321,19 +323,31 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 // TODO: Move to separate utility file someday
 - (NSDictionary *)callInfo:(TVOCall *)call {
-    return @{kTwilioVoiceCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
-             kTwilioVoiceCallInfoFrom: call.from? call.from : @"",
-             kTwilioVoiceCallInfoIsMuted: @(call.isMuted),
-             kTwilioVoiceCallInfoInOnHold: @(call.isOnHold),
-             kTwilioVoiceCallInfoSid: call.sid,
-             kTwilioVoiceCallInfoTo: call.to? call.to : @""};
+    NSMutableDictionary *callInfo = [@{kTwilioVoiceCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
+                                       kTwilioVoiceCallInfoFrom: call.from? call.from : @"",
+                                       kTwilioVoiceCallInfoIsMuted: @(call.isMuted),
+                                       kTwilioVoiceCallInfoInOnHold: @(call.isOnHold),
+                                       kTwilioVoiceCallInfoSid: call.sid,
+                                       kTwilioVoiceCallInfoTo: call.to? call.to : @""} mutableCopy];
+    
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    if (callInvite && callInvite.customParameters) {
+        callInfo[kTwilioVoiceCallInfoCustomParameters] = [callInvite.customParameters copy];
+    }
+
+    return callInfo;
 }
 
 - (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite {
-    return @{kTwilioVoiceCallInviteInfoUuid: callInvite.uuid.UUIDString,
-             kTwilioVoiceCallInviteInfoCallSid: callInvite.callSid,
-             kTwilioVoiceCallInviteInfoFrom: callInvite.from,
-             kTwilioVoiceCallInviteInfoTo: callInvite.to};
+    NSMutableDictionary *callInviteInfo = [@{kTwilioVoiceCallInviteInfoUuid: callInvite.uuid.UUIDString,
+                                            kTwilioVoiceCallInviteInfoCallSid: callInvite.callSid,
+                                            kTwilioVoiceCallInviteInfoFrom: callInvite.from,
+                                            kTwilioVoiceCallInviteInfoTo: callInvite.to} mutableCopy];
+    if (callInvite.customParameters) {
+        callInviteInfo[kTwilioVoiceCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
+    }
+
+    return callInviteInfo;
 }
 
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite {
