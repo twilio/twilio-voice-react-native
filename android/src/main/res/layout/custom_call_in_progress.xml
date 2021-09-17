@@ -17,7 +17,7 @@
       android:layout_height="wrap_content"
       android:layout_marginLeft="7dp"
       android:layout_marginRight="3dp"
-      android:src="@drawable/ic_launcher"
+      android:src="@drawable/ic_launcher_sdk"
       android:layout_marginStart="7dp" />
 
     <TextView

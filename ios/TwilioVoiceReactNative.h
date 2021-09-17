@@ -5,6 +5,8 @@
 //  Copyright © 2021 Twilio, Inc. All rights reserved.
 //
 
+#import <AVFoundation/AVFoundation.h>
+
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
@@ -32,7 +34,9 @@
 // Indicates if the disconnect is triggered from app UI, instead of the system Call UI
 @property (nonatomic, assign) BOOL userInitiatedDisconnect;
 
-+ (TVODefaultAudioDevice *)audioDevice;
+@property (nonatomic, strong) AVAudioPlayer *ringbackPlayer;
+
++ (TVODefaultAudioDevice *)twilioAudioDevice;
 
 @end
 

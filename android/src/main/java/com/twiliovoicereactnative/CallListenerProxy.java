@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
-
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 
@@ -82,6 +81,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
+    AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
     SoundPoolManager.getInstance(this.context).stopRinging();
     if (androidEventEmitter != null) {
       WritableMap params = Arguments.createMap();
@@ -117,6 +117,7 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
+    AudioSwitchManager.getInstance(context).getAudioSwitch().deactivate();
     SoundPoolManager.getInstance(this.context).stopRinging();
     SoundPoolManager.getInstance(this.context).playDisconnect();
     if (androidEventEmitter != null) {
