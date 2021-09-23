@@ -15,9 +15,13 @@ import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECT_FAILURE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DISCONNECTED;
@@ -55,7 +59,6 @@ class CallListenerProxy implements Call.Listener {
     Storage.callMap.remove(uuid);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
