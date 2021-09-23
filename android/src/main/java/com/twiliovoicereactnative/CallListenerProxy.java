@@ -1,16 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECTED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECT_FAILURE;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DISCONNECTED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTED;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RINGING;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -24,6 +13,17 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
+
+import static com.twiliovoicereactnative.AndroidEventEmitter.CALL_EVENT_NAME;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECT_FAILURE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DISCONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTED;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RINGING;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 class CallListenerProxy implements Call.Listener {
@@ -126,7 +126,7 @@ class CallListenerProxy implements Call.Listener {
     Intent intent = new Intent(context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
     intent.putExtra(Constants.UUID, this.uuid);
-    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificationIdMap.get(this.uuid));
+    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificaionIdMap.get(this.uuid));
     intent.putExtra(Constants.NOTIFICATION_ID, this.notificationId);
     context.startService(intent);
   }
@@ -138,7 +138,7 @@ class CallListenerProxy implements Call.Listener {
     intent.putExtra(Constants.UUID, this.uuid);
     intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.CALL_SID_KEY, call.getSid());
-    Storage.uuidNotificationIdMap.put(uuid, this.notificationId);
+    Storage.uuidNotificaionIdMap.put(uuid, this.notificationId);
 
     context.startService(intent);
   }

@@ -1,7 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
-
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -9,6 +7,8 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
 
 public class AndroidEventEmitter {
   private static ReactApplicationContext context;
