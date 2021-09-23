@@ -22,7 +22,6 @@ import com.twilio.voice.CancelledCallInvite;
 public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
-  private AndroidEventEmitter androidEventEmitter;
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
@@ -56,11 +55,11 @@ public class IncomingCallNotificationService extends Service {
           endForeground();
           Log.d(TAG, "Cancelling notification uuid:" + uuid + " notificationId: " + notificationId);
           notificationManager.cancel(notificationId);
-          Storage.uuidNotificaionIdMap.remove(uuid);
+          Storage.uuidNotificationIdMap.remove(uuid);
           break;
         case Constants.ACTION_CALL_DISCONNECT:
           Log.i(TAG, "ACTION_CALL_DISCONNECT " + uuid + " notificationId" + notificationId);
-          Storage.uuidNotificaionIdMap.remove(uuid);
+          Storage.uuidNotificationIdMap.remove(uuid);
           disconnectCall(notificationId, uuid);
           break;
         case Constants.ACTION_OUTGOING_CALL:
@@ -103,7 +102,7 @@ public class IncomingCallNotificationService extends Service {
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.cancel(notificationId);
 
-    Storage.uuidNotificaionIdMap.put(uuid, notificationId);
+    Storage.uuidNotificationIdMap.put(uuid, notificationId);
     startForeground(notificationId, NotificationUtility.createCallAnsweredNotificationWithLowImportance(callInvite, notificationId, uuid, this));
     // Send the broadcast in case TwilioVoiceReactNative is loaded, it can emit the event
     LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
@@ -165,7 +164,7 @@ public class IncomingCallNotificationService extends Service {
     }
     startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, this));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
-    Storage.uuidNotificaionIdMap.put(uuid, notificationId);
+    Storage.uuidNotificationIdMap.put(uuid, notificationId);
   }
 
   /*

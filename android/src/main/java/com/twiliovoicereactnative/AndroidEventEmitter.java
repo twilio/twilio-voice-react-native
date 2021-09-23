@@ -1,5 +1,7 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
+
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -8,10 +10,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
-
 public class AndroidEventEmitter {
-  private ReactApplicationContext mContext;
+  private static ReactApplicationContext context;
 
   /**
    * Event scopes.
@@ -89,23 +89,32 @@ public class AndroidEventEmitter {
   public static final String EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES = "audioDevices";
   public static final String EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE = "selectedDevice";
 
-  public AndroidEventEmitter(ReactApplicationContext context) {
-    mContext = context;
+  public static void setContext(ReactApplicationContext rContext) {
+    context = rContext;
   }
 
-  public void sendEvent(String eventName, @Nullable WritableMap params) {
+  public static void sendEvent(String eventName, @Nullable WritableMap params) {
     if (BuildConfig.DEBUG) {
       Log.d(TAG, "sendEvent "+eventName+" params "+params);
     }
-    if (mContext.hasActiveCatalystInstance()) {
-      mContext
-        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-        .emit(eventName, params);
-    } else {
+
+    if (context == null) {
+      if (BuildConfig.DEBUG) {
+        Log.d(TAG, "attempt to sendEvent without context");
+      }
+      return;
+    }
+
+    if (!context.hasActiveCatalystInstance()) {
       if (BuildConfig.DEBUG) {
         Log.d(TAG, "failed Catalyst instance not active");
       }
+      return;
     }
+
+    context
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit(eventName, params);
   }
 
 }
