@@ -25,6 +25,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 
+@RequiresApi(api = Build.VERSION_CODES.N)
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
@@ -37,7 +38,6 @@ class CallListenerProxy implements Call.Listener {
     this.context = context;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
@@ -71,7 +71,6 @@ class CallListenerProxy implements Call.Listener {
     raiseNotification(call);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
@@ -85,7 +84,6 @@ class CallListenerProxy implements Call.Listener {
     AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onReconnecting");
@@ -97,7 +95,6 @@ class CallListenerProxy implements Call.Listener {
     AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onReconnected(@NonNull Call call) {
     Log.d(TAG, "onReconnected");
@@ -108,7 +105,6 @@ class CallListenerProxy implements Call.Listener {
     AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
