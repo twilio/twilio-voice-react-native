@@ -419,6 +419,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       });
   }
 
+  @ReactMethod
+  public void voice_showNativeAvRoutePicker(Promise promise) {
+    // This API is iOS specific.
+    promise.resolve(null);
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCalls(Promise promise) {
