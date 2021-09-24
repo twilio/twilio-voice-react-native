@@ -96,7 +96,6 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
      */
     Log.d(TAG, "Successfully received intent " + action);
     WritableMap params = Arguments.createMap();
-    AndroidEventEmitter androidEventEmitter = AndroidEventEmitter.getInstance();
     switch (action) {
       case Constants.ACTION_FCM_TOKEN:
         fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
@@ -112,7 +111,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         break;
       }
       case Constants.ACTION_ACCEPT: {
@@ -125,7 +124,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         break;
       }
       case Constants.ACTION_REJECT:
@@ -138,7 +137,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_REJECTED);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         break;
       case Constants.ACTION_CANCEL_CALL:
         Log.d(TAG, "Successfully received cancel notification");
@@ -149,7 +148,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE);
         params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
 
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         break;
       default:
         break;
