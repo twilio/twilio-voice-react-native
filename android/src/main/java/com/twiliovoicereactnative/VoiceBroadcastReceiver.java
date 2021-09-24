@@ -29,18 +29,13 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
   static final String TAG = "VoiceBroadcastReceiver";
   private static VoiceBroadcastReceiver instance;
 
-  private ReactApplicationContext context;
   private String fcmToken;
-
-  VoiceBroadcastReceiver(ReactApplicationContext reactApplicationContext) {
-    this.context = reactApplicationContext;
-    this.register();
-  }
+  private ReactApplicationContext registeredContext;
 
   /**
    * Register this `VoiceBroadcastReceiver`.
    */
-  private void register() {
+  private void register(ReactApplicationContext context) {
     IntentFilter intentFilter = new IntentFilter();
     intentFilter.addAction(Constants.ACTION_INCOMING_CALL);
     intentFilter.addAction(Constants.ACTION_CANCEL_CALL);
@@ -49,8 +44,10 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
     intentFilter.addAction(Constants.ACTION_REJECT);
 
     LocalBroadcastManager
-      .getInstance(this.context)
+      .getInstance(context)
       .registerReceiver(this, intentFilter);
+
+    this.registeredContext = context;
 
     Log.d(TAG, "Successfully registered receiver");
   }
@@ -59,22 +56,35 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
    * Unregister this `VoiceBroadcastReceiver`.
    */
   private void unregister() {
+    if (this.registeredContext == null) {
+      Log.d(TAG, "attempt to unregister from a null context");
+      return;
+    }
+
     LocalBroadcastManager
-      .getInstance(this.context)
+      .getInstance(this.registeredContext)
       .unregisterReceiver(this);
 
     Log.d(TAG, "Successfully unregistered receiver");
   }
 
   /**
-   * Create a `VoiceBroadcastReceiver` and unregisters any existing one.
+   * Unregister this `VoiceBroadcastReceiver` if applicable and then register to the context.
    */
-  public static void createReceiver(ReactApplicationContext reactApplicationContext) {
-    if (instance != null) {
-      instance.unregister();
+  public void setContext(ReactApplicationContext context) {
+    this.unregister();
+    this.register(context);
+  }
+
+  /**
+   * Create and return a singleton `VoiceBroadcastReceiver`.
+   */
+  public static VoiceBroadcastReceiver getInstance() {
+    if (instance == null) {
+      instance = new VoiceBroadcastReceiver();
     }
 
-    instance = new VoiceBroadcastReceiver(reactApplicationContext);
+    return instance;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
@@ -86,6 +96,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
      */
     Log.d(TAG, "Successfully received intent " + action);
     WritableMap params = Arguments.createMap();
+    AndroidEventEmitter androidEventEmitter = AndroidEventEmitter.getInstance();
     switch (action) {
       case Constants.ACTION_FCM_TOKEN:
         fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
@@ -101,7 +112,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        AndroidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
         break;
       }
       case Constants.ACTION_ACCEPT: {
@@ -114,7 +125,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        AndroidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
         break;
       }
       case Constants.ACTION_REJECT:
@@ -127,7 +138,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_REJECTED);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
-        AndroidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
         break;
       case Constants.ACTION_CANCEL_CALL:
         Log.d(TAG, "Successfully received cancel notification");
@@ -138,7 +149,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE);
         params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
 
-        AndroidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
         break;
       default:
         break;

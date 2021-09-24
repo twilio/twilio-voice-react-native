@@ -35,7 +35,7 @@ class CallListenerProxy implements Call.Listener {
   private final String uuid;
 
   private int notificationId;
-  private Context context;
+  private final Context context;
 
   public CallListenerProxy(String uuid, Context context) {
     this.uuid = uuid;
@@ -52,7 +52,7 @@ class CallListenerProxy implements Call.Listener {
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
     params.putString(EVENT_KEY_ERROR, callException.getMessage());
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
 
     cancelNotification();
 
@@ -69,7 +69,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
 
     raiseNotification(call);
   }
@@ -84,7 +84,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
@@ -95,7 +95,7 @@ class CallListenerProxy implements Call.Listener {
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
     params.putString(EVENT_KEY_ERROR, callException.getMessage());
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
@@ -105,7 +105,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
@@ -119,7 +119,7 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    AndroidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
 
     cancelNotification();
     Storage.callMap.remove(uuid);

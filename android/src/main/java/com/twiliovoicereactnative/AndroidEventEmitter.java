@@ -11,7 +11,8 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
 
 public class AndroidEventEmitter {
-  private static ReactApplicationContext context;
+  private static AndroidEventEmitter instance;
+  private ReactApplicationContext context;
 
   /**
    * Event scopes.
@@ -89,11 +90,19 @@ public class AndroidEventEmitter {
   public static final String EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES = "audioDevices";
   public static final String EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE = "selectedDevice";
 
-  public static void setContext(ReactApplicationContext rContext) {
-    context = rContext;
+  public static AndroidEventEmitter getInstance() {
+    if (AndroidEventEmitter.instance == null) {
+      instance = new AndroidEventEmitter();
+    }
+
+    return instance;
   }
 
-  public static void sendEvent(String eventName, @Nullable WritableMap params) {
+  public void setContext(ReactApplicationContext context) {
+    this.context = context;
+  }
+
+  public void sendEvent(String eventName, @Nullable WritableMap params) {
     if (BuildConfig.DEBUG) {
       Log.d(TAG, "sendEvent "+eventName+" params "+params);
     }
