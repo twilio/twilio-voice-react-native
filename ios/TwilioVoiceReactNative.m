@@ -5,6 +5,8 @@
 //  Copyright © 2021 Twilio, Inc. All rights reserved.
 //
 
+@import AVKit;
+
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
@@ -52,6 +54,39 @@ NSString * const kTwilioVoiceAudioDeviceBluetooth = @"Bluetooth";
 static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @import TwilioVoice;
+
+#pragma mark - Custom AVRoutePickerView Implementation
+
+@interface TVRNAVRoutePickerView : AVRoutePickerView
+
+- (void)present;
+
+@end
+
+@implementation TVRNAVRoutePickerView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        self.hidden = YES;
+    }
+    
+    return self;
+}
+
+- (void)present {
+    UIButton *routePickerButton;
+    for (id view in self.subviews) {
+        if ([view isKindOfClass:[UIButton class]]) {
+            routePickerButton = (UIButton *)view;
+            [routePickerButton sendActionsForControlEvents:UIControlEventTouchUpInside];
+            break;
+        }
+    }
+}
+
+@end
+
+#pragma mark - TwilioVoiceReactNative
 
 @interface TwilioVoiceReactNative ()
 
@@ -496,7 +531,28 @@ RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
     } else {
         reject(@"Voice error", [NSString stringWithFormat:@"Failed to select audio device %@", uuid], nil);
     }
+}
 
+RCT_EXPORT_METHOD(voice_showNativeAvRoutePicker:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    TVRNAVRoutePickerView *routePicker = [[TVRNAVRoutePickerView alloc] initWithFrame:CGRectZero];
+    
+    UIWindow *window = [UIApplication sharedApplication].windows[0];
+    UIViewController *rootViewController = window.rootViewController;
+    if (rootViewController) {
+        UIViewController *topViewController = rootViewController;
+        while (topViewController.presentedViewController) {
+            topViewController = topViewController.presentedViewController;
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [topViewController.view addSubview:routePicker];
+            [routePicker present];
+        });
+    }
+    
+    resolve(nil);
 }
 
 #pragma mark - Bingings (Call)
