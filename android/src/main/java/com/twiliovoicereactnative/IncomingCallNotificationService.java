@@ -22,7 +22,6 @@ import com.twilio.voice.CancelledCallInvite;
 public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
-  private AndroidEventEmitter androidEventEmitter;
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   @Override

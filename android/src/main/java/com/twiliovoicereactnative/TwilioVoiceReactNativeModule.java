@@ -1,15 +1,11 @@
 package com.twiliovoicereactnative;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -70,15 +66,12 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CA
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_REGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_UNREGISTERED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.VOICE_EVENT_NAME;
-import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   static final String TAG = "TwilioVoiceReactNative";
   private final ReactApplicationContext reactContext;
-  private String fcmToken;
-  private VoiceBroadcastReceiver voiceBroadcastReceiver;
   private final AudioSwitch audioSwitch;
   private final Map<String, AudioDevice> audioDeviceMap;
   private String selectedDeviceUuid;
@@ -96,9 +89,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     Log.d(TAG, "instantiation of TwilioVoiceReactNativeModule");
 
-    androidEventEmitter = new AndroidEventEmitter(reactContext);
-    voiceBroadcastReceiver = new VoiceBroadcastReceiver();
-    registerReceiver();
+    AndroidEventEmitter.getInstance().setContext(reactContext);
+    VoiceBroadcastReceiver.getInstance().setContext(reactContext);
 
     audioDeviceTypeMap.put("Speakerphone", "speaker");
     audioDeviceTypeMap.put("BluetoothHeadset", "bluetooth");
@@ -125,7 +117,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       params.putArray(EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES, getAudioDeviceInfoArray(audioDeviceMap));
       params.putMap(EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE, getAudioDeviceInfoMap(selectedDeviceUuid, selectedDevice));
 
-      androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+      AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
 
       return null;
     });
@@ -134,20 +126,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     SoundPoolManager.getInstance(reactContext);
   }
 
-  private void registerReceiver() {
-    IntentFilter intentFilter = new IntentFilter();
-    intentFilter.addAction(Constants.ACTION_INCOMING_CALL);
-    intentFilter.addAction(Constants.ACTION_CANCEL_CALL);
-    intentFilter.addAction(Constants.ACTION_FCM_TOKEN);
-    intentFilter.addAction(Constants.ACTION_ACCEPT);
-    intentFilter.addAction(Constants.ACTION_REJECT);
-    LocalBroadcastManager.getInstance(reactContext).registerReceiver(
-      voiceBroadcastReceiver, intentFilter);
-    Log.d(TAG, "Successfully registerReceiver");
-  }
-
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private WritableMap getCallInviteCustomParameters(CallInvite callInvite) {
+  public static WritableMap getCallInviteCustomParameters(CallInvite callInvite) {
     WritableMap customParameters = Arguments.createMap();
 
     callInvite.getCustomParameters().forEach((customParamKey, customParamVal) -> {
@@ -158,7 +138,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
+  public static WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
     WritableMap callInviteInfo = Arguments.createMap();
     callInviteInfo.putString(EVENT_KEY_UUID, uuid);
     callInviteInfo.putString(EVENT_KEY_CALL_INVITE_CALL_SID, callInvite.getCallSid());
@@ -171,7 +151,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return callInviteInfo;
   }
 
-  private WritableMap getCancelledCallInviteInfo(CancelledCallInvite cancelledCallInvite) {
+  public static WritableMap getCancelledCallInviteInfo(CancelledCallInvite cancelledCallInvite) {
     WritableMap cancelledCallInviteInfo = Arguments.createMap();
     cancelledCallInviteInfo.putString(EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID, cancelledCallInvite.getCallSid());
     cancelledCallInviteInfo.putString(EVENT_KEY_CANCELLED_CALL_INVITE_FROM, cancelledCallInvite.getFrom());
@@ -180,7 +160,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
-  private WritableMap getCallInfo(String uuid, Call call) {
+  public static WritableMap getCallInfo(String uuid, Call call) {
     WritableMap callInfo = Arguments.createMap();
     callInfo.putString(EVENT_KEY_UUID, uuid);
     callInfo.putString(EVENT_KEY_CALL_SID, call.getSid());
@@ -223,77 +203,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return audioDevicesInfo;
   }
 
-  private class VoiceBroadcastReceiver extends BroadcastReceiver {
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      String action = intent.getAction();
-      /*
-       * Handle the incoming or cancelled call invite
-       */
-      Log.d(TAG, "Successfully received intent " + action);
-      WritableMap params = Arguments.createMap();
-      switch (action) {
-        case Constants.ACTION_FCM_TOKEN:
-          fcmToken = intent.getStringExtra(Constants.FCM_TOKEN);
-          Log.d(TAG, "Successfully set token" + fcmToken);
-          break;
-        case Constants.ACTION_INCOMING_CALL: {
-          Log.d(TAG, "Successfully received incoming notification");
-
-          String uuid = intent.getStringExtra(Constants.UUID);
-          CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-          WritableMap callInviteInfo = getCallInviteInfo(uuid, callInvite);
-
-          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE);
-          params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-
-          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
-          break;
-        }
-        case Constants.ACTION_ACCEPT: {
-          Log.d(TAG, "Accepted call");
-
-          String uuid = intent.getStringExtra(Constants.UUID);
-          CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-          WritableMap callInviteInfo = getCallInviteInfo(uuid, callInvite);
-
-          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
-          params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-
-          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
-          break;
-        }
-        case Constants.ACTION_REJECT:
-          Log.d(TAG, "Rejected call");
-
-          String uuid = intent.getStringExtra(Constants.UUID);
-          CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-          WritableMap callInviteInfo = getCallInviteInfo(uuid, callInvite);
-
-          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_REJECTED);
-          params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-
-          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
-          break;
-        case Constants.ACTION_CANCEL_CALL:
-          Log.d(TAG, "Successfully received cancel notification");
-
-          CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
-          WritableMap cancelledCallInviteInfo = getCancelledCallInviteInfo(cancelledCallInvite);
-
-          params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE);
-          params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
-
-          androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
   @Override
   @NonNull
   public String getName() {
@@ -307,7 +216,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "Successfully registered FCM");
         WritableMap params = Arguments.createMap();
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_REGISTERED);
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         promise.resolve(null);
       }
 
@@ -317,7 +226,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         Log.e(TAG, errorMessage);
         WritableMap params = Arguments.createMap();
         params.putString(EVENT_KEY_TYPE, EVENT_KEY_ERROR);
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         promise.reject(errorMessage);
       }
     };
@@ -330,7 +239,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "Successfully unregistered FCM");
         WritableMap params = Arguments.createMap();
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_UNREGISTERED);
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         promise.resolve(null);
       }
 
@@ -340,7 +249,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         Log.e(TAG, errorMessage);
         WritableMap params = Arguments.createMap();
         params.putString(EVENT_KEY_TYPE, EVENT_KEY_ERROR);
-        androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+        AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         promise.reject(errorMessage);
       }
     };
@@ -651,7 +560,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     WritableMap callInviteInfo = getCallInviteInfo(callInviteUuid, activeCallInvite);
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED);
     params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-    androidEventEmitter.sendEvent(VOICE_EVENT_NAME, params);
+    AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
 
     int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
     Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);

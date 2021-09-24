@@ -2,10 +2,12 @@ package com.twiliovoicereactnative;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
@@ -26,106 +28,99 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DIS
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RINGING;
-import static com.twiliovoicereactnative.Storage.androidEventEmitter;
 
+@RequiresApi(api = Build.VERSION_CODES.N)
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
 
   private int notificationId;
-  private Context context;
+  private final Context context;
 
   public CallListenerProxy(String uuid, Context context) {
     this.uuid = uuid;
     this.context = context;
   }
 
-  private WritableMap getCallInfo(String uuid, Call call) {
-    WritableMap callInfo = Arguments.createMap();
-    callInfo.putString(EVENT_KEY_UUID, uuid);
-    callInfo.putString(EVENT_KEY_CALL_SID, call.getSid());
-    callInfo.putString(EVENT_KEY_CALL_FROM, call.getFrom());
-    callInfo.putString(EVENT_KEY_CALL_TO, call.getTo());
-    return callInfo;
-  }
-
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
+
     SoundPoolManager.getInstance(this.context).stopRinging();
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
-      params.putString(EVENT_KEY_ERROR, callException.getMessage());
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
+    params.putString(EVENT_KEY_ERROR, callException.getMessage());
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
+
     cancelNotification();
+
     Storage.callMap.remove(uuid);
   }
 
   @Override
   public void onRinging(@NonNull Call call) {
     Log.d(TAG, "onRinging");
+
     this.notificationId = (int) System.currentTimeMillis();
     SoundPoolManager.getInstance(this.context).playRinging();
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
+
     raiseNotification(call);
   }
 
   @Override
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
+
     AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
     SoundPoolManager.getInstance(this.context).stopRinging();
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onReconnecting");
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
-      params.putString(EVENT_KEY_ERROR, callException.getMessage());
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTING);
+    params.putString(EVENT_KEY_ERROR, callException.getMessage());
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
   public void onReconnected(@NonNull Call call) {
     Log.d(TAG, "onReconnected");
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RECONNECTED);
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
+
     AudioSwitchManager.getInstance(context).getAudioSwitch().deactivate();
     SoundPoolManager.getInstance(this.context).stopRinging();
     SoundPoolManager.getInstance(this.context).playDisconnect();
-    if (androidEventEmitter != null) {
-      WritableMap params = Arguments.createMap();
-      params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
-      params.putMap(EVENT_KEY_CALL_INFO, getCallInfo(uuid, call));
-      androidEventEmitter.sendEvent(CALL_EVENT_NAME, params);
-    }
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
+
     cancelNotification();
     Storage.callMap.remove(uuid);
   }

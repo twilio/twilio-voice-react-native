@@ -23,8 +23,6 @@ public class Storage {
   // A map to keep uuid and CancelledCallInvite mapping
   static final Map<String, CancelledCallInvite> cancelledCallInviteMap = new HashMap<>();
 
-  static AndroidEventEmitter androidEventEmitter = null;
-
   static void releaseCallInviteStorage(String uuid, String callSid, int notificationId, String action) {
     Log.d(TAG, "Removing items in callInviteMap" +
       "uuid:" + uuid +
