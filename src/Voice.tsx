@@ -381,6 +381,10 @@ export class Voice extends EventEmitter {
 
     return { audioDevices, selectedDevice };
   }
+
+  showAvRoutePickerView(): Promise<void> {
+    return this._nativeModule.voice_showNativeAvRoutePicker();
+  }
 }
 
 export namespace Voice {
