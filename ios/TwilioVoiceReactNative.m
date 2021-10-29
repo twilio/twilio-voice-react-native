@@ -275,6 +275,13 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
             if (!found) {
                 NSLog(@"Unidentified output device selected: %@, %@, %@", port.portType, port.portName, port.UID);
+                NSUUID *uuid = [NSUUID UUID];
+                NSDictionary *unidentifiedDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                                                      kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
+                                                      kTwilioVoiceAudioDeviceName: port.portName,
+                                                      kTwilioVoiceAudioDeviceUid: port.UID };
+                self.audioDevices[uuid.UUIDString] = unidentifiedDevice;
+                self.selectedAudioDevice = unidentifiedDevice;
             }
         }
     }
