@@ -19,9 +19,14 @@ import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
+  // TODO: how do I clean this list when done?
+  private List<Integer> notificationIdList = new ArrayList<Integer>();
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
@@ -34,6 +39,7 @@ public class IncomingCallNotificationService extends Service {
       CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
       CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.NOTIFICATION_ID, 0);
+      insertNotificationIdList(notificationId);
       String uuid = intent.getStringExtra(Constants.UUID);
       String callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
       Log.d(TAG, "UUID " + uuid + " action " + action + " intent " + intent.toString() + " notificationId " + notificationId);
@@ -52,7 +58,7 @@ public class IncomingCallNotificationService extends Service {
           handleCancelledCall(intent, cancelledCallInvite.getCallSid(), notificationId, uuid);
           break;
         case Constants.ACTION_CANCEL_NOTIFICATION:
-          endForeground();
+          endForeground(notificationId);
           Log.d(TAG, "Cancelling notification uuid:" + uuid + " notificationId: " + notificationId);
           notificationManager.cancel(notificationId);
           Storage.uuidNotificaionIdMap.remove(uuid);
@@ -84,7 +90,7 @@ public class IncomingCallNotificationService extends Service {
   @RequiresApi(api = Build.VERSION_CODES.N)
   private void acceptCall(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
-    endForeground();
+    endForeground(notificationId);
     Intent activeCallIntent = new Intent(Constants.ACTION_ACCEPT);
     activeCallIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     activeCallIntent.putExtra(Constants.UUID, uuid);
@@ -109,7 +115,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void rejectCall(CallInvite callInvite, int notificationId, String uuid) {
-    endForeground();
+    endForeground(notificationId);
     callInvite.reject(getApplicationContext());
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "reject");
 
@@ -120,7 +126,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void disconnectCall(int notificationId, String uuid) {
-    endForeground();
+    endForeground(notificationId);
     Call call = Storage.callMap.get(uuid);
     if (call != null) {
       call.disconnect();
@@ -135,7 +141,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void handleCancelledCall(Intent intent, String callSid, int notificationId, String uuid) {
-    endForeground();
+    endForeground(notificationId);
     Storage.releaseCallInviteStorage(uuid, callSid, notificationId, "cancel");
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
@@ -151,8 +157,38 @@ public class IncomingCallNotificationService extends Service {
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
 
+  // TODO: discuss if this is still needed, e.g. when acceptCall().
   private void endForeground() {
-    stopForeground(true);
+    endForeground(Integer.MAX_VALUE);
+  }
+
+  private void endForeground(int notificationId) {
+    if (notificationId == Integer.MAX_VALUE) {
+      stopForeground(true);
+    } else {
+      removeNotificationIdList(notificationId);
+      if (notificationIdList.size() == 0) {
+        stopForeground(true);
+      }
+    }
+  }
+
+  private void insertNotificationIdList(int notificationId) {
+    Log.d(TAG, "Inserting notification id " + notificationId);
+    if (!notificationIdList.contains(notificationId)) {
+      notificationIdList.add(notificationId);
+    } else {
+      Log.d(TAG, "Notification ID " + notificationId + " already exists");
+    }
+  }
+
+  private void removeNotificationIdList(int notificationId) {
+    Log.d(TAG, "Removing notification id " + notificationId);
+    if (notificationIdList.contains(notificationId)) {
+      notificationIdList.remove(Integer.valueOf(notificationId));
+    } else {
+      Log.d(TAG, "Notification ID " + notificationId + " not found");
+    }
   }
 
   @TargetApi(Build.VERSION_CODES.O)
