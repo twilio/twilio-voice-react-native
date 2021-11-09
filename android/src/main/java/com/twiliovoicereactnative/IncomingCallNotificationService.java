@@ -39,12 +39,12 @@ public class IncomingCallNotificationService extends Service {
       CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
       CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.NOTIFICATION_ID, 0);
-      insertNotificationIdList(notificationId);
       String uuid = intent.getStringExtra(Constants.UUID);
       String callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
       Log.d(TAG, "UUID " + uuid + " action " + action + " intent " + intent.toString() + " notificationId " + notificationId);
       switch (action) {
         case Constants.ACTION_INCOMING_CALL:
+          insertNotificationIdList(notificationId);
           handleIncomingCall(callInvite, notificationId, uuid);
           break;
         case Constants.ACTION_ACCEPT:
@@ -166,7 +166,10 @@ public class IncomingCallNotificationService extends Service {
     if (notificationId == Integer.MAX_VALUE) {
       stopForeground(true);
     } else {
+      NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+      notificationManager.cancel(notificationId);
       removeNotificationIdList(notificationId);
+
       if (notificationIdList.size() == 0) {
         stopForeground(true);
       }
