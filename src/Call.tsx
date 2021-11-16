@@ -9,6 +9,7 @@ import {
   NativeEventScope,
   Uuid,
 } from './type';
+import { TwilioError } from './error/TwilioError';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.
@@ -18,10 +19,10 @@ export declare interface Call {
    * Emit typings.
    */
   emit(callEvent: Call.Event.Connected): boolean;
-  emit(callEvent: Call.Event.ConnectFailure): boolean;
-  emit(callEvent: Call.Event.Reconnecting): boolean;
+  emit(callEvent: Call.Event.ConnectFailure, error: TwilioError): boolean;
+  emit(callEvent: Call.Event.Reconnecting, error: TwilioError): boolean;
   emit(callEvent: Call.Event.Reconnected): boolean;
-  emit(callEvent: Call.Event.Disconnected): boolean;
+  emit(callEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
   emit(callEvent: Call.Event.Ringing): boolean;
 
   /**
@@ -174,7 +175,10 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    this.emit(Call.Event.ConnectFailure);
+    error = new TwilioError(
+      nativeCallEvent.error.message,
+      nativeCallEvent.error.code);
+    this.emit(Call.Event.ConnectFailure, error);
   };
 
   private _handleDisconnected = (nativeCallEvent: NativeCallEvent) => {
@@ -186,7 +190,14 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    this.emit(Call.Event.Disconnected);
+    if (nativeCallEvent.error) {
+      error = new TwilioError(
+        nativeCallEvent.error.message, 
+        nativeCallEvent.error.code);
+      this.emit(Call.Event.Disconnected, error);
+    } else {
+      this.emit(Call.Event.Disconnected);
+    }
   };
 
   private _handleReconnecting = (nativeCallEvent: NativeCallEvent) => {
@@ -198,7 +209,10 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    this.emit(Call.Event.Reconnecting);
+    error = new TwilioError(
+      nativeCallEvent.error.message, 
+      nativeCallEvent.error.code);
+    this.emit(Call.Event.Reconnecting, error);
   };
 
   private _handleReconnected = (nativeCallEvent: NativeCallEvent) => {
