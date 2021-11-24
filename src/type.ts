@@ -39,7 +39,10 @@ export enum NativeEventScope {
   'Voice' = 'Voice',
 }
 
-export type CallException = any;
+export interface NativeCallError {
+  code: number,
+  message: string;
+}
 
 export type Uuid = string;
 
@@ -59,13 +62,14 @@ export interface NativeCallConnectedEvent {
 
 export interface NativeCallConnectFailureEvent {
   type: NativeCallEventType.ConnectFailure;
-  exception: CallException;
   call: NativeCallInfo;
+  error: NativeCallError;
 }
 
 export interface NativeCallReconnectingEvent {
   type: NativeCallEventType.Reconnecting;
   call: NativeCallInfo;
+  error: NativeCallError;
 }
 
 export interface NativeCallReconnectedEvent {
@@ -76,6 +80,7 @@ export interface NativeCallReconnectedEvent {
 export interface NativeCallDisconnectedEvent {
   type: NativeCallEventType.Disconnected;
   call: NativeCallInfo;
+  error?: NativeCallError;
 }
 
 export interface NativeCallRingingEvent {
@@ -120,7 +125,7 @@ export interface NativeCallInviteRejectedEvent {
 export interface NativeCancelledCallInviteEvent {
   type: NativeVoiceEventType.CancelledCallInvite;
   cancelledCallInvite: NativeCancelledCallInviteInfo;
-  exception?: CallException;
+  error: NativeCallError;
 }
 
 interface NativeAudioDevicesInfo {
