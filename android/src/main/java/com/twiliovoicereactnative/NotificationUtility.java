@@ -57,7 +57,7 @@ public class NotificationUtility {
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
     remoteViews.setTextViewText(R.id.notif_title, title);
-    remoteViews.setTextViewText(R.id.notif_content, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
+    remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
 
     remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
     remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
@@ -72,7 +72,7 @@ public class NotificationUtility {
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
         .setContentTitle(title)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -87,7 +87,7 @@ public class NotificationUtility {
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
         .setContentTitle(title)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -111,7 +111,7 @@ public class NotificationUtility {
     smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
-    remoteViews.setTextViewText(R.id.make_call_text, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
+    remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
     String title = getDisplayName(callInvite);
 
     Log.i(TAG, "createCallAnsweredNotification " + uuid + " notificationId" + notificationId);
@@ -137,7 +137,7 @@ public class NotificationUtility {
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
         .setSmallIcon(smallIconResId)
         .setContentTitle(title)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -151,7 +151,7 @@ public class NotificationUtility {
       Notification notification = new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
         .setContentTitle(title)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -178,7 +178,7 @@ public class NotificationUtility {
     smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
-    remoteViews.setTextViewText(R.id.make_call_text, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
+    remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
 
     Intent notification_intent = new Intent(context.getApplicationContext(), IncomingCallNotificationService.class);
     notification_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND);
@@ -199,7 +199,7 @@ public class NotificationUtility {
 
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
         .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -212,7 +212,7 @@ public class NotificationUtility {
     } else {
       Notification notification = new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -239,7 +239,7 @@ public class NotificationUtility {
     Log.i(TAG, "createWakeupAppNotification " + uuid + " notificationId" + notificationId);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
-    remoteViews.setTextViewText(R.id.make_call_text, Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name));
+    remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
 
     Intent notification_intent = new Intent(context.getApplicationContext(), IncomingCallNotificationService.class);
     notification_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND);
@@ -260,7 +260,7 @@ public class NotificationUtility {
 
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
         .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -273,7 +273,7 @@ public class NotificationUtility {
     } else {
       Notification notification = new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
-        .setContentText(Constants.NOTIFICATION_CONTENT + context.getString(R.string.app_name))
+        .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setExtras(extras)
         .setAutoCancel(true)
@@ -333,6 +333,10 @@ public class NotificationUtility {
       title = URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
     }
     return title;
+  }
+
+  private static String getContentBanner(Context context) {
+    return context.getString(R.string.app_name) + Constants.NOTIFICATION_BANNER;
   }
 
 }
