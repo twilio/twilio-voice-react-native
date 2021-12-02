@@ -177,7 +177,8 @@ export class Call extends EventEmitter {
 
     const error = new TwilioError(
       nativeCallEvent.error.message,
-      nativeCallEvent.error.code);
+      nativeCallEvent.error.code
+    );
     this.emit(Call.Event.ConnectFailure, error);
   };
 
@@ -192,8 +193,9 @@ export class Call extends EventEmitter {
 
     if (nativeCallEvent.error) {
       const error = new TwilioError(
-        nativeCallEvent.error.message, 
-        nativeCallEvent.error.code);
+        nativeCallEvent.error.message,
+        nativeCallEvent.error.code
+      );
       this.emit(Call.Event.Disconnected, error);
     } else {
       this.emit(Call.Event.Disconnected);
@@ -210,8 +212,9 @@ export class Call extends EventEmitter {
     this._update(nativeCallEvent);
 
     const error = new TwilioError(
-      nativeCallEvent.error.message, 
-      nativeCallEvent.error.code);
+      nativeCallEvent.error.message,
+      nativeCallEvent.error.code
+    );
     this.emit(Call.Event.Reconnecting, error);
   };
 

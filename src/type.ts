@@ -39,8 +39,8 @@ export enum NativeEventScope {
   'Voice' = 'Voice',
 }
 
-export interface NativeCallError {
-  code: number,
+export interface NativeErrorInfo {
+  code: number;
   message: string;
 }
 
@@ -63,13 +63,13 @@ export interface NativeCallConnectedEvent {
 export interface NativeCallConnectFailureEvent {
   type: NativeCallEventType.ConnectFailure;
   call: NativeCallInfo;
-  error: NativeCallError;
+  error: NativeErrorInfo;
 }
 
 export interface NativeCallReconnectingEvent {
   type: NativeCallEventType.Reconnecting;
   call: NativeCallInfo;
-  error: NativeCallError;
+  error: NativeErrorInfo;
 }
 
 export interface NativeCallReconnectedEvent {
@@ -80,7 +80,7 @@ export interface NativeCallReconnectedEvent {
 export interface NativeCallDisconnectedEvent {
   type: NativeCallEventType.Disconnected;
   call: NativeCallInfo;
-  error?: NativeCallError;
+  error?: NativeErrorInfo;
 }
 
 export interface NativeCallRingingEvent {
@@ -125,10 +125,10 @@ export interface NativeCallInviteRejectedEvent {
 export interface NativeCancelledCallInviteEvent {
   type: NativeVoiceEventType.CancelledCallInvite;
   cancelledCallInvite: NativeCancelledCallInviteInfo;
-  error: NativeCallError;
+  error: NativeErrorInfo;
 }
 
-interface NativeAudioDevicesInfo {
+export interface NativeAudioDevicesInfo {
   audioDevices: NativeAudioDeviceInfo[];
   selectedDevice: NativeAudioDeviceInfo;
 }
@@ -137,12 +137,18 @@ export interface NativeAudioDevicesUpdatedEvent extends NativeAudioDevicesInfo {
   type: NativeVoiceEventType.AudioDevicesUpdated;
 }
 
+export interface NativeErrorEvent {
+  type: NativeVoiceEventType.Error;
+  error: NativeErrorInfo;
+}
+
 export type NativeVoiceEvent =
   | NativeAudioDevicesUpdatedEvent
   | NativeCallInviteEvent
   | NativeCallInviteAcceptedEvent
   | NativeCallInviteRejectedEvent
-  | NativeCancelledCallInviteEvent;
+  | NativeCancelledCallInviteEvent
+  | NativeErrorEvent;
 
 export enum NativeCallState {
   'Connected' = 'connected',
