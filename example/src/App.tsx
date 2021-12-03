@@ -70,12 +70,15 @@ export default function App() {
     []
   );
 
-  const registrationButton = React.useMemo(() => {
-    const [title, handler] = registered
-      ? ['Unregister', unregisterHandler]
-      : ['Register', registerHandler];
-    return <Button title={title} onPress={handler} />;
-  }, [registerHandler, registered, unregisterHandler]);
+  const registerButton = React.useMemo(
+    () => <Button title={'Register'} onPress={registerHandler} />,
+    [registerHandler]
+  );
+
+  const unregisterButton = React.useMemo(
+    () => <Button title={'Unregister'} onPress={unregisterHandler} />,
+    [unregisterHandler]
+  );
 
   const audioDeviceButtons = React.useMemo(() => {
     return [
@@ -119,7 +122,7 @@ export default function App() {
                 recentCallInvite={recentCallInvite}
               />,
             ],
-            [registrationButton],
+            [registerButton, unregisterButton],
             audioDeviceButtons,
           ]}
         />
