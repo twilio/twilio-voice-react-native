@@ -57,8 +57,8 @@ export function useCall(logEvent: (event: string) => void) {
         to: call.getTo(),
       });
 
-      Object.values(Call.Event).forEach((callEvent) => {
-        call.on(callEvent, async () => {
+      Object.values(Call.Event).forEach((callEventName) => {
+        call.on(callEventName, async (callEvent) => {
           const _callInfo = {
             customParameters: call.getCustomParameters(),
             from: call.getFrom(),
@@ -68,7 +68,10 @@ export function useCall(logEvent: (event: string) => void) {
             sid: call.getSid(),
             to: call.getTo(),
           };
-          logEvent(`call event ${_callInfo.sid}: ${callEvent}`);
+          logEvent(`call event ${_callInfo.sid}: ${callEventName}`);
+          if (callEvent) {
+            logEvent(JSON.stringify(callEvent, null, 2));
+          }
           setCallInfo(_callInfo);
         });
       });

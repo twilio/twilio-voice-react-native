@@ -1,12 +1,12 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
-import { Call } from './Call';
-import { CancelledCallInvite } from './CancelledCallInvite';
-import { CallInvite } from './CallInvite';
-import { TwilioVoiceReactNative } from './const';
 import { AudioDevice } from './AudioDevice';
+import { Call } from './Call';
+import { CallInvite } from './CallInvite';
+import { CancelledCallInvite } from './CancelledCallInvite';
+import { TwilioError } from './error/TwilioError';
+import { TwilioVoiceReactNative } from './const';
 import {
-  CallException,
   NativeAudioDeviceInfo,
   NativeCallInfo,
   NativeCallInviteInfo,
@@ -42,8 +42,9 @@ export declare interface Voice {
   emit(
     voiceEvent: Voice.Event.CancelledCallInvite,
     cancelledCallInvite: CancelledCallInvite,
-    exception?: CallException
+    error?: TwilioError
   ): boolean;
+  emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
   emit(voiceEvent: Voice.Event.Registered): boolean;
   emit(voiceEvent: Voice.Event.Unregistered): boolean;
 
@@ -102,16 +103,22 @@ export declare interface Voice {
     voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
       cancelledCallInvite: CancelledCallInvite,
-      exception?: CallException
+      error?: TwilioError
     ) => void
   ): this;
   on(
     voiceEvent: Voice.Event.CancelledCallInvite,
     listener: (
       cancelledCallInvite: CancelledCallInvite,
-      exception?: CallException
+      error?: TwilioError
     ) => void
   ): this;
+
+  addEventListener(
+    voiceEvent: Voice.Event.Error,
+    listener: (error: TwilioError) => void
+  ): this;
+  on(voiceEvent: Voice.Event.Error, listener: () => void): this;
 
   addEventListener(
     voiceEvent: Voice.Event.Registered,
@@ -135,7 +142,7 @@ export class Voice extends EventEmitter {
   private _nativeModule: typeof TwilioVoiceReactNative;
   private _nativeEventHandler: Record<
     NativeVoiceEventType,
-    (messageEvent: NativeVoiceEvent) => void
+    (voiceEvent: NativeVoiceEvent) => void
   >;
 
   constructor(options: Partial<Voice.Options> = {}) {
@@ -277,18 +284,32 @@ export class Voice extends EventEmitter {
       );
     }
 
-    const { cancelledCallInvite: cancelledCallInviteInfo, exception } =
+    const { cancelledCallInvite: cancelledCallInviteInfo, error: errorInfo } =
       nativeVoiceEvent;
+
+    const error = new TwilioError(errorInfo.message, errorInfo.code);
 
     const cancelledCallInvite = new CancelledCallInvite(
       cancelledCallInviteInfo
     );
 
-    this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, exception);
+    this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, error);
   };
 
-  private _handleError = (error: any) => {
-    console.log(error);
+  private _handleError = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== NativeVoiceEventType.Error) {
+      throw new Error(
+        `Incorrect "voice#error" handler called for type "${nativeVoiceEvent.type}".`
+      );
+    }
+
+    const {
+      error: { code, message },
+    } = nativeVoiceEvent;
+
+    const error = new TwilioError(message, code);
+
+    this.emit(Voice.Event.Error, error);
   };
 
   private _handleRegistered = () => {
