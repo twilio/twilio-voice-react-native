@@ -16,6 +16,8 @@ NSString * const kTwilioVoiceReactNativeEventScopeCall = @"Call";
 
 NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
 NSString * const kTwilioVoiceReactNativeEventKeyError = @"error";
+NSString * const kTwilioVoiceReactNativeEventKeyErrorCode = @"code";
+NSString * const kTwilioVoiceReactNativeEventKeyErrorMessage = @"message";
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
 NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
@@ -463,7 +465,10 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
         if (error) {
             NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
             NSLog(@"%@", errorMessage);
-            reject(@"Voice error", errorMessage, nil);
+            [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
+                               body:@{kTwilioVoiceReactNativeEventKeyType: @"error",
+                                      kTwilioVoiceReactNativeEventKeyError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                              kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
         }
@@ -480,7 +485,10 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
         if (error) {
             NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
             NSLog(@"%@", errorMessage);
-            reject(@"Voice error", errorMessage, nil);
+            [self sendEventWithName:kTwilioVoiceReactNativeEventScopeVoice
+                               body:@{kTwilioVoiceReactNativeEventKeyType: @"error",
+                                      kTwilioVoiceReactNativeEventKeyError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                              kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
         }
