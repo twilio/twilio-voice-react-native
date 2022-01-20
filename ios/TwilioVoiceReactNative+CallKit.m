@@ -49,6 +49,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
+    callUpdate.localizedCallerName = handleName;
     callUpdate.supportsDTMF = YES;
     callUpdate.supportsHolding = YES;
     callUpdate.supportsGrouping = NO;
