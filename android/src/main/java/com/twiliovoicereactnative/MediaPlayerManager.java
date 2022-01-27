@@ -25,6 +25,7 @@ public class MediaPlayerManager {
         // outgoingMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         ringtoneMediaPlayer = MediaPlayer.create(context, R.raw.ringtone);
         ringtoneMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        ringtoneMediaPlayer.setLooping(true);
         disconnectMediaPlayer = MediaPlayer.create(context, R.raw.disconnect);
         disconnectMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
