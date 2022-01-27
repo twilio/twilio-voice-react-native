@@ -24,7 +24,7 @@ public class MediaPlayerManager {
         AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
         audioManager.setMode(AudioManager.MODE_IN_CALL);
         audioManager.setSpeakerphoneOn(false);
-        Log.d("Use AudioManager.MODE_IN_CALL this time");
+        Log.d("MediaPlayerManager", "Use AudioManager.MODE_IN_CALL this time");
 
         // Load the sounds
         ringtoneMediaPlayer = MediaPlayer.create(context, R.raw.ringtone);
