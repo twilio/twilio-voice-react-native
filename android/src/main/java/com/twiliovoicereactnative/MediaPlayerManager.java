@@ -4,6 +4,8 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 
+import static android.content.Context.AUDIO_SERVICE;
+
 public class MediaPlayerManager {
     private boolean playing = false;
     private boolean playingCalled = false;
@@ -18,6 +20,10 @@ public class MediaPlayerManager {
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
+        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.STREAM_MUSIC);
+        audioManager.setSpeakerphoneOn(false);
+
         // Load the sounds
         // incomingMediaPlayer = MediaPlayer.create(context, R.raw.incoming);
         // incomingMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
