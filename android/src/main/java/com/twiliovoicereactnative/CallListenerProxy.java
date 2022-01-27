@@ -48,7 +48,7 @@ class CallListenerProxy implements Call.Listener {
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
 
-    SoundPoolManager.getInstance(this.context).stopRinging();
+    MediaPlayerManager.getInstance(this.context).stopRinging();
 
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECT_FAILURE);
@@ -69,7 +69,7 @@ class CallListenerProxy implements Call.Listener {
     Log.d(TAG, "onRinging");
 
     this.notificationId = (int) System.currentTimeMillis();
-    SoundPoolManager.getInstance(this.context).playRinging();
+    MediaPlayerManager.getInstance(this.context).playRinging();
 
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_RINGING);
@@ -84,7 +84,7 @@ class CallListenerProxy implements Call.Listener {
     Log.d(TAG, "onConnected");
 
     AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
-    SoundPoolManager.getInstance(this.context).stopRinging();
+    MediaPlayerManager.getInstance(this.context).stopRinging();
 
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_CONNECTED);
@@ -121,8 +121,8 @@ class CallListenerProxy implements Call.Listener {
     Log.d(TAG, "onDisconnected");
 
     AudioSwitchManager.getInstance(context).getAudioSwitch().deactivate();
-    SoundPoolManager.getInstance(this.context).stopRinging();
-    SoundPoolManager.getInstance(this.context).playDisconnect();
+    MediaPlayerManager.getInstance(this.context).stopRinging();
+    MediaPlayerManager.getInstance(this.context).playDisconnect();
 
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_DISCONNECTED);
