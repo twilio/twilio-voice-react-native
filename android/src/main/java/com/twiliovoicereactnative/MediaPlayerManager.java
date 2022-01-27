@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.util.Log;
 
 import static android.content.Context.AUDIO_SERVICE;
 
@@ -21,14 +22,11 @@ public class MediaPlayerManager {
 
     private MediaPlayerManager(Context context) {
         AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        audioManager.setMode(AudioManager.STREAM_MUSIC);
+        audioManager.setMode(AudioManager.MODE_IN_CALL);
         audioManager.setSpeakerphoneOn(false);
+        Log.d("Use AudioManager.MODE_IN_CALL this time");
 
         // Load the sounds
-        // incomingMediaPlayer = MediaPlayer.create(context, R.raw.incoming);
-        // incomingMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        // outgoingMediaPlayer = MediaPlayer.create(context, R.raw.outgoing);
-        // outgoingMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         ringtoneMediaPlayer = MediaPlayer.create(context, R.raw.ringtone);
         ringtoneMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         ringtoneMediaPlayer.setLooping(true);
@@ -47,8 +45,6 @@ public class MediaPlayerManager {
         if (!playing) {
             ringtoneMediaPlayer.start();
             playing = true;
-        } else {
-            playingCalled = true;
         }
     }
 
@@ -68,8 +64,6 @@ public class MediaPlayerManager {
 
     public void release() {
         ringtoneMediaPlayer.release();
-        // incomingMediaPlayer.release();
-        // outgoingMediaPlayer.release();
         disconnectMediaPlayer.release();
         instance = null;
     }
