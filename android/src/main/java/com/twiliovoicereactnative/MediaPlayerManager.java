@@ -6,7 +6,6 @@ import android.media.MediaPlayer;
 
 public class MediaPlayerManager {
     private boolean playing = false;
-    private boolean loaded = false;
     private boolean playingCalled = false;
     private float volume;
     private MediaPlayer ringtoneMediaPlayer;
@@ -38,7 +37,7 @@ public class MediaPlayerManager {
     }
 
     public void playRinging() {
-        if (loaded && !playing) {
+        if (!playing) {
             ringtoneMediaPlayer.start();
             playing = true;
         } else {
@@ -54,7 +53,7 @@ public class MediaPlayerManager {
     }
 
     public void playDisconnect() {
-        if (loaded && !playing) {
+        if (!playing) {
             disconnectMediaPlayer.start();
             playing = false;
         }
