@@ -1,11 +1,15 @@
 package com.twiliovoicereactnative;
 
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 
 import static android.content.Context.AUDIO_SERVICE;
+
+import java.io.IOException;
 
 public class MediaPlayerManager {
     private boolean playing = false;
@@ -21,17 +25,37 @@ public class MediaPlayerManager {
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        audioManager.setMode(AudioManager.MODE_IN_CALL);
-        audioManager.setSpeakerphoneOn(false);
-        Log.d("MediaPlayerManager", "Use AudioManager.MODE_IN_CALL this time");
+        // AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+        // audioManager.setMode(AudioManager.MODE_IN_CALL);
+        // audioManager.setSpeakerphoneOn(false);
+        Log.d("MediaPlayerManager", "Use ctor and USAGE this time");
 
         // Load the sounds
-        ringtoneMediaPlayer = MediaPlayer.create(context, R.raw.ringtone);
-        ringtoneMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        ringtoneMediaPlayer.setLooping(true);
-        disconnectMediaPlayer = MediaPlayer.create(context, R.raw.disconnect);
-        disconnectMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            ringtoneMediaPlayer = new MediaPlayer();
+            ringtoneMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.ringtone));
+            ringtoneMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
+                    .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+            ringtoneMediaPlayer.setLooping(true);
+            ringtoneMediaPlayer.prepare();
+
+
+            disconnectMediaPlayer = new MediaPlayer();
+            disconnectMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.disconnect));
+            disconnectMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
+                    .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+            disconnectMediaPlayer.prepare();
+        } catch (IOException e) {
+            Log.e("MediaPlayerManager", "Failed to load soundtracks");
+        }
     }
 
     public static MediaPlayerManager getInstance(Context context) {
@@ -50,7 +74,7 @@ public class MediaPlayerManager {
 
     public void stopRinging() {
         if (playing) {
-            ringtoneMediaPlayer.stop();
+            ringtoneMediaPlayer.pause();
             playing = false;
         }
     }
