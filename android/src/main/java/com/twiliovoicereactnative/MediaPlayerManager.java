@@ -7,21 +7,12 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 
-import static android.content.Context.AUDIO_SERVICE;
-
 import java.io.IOException;
 
 public class MediaPlayerManager {
     private boolean playing = false;
-    private boolean playingCalled = false;
-    private float volume;
     private MediaPlayer ringtoneMediaPlayer;
-    // private MediaPlayer incomingMediaPlayer;
-    // private MediaPlayer outgoingMediaPlayer;
     private MediaPlayer disconnectMediaPlayer;
-    private int ringingSoundId;
-    private int ringingStreamId;
-    private int disconnectSoundId;
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
@@ -68,7 +59,12 @@ public class MediaPlayerManager {
 
     public void stopRinging() {
         if (playing) {
-            ringtoneMediaPlayer.pause();
+            ringtoneMediaPlayer.stop();
+            try {
+                ringtoneMediaPlayer.prepare();
+            } catch (IOException e) {
+                Log.e("MediaPlayerManager", "Failed to load prepare ringtone");
+            }
             playing = false;
         }
     }
