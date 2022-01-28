@@ -300,7 +300,7 @@ public class NotificationUtility {
 
     AudioAttributes audioAttributes = new AudioAttributes.Builder()
       .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-      .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+      .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
       .build();
     callInviteChannel.setImportance(channelImportance);
     callInviteChannel.setLightColor(Color.GREEN);

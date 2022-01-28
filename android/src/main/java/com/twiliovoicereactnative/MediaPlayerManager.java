@@ -25,10 +25,6 @@ public class MediaPlayerManager {
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        // AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        // audioManager.setMode(AudioManager.STREAM_MUSIC);
-        Log.d("MediaPlayerManager", "Use ctor and USAGE this time");
-
         // Load the sounds
         try {
             ringtoneMediaPlayer = new MediaPlayer();
@@ -37,11 +33,10 @@ public class MediaPlayerManager {
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
                     .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build());
             ringtoneMediaPlayer.setLooping(true);
             ringtoneMediaPlayer.prepare();
-
 
             disconnectMediaPlayer = new MediaPlayer();
             disconnectMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.disconnect));
@@ -49,7 +44,7 @@ public class MediaPlayerManager {
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
                     .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build());
             disconnectMediaPlayer.prepare();
         } catch (IOException e) {
