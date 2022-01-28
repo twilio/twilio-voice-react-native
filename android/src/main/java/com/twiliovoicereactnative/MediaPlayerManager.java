@@ -25,8 +25,8 @@ public class MediaPlayerManager {
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        audioManager.setMode(AudioManager.STREAM_MUSIC);
+        // AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+        // audioManager.setMode(AudioManager.STREAM_MUSIC);
         Log.d("MediaPlayerManager", "Use ctor and USAGE this time");
 
         // Load the sounds
@@ -35,8 +35,8 @@ public class MediaPlayerManager {
             ringtoneMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.ringtone));
             ringtoneMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .setLegacyStreamType(AudioManager.STREAM_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             ringtoneMediaPlayer.setLooping(true);
@@ -47,8 +47,8 @@ public class MediaPlayerManager {
             disconnectMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.disconnect));
             disconnectMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .setLegacyStreamType(AudioManager.STREAM_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             disconnectMediaPlayer.prepare();
