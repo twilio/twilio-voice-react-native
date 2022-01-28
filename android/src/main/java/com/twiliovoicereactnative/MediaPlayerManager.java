@@ -36,8 +36,8 @@ public class MediaPlayerManager {
             ringtoneMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             ringtoneMediaPlayer.setLooping(true);
             ringtoneMediaPlayer.prepare();
@@ -48,8 +48,8 @@ public class MediaPlayerManager {
             disconnectMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    // .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             disconnectMediaPlayer.prepare();
         } catch (IOException e) {
