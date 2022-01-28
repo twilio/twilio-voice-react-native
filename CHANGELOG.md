@@ -11,6 +11,11 @@ The Twilio Voice React Native SDK uses [Semantic Versioning](http://www.semver.o
   same event multiple times to the JS layer. This was most noticeable during
   development and testing but might rarely occur in normal usage.
 
+* Android ringtone issue [VBLOCKS-288]
+  An issue was fixed where the Android-native side of the SDK would always
+  ring to the earpiece for inbound calls, while ring to the speaker for outbound
+  calls.
+
 #### Maintenance
 
 #### Things to Note
