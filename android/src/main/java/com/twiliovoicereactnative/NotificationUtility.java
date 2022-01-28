@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +22,8 @@ import android.widget.RemoteViews;
 import androidx.core.app.NotificationCompat;
 
 import com.twilio.voice.CallInvite;
+
+import static android.content.Context.AUDIO_SERVICE;
 
 import java.net.URLDecoder;
 import java.util.Map;
@@ -288,6 +291,8 @@ public class NotificationUtility {
 
   @TargetApi(Build.VERSION_CODES.O)
   private static String createChannel(Context context, int channelImportance) {
+    AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+    audioManager.setSpeakerphoneOn(true);
     NotificationChannel callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_HIGH_IMPORTANCE,
       "Primary Voice Channel", NotificationManager.IMPORTANCE_HIGH);
     String channelId = Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
