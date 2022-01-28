@@ -153,6 +153,8 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void endForeground() {
+    // after inbound call is accepted or rejected / disconnected
+    // release the override of setSpeakerphoneOn(true) from NotificationUtility::createChannel
     AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
     audioManager.setSpeakerphoneOn(false);
     stopForeground(true);

@@ -291,8 +291,10 @@ public class NotificationUtility {
 
   @TargetApi(Build.VERSION_CODES.O)
   private static String createChannel(Context context, int channelImportance) {
+      // play inbound call ringer on the speaker
     AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
     audioManager.setSpeakerphoneOn(true);
+    
     NotificationChannel callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_HIGH_IMPORTANCE,
       "Primary Voice Channel", NotificationManager.IMPORTANCE_HIGH);
     String channelId = Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;

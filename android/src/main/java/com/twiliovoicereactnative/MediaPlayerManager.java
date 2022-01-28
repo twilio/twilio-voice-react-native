@@ -10,13 +10,14 @@ import android.util.Log;
 import java.io.IOException;
 
 public class MediaPlayerManager {
+    private static final String TAG = MediaPlayerManager.class.getSimpleName();
+
     private boolean playing = false;
     private MediaPlayer ringtoneMediaPlayer;
     private MediaPlayer disconnectMediaPlayer;
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        // Load the sounds
         try {
             ringtoneMediaPlayer = new MediaPlayer();
             ringtoneMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.ringtone));
@@ -39,7 +40,7 @@ public class MediaPlayerManager {
                     .build());
             disconnectMediaPlayer.prepare();
         } catch (IOException e) {
-            Log.e("MediaPlayerManager", "Failed to load soundtracks");
+            Log.e(TAG, "Failed to load soundtracks");
         }
     }
 
@@ -63,7 +64,7 @@ public class MediaPlayerManager {
             try {
                 ringtoneMediaPlayer.prepare();
             } catch (IOException e) {
-                Log.e("MediaPlayerManager", "Failed to load prepare ringtone");
+                Log.e(TAG, "Failed to prepare ringtone");
             }
             playing = false;
         }
