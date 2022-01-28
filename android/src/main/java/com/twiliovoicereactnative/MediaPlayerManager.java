@@ -25,9 +25,8 @@ public class MediaPlayerManager {
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        // AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        // audioManager.setMode(AudioManager.MODE_IN_CALL);
-        // audioManager.setSpeakerphoneOn(false);
+        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.STREAM_MUSIC);
         Log.d("MediaPlayerManager", "Use ctor and USAGE this time");
 
         // Load the sounds
@@ -38,7 +37,7 @@ public class MediaPlayerManager {
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_MUSIC)
                     .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             ringtoneMediaPlayer.setLooping(true);
             ringtoneMediaPlayer.prepare();
@@ -50,7 +49,7 @@ public class MediaPlayerManager {
                     .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .setLegacyStreamType(AudioManager.STREAM_MUSIC)
                     .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build());
             disconnectMediaPlayer.prepare();
         } catch (IOException e) {
