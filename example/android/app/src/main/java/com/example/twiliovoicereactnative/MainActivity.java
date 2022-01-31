@@ -11,7 +11,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.facebook.react.ReactActivity;
-import com.twiliovoicereactnative.SoundPoolManager;
+import com.twiliovoicereactnative.MediaPlayerManager;
 
 public class MainActivity extends ReactActivity {
   private static final String TAG = "MainActivity";
@@ -43,9 +43,9 @@ public class MainActivity extends ReactActivity {
   @Override
   public void onDestroy() {
     /*
-     * Release resources in SoundPoolManager
+     * Release resources in MediaPlayerManager
      */
-    SoundPoolManager.getInstance(this).release();
+    MediaPlayerManager.getInstance(this).release();
     super.onDestroy();
   }
 
