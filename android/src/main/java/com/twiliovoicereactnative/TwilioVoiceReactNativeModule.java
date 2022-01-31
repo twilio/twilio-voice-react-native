@@ -123,7 +123,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     });
 
     //Preload the audio files
-    SoundPoolManager.getInstance(reactContext);
+    MediaPlayerManager.getInstance(reactContext);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)

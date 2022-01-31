@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -152,6 +153,10 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void endForeground() {
+    // after inbound call is accepted or rejected / disconnected
+    // release the override of setSpeakerphoneOn(true) from NotificationUtility::createChannel
+    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+    audioManager.setSpeakerphoneOn(false);
     stopForeground(true);
   }
 
