@@ -94,7 +94,9 @@ withCompletionHandler:(void (^)(void))completion {
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
                                                       userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteCancelled,
-                                                                 kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite}];
+                                                                 kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite,
+                                                                 kTwilioVoiceReactNativeEventKeyError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 }
 
 @end
