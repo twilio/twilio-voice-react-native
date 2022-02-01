@@ -2,6 +2,9 @@ package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_CODE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED;
@@ -143,10 +146,16 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG, "Successfully received cancel notification");
 
         CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
+        int errorCode = intent.getIntExtra(EVENT_KEY_ERROR_CODE, 0);
+        String errorMessage = intent.getStringExtra(EVENT_KEY_ERROR_MESSAGE);
         WritableMap cancelledCallInviteInfo = TwilioVoiceReactNativeModule.getCancelledCallInviteInfo(cancelledCallInvite);
 
         params.putString(EVENT_KEY_TYPE, EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE);
         params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
+        WritableMap error = Arguments.createMap();
+        error.putInt(EVENT_KEY_ERROR_CODE, errorCode);
+        error.putString(EVENT_KEY_ERROR_MESSAGE, errorMessage);
+        params.putMap(EVENT_KEY_ERROR, error);
 
         AndroidEventEmitter.getInstance().sendEvent(VOICE_EVENT_NAME, params);
         break;
