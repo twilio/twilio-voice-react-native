@@ -1,5 +1,8 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_CODE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -78,7 +81,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
         @Override
         public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite, @Nullable CallException callException) {
-          handleCanceledCallInvite(cancelledCallInvite);
+          handleCanceledCallInvite(cancelledCallInvite, callException);
         }
       });
 
@@ -105,13 +108,15 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     this.context.startService(intent);
   }
 
-  private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite) {
+  private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite, CallException callException) {
     String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
 
     Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
     intent.putExtra(Constants.UUID, uuid);
+    intent.putExtra(EVENT_KEY_ERROR_CODE, callException.getErrorCode());
+    intent.putExtra(EVENT_KEY_ERROR_MESSAGE, callException.getMessage());
 
     Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
