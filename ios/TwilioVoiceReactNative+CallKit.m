@@ -370,23 +370,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)call:(TVOCall *)call
 didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
 previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
-    NSMutableSet<NSString *> *currentWarningEvents = [NSMutableSet set];
-    for (NSNumber *warning in currentWarnings) {
-        NSString *event = [self warningNameWithNumber:warning];
-        [currentWarningEvents addObject:event];
-    }
-    
-    NSMutableSet<NSString *> *previousWarningEvents = [NSMutableSet set];
-    for (NSNumber *warning in previousWarnings) {
-        NSString *event = [self warningNameWithNumber:warning];
-        [previousWarningEvents addObject:event];
-    }
-    
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
                        body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceCallEventQualityWarningsReceived,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarningEvents,
-                              kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarningEvents}];
+                              kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarnings,
+                              kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarnings}];
 }
 
 #pragma mark - Ringback
@@ -429,31 +417,6 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 
 - (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error {
     NSLog(@"Decode error occurred: %@", error);
-}
-
-#pragma mark - Warning event conversion
-
-- (NSString *)warningNameWithNumber:(NSNumber *)warning {
-    if ([warning intValue] < 0 || [warning intValue] > 4) {
-        NSLog(@"Warning number out of TVOCallQualityWarning range");
-        return @"undefined";
-    }
-    
-    TVOCallQualityWarning warningValue = [warning intValue];
-    switch (warningValue) {
-        case TVOCallQualityWarningHighRtt:
-            return @"high-rtt";
-        case TVOCallQualityWarningHighJitter:
-            return @"high-jitter";
-        case TVOCallQualityWarningHighPacketsLostFraction:
-            return @"high-packets-lost-fraction";
-        case TVOCallQualityWarningLowMos:
-            return @"low-mos";
-        case TVOCallQualityWarningConstantAudioInputLevel:
-            return @"constant-audio-input-level";
-        default:
-            return @"undefined";
-    }
 }
 
 @end
