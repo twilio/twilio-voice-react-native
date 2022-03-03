@@ -147,8 +147,7 @@ export function useCallInvites(
         {
           accept: async () => {
             removeCallInvite(callInvite.getCallSid());
-            const call = await callInvite.accept();
-            callHandler(call);
+            await callInvite.accept();
           },
           callSid,
           customParameters: callInvite.getCustomParameters(),
@@ -170,7 +169,7 @@ export function useCallInvites(
         )}`
       );
     },
-    [callHandler, logEvent, removeCallInvite]
+    [logEvent, removeCallInvite]
   );
 
   const callInviteAcceptedHandler = React.useCallback(
@@ -279,6 +278,29 @@ export function useVoice(token: string) {
     [logEvent]
   );
 
+  const getCallsHandler = React.useCallback(() => {
+    voice.getCalls().then((callsMap) => {
+      const readableCalls: Record<string, any> = {};
+      for (const [callUuid, _callInfo] of callsMap.entries()) {
+        readableCalls[callUuid] = _callInfo.getSid();
+      }
+      logEvent(JSON.stringify(readableCalls, null, 2));
+    });
+  }, [voice, logEvent]);
+
+  const getCallInvitesHandler = React.useCallback(() => {
+    voice.getCallInvites().then((callInvitesMap) => {
+      const readableCallInvites: Record<string, any> = {};
+      for (const [
+        callInviteUuid,
+        _callInviteInfo,
+      ] of callInvitesMap.entries()) {
+        readableCallInvites[callInviteUuid] = _callInviteInfo.getCallSid();
+      }
+      logEvent(JSON.stringify(readableCallInvites, null, 2));
+    });
+  }, [voice, logEvent]);
+
   React.useEffect(() => {
     voice.getVersion().then(setSdkVersion);
 
@@ -335,5 +357,7 @@ export function useVoice(token: string) {
     unregisterHandler,
     logAudioDevicesHandler,
     selectAudioDeviceHandler,
+    getCallsHandler,
+    getCallInvitesHandler,
   };
 }
