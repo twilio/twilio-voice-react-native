@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
@@ -19,9 +20,11 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CURRENT_CALL_QUALITY;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_CODE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_PREVIOUS_CALL_QUALITY;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_CONNECTED;
@@ -30,6 +33,9 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_DIS
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTED;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RECONNECTING;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_RINGING;
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_TYPE_CALL_QUALITY;
+
+import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 class CallListenerProxy implements Call.Listener {
@@ -137,6 +143,20 @@ class CallListenerProxy implements Call.Listener {
 
     cancelNotification();
     Storage.callMap.remove(uuid);
+  }
+
+  @Override
+  public void onCallQualityWarningsChanged(@NonNull Call call,
+                                           @NonNull Set<Call.CallQualityWarning> currentWarnings,
+                                           @NonNull Set<Call.CallQualityWarning> previousWarnings) {
+    Log.d(TAG, "onCallQualityWarningsChanged");
+
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_QUALITY);
+    params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
+    params.putArray(EVENT_KEY_CURRENT_CALL_QUALITY, (ReadableArray) currentWarnings);
+    params.putArray(EVENT_KEY_PREVIOUS_CALL_QUALITY, (ReadableArray) previousWarnings);
+    AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
   private void cancelNotification() {
