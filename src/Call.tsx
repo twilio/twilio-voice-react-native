@@ -6,6 +6,7 @@ import {
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
+  NativeCallQualityWarnings,
   NativeEventScope,
   Uuid,
 } from './type';
@@ -24,6 +25,11 @@ export declare interface Call {
   emit(callEvent: Call.Event.Reconnected): boolean;
   emit(callEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
   emit(callEvent: Call.Event.Ringing): boolean;
+  emit(
+    callEvent: Call.Event.QualityWarnings,
+    currentQualityWarnings: NativeCallQualityWarnings,
+    previousQualityWarnings: NativeCallQualityWarnings
+  ): boolean;
 
   /**
    * Listener typings.
@@ -63,17 +69,33 @@ export declare interface Call {
 
   addEventListener(callEvent: Call.Event.Ringing, listener: () => void): this;
   on(callEvent: Call.Event.Ringing, listener: () => void): this;
+
+  addEventListener(
+    callEvent: Call.Event.QualityWarnings,
+    listener: (
+      currentQualityWarnings: NativeCallQualityWarnings,
+      previousQualityWarnings: NativeCallQualityWarnings
+    ) => void
+  ): this;
+  on(
+    callEvent: Call.Event.QualityWarnings,
+    listener: (
+      currentQualityWarnings: NativeCallQualityWarnings,
+      previousQualityWarnings: NativeCallQualityWarnings
+    ) => void
+  ): this;
 }
 
 export class Call extends EventEmitter {
-  private _eventTypeStateMap: Record<NativeCallEventType, Call.State> = {
-    [NativeCallEventType.Connected]: Call.State.Connected,
-    [NativeCallEventType.ConnectFailure]: Call.State.Disconnected,
-    [NativeCallEventType.Reconnecting]: Call.State.Reconnecting,
-    [NativeCallEventType.Reconnected]: Call.State.Connected,
-    [NativeCallEventType.Disconnected]: Call.State.Disconnected,
-    [NativeCallEventType.Ringing]: Call.State.Ringing,
-  };
+  private _eventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>> =
+    {
+      [NativeCallEventType.Connected]: Call.State.Connected,
+      [NativeCallEventType.ConnectFailure]: Call.State.Disconnected,
+      [NativeCallEventType.Reconnecting]: Call.State.Reconnecting,
+      [NativeCallEventType.Reconnected]: Call.State.Connected,
+      [NativeCallEventType.Disconnected]: Call.State.Disconnected,
+      [NativeCallEventType.Ringing]: Call.State.Ringing,
+    };
   private _nativeEventHandler: Record<
     NativeCallEventType,
     (callEvent: NativeCallEvent) => void
@@ -118,12 +140,20 @@ export class Call extends EventEmitter {
     this._isOnHold = isOnHold;
 
     this._nativeEventHandler = {
+      /**
+       * Call State
+       */
       connected: this._handleConnectedEvent,
       connectFailure: this._handleConnectFailure,
       reconnecting: this._handleReconnecting,
       reconnected: this._handleReconnected,
       disconnected: this._handleDisconnected,
       ringing: this._handleRinging,
+
+      /**
+       * Call Quality
+       */
+      qualityWarnings: this._handleQualityWarnings,
     };
 
     this._nativeEventEmitter.addListener(
@@ -148,7 +178,10 @@ export class Call extends EventEmitter {
   };
 
   private _update({ type, call: { from, sid, to } }: NativeCallEvent) {
-    this._state = this._eventTypeStateMap[type];
+    const newState = this._eventTypeStateMap[type];
+    if (typeof newState === 'string') {
+      this._state = newState;
+    }
     this._from = from;
     this._sid = sid;
     this._to = to;
@@ -242,6 +275,20 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Ringing);
   };
 
+  private _handleQualityWarnings = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== NativeCallEventType.QualityWarnings) {
+      throw new Error(
+        `Incorrect "call#qualityWarnings" handler called for type "${nativeCallEvent.type}".`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
+    const { currentWarnings, previousWarnings } = nativeCallEvent;
+
+    this.emit(Call.Event.QualityWarnings, currentWarnings, previousWarnings);
+  };
+
   /**
    * Native functionality.
    */
@@ -300,6 +347,8 @@ export namespace Call {
     'Reconnected' = 'reconnected',
     'Disconnected' = 'disconnected',
     'Ringing' = 'ringing',
+
+    'QualityWarnings' = 'qualityWarnings',
   }
 
   export enum State {

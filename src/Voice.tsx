@@ -154,13 +154,28 @@ export class Voice extends EventEmitter {
       options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._nativeEventHandler = {
+      /**
+       * Common
+       */
+      error: this._handleError,
+
+      /**
+       * Call Invite
+       */
       callInvite: this._handleCallInvite,
       callInviteAccepted: this._handleCallInviteAccepted,
       callInviteRejected: this._handleCallInviteRejected,
       cancelledCallInvite: this._handleCancelledCallInvite,
-      error: this._handleError,
+
+      /**
+       * Registration
+       */
       registered: this._handleRegistered,
       unregistered: this._handleUnregistered,
+
+      /**
+       * Audio Devices
+       */
       audioDevicesUpdated: this._handleAudioDevicesUpdated,
     };
 
