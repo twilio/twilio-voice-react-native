@@ -43,7 +43,7 @@ public class AndroidEventEmitter {
   public static final String EVENT_TYPE_CALL_CONNECT_FAILURE = "connectFailure";
   public static final String EVENT_TYPE_CALL_RECONNECTED = "reconnect";
   public static final String EVENT_TYPE_CALL_RECONNECTING = "reconnecting";
-  public static final String EVENT_TYPE_CALL_QUALITY = "callQualityWarningsChanged";
+  public static final String EVENT_TYPE_CALL_QUALITY = "qualityWarnings";
 
   /**
    * Call keys.

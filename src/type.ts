@@ -96,7 +96,7 @@ export interface NativeCallRingingEvent {
   call: NativeCallInfo;
 }
 
-export interface NativeCallQualityWarnings {}
+export type NativeCallQualityWarnings = number[];
 
 export interface NativeCallQualityWarningsEvent {
   type: NativeCallEventType.QualityWarnings;

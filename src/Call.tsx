@@ -27,8 +27,8 @@ export declare interface Call {
   emit(callEvent: Call.Event.Ringing): boolean;
   emit(
     callEvent: Call.Event.QualityWarnings,
-    currentQualityWarnings: NativeCallQualityWarnings,
-    previousQualityWarnings: NativeCallQualityWarnings
+    currentQualityWarnings: Call.QualityWarning[],
+    previousQualityWarnings: Call.QualityWarning[]
   ): boolean;
 
   /**
@@ -284,7 +284,13 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const { currentWarnings, previousWarnings } = nativeCallEvent;
+    const currentWarnings = nativeCallEvent.currentWarnings.map(
+      getCallQualityWarning
+    );
+
+    const previousWarnings = nativeCallEvent.previousWarnings.map(
+      getCallQualityWarning
+    );
 
     this.emit(Call.Event.QualityWarnings, currentWarnings, previousWarnings);
   };
@@ -363,4 +369,37 @@ export namespace Call {
     nativeEventEmitter: NativeEventEmitter;
     nativeModule: typeof TwilioVoiceReactNative;
   }
+
+  export enum QualityWarning {
+    ConstantAudio = 'constantAudio',
+    HighJitter = 'highJitter',
+    HighPacketLoss = 'highPacketLoss',
+    HighRtt = 'highRtt',
+    LowMos = 'lowMos',
+  }
+
+  export enum QualityWarningCode {
+    ConstantAudio = 0,
+    HighJitter = 1,
+    HighPacketLoss = 2,
+    HighRtt = 3,
+    LowMos = 4,
+  }
+}
+
+const callQualityWarningMap: Record<
+  Call.QualityWarningCode,
+  Call.QualityWarning
+> = {
+  [Call.QualityWarningCode.ConstantAudio]: Call.QualityWarning.ConstantAudio,
+  [Call.QualityWarningCode.HighJitter]: Call.QualityWarning.HighJitter,
+  [Call.QualityWarningCode.HighPacketLoss]: Call.QualityWarning.HighPacketLoss,
+  [Call.QualityWarningCode.HighRtt]: Call.QualityWarning.HighRtt,
+  [Call.QualityWarningCode.LowMos]: Call.QualityWarning.LowMos,
+};
+
+export function getCallQualityWarning(
+  code: Call.QualityWarningCode
+): Call.QualityWarning {
+  return callQualityWarningMap[code];
 }
