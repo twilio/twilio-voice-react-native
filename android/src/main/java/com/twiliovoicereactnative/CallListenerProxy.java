@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
@@ -154,8 +155,18 @@ class CallListenerProxy implements Call.Listener {
     WritableMap params = Arguments.createMap();
     params.putString(EVENT_KEY_TYPE, EVENT_TYPE_CALL_QUALITY);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
-    params.putArray(EVENT_KEY_CURRENT_CALL_QUALITY, (ReadableArray) currentWarnings);
-    params.putArray(EVENT_KEY_PREVIOUS_CALL_QUALITY, (ReadableArray) previousWarnings);
+
+    WritableArray currentWarningsArray = Arguments.createArray();
+    for (Call.CallQualityWarning warning : currentWarnings) {
+      currentWarningsArray.pushString(warning.toString());
+    }
+    params.putArray(EVENT_KEY_CURRENT_CALL_QUALITY, currentWarningsArray);
+
+    WritableArray previousWarningsArray = Arguments.createArray();
+    for (Call.CallQualityWarning warning : previousWarnings) {
+      previousWarningsArray.pushString(warning.toString());
+    }
+    params.putArray(EVENT_KEY_PREVIOUS_CALL_QUALITY, previousWarningsArray);
     AndroidEventEmitter.getInstance().sendEvent(CALL_EVENT_NAME, params);
   }
 
