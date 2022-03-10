@@ -26,7 +26,7 @@ export declare interface Call {
   emit(callEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
   emit(callEvent: Call.Event.Ringing): boolean;
   emit(
-    callEvent: Call.Event.QualityWarnings,
+    callEvent: Call.Event.QualityWarningsChanged,
     currentQualityWarnings: Call.QualityWarning[],
     previousQualityWarnings: Call.QualityWarning[]
   ): boolean;
@@ -71,14 +71,14 @@ export declare interface Call {
   on(callEvent: Call.Event.Ringing, listener: () => void): this;
 
   addEventListener(
-    callEvent: Call.Event.QualityWarnings,
+    callEvent: Call.Event.QualityWarningsChanged,
     listener: (
       currentQualityWarnings: NativeCallQualityWarnings,
       previousQualityWarnings: NativeCallQualityWarnings
     ) => void
   ): this;
   on(
-    callEvent: Call.Event.QualityWarnings,
+    callEvent: Call.Event.QualityWarningsChanged,
     listener: (
       currentQualityWarnings: NativeCallQualityWarnings,
       previousQualityWarnings: NativeCallQualityWarnings
@@ -153,7 +153,7 @@ export class Call extends EventEmitter {
       /**
        * Call Quality
        */
-      qualityWarnings: this._handleQualityWarnings,
+      qualityWarningsChanged: this._handleQualityWarningsChanged,
     };
 
     this._nativeEventEmitter.addListener(
@@ -275,8 +275,10 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Ringing);
   };
 
-  private _handleQualityWarnings = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.QualityWarnings) {
+  private _handleQualityWarningsChanged = (
+    nativeCallEvent: NativeCallEvent
+  ) => {
+    if (nativeCallEvent.type !== NativeCallEventType.QualityWarningsChanged) {
       throw new Error(
         `Incorrect "call#qualityWarnings" handler called for type "${nativeCallEvent.type}".`
       );
@@ -284,15 +286,13 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const currentWarnings = nativeCallEvent.currentWarnings.map(
-      getCallQualityWarning
-    );
+    const { currentWarnings, previousWarnings } = nativeCallEvent;
 
-    const previousWarnings = nativeCallEvent.previousWarnings.map(
-      getCallQualityWarning
+    this.emit(
+      Call.Event.QualityWarningsChanged,
+      currentWarnings as Call.QualityWarning[],
+      previousWarnings as Call.QualityWarning[]
     );
-
-    this.emit(Call.Event.QualityWarnings, currentWarnings, previousWarnings);
   };
 
   /**
@@ -353,8 +353,7 @@ export namespace Call {
     'Reconnected' = 'reconnected',
     'Disconnected' = 'disconnected',
     'Ringing' = 'ringing',
-
-    'QualityWarnings' = 'qualityWarnings',
+    'QualityWarningsChanged' = 'qualityWarningsChanged',
   }
 
   export enum State {
@@ -371,35 +370,10 @@ export namespace Call {
   }
 
   export enum QualityWarning {
-    ConstantAudio = 'constantAudio',
-    HighJitter = 'highJitter',
-    HighPacketLoss = 'highPacketLoss',
-    HighRtt = 'highRtt',
-    LowMos = 'lowMos',
+    ConstantAudioInputLevel = 'constant-audio-input-level',
+    HighJitter = 'high-jitter',
+    HighPacketLoss = 'high-packet-loss',
+    HighRtt = 'high-rtt',
+    LowMos = 'low-mos',
   }
-
-  export enum QualityWarningCode {
-    ConstantAudio = 0,
-    HighJitter = 1,
-    HighPacketLoss = 2,
-    HighRtt = 3,
-    LowMos = 4,
-  }
-}
-
-const callQualityWarningMap: Record<
-  Call.QualityWarningCode,
-  Call.QualityWarning
-> = {
-  [Call.QualityWarningCode.ConstantAudio]: Call.QualityWarning.ConstantAudio,
-  [Call.QualityWarningCode.HighJitter]: Call.QualityWarning.HighJitter,
-  [Call.QualityWarningCode.HighPacketLoss]: Call.QualityWarning.HighPacketLoss,
-  [Call.QualityWarningCode.HighRtt]: Call.QualityWarning.HighRtt,
-  [Call.QualityWarningCode.LowMos]: Call.QualityWarning.LowMos,
-};
-
-export function getCallQualityWarning(
-  code: Call.QualityWarningCode
-): Call.QualityWarning {
-  return callQualityWarningMap[code];
 }

@@ -58,7 +58,7 @@ export function useCall(logEvent: (event: string) => void) {
       });
 
       Object.values(Call.Event).forEach((callEventName) => {
-        call.on(callEventName, async (callEvent) => {
+        call.on(callEventName, async (...callEvent) => {
           const _callInfo = {
             customParameters: call.getCustomParameters(),
             from: call.getFrom(),
@@ -68,10 +68,11 @@ export function useCall(logEvent: (event: string) => void) {
             sid: call.getSid(),
             to: call.getTo(),
           };
-          logEvent(`call event ${_callInfo.sid}: ${callEventName}`);
-          if (callEvent) {
-            logEvent(JSON.stringify(callEvent, null, 2));
+          let message = `call event ${_callInfo.sid}: ${callEventName}`;
+          if (callEvent.length) {
+            message += '\n' + JSON.stringify(callEvent, null, 2);
           }
+          logEvent(message);
           setCallInfo(_callInfo);
         });
       });
@@ -147,8 +148,7 @@ export function useCallInvites(
         {
           accept: async () => {
             removeCallInvite(callInvite.getCallSid());
-            const call = await callInvite.accept();
-            callHandler(call);
+            await callInvite.accept();
           },
           callSid,
           customParameters: callInvite.getCustomParameters(),
@@ -170,7 +170,7 @@ export function useCallInvites(
         )}`
       );
     },
-    [callHandler, logEvent, removeCallInvite]
+    [logEvent, removeCallInvite]
   );
 
   const callInviteAcceptedHandler = React.useCallback(

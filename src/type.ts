@@ -60,7 +60,7 @@ export enum NativeCallEventType {
   /**
    * Call Quality
    */
-  'QualityWarnings' = 'qualityWarnings',
+  'QualityWarningsChanged' = 'qualityWarningsChanged',
 }
 
 export interface NativeCallConnectedEvent {
@@ -96,10 +96,10 @@ export interface NativeCallRingingEvent {
   call: NativeCallInfo;
 }
 
-export type NativeCallQualityWarnings = number[];
+export type NativeCallQualityWarnings = string[];
 
 export interface NativeCallQualityWarningsEvent {
-  type: NativeCallEventType.QualityWarnings;
+  type: NativeCallEventType.QualityWarningsChanged;
   call: NativeCallInfo;
   currentWarnings: NativeCallQualityWarnings;
   previousWarnings: NativeCallQualityWarnings;
