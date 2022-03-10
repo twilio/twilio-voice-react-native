@@ -38,7 +38,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventDisconnected;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventConnectFailure;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventReconnecting;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventReconnected;
-FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventQualityWarningsReceived;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventQualityWarningsChanged;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoUuid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoFrom;

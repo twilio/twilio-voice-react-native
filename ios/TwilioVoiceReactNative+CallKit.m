@@ -17,7 +17,7 @@ NSString * const kTwilioVoiceCallEventDisconnected = @"disconnected";
 NSString * const kTwilioVoiceCallEventConnectFailure = @"connectFailure";
 NSString * const kTwilioVoiceCallEventReconnecting = @"reconnecting";
 NSString * const kTwilioVoiceCallEventReconnected = @"reconnected";
-NSString * const kTwilioVoiceCallEventQualityWarningsReceived = @"qualityWarningsReceived";
+NSString * const kTwilioVoiceCallEventQualityWarningsChanged = @"qualityWarningsChanged";
 
 NSString * const kTwilioVoiceReactNativeEventKeyCurrentWarnings = @"currentWarnings";
 NSString * const kTwilioVoiceReactNativeEventKeyPreviousWarnings = @"previousWarnings";
@@ -370,11 +370,23 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)call:(TVOCall *)call
 didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
 previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
+    NSMutableArray<NSString *> *currentWarningEvents = [NSMutableArray array];
+    for (NSNumber *warning in currentWarnings) {
+        NSString *event = [self warningNameWithNumber:warning];
+        [currentWarningEvents addObject:event];
+    }
+
+    NSMutableArray<NSString *> *previousWarningEvents = [NSMutableArray array];
+    for (NSNumber *warning in previousWarnings) {
+        NSString *event = [self warningNameWithNumber:warning];
+        [previousWarningEvents addObject:event];
+    }
+
     [self sendEventWithName:kTwilioVoiceReactNativeEventScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceCallEventQualityWarningsReceived,
+                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceCallEventQualityWarningsChanged,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarnings,
-                              kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarnings}];
+                              kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarningEvents,
+                              kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarningEvents}];
 }
 
 #pragma mark - Ringback
@@ -417,6 +429,31 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 
 - (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error {
     NSLog(@"Decode error occurred: %@", error);
+}
+
+#pragma mark - Warning event conversion
+
+- (NSString *)warningNameWithNumber:(NSNumber *)warning {
+    if ([warning intValue] < 0 || [warning intValue] > 4) {
+        NSLog(@"Warning number out of TVOCallQualityWarning range");
+        return @"undefined";
+    }
+    
+    TVOCallQualityWarning warningValue = [warning intValue];
+    switch (warningValue) {
+        case TVOCallQualityWarningHighRtt:
+            return @"high-rtt";
+        case TVOCallQualityWarningHighJitter:
+            return @"high-jitter";
+        case TVOCallQualityWarningHighPacketsLostFraction:
+            return @"high-packets-lost-fraction";
+        case TVOCallQualityWarningLowMos:
+            return @"low-mos";
+        case TVOCallQualityWarningConstantAudioInputLevel:
+            return @"constant-audio-input-level";
+        default:
+            return @"undefined";
+    }
 }
 
 @end
