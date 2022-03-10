@@ -41,8 +41,9 @@ public class AndroidEventEmitter {
   public static final String EVENT_TYPE_CALL_CONNECTED = "connected";
   public static final String EVENT_TYPE_CALL_DISCONNECTED = "disconnected";
   public static final String EVENT_TYPE_CALL_CONNECT_FAILURE = "connectFailure";
-  public static final String EVENT_TYPE_CALL_RECONNECTED = "reconnect";
+  public static final String EVENT_TYPE_CALL_RECONNECTED = "reconnected";
   public static final String EVENT_TYPE_CALL_RECONNECTING = "reconnecting";
+  public static final String EVENT_TYPE_CALL_QUALITY = "qualityWarningsChanged";
 
   /**
    * Call keys.
@@ -55,6 +56,8 @@ public class AndroidEventEmitter {
   public static final String EVENT_KEY_CALL_SID = "sid";
   public static final String EVENT_KEY_CALL_STATE = "state";
   public static final String EVENT_KEY_CALL_TO = "to";
+  public static final String EVENT_KEY_CURRENT_CALL_QUALITY = "currentWarnings";
+  public static final String EVENT_KEY_PREVIOUS_CALL_QUALITY = "previousWarnings";
 
   /**
    * CallInvite event keys.

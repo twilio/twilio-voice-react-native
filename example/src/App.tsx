@@ -28,38 +28,52 @@ export default function App() {
     unregisterHandler,
     logAudioDevicesHandler,
     selectAudioDeviceHandler,
+    getCallsHandler,
+    getCallInvitesHandler,
   } = useVoice(token);
 
-  const headerComponents = React.useMemo(
-    () => [
-      [
-        <Text>SDK Version: {String(sdkVersion)}</Text>,
-        <Text>Registered: {String(registered)}</Text>,
-      ],
-    ],
+  const headerComponent = React.useMemo(
+    () => (
+      <Grid
+        gridComponents={[
+          [
+            <Text>SDK Version: {String(sdkVersion)}</Text>,
+            <Text>Registered: {String(registered)}</Text>,
+          ],
+        ]}
+      />
+    ),
     [sdkVersion, registered]
   );
 
-  const callGridComponents = React.useMemo(
-    () => [
-      [
-        <Text>From: {String(callInfo?.from)}</Text>,
-        <Text>To: {String(callInfo?.to)}</Text>,
-      ],
-      [<Text>State: {String(callInfo?.state)}</Text>],
-      [<Text>SID: {String(callInfo?.sid)}</Text>],
-    ],
+  const callComponent = React.useMemo(
+    () => (
+      <Grid
+        gridComponents={[
+          [
+            <Text>From: {String(callInfo?.from)}</Text>,
+            <Text>To: {String(callInfo?.to)}</Text>,
+          ],
+          [<Text>State: {String(callInfo?.state)}</Text>],
+          [<Text>SID: {String(callInfo?.sid)}</Text>],
+        ]}
+      />
+    ),
     [callInfo]
   );
 
-  const callInviteComponents = React.useMemo(
-    () => [
-      [
-        <Text>From: {String(recentCallInvite?.from)}</Text>,
-        <Text>To: {String(recentCallInvite?.to)}</Text>,
-      ],
-      [<Text>Call SID: {String(recentCallInvite?.callSid)}</Text>],
-    ],
+  const callInviteComponent = React.useMemo(
+    () => (
+      <Grid
+        gridComponents={[
+          [
+            <Text>From: {String(recentCallInvite?.from)}</Text>,
+            <Text>To: {String(recentCallInvite?.to)}</Text>,
+          ],
+          [<Text>Call SID: {String(recentCallInvite?.callSid)}</Text>],
+        ]}
+      />
+    ),
     [recentCallInvite]
   );
 
@@ -70,39 +84,46 @@ export default function App() {
     []
   );
 
-  const registerButton = React.useMemo(
-    () => <Button title={'Register'} onPress={registerHandler} />,
-    [registerHandler]
+  const getOngoingButtons = React.useMemo(
+    () => [
+      <Button title={'Get Calls'} onPress={getCallsHandler} />,
+      <Button title={'Get Call Invites'} onPress={getCallInvitesHandler} />,
+    ],
+    [getCallsHandler, getCallInvitesHandler]
   );
 
-  const unregisterButton = React.useMemo(
-    () => <Button title={'Unregister'} onPress={unregisterHandler} />,
-    [unregisterHandler]
+  const registrationButtons = React.useMemo(
+    () => [
+      <Button title={'Register'} onPress={registerHandler} />,
+      <Button title={'Unregister'} onPress={unregisterHandler} />,
+    ],
+    [registerHandler, unregisterHandler]
   );
 
-  const audioDeviceButtons = React.useMemo(() => {
-    return [
+  const audioDeviceButtons = React.useMemo(
+    () => [
       <Button title={'Log Audio Devices'} onPress={logAudioDevicesHandler} />,
       <Button
         title={'Select Next Audio Device'}
         onPress={selectAudioDeviceHandler}
       />,
-    ];
-  }, [logAudioDevicesHandler, selectAudioDeviceHandler]);
+    ],
+    [logAudioDevicesHandler, selectAudioDeviceHandler]
+  );
 
   return (
     <SafeAreaView style={styles.expand}>
       <View style={styles.padded}>
         <Text>App Info</Text>
-        <Grid gridComponents={headerComponents} />
+        {headerComponent}
       </View>
       <View style={styles.padded}>
         <Text>Call Info</Text>
-        <Grid gridComponents={callGridComponents} />
+        {callComponent}
       </View>
       <View style={styles.padded}>
         <Text>Call Invite</Text>
-        <Grid gridComponents={callInviteComponents} />
+        {callInviteComponent}
       </View>
       <View style={composedStyles.events}>
         <Text>Events</Text>
@@ -122,8 +143,9 @@ export default function App() {
                 recentCallInvite={recentCallInvite}
               />,
             ],
-            [registerButton, unregisterButton],
+            registrationButtons,
             audioDeviceButtons,
+            getOngoingButtons,
           ]}
         />
       </View>

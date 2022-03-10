@@ -47,12 +47,20 @@ export interface NativeErrorInfo {
 export type Uuid = string;
 
 export enum NativeCallEventType {
+  /**
+   * Call State
+   */
   'Connected' = 'connected',
   'ConnectFailure' = 'connectFailure',
   'Reconnecting' = 'reconnecting',
   'Reconnected' = 'reconnected',
   'Disconnected' = 'disconnected',
   'Ringing' = 'ringing',
+
+  /**
+   * Call Quality
+   */
+  'QualityWarningsChanged' = 'qualityWarningsChanged',
 }
 
 export interface NativeCallConnectedEvent {
@@ -88,22 +96,47 @@ export interface NativeCallRingingEvent {
   call: NativeCallInfo;
 }
 
+export type NativeCallQualityWarnings = string[];
+
+export interface NativeCallQualityWarningsEvent {
+  type: NativeCallEventType.QualityWarningsChanged;
+  call: NativeCallInfo;
+  currentWarnings: NativeCallQualityWarnings;
+  previousWarnings: NativeCallQualityWarnings;
+}
+
 export type NativeCallEvent =
   | NativeCallConnectedEvent
   | NativeCallConnectFailureEvent
   | NativeCallReconnectingEvent
   | NativeCallReconnectedEvent
   | NativeCallDisconnectedEvent
-  | NativeCallRingingEvent;
+  | NativeCallRingingEvent
+  | NativeCallQualityWarningsEvent;
 
 export enum NativeVoiceEventType {
+  /**
+   * Common
+   */
+  'Error' = 'error',
+
+  /**
+   * Call Invite Events
+   */
   'CallInvite' = 'callInvite',
   'CallInviteAccepted' = 'callInviteAccepted',
   'CallInviteRejected' = 'callInviteRejected',
   'CancelledCallInvite' = 'cancelledCallInvite',
-  'Error' = 'error',
+
+  /**
+   * Registration
+   */
   'Registered' = 'registered',
   'Unregistered' = 'unregistered',
+
+  /**
+   * Audio Devices
+   */
   'AudioDevicesUpdated' = 'audioDevicesUpdated',
 }
 
