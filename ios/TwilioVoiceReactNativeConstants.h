@@ -18,6 +18,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyAudioDevicesUpdated;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyAudioDevices;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeySelectedDevice;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCurrentWarnings;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyPreviousWarnings;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteReceived;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventCallInviteCancelled;
@@ -29,6 +31,14 @@ FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationDeviceTok
 FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationDeviceTokenKey;
 FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationCallInviteKey;
 FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationCancelledCallInviteKey;
+
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventRinging;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventConnected;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventDisconnected;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventConnectFailure;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventReconnecting;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventReconnected;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceCallEventQualityWarningsChanged;
 
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoUuid;
 FOUNDATION_EXPORT NSString * const kTwilioVoiceCallInfoFrom;
