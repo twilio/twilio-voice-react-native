@@ -1,3 +1,4 @@
+
 buildscript {
     ext.versions = [
       'androidGradlePlugin': '4.1.2',
@@ -67,4 +68,5 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
     implementation "com.google.firebase:firebase-messaging:${versions.firebaseMessaging}"
     implementation "com.twilio:audioswitch:1.1.2"
+    implementation 'com.google.android.material:material:1.1.0'
 }
