@@ -1,3 +1,4 @@
-enum Constants {
-  {{CONTENTS}}
+export enum Constants {
+  // {{COMMENT}}
+  '{{CONSTANT}}' = '{{CONSTANT}}',
 }
