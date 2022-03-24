@@ -1,17 +1,30 @@
 const { readFile, writeFile } = require('fs').promises;
 
 function parseConstants(constantsSource) {
-  const parse = (line) => {
+  const parse = (line, idx) => {
     if (line.length === 0) {
       return { isWhitespace: true };
     }
 
     const commentMatch = /^\s*\/\/ (?<comment>.*)$/.exec(line);
     if (commentMatch && commentMatch.groups.comment) {
-      return { isComment: true, content: commentMatch.groups.comment };
+      return { isComment: true, comment: commentMatch.groups.comment };
     }
 
-    return { isConstant: true, content: line };
+    const constantMatch = /^(?<label>.*)=(?<literal>.*)$/.exec(line);
+    if (
+      constantMatch &&
+      constantMatch.groups.label &&
+      constantMatch.groups.literal
+    ) {
+      return {
+        isConstant: true,
+        label: constantMatch.groups.label,
+        literal: constantMatch.groups.literal,
+      };
+    }
+
+    throw new Error(`Constants source malformed on line: ${idx}.`);
   };
 
   const denotedConstants = constantsSource.split('\n').map(parse);
@@ -37,9 +50,15 @@ function parseTemplate(templateSource) {
       return { isComment: true, content: line };
     }
 
-    const constantMatch = /{{CONSTANT}}/.exec(line);
-    if (constantMatch) {
+    const labelMatch = /{{LABEL}}/.exec(line);
+    const literalMatch = /{{LITERAL}}/.exec(line);
+    if (labelMatch && literalMatch) {
       return { isConstant: true, content: line };
+    } else if (labelMatch || literalMatch) {
+      throw new Error(
+        'Template file malformed. \
+        Constant template must have a {{LABEL}} and {{LITERAL}}.'
+      );
     }
 
     return { content: line };
@@ -104,13 +123,12 @@ function merge(
       return '';
     }
     if (constant.isComment) {
-      return String(commentTemplate).replace(/{{COMMENT}}/g, constant.content);
+      return String(commentTemplate).replace(/{{COMMENT}}/g, constant.comment);
     }
     if (constant.isConstant) {
-      return String(constantTemplate).replace(
-        /{{CONSTANT}}/g,
-        constant.content
-      );
+      return String(constantTemplate)
+        .replace(/{{LABEL}}/g, constant.label)
+        .replace(/{{LITERAL}}/g, constant.literal);
     }
   };
 

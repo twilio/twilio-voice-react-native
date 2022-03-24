@@ -8,4 +8,4 @@
 /* This file is auto-generated. Do not edit! */
 
 // {{COMMENT}}
-static NSString * const {{CONSTANT}} = @"{{CONSTANT}}";
+static NSString * const kTwilioVoiceReactNative{{LABEL}} = @"{{LITERAL}}";

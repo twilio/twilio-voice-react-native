@@ -1,4 +1,4 @@
 export enum Constants {
   // {{COMMENT}}
-  '{{CONSTANT}}' = '{{CONSTANT}}',
+  '{{LABEL}}' = '{{LITERAL}}',
 }
