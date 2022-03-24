@@ -86,7 +86,7 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCallInvite *invite = callInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: VOICE_EVENT_CALL_INVITE,
+                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInvite,
                                                                  kTwilioVoicePushRegistryNotificationCallInviteKey: invite}];
 }
 
@@ -94,10 +94,10 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCancelledCallInvite *cancelledInvite = cancelledCallInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: VOICE_EVENT_CALL_INVITE_CANCELLED,
+                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
                                                                  kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite,
-                                                                 VOICE_EVENT_ERROR: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
-                                                                                      kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
+                                                                 kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                                                           kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 }
 
 @end
