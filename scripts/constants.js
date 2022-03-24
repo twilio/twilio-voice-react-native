@@ -165,7 +165,7 @@ async function main() {
 
   // Transform ObjC files
   const objcTemplatePath = './constants/constants.objc.template';
-  const objcOutputPath = './ios/TwilioVoiceReactNativeConstants2.h';
+  const objcOutputPath = './ios/TwilioVoiceReactNativeConstants.h';
 
   await transform(constantsPath, objcTemplatePath, objcOutputPath);
 }
