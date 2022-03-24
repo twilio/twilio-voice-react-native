@@ -162,6 +162,12 @@ async function main() {
     './android/src/main/java/com/twiliovoicereactnative/CommonConstants.java';
 
   await transform(constantsPath, javaTemplatePath, javaOutputPath);
+
+  // Transform ObjC files
+  const objcTemplatePath = './constants/constants.objc.template';
+  const objcOutputPath = './ios/TwilioVoiceReactNativeConstants2.h';
+
+  await transform(constantsPath, objcTemplatePath, objcOutputPath);
 }
 
 main();

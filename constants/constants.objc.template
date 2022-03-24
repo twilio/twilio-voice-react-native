@@ -1,0 +1,11 @@
+//
+//  TwilioVoiceReactNativeConstants.h
+//  TwilioVoiceReactNative
+//
+//  Copyright © 2021-2022 Twilio, Inc. All rights reserved.
+//
+
+/* This file is auto-generated. Do not edit! */
+
+// {{COMMENT}}
+static NSString * const {{CONSTANT}} = @"{{CONSTANT}}";

@@ -17,6 +17,13 @@
 @class TVOCancelledCallInvite;
 @class TVODefaultAudioDevice;
 
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyType;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyErrorCode;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyErrorMessage;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCall;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCallInvite;
+FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite;
+
 @interface TwilioVoiceReactNative : RCTEventEmitter <RCTBridgeModule>
 
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCall *> *callMap;
