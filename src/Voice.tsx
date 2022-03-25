@@ -5,7 +5,7 @@ import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { TwilioError } from './error/TwilioError';
-import { TwilioVoiceReactNative } from './const';
+import { TwilioVoiceReactNative } from './common';
 import {
   NativeAudioDeviceInfo,
   NativeCallInfo,

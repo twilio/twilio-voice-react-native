@@ -1,4 +1,4 @@
-import { TwilioVoiceReactNative } from './const';
+import { TwilioVoiceReactNative } from './common';
 import type { NativeAudioDeviceInfo, Uuid } from './type';
 
 export class AudioDevice {

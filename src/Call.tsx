@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
-import { TwilioVoiceReactNative } from './const';
+import { TwilioVoiceReactNative } from './common';
 import {
   CustomParameters,
   NativeCallEvent,
