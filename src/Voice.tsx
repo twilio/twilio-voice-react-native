@@ -6,11 +6,11 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { TwilioError } from './error/TwilioError';
 import { TwilioVoiceReactNative } from './common';
-import {
+import { Constants } from './constants';
+import type {
   NativeAudioDeviceInfo,
   NativeCallInfo,
   NativeCallInviteInfo,
-  NativeEventScope,
   NativeVoiceEvent,
   NativeVoiceEventType,
   Uuid,
@@ -157,30 +157,32 @@ export class Voice extends EventEmitter {
       /**
        * Common
        */
-      error: this._handleError,
+      [Constants.VoiceEventError]: this._handleError,
 
       /**
        * Call Invite
        */
-      callInvite: this._handleCallInvite,
-      callInviteAccepted: this._handleCallInviteAccepted,
-      callInviteRejected: this._handleCallInviteRejected,
-      cancelledCallInvite: this._handleCancelledCallInvite,
+      [Constants.VoiceEventCallInvite]: this._handleCallInvite,
+      [Constants.VoiceEventCallInviteAccepted]: this._handleCallInviteAccepted,
+      [Constants.VoiceEventCallInviteRejected]: this._handleCallInviteRejected,
+      [Constants.VoiceEventCallInviteCancelled]:
+        this._handleCancelledCallInvite,
 
       /**
        * Registration
        */
-      registered: this._handleRegistered,
-      unregistered: this._handleUnregistered,
+      [Constants.VoiceEventRegistered]: this._handleRegistered,
+      [Constants.VoiceEventUnregistered]: this._handleUnregistered,
 
       /**
        * Audio Devices
        */
-      audioDevicesUpdated: this._handleAudioDevicesUpdated,
+      [Constants.VoiceEventAudioDevicesUpdated]:
+        this._handleAudioDevicesUpdated,
     };
 
     this._nativeEventEmitter.addListener(
-      NativeEventScope.Voice,
+      Constants.ScopeVoice,
       this._handleNativeEvent
     );
   }
@@ -199,7 +201,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInvite) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInvite) {
       throw new Error(
         `Incorrect "voice#callInvite" handler called for type "${nativeVoiceEvent.type}".`
       );
@@ -216,7 +218,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCallInviteAccepted = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInviteAccepted) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteAccepted) {
       throw new Error(
         `Incorrect "voice#callInviteAccepted" handler called for type "${nativeVoiceEvent.type}".`
       );
@@ -243,7 +245,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCallInviteRejected = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.CallInviteRejected) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteRejected) {
       throw new Error(
         `Incorrect "voice#callInviteRejected" handler called for type "${nativeVoiceEvent.type}".`
       );
@@ -257,7 +259,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleCancelledCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.CancelledCallInvite) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteCancelled) {
       throw new Error(
         `Incorrect "voice#cancelledCallInvite" handler called for type "${nativeVoiceEvent.type}".`
       );
@@ -276,7 +278,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleError = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.Error) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventError) {
       throw new Error(
         `Incorrect "voice#error" handler called for type "${nativeVoiceEvent.type}".`
       );
@@ -300,7 +302,7 @@ export class Voice extends EventEmitter {
   };
 
   private _handleAudioDevicesUpdated = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== NativeVoiceEventType.AudioDevicesUpdated) {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventAudioDevicesUpdated) {
       throw new Error(
         `Incorrect "voice#audioDevicesUpdated" handler called for type "${nativeVoiceEvent.type}".`
       );
