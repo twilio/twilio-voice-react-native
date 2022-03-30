@@ -30,3 +30,7 @@ CallEventRinging=CALL_EVENT_RINGING
 
 // Quality warnings
 CallEventQualityWarningsChanged=CALL_EVENT_QUALITY_WARNINGS_CHANGED
+
+// Post feedback
+Score=SCORE
+Issue=ISSUE

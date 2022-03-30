@@ -59,7 +59,9 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_COD
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
+import static com.twiliovoicereactnative.CommonConstants.Issue;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
+import static com.twiliovoicereactnative.CommonConstants.Score;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesUpdated;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
@@ -485,6 +487,22 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(uuid);
   }
 
+  @ReactMethod
+  public void call_postFeedback(String uuid,  int scoreData, String issueData, Promise promise) {
+    Call activeCall = Storage.callMap.get(uuid);
+
+    if (activeCall == null) {
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
+      return;
+    }
+
+    Call.Score score = getScoreFromId(scoreData);
+    Call.Issue issue = getIssueFromString(issueData);
+
+    activeCall.postFeedback(score, issue);
+    promise.resolve(uuid);
+  }
+
   // Register/UnRegister
 
   @ReactMethod
@@ -614,4 +632,40 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     promise.resolve(uuid);
   }
+
+  Call.Score getScoreFromId (int x) {
+    switch(x) {
+      case 0:
+        return Call.Score.NOT_REPORTED;
+      case 1:
+        return Call.Score.ONE;
+      case 2:
+        return Call.Score.TWO;
+      case 3:
+        return Call.Score.THREE;
+      case 4:
+        return Call.Score.FOUR;
+      case 5:
+        return Call.Score.FIVE;
+    }
+    return Call.Score.NOT_REPORTED;
+  }
+
+  Call.Issue getIssueFromString(String issue) {
+    if (issue.compareTo(Call.Issue.NOT_REPORTED.toString()) == 0) {
+      return Call.Issue.NOT_REPORTED;
+    } else if (issue.compareTo(Call.Issue.DROPPED_CALL.toString()) == 0) {
+      return Call.Issue.DROPPED_CALL;
+    } else if (issue.compareTo(Call.Issue.AUDIO_LATENCY.toString()) == 0) {
+      return Call.Issue.AUDIO_LATENCY;
+    } else if (issue.compareTo(Call.Issue.ONE_WAY_AUDIO.toString()) == 0) {
+      return Call.Issue.ONE_WAY_AUDIO;
+    } else if (issue.compareTo(Call.Issue.CHOPPY_AUDIO.toString()) == 0) {
+      return Call.Issue.CHOPPY_AUDIO;
+    } else if (issue.compareTo(Call.Issue.NOISY_CALL.toString()) == 0) {
+      return Call.Issue.NOISY_CALL;
+    }
+    return Call.Issue.NOT_REPORTED;
+  }
+
 }
