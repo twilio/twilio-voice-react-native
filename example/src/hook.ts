@@ -104,6 +104,7 @@ export function useCall(logEvent: (event: string) => void) {
           );
         },
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
+        postFeedback: (_score: Call.Score, _issue: Call.Issue ) => () => call.postFeedback(_score, _issue),
       });
 
       logEvent(`call sid: ${call.getSid()}`);
