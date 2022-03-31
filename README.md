@@ -11,8 +11,17 @@ npm install twilio-voice-react-native
 ### Android Installation
 
 * For incoming call, you need to create a push credential. Follow the details [here](https://github.com/twilio/voice-quickstart-android/blob/master/Docs/manage-push-credentials.md) to get started.
-* You need to download the file `google-services.json` from the Firebase console and place it under `/app` directory for registration for incoming call to work. 
+* You need to download the file `google-services.json` from the Firebase console and place it under `/app` directory for registration for incoming call to work.
 
+## Building Constants
+
+The following `npm` command will build the constants files for each platform.
+This step needs to be done if a constant is changed or added, or if a constant
+language-template is changed.
+
+```sh
+npm run build:constants
+```
 
 ## Usage
 
