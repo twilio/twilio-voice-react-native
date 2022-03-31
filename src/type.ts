@@ -1,6 +1,7 @@
 import type { EventSubscriptionVendor } from 'react-native';
 import type { CallInvite } from './CallInvite';
 import type { AudioDevice } from './AudioDevice';
+import type { Constants } from './constants';
 
 export type CustomParameters = Record<string, any>;
 
@@ -34,11 +35,6 @@ export interface NativeAudioDeviceInfo {
   name: string;
 }
 
-export enum NativeEventScope {
-  'Call' = 'Call',
-  'Voice' = 'Voice',
-}
-
 export interface NativeErrorInfo {
   code: number;
   message: string;
@@ -46,60 +42,43 @@ export interface NativeErrorInfo {
 
 export type Uuid = string;
 
-export enum NativeCallEventType {
-  /**
-   * Call State
-   */
-  'Connected' = 'connected',
-  'ConnectFailure' = 'connectFailure',
-  'Reconnecting' = 'reconnecting',
-  'Reconnected' = 'reconnected',
-  'Disconnected' = 'disconnected',
-  'Ringing' = 'ringing',
-
-  /**
-   * Call Quality
-   */
-  'QualityWarningsChanged' = 'qualityWarningsChanged',
-}
-
 export interface NativeCallConnectedEvent {
-  type: NativeCallEventType.Connected;
+  type: Constants.CallEventConnected;
   call: NativeCallInfo;
 }
 
 export interface NativeCallConnectFailureEvent {
-  type: NativeCallEventType.ConnectFailure;
+  type: Constants.CallEventConnectFailure;
   call: NativeCallInfo;
   error: NativeErrorInfo;
 }
 
 export interface NativeCallReconnectingEvent {
-  type: NativeCallEventType.Reconnecting;
+  type: Constants.CallEventReconnecting;
   call: NativeCallInfo;
   error: NativeErrorInfo;
 }
 
 export interface NativeCallReconnectedEvent {
-  type: NativeCallEventType.Reconnected;
+  type: Constants.CallEventReconnected;
   call: NativeCallInfo;
 }
 
 export interface NativeCallDisconnectedEvent {
-  type: NativeCallEventType.Disconnected;
+  type: Constants.CallEventDisconnected;
   call: NativeCallInfo;
   error?: NativeErrorInfo;
 }
 
 export interface NativeCallRingingEvent {
-  type: NativeCallEventType.Ringing;
+  type: Constants.CallEventRinging;
   call: NativeCallInfo;
 }
 
 export type NativeCallQualityWarnings = string[];
 
 export interface NativeCallQualityWarningsEvent {
-  type: NativeCallEventType.QualityWarningsChanged;
+  type: Constants.CallEventQualityWarningsChanged;
   call: NativeCallInfo;
   currentWarnings: NativeCallQualityWarnings;
   previousWarnings: NativeCallQualityWarnings;
@@ -114,49 +93,23 @@ export type NativeCallEvent =
   | NativeCallRingingEvent
   | NativeCallQualityWarningsEvent;
 
-export enum NativeVoiceEventType {
-  /**
-   * Common
-   */
-  'Error' = 'error',
-
-  /**
-   * Call Invite Events
-   */
-  'CallInvite' = 'callInvite',
-  'CallInviteAccepted' = 'callInviteAccepted',
-  'CallInviteRejected' = 'callInviteRejected',
-  'CancelledCallInvite' = 'cancelledCallInvite',
-
-  /**
-   * Registration
-   */
-  'Registered' = 'registered',
-  'Unregistered' = 'unregistered',
-
-  /**
-   * Audio Devices
-   */
-  'AudioDevicesUpdated' = 'audioDevicesUpdated',
-}
-
 export interface NativeCallInviteEvent {
-  type: NativeVoiceEventType.CallInvite;
+  type: Constants.VoiceEventCallInvite;
   callInvite: NativeCallInviteInfo;
 }
 
 export interface NativeCallInviteAcceptedEvent {
-  type: NativeVoiceEventType.CallInviteAccepted;
+  type: Constants.VoiceEventCallInviteAccepted;
   callInvite: NativeCallInviteInfo;
 }
 
 export interface NativeCallInviteRejectedEvent {
-  type: NativeVoiceEventType.CallInviteRejected;
+  type: Constants.VoiceEventCallInviteRejected;
   callInvite: NativeCallInviteInfo;
 }
 
 export interface NativeCancelledCallInviteEvent {
-  type: NativeVoiceEventType.CancelledCallInvite;
+  type: Constants.VoiceEventCallInviteCancelled;
   cancelledCallInvite: NativeCancelledCallInviteInfo;
   error: NativeErrorInfo;
 }
@@ -167,11 +120,11 @@ export interface NativeAudioDevicesInfo {
 }
 
 export interface NativeAudioDevicesUpdatedEvent extends NativeAudioDevicesInfo {
-  type: NativeVoiceEventType.AudioDevicesUpdated;
+  type: Constants.VoiceEventAudioDevicesUpdated;
 }
 
 export interface NativeErrorEvent {
-  type: NativeVoiceEventType.Error;
+  type: Constants.VoiceEventError;
   error: NativeErrorInfo;
 }
 
@@ -183,13 +136,24 @@ export type NativeVoiceEvent =
   | NativeCancelledCallInviteEvent
   | NativeErrorEvent;
 
-export enum NativeCallState {
-  'Connected' = 'connected',
-  'Connecting' = 'connecting',
-  'Disconnected' = 'disconnected',
-  'Reconnecting' = 'reconnected',
-  'Ringing' = 'ringing',
-}
+export type NativeVoiceEventType =
+  | Constants.VoiceEventAudioDevicesUpdated
+  | Constants.VoiceEventCallInvite
+  | Constants.VoiceEventCallInviteAccepted
+  | Constants.VoiceEventCallInviteCancelled
+  | Constants.VoiceEventCallInviteRejected
+  | Constants.VoiceEventError
+  | Constants.VoiceEventRegistered
+  | Constants.VoiceEventUnregistered;
+
+export type NativeCallEventType =
+  | Constants.CallEventConnectFailure
+  | Constants.CallEventConnected
+  | Constants.CallEventDisconnected
+  | Constants.CallEventQualityWarningsChanged
+  | Constants.CallEventReconnected
+  | Constants.CallEventReconnecting
+  | Constants.CallEventRinging;
 
 export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**

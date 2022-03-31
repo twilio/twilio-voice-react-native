@@ -36,7 +36,7 @@ public class IncomingCallNotificationService extends Service {
       CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
       int notificationId = intent.getIntExtra(Constants.NOTIFICATION_ID, 0);
       String uuid = intent.getStringExtra(Constants.UUID);
-      String callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
+      String callSid;
       Log.d(TAG, "UUID " + uuid + " action " + action + " intent " + intent.toString() + " notificationId " + notificationId);
       switch (action) {
         case Constants.ACTION_INCOMING_CALL:
@@ -64,11 +64,13 @@ public class IncomingCallNotificationService extends Service {
           disconnectCall(notificationId, uuid);
           break;
         case Constants.ACTION_OUTGOING_CALL:
-          Log.d(TAG, "Raising call in progress notifiation uuid:" + uuid + " notificationId: " + notificationId);
+          Log.d(TAG, "Raising call in progress notification uuid:" + uuid + " notificationId: " + notificationId);
+          callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
           handleOutgoingCall(callSid, notificationId, uuid);
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           Log.i(TAG, "ACTION_PUSH_APP_TO_FOREGROUND " + uuid + " notificationId" + notificationId);
+          callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
           bringAppToForeground(callSid, notificationId, uuid);
         default:
           break;

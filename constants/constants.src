@@ -1,0 +1,32 @@
+// Scope names
+ScopeVoice=SCOPE_VOICE
+ScopeCall=SCOPE_CALL
+
+// Voice events
+// Common
+VoiceEventError=VOICE_EVENT_ERROR
+
+// Registration
+VoiceEventRegistered=VOICE_EVENT_REGISTERED
+VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED
+
+// Call Invite
+VoiceEventCallInvite=VOICE_EVENT_CALL_INVITE
+VoiceEventCallInviteAccepted=VOICE_EVENT_CALL_INVITE_ACCEPTED
+VoiceEventCallInviteRejected=VOICE_EVENT_CALL_INVITE_REJECTED
+VoiceEventCallInviteCancelled=VOICE_EVENT_CALL_INVITE_CANCELLED
+
+// Audio Devices
+VoiceEventAudioDevicesUpdated=VOICE_EVENT_AUDIO_DEVICES_UPDATED
+
+// Call events
+// State
+CallEventConnected=CALL_EVENT_CONNECTED
+CallEventConnectFailure=CALL_EVENT_CONNECT_FAILURE
+CallEventDisconnected=CALL_EVENT_DISCONNECTED
+CallEventReconnecting=CALL_EVENT_RECONNECTING
+CallEventReconnected=CALL_EVENT_RECONNECTED
+CallEventRinging=CALL_EVENT_RINGING
+
+// Quality warnings
+CallEventQualityWarningsChanged=CALL_EVENT_QUALITY_WARNINGS_CHANGED

@@ -1,0 +1,6 @@
+package com.twiliovoicereactnative;
+
+public class CommonConstants {
+  // {{COMMENT}}
+  public static final String {{LABEL}} = "{{LITERAL}}";
+}

@@ -1,13 +1,13 @@
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
-import { TwilioVoiceReactNative } from './const';
-import {
+import { TwilioVoiceReactNative } from './common';
+import { Constants } from './constants';
+import type {
   CustomParameters,
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
   NativeCallQualityWarnings,
-  NativeEventScope,
   Uuid,
 } from './type';
 import { TwilioError } from './error/TwilioError';
@@ -89,12 +89,12 @@ export declare interface Call {
 export class Call extends EventEmitter {
   private _eventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>> =
     {
-      [NativeCallEventType.Connected]: Call.State.Connected,
-      [NativeCallEventType.ConnectFailure]: Call.State.Disconnected,
-      [NativeCallEventType.Reconnecting]: Call.State.Reconnecting,
-      [NativeCallEventType.Reconnected]: Call.State.Connected,
-      [NativeCallEventType.Disconnected]: Call.State.Disconnected,
-      [NativeCallEventType.Ringing]: Call.State.Ringing,
+      [Constants.CallEventConnected]: Call.State.Connected,
+      [Constants.CallEventConnectFailure]: Call.State.Disconnected,
+      [Constants.CallEventDisconnected]: Call.State.Disconnected,
+      [Constants.CallEventReconnecting]: Call.State.Reconnecting,
+      [Constants.CallEventReconnected]: Call.State.Connected,
+      [Constants.CallEventRinging]: Call.State.Ringing,
     };
   private _nativeEventHandler: Record<
     NativeCallEventType,
@@ -143,21 +143,22 @@ export class Call extends EventEmitter {
       /**
        * Call State
        */
-      connected: this._handleConnectedEvent,
-      connectFailure: this._handleConnectFailure,
-      reconnecting: this._handleReconnecting,
-      reconnected: this._handleReconnected,
-      disconnected: this._handleDisconnected,
-      ringing: this._handleRinging,
+      [Constants.CallEventConnected]: this._handleConnectedEvent,
+      [Constants.CallEventConnectFailure]: this._handleConnectFailure,
+      [Constants.CallEventDisconnected]: this._handleDisconnected,
+      [Constants.CallEventReconnecting]: this._handleReconnecting,
+      [Constants.CallEventReconnected]: this._handleReconnected,
+      [Constants.CallEventRinging]: this._handleRinging,
 
       /**
        * Call Quality
        */
-      qualityWarningsChanged: this._handleQualityWarningsChanged,
+      [Constants.CallEventQualityWarningsChanged]:
+        this._handleQualityWarningsChanged,
     };
 
     this._nativeEventEmitter.addListener(
-      NativeEventScope.Call,
+      Constants.ScopeCall,
       this._handleNativeEvent
     );
   }
@@ -188,7 +189,7 @@ export class Call extends EventEmitter {
   }
 
   private _handleConnectedEvent = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.Connected) {
+    if (nativeCallEvent.type !== Constants.CallEventConnected) {
       throw new Error(
         `Incorrect "call#connected" handler called for type "${nativeCallEvent.type}".`
       );
@@ -200,7 +201,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleConnectFailure = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.ConnectFailure) {
+    if (nativeCallEvent.type !== Constants.CallEventConnectFailure) {
       throw new Error(
         `Incorrect "call#connectFailure" handler called for type "${nativeCallEvent.type}".`
       );
@@ -216,7 +217,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleDisconnected = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.Disconnected) {
+    if (nativeCallEvent.type !== Constants.CallEventDisconnected) {
       throw new Error(
         `Incorrect "call#disconnected" handler called for type "${nativeCallEvent.type}".`
       );
@@ -236,7 +237,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleReconnecting = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.Reconnecting) {
+    if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
       throw new Error(
         `Incorrect "call#reconnecting" handler called for type "${nativeCallEvent.type}".`
       );
@@ -252,7 +253,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleReconnected = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.Reconnected) {
+    if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
       throw new Error(
         `Incorrect "call#reconnected" handler called for type "${nativeCallEvent.type}".`
       );
@@ -264,7 +265,7 @@ export class Call extends EventEmitter {
   };
 
   private _handleRinging = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== NativeCallEventType.Ringing) {
+    if (nativeCallEvent.type !== Constants.CallEventRinging) {
       throw new Error(
         `Incorrect "call#ringing" handler called for type "${nativeCallEvent.type}".`
       );
@@ -278,7 +279,7 @@ export class Call extends EventEmitter {
   private _handleQualityWarningsChanged = (
     nativeCallEvent: NativeCallEvent
   ) => {
-    if (nativeCallEvent.type !== NativeCallEventType.QualityWarningsChanged) {
+    if (nativeCallEvent.type !== Constants.CallEventQualityWarningsChanged) {
       throw new Error(
         `Incorrect "call#qualityWarnings" handler called for type "${nativeCallEvent.type}".`
       );

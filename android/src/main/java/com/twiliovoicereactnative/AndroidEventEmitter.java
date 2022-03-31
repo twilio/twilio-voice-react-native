@@ -15,12 +15,6 @@ public class AndroidEventEmitter {
   private ReactApplicationContext context;
 
   /**
-   * Event scopes.
-   */
-  public static final String CALL_EVENT_NAME = "Call";
-  public static final String VOICE_EVENT_NAME = "Voice";
-
-  /**
    * Common.
    */
   public static final String EVENT_KEY_TYPE = "type";
@@ -33,17 +27,6 @@ public class AndroidEventEmitter {
    * Push notification registration.
    */
   public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
-
-  /**
-   * Call event types.
-   */
-  public static final String EVENT_TYPE_CALL_RINGING = "ringing";
-  public static final String EVENT_TYPE_CALL_CONNECTED = "connected";
-  public static final String EVENT_TYPE_CALL_DISCONNECTED = "disconnected";
-  public static final String EVENT_TYPE_CALL_CONNECT_FAILURE = "connectFailure";
-  public static final String EVENT_TYPE_CALL_RECONNECTED = "reconnected";
-  public static final String EVENT_TYPE_CALL_RECONNECTING = "reconnecting";
-  public static final String EVENT_TYPE_CALL_QUALITY = "qualityWarningsChanged";
 
   /**
    * Call keys.
@@ -75,17 +58,6 @@ public class AndroidEventEmitter {
   public static final String EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID = "callSid";
   public static final String EVENT_KEY_CANCELLED_CALL_INVITE_FROM = "from";
   public static final String EVENT_KEY_CANCELLED_CALL_INVITE_TO = "to";
-
-  /**
-   * Voice event types.
-   */
-  public static final String EVENT_TYPE_VOICE_CALL_INVITE = "callInvite";
-  public static final String EVENT_TYPE_VOICE_CALL_INVITE_ACCEPTED = "callInviteAccepted";
-  public static final String EVENT_TYPE_VOICE_CALL_INVITE_REJECTED = "callInviteRejected";
-  public static final String EVENT_TYPE_VOICE_CANCELLED_CALL_INVITE = "cancelledCallInvite";
-  public static final String EVENT_TYPE_VOICE_REGISTERED = "registered";
-  public static final String EVENT_TYPE_VOICE_UNREGISTERED = "unregistered";
-  public static final String EVENT_TYPE_VOICE_AUDIO_DEVICES_UPDATED = "audioDevicesUpdated";
 
   /**
    * AudioDevice event keys.

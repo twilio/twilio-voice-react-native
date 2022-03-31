@@ -10,6 +10,7 @@
 @import TwilioVoice;
 
 #import "TwilioVoicePushRegistry.h"
+#import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
 NSString * const kTwilioVoicePushRegistryNotification = @"TwilioVoicePushRegistryNotification";
@@ -85,7 +86,7 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCallInvite *invite = callInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteReceived,
+                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInvite,
                                                                  kTwilioVoicePushRegistryNotificationCallInviteKey: invite}];
 }
 
@@ -93,10 +94,10 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCancelledCallInvite *cancelledInvite = cancelledCallInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeEventCallInviteCancelled,
+                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
                                                                  kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite,
-                                                                 kTwilioVoiceReactNativeEventKeyError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
-                                                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
+                                                                 kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                                                           kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 }
 
 @end
