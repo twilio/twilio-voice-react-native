@@ -1,4 +1,5 @@
 import type { EventSubscriptionVendor } from 'react-native';
+import type { Call } from './Call';
 import type { CallInvite } from './CallInvite';
 import type { AudioDevice } from './AudioDevice';
 import type { Constants } from './constants';
@@ -164,6 +165,11 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   call_isOnHold(callUuid: Uuid): Promise<boolean>;
   call_isMuted(callUuid: Uuid): Promise<boolean>;
   call_mute(callUuid: Uuid, mute: boolean): Promise<boolean>;
+  call_postFeedback(
+    callUuid: Uuid,
+    score: Call.Score,
+    issue: Call.Issue
+  ): Promise<void>;
   call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
 
   /**
@@ -184,12 +190,12 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     twimlParams: Record<string, any>
   ): Promise<NativeCallInfo>;
   voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
-  voice_showNativeAvRoutePicker(): Promise<void>;
   voice_getCalls(): Promise<NativeCallInfo[]>;
   voice_getCallInvites(): Promise<NativeCallInviteInfo[]>;
   voice_getDeviceToken(): Promise<string>;
   voice_getVersion(): Promise<string>;
   voice_register(accessToken: string): Promise<void>;
   voice_selectAudioDevice(audioDeviceUuid: Uuid): Promise<void>;
+  voice_showNativeAvRoutePicker(): Promise<void>;
   voice_unregister(accessToken: string): Promise<void>;
 }
