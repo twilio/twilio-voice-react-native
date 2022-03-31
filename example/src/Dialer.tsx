@@ -74,7 +74,10 @@ export default function Dialer({
         />,
         <Button
           title="Post feedback"
-          onPress={callMethod?.postFeedback(Call.Score.Four, Call.Issue.ChoppyAudio) || postFeedbackNoOp}
+          onPress={
+            callMethod?.postFeedback(Call.Score.Four, Call.Issue.ChoppyAudio) ||
+            postFeedbackNoOp
+          }
         />,
       ],
     ],
@@ -86,6 +89,7 @@ export default function Dialer({
       disconnectNoOp,
       holdNoOp,
       muteNoOp,
+      postFeedbackNoOp,
       sendDigitsNoOp,
     ]
   );

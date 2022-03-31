@@ -346,7 +346,7 @@ export class Call extends EventEmitter {
   }
 
   postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
-      return this._nativeModule.call_postFeedback(this._uuid, score, issue);
+    return this._nativeModule.call_postFeedback(this._uuid, score, issue);
   }
 }
 
@@ -383,21 +383,21 @@ export namespace Call {
   }
 
   export enum Score {
-      NotReported = 0,
-      One,
-      Two,
-      Three,
-      Four,
-      Five,
+    NotReported = 0,
+    One = 1,
+    Two = 2,
+    Three = 3,
+    Four = 4,
+    Five = 5,
   }
 
   export enum Issue {
-        NotReported = 'not-reported',
-        DroppedCall = 'dropped-call',
-        AudioLatency = 'audio-latency',
-        OneWayAudio = 'one-way-audio',
-        ChoppyAudio = 'choppy-audio',
-        NoisyCall = 'noisy-call' ,
-        Echo = 'echo',
+    NotReported = 'not-reported',
+    DroppedCall = 'dropped-call',
+    AudioLatency = 'audio-latency',
+    OneWayAudio = 'one-way-audio',
+    ChoppyAudio = 'choppy-audio',
+    NoisyCall = 'noisy-call',
+    Echo = 'echo',
   }
 }
