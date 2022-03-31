@@ -344,6 +344,10 @@ export class Call extends EventEmitter {
   sendDigits(digits: string): Promise<void> {
     return this._nativeModule.call_sendDigits(this._uuid, digits);
   }
+
+  postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
+    return this._nativeModule.call_postFeedback(this._uuid, score, issue);
+  }
 }
 
 export namespace Call {
@@ -376,5 +380,24 @@ export namespace Call {
     HighPacketLoss = 'high-packet-loss',
     HighRtt = 'high-rtt',
     LowMos = 'low-mos',
+  }
+
+  export enum Score {
+    NotReported = 0,
+    One = 1,
+    Two = 2,
+    Three = 3,
+    Four = 4,
+    Five = 5,
+  }
+
+  export enum Issue {
+    NotReported = 'not-reported',
+    DroppedCall = 'dropped-call',
+    AudioLatency = 'audio-latency',
+    OneWayAudio = 'one-way-audio',
+    ChoppyAudio = 'choppy-audio',
+    NoisyCall = 'noisy-call',
+    Echo = 'echo',
   }
 }

@@ -1,7 +1,10 @@
+import type { Call } from 'twilio-voice-react-native';
+
 export interface BoundCallMethod {
   disconnect: () => void;
   hold: () => void;
   mute: () => void;
+  postFeedback: (score: Call.Score, issue: Call.Issue) => () => void;
   sendDigits: (digits: string) => void;
 }
 

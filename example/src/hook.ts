@@ -103,6 +103,8 @@ export function useCall(logEvent: (event: string) => void) {
               : null
           );
         },
+        postFeedback: (_score: Call.Score, _issue: Call.Issue) => () =>
+          call.postFeedback(_score, _issue),
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
       });
 

@@ -27,6 +27,7 @@ export default function Dialer({
   const holdNoOp = useNoOp('hold');
   const acceptNoOp = useNoOp('accept');
   const rejectNoOp = useNoOp('reject');
+  const postFeedbackNoOp = useNoOp('post feedback');
 
   const connectHandler = React.useCallback(
     () => onConnect(outgoingTo),
@@ -71,6 +72,13 @@ export default function Dialer({
           title="Disconnect"
           onPress={callMethod?.disconnect || disconnectNoOp}
         />,
+        <Button
+          title="Post feedback"
+          onPress={
+            callMethod?.postFeedback(Call.Score.Four, Call.Issue.ChoppyAudio) ||
+            postFeedbackNoOp
+          }
+        />,
       ],
     ],
     [
@@ -81,6 +89,7 @@ export default function Dialer({
       disconnectNoOp,
       holdNoOp,
       muteNoOp,
+      postFeedbackNoOp,
       sendDigitsNoOp,
     ]
   );
