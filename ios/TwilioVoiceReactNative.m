@@ -688,6 +688,21 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     }
 }
 
+RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
+                  score:(NSUInteger)score
+                  issue:(NSString *)issue
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    TVOCall *call = self.callMap[uuid];
+    if (call) {
+        [call postFeedback:(TVOCallFeedbackScore)score issue:[self issueFromString:issue]];
+        resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
+}
+
 #pragma mark - Bingings (Call Invite)
 
 RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
@@ -825,6 +840,24 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
             return @"disconnected";
         default:
             return @"connecting";
+    }
+}
+
+- (TVOCallFeedbackIssue)issueFromString:(NSString *)issue {
+    if ([issue isEqualToString:@"not-reported"]) {
+        return TVOCallFeedbackIssueNotReported;
+    } else if ([issue isEqualToString:@"dropped-call"]) {
+        return TVOCallFeedbackIssueDroppedCall;
+    } else if ([issue isEqualToString:@"audio-latency"]) {
+        return TVOCallFeedbackIssueAudioLatency;
+    } else if ([issue isEqualToString:@"one-way-audio"]) {
+        return TVOCallFeedbackIssueOneWayAudio;
+    } else if ([issue isEqualToString:@"choppy-audio"]) {
+        return TVOCallFeedbackIssueChoppyAudio;
+    } else if ([issue isEqualToString:@"noisy-call"]) {
+        return TVOCallFeedbackIssueNoisyCall;
+    } else {
+        return TVOCallFeedbackIssueNotReported;
     }
 }
 
