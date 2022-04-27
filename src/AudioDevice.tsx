@@ -1,5 +1,6 @@
 import { TwilioVoiceReactNative } from './common';
-import type { NativeAudioDeviceInfo, Uuid } from './type';
+import type { NativeAudioDeviceInfo } from './type/AudioDevice';
+import type { Uuid } from './type/common';
 
 export class AudioDevice {
   private _nativeModule: typeof TwilioVoiceReactNative;

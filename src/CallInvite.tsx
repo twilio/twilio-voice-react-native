@@ -1,7 +1,8 @@
 import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
 import { TwilioVoiceReactNative } from './common';
-import type { CustomParameters, NativeCallInviteInfo, Uuid } from './type';
+import type { NativeCallInviteInfo } from './type/CallInvite';
+import type { CustomParameters, Uuid } from './type/common';
 import { InvalidStateError } from './error/InvalidStateError';
 
 export class CallInvite {

@@ -1,4 +1,4 @@
-import type { NativeCancelledCallInviteInfo } from './type';
+import type { NativeCancelledCallInviteInfo } from './type/CallInvite';
 
 export class CancelledCallInvite {
   private _callSid: string;
