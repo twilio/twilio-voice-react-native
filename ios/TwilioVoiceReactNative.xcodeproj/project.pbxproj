@@ -28,6 +28,7 @@
 		8F19C42C2683AE0200F765F1 /* TwilioVoicePushRegistry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TwilioVoicePushRegistry.m; sourceTree = "<group>"; };
 		8F5ED22E268D428F00572F00 /* TwilioVoiceReactNative+CallKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TwilioVoiceReactNative+CallKit.m"; sourceTree = "<group>"; };
 		8F78B80726A100C4007AE617 /* TwilioVoiceReactNativeConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TwilioVoiceReactNativeConstants.h; sourceTree = "<group>"; };
+		8F9DA21A281A0EE900EBB341 /* TwilioVoiceStatsReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TwilioVoiceStatsReport.h; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* TwilioVoiceReactNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TwilioVoiceReactNative.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* TwilioVoiceReactNative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TwilioVoiceReactNative.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -54,6 +55,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				8F9DA219281A0E1000EBB341 /* Utilities */,
 				8F78B80726A100C4007AE617 /* TwilioVoiceReactNativeConstants.h */,
 				B3E7B5881CC2AC0600A0062D /* TwilioVoiceReactNative.h */,
 				B3E7B5891CC2AC0600A0062D /* TwilioVoiceReactNative.m */,
@@ -70,6 +72,14 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8F9DA219281A0E1000EBB341 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				8F9DA21A281A0EE900EBB341 /* TwilioVoiceStatsReport.h */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
