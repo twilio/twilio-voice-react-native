@@ -712,7 +712,7 @@ RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
     if (call) {
         [call getStatsWithBlock:^(NSArray<TVOStatsReport *> *statsReports) {
             NSAssert([statsReports count] >= 1, @"Invalid stats reports array size");
-            NSDictionary *statsReportJson = [TwilioVoiceStatsReport jsonWithStatsReport:statsReports[0]];
+            NSArray *statsReportJson = [TwilioVoiceStatsReport jsonWithStatsReportsArray:statsReports];
             resolve(statsReportJson);
         }];
     } else {
