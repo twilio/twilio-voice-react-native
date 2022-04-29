@@ -327,6 +327,15 @@ export class Call extends EventEmitter {
     return this._state;
   }
 
+  /**
+   * Gets the PeerConnection WebRTC stats for the ongoing call.
+   * @returns a Promise that resolves with a StatsReport object representing the
+   * WebRTC PeerConnection stats of a call.
+   */
+  getStats(): Promise<Call.StatsReport> {
+    return this._nativeModule.call_getStats(this._uuid);
+  }
+
   getTo(): string | undefined {
     return this._to;
   }
