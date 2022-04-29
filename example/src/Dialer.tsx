@@ -82,7 +82,7 @@ export default function Dialer({
         />,
         <Button
           title="Get Stats"
-          onPress={callMethod?.getStats() || getStatsNoOp}
+          onPress={callMethod?.getStats || getStatsNoOp}
         />,
       ],
     ],
