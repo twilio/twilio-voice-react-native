@@ -514,8 +514,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return;
     }
 
-    activeCall.getStats(new StatsListenerProxy(uuid, reactContext));
-    promise.resolve(uuid);
+    activeCall.getStats(new StatsListenerProxy(uuid, reactContext, promise));
   }
 
   // Register/UnRegister

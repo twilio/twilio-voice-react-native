@@ -1,11 +1,11 @@
 package com.twiliovoicereactnative;
 
-import static com.twilio.voice.IceCandidatePairState.*;
-
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.facebook.react.bridge.Promise;
 import com.twilio.voice.IceCandidatePairState;
 import com.twilio.voice.IceCandidatePairStats;
 import com.twilio.voice.IceCandidateStats;
@@ -18,20 +18,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class StatsListenerProxy implements StatsListener {
 
   static final String TAG = "CallListenerProxy";
-  private final String uuid;
+  private final Promise promise;
 
-  private final Context context;
-
-  public StatsListenerProxy(String uuid, Context context) {
-    this.uuid = uuid;
-    this.context = context;
+  public StatsListenerProxy(String uuid, Context context, Promise promise) {
+    this.promise = promise;
   }
 
   @Override
@@ -70,8 +65,8 @@ public class StatsListenerProxy implements StatsListener {
           }
           jsonObject.put("iceCandidateStats", iceCandidateStatsArray);
         }
-
-
+        Log.d(TAG, jsonObject.toString());
+        promise.resolve(jsonObject.toString());
       }
     } catch (JSONException e) {
       e.printStackTrace();
