@@ -1,11 +1,18 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
+import static com.twiliovoicereactnative.CommonConstants.CallEventReconnecting;
+
 import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.IceCandidatePairState;
 import com.twilio.voice.IceCandidatePairStats;
 import com.twilio.voice.IceCandidateStats;
@@ -33,127 +40,138 @@ public class StatsListenerProxy implements StatsListener {
   public void onStats(@NonNull List<StatsReport> statsReports) {
     try {
       if (statsReports != null) {
-        JSONObject jsonObject = new JSONObject();
+        WritableArray statsReportsArray = Arguments.createArray();
+
         for (int i = 0; i < statsReports.size(); i++) {
-          jsonObject.put("peerConnectionId", statsReports.get(i).getPeerConnectionId());
+          WritableMap params = Arguments.createMap();
+          params.putString("peerConnectionId", statsReports.get(i).getPeerConnectionId());
 
           List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
-          JSONArray localAudioStatsArray = new JSONArray();
-          for (int j = 0; j < localAudioStatsList.size(); i++) {
-            localAudioStatsArray.put(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
+          WritableArray localAudioStatsArray = Arguments.createArray();
+          for (int j = 0; j < localAudioStatsList.size(); j++) {
+            localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
           }
-          jsonObject.put("localAudioTrackStats", localAudioStatsArray);
+          params.putArray("localAudioTrackStats", localAudioStatsArray);
 
           List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
-          JSONArray remoteAudioStatsArray = new JSONArray();
-          for (int j = 0; j < remoteAudioStatsList.size(); i++) {
-            remoteAudioStatsArray.put(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
+          WritableArray remoteAudioStatsArray = Arguments.createArray();
+          for (int j = 0; j < remoteAudioStatsList.size(); j++) {
+            remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
           }
-          jsonObject.put("remoteAudioTrackStats", remoteAudioStatsArray);
+          params.putArray("remoteAudioTrackStats", remoteAudioStatsArray);
 
           List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
-          JSONArray iceCandidatePairStatsArray = new JSONArray();
-          for (int j = 0; j < iceCandidatePairStatsList.size(); i++) {
-            iceCandidatePairStatsArray.put(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
+          WritableArray iceCandidatePairStatsArray = Arguments.createArray();
+          for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
+            iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
           }
-          jsonObject.put("iceCandidatePairStats", iceCandidatePairStatsArray);
+          params.putArray("iceCandidatePairStats", iceCandidatePairStatsArray);
 
           List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
-          JSONArray iceCandidateStatsArray = new JSONArray();
-          for (int j = 0; j < iceCandidateStatsList.size(); i++) {
-            iceCandidateStatsArray.put(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
+          WritableArray iceCandidateStatsArray = Arguments.createArray();
+          for (int j = 0; j < iceCandidateStatsList.size(); j++) {
+            iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
           }
-          jsonObject.put("iceCandidateStats", iceCandidateStatsArray);
+          params.putArray("iceCandidateStats", iceCandidateStatsArray);
+
+          statsReportsArray.pushMap(params);
         }
-        Log.d(TAG, jsonObject.toString());
-        promise.resolve(jsonObject.toString());
+
+        promise.resolve(statsReportsArray);
       }
     } catch (JSONException e) {
+      promise.reject(TAG, e.getMessage());
       e.printStackTrace();
     }
   }
 
-  private JSONObject jsonWithLocalAudioTrackStats(LocalAudioTrackStats audioTrackStats) throws JSONException {
-    return new JSONObject()
-      .put("codec", audioTrackStats.codec)
-      .put("packetsLost",audioTrackStats.packetsLost)
-      .put("ssrc", audioTrackStats.ssrc)
-      .put("timestamp", audioTrackStats.timestamp)
-      .put("trackId", audioTrackStats.trackId)
+  private WritableMap jsonWithLocalAudioTrackStats(LocalAudioTrackStats audioTrackStats) throws JSONException {
+    WritableMap params = Arguments.createMap();
+    params.putString("codec", audioTrackStats.codec);
+    params.putDouble("packetsLost", audioTrackStats.packetsLost);
+    params.putString("ssrc", audioTrackStats.ssrc);
+    params.putDouble("timestamp", audioTrackStats.timestamp);
+    params.putString("trackId", audioTrackStats.trackId);
 
-      // Local track stats
-      .put("bytesSent", audioTrackStats.bytesSent)
-      .put("packetsSent", audioTrackStats.packetsSent)
-      .put("roundTripTime", audioTrackStats.roundTripTime)
+    // Local track stats
+    params.putDouble("bytesSent", audioTrackStats.bytesSent);
+    params.putDouble("packetsSent", audioTrackStats.packetsSent);
+    params.putDouble("roundTripTime", audioTrackStats.roundTripTime);
 
-      // Local audio track stats
-      .put("audioLevel", audioTrackStats.audioLevel)
-      .put("jitter", audioTrackStats.jitter);
+    // Local audio track stats
+    params.putDouble("audioLevel", audioTrackStats.audioLevel);
+    params.putDouble("jitter", audioTrackStats.jitter);
+    return params;
   }
 
-  private JSONObject jsonWithRemoteAudioTrackStats(RemoteAudioTrackStats audioTrackStats) throws JSONException {
-    return new JSONObject()
-      // Base track stats
-      .put("codec", audioTrackStats.codec)
-      .put("packetsLost", audioTrackStats.packetsLost)
-      .put("ssrc", audioTrackStats.ssrc)
-      .put("timestamp", audioTrackStats.timestamp)
-      .put("trackId", audioTrackStats.trackId)
+  private WritableMap jsonWithRemoteAudioTrackStats(RemoteAudioTrackStats audioTrackStats) throws JSONException {
+    WritableMap params = Arguments.createMap();
+    // Base track stats
+    params.putString("codec", audioTrackStats.codec);
+    params.putDouble("packetsLost", audioTrackStats.packetsLost);
+    params.putString("ssrc", audioTrackStats.ssrc);
+    params.putDouble("timestamp", audioTrackStats.timestamp);
+    params.putString("trackId", audioTrackStats.trackId);
 
-      // Remote track stats
-      .put("bytesRecieved", audioTrackStats.bytesReceived)
-      .put("packetsReceived", audioTrackStats.packetsReceived)
+    // Remote track stats
+    params.putDouble("bytesReceived", audioTrackStats.bytesReceived);
+    params.putDouble("packetsReceived", audioTrackStats.packetsReceived);
 
-      // Remote audio track stats
-      .put("audioLevel", audioTrackStats.audioLevel)
-      .put("jitter", audioTrackStats.jitter)
-      .put("mos", audioTrackStats.mos);
+    // Remote audio track stats
+    params.putDouble("audioLevel", audioTrackStats.audioLevel);
+    params.putDouble("jitter", audioTrackStats.jitter);
+    params.putDouble("mos", audioTrackStats.mos);
+    return params;
   }
 
-  private JSONObject jsonWithIceCandidatePairStats(IceCandidatePairStats iceCandidatePairStats) throws JSONException {
-    return new JSONObject()
-      .put("activeCandidatePair", iceCandidatePairStats.activeCandidatePair)
-      .put("availableIncomingBitrate", iceCandidatePairStats.availableIncomingBitrate)
-      .put("availableOutgoingBitrate", iceCandidatePairStats.availableOutgoingBitrate)
-      .put("bytesReceived", iceCandidatePairStats.bytesReceived)
-      .put("bytesSent", iceCandidatePairStats.bytesSent)
-      .put("consentRequestsReceived", iceCandidatePairStats.consentRequestsReceived)
-      .put("consentRequestsSent", iceCandidatePairStats.consentRequestsSent)
-      .put("consentResponsesReceived", iceCandidatePairStats.consentResponsesReceived)
-      .put("consentResponsesSent", iceCandidatePairStats.consentResponsesSent)
-      .put("currentRoundTripTime", iceCandidatePairStats.currentRoundTripTime)
-      .put("localCandidateId", iceCandidatePairStats.localCandidateId)
-      .put("localCandidateIp", iceCandidatePairStats.localCandidateIp)
-      .put("nominated", iceCandidatePairStats.nominated)
-      .put("priority", iceCandidatePairStats.priority)
-      .put("readable", iceCandidatePairStats.readable)
-      .put("relayProtocol", iceCandidatePairStats.relayProtocol)
-      .put("remoteCandidateId", iceCandidatePairStats.remoteCandidateId)
-      .put("remoteCandidateIp", iceCandidatePairStats.remoteCandidateIp)
-      .put("requestsReceieved", iceCandidatePairStats.requestsReceived)
-      .put("requestsSent", iceCandidatePairStats.requestsSent)
-      .put("responsesRecieved", iceCandidatePairStats.responsesReceived)
-      //TODO - Read the value of iceCandidatePairStats.responsesSent
-      .put("responsesSent", "iceCandidatePairStats.responsesSent")
-      .put("retransmissionsReceived", iceCandidatePairStats.retransmissionsReceived)
-      .put("retransmissionsSent", iceCandidatePairStats.retransmissionsSent)
-      .put("state" ,stringWithIceCandidatePairState(iceCandidatePairStats.state))
-      .put("totalRoundTripTime", iceCandidatePairStats.totalRoundTripTime)
-      .put("transportId",iceCandidatePairStats.transportId)
-      .put("writeable", iceCandidatePairStats.writeable);
+  private WritableMap jsonWithIceCandidatePairStats(IceCandidatePairStats iceCandidatePairStats) throws JSONException {
+    WritableMap params = Arguments.createMap();
+    params.putBoolean("activeCandidatePair", iceCandidatePairStats.activeCandidatePair);
+    params.putDouble("availableIncomingBitrate", iceCandidatePairStats.availableIncomingBitrate);
+    params.putDouble("availableOutgoingBitrate", iceCandidatePairStats.availableOutgoingBitrate);
+    params.putDouble("bytesReceived", iceCandidatePairStats.bytesReceived);
+    params.putDouble("bytesSent", iceCandidatePairStats.bytesSent);
+    params.putDouble("consentRequestsReceived", iceCandidatePairStats.consentRequestsReceived);
+    params.putDouble("consentRequestsSent", iceCandidatePairStats.consentRequestsSent);
+    params.putDouble("consentResponsesReceived", iceCandidatePairStats.consentResponsesReceived);
+    params.putDouble("consentResponsesSent", iceCandidatePairStats.consentResponsesSent);
+    params.putDouble("currentRoundTripTime", iceCandidatePairStats.currentRoundTripTime);
+    params.putString("localCandidateId", iceCandidatePairStats.localCandidateId);
+    params.putString("localCandidateIp", iceCandidatePairStats.localCandidateIp);
+    params.putBoolean("nominated", iceCandidatePairStats.nominated);
+    params.putDouble("priority", iceCandidatePairStats.priority);
+    params.putBoolean("readable", iceCandidatePairStats.readable);
+    params.putString("relayProtocol", iceCandidatePairStats.relayProtocol);
+    params.putString("remoteCandidateId", iceCandidatePairStats.remoteCandidateId);
+    params.putString("remoteCandidateIp", iceCandidatePairStats.remoteCandidateIp);
+    params.putDouble("requestsReceived", iceCandidatePairStats.requestsReceived);
+    params.putDouble("requestsSent", iceCandidatePairStats.requestsSent);
+    params.putDouble("responsesRecieved", iceCandidatePairStats.responsesReceived);
+    //TODO - Read the value of iceCandidatePairStats.responsesSent
+    params.putString("responsesSent", "iceCandidatePairStats.responsesSent");
+    params.putDouble("retransmissionsReceived", iceCandidatePairStats.retransmissionsReceived);
+    params.putDouble("retransmissionsSent", iceCandidatePairStats.retransmissionsSent);
+    params.putString("state", stringWithIceCandidatePairState(iceCandidatePairStats.state));
+    params.putDouble("totalRoundTripTime", iceCandidatePairStats.totalRoundTripTime);
+    params.putString("transportId", iceCandidatePairStats.transportId);
+    params.putBoolean("writeable", iceCandidatePairStats.writeable);
+
+    return params;
   }
 
-  JSONObject jsonWithIceCandidateStats(IceCandidateStats iceCandidateStats) throws JSONException {
-    return new JSONObject()
-      .put( "candidateType", iceCandidateStats.candidateType)
-      .put( "deleted", iceCandidateStats.deleted)
-      .put( "ip", iceCandidateStats.ip)
-      .put( "isRemote", iceCandidateStats.isRemote)
-      .put( "port", iceCandidateStats.port)
-      .put( "priority", iceCandidateStats.priority)
-      .put( "protocol", iceCandidateStats.protocol)
-      .put( "transportId", iceCandidateStats.transportId)
-      .put( "url", iceCandidateStats.url);
+  WritableMap jsonWithIceCandidateStats(IceCandidateStats iceCandidateStats) throws JSONException {
+    WritableMap params = Arguments.createMap();
+    params.putString(EVENT_KEY_TYPE, CallEventReconnecting);
+    params.putString("candidateType", iceCandidateStats.candidateType);
+    params.putBoolean("deleted", iceCandidateStats.deleted);
+    params.putString("ip", iceCandidateStats.ip);
+    params.putBoolean("isRemote", iceCandidateStats.isRemote);
+    params.putInt("port", iceCandidateStats.port);
+    params.putInt("priority", iceCandidateStats.priority);
+    params.putString("protocol", iceCandidateStats.protocol);
+    params.putString("transportId", iceCandidateStats.transportId);
+    params.putString("url", iceCandidateStats.url);
+    return params;
   }
 
   private String stringWithIceCandidatePairState(IceCandidatePairState state) {
