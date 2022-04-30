@@ -176,17 +176,17 @@ public class StatsListenerProxy implements StatsListener {
   private String stringWithIceCandidatePairState(IceCandidatePairState state) {
     switch (state) {
       case STATE_FAILED:
-        return "STATE_FAILED";
+        return CommonConstants.STATE_FAILED;
       case STATE_FROZEN:
-        return "STATE_FROZEN";
+        return CommonConstants.STATE_FROZEN;
       case STATE_IN_PROGRESS:
-        return "STATE_IN_PROGRESS";
+        return CommonConstants.STATE_IN_PROGRESS;
       case STATE_SUCCEEDED:
-        return "STATE_SUCCEEDED";
+        return CommonConstants.STATE_SUCCEEDED;
       case STATE_WAITING:
-        return "STATE_WAITING";
+        return CommonConstants.STATE_WAITING;
       default:
-        return "STATE_UNKNOWN";
+        return CommonConstants.STATE_UNKNOWN;
     }
   }
 }
