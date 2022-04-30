@@ -29,7 +29,7 @@ import java.util.List;
 
 public class StatsListenerProxy implements StatsListener {
 
-  static final String TAG = "CallListenerProxy";
+  static final String TAG = "StatsListenerProxy";
   private final Promise promise;
 
   public StatsListenerProxy(String uuid, Context context, Promise promise) {
@@ -44,35 +44,35 @@ public class StatsListenerProxy implements StatsListener {
 
         for (int i = 0; i < statsReports.size(); i++) {
           WritableMap params = Arguments.createMap();
-          params.putString("peerConnectionId", statsReports.get(i).getPeerConnectionId());
+          params.putString(CommonConstants.PEER_CONNECTION_ID, statsReports.get(i).getPeerConnectionId());
 
           List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
           WritableArray localAudioStatsArray = Arguments.createArray();
           for (int j = 0; j < localAudioStatsList.size(); j++) {
             localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
           }
-          params.putArray("localAudioTrackStats", localAudioStatsArray);
+          params.putArray(CommonConstants.LOCAL_AUDIO_TRACK_STATS, localAudioStatsArray);
 
           List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
           WritableArray remoteAudioStatsArray = Arguments.createArray();
           for (int j = 0; j < remoteAudioStatsList.size(); j++) {
             remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
           }
-          params.putArray("remoteAudioTrackStats", remoteAudioStatsArray);
+          params.putArray(CommonConstants.REMOTE_AUDIO_TRACK_STATS, remoteAudioStatsArray);
 
           List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
           WritableArray iceCandidatePairStatsArray = Arguments.createArray();
           for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
             iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
           }
-          params.putArray("iceCandidatePairStats", iceCandidatePairStatsArray);
+          params.putArray(CommonConstants.ICE_CANDIDATE_PAIR_STATS, iceCandidatePairStatsArray);
 
           List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
           WritableArray iceCandidateStatsArray = Arguments.createArray();
           for (int j = 0; j < iceCandidateStatsList.size(); j++) {
             iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
           }
-          params.putArray("iceCandidateStats", iceCandidateStatsArray);
+          params.putArray(CommonConstants.ICE_CANDIDATE_STATS, iceCandidateStatsArray);
 
           statsReportsArray.pushMap(params);
         }
@@ -87,90 +87,89 @@ public class StatsListenerProxy implements StatsListener {
 
   private WritableMap jsonWithLocalAudioTrackStats(LocalAudioTrackStats audioTrackStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putString("codec", audioTrackStats.codec);
-    params.putDouble("packetsLost", audioTrackStats.packetsLost);
-    params.putString("ssrc", audioTrackStats.ssrc);
-    params.putDouble("timestamp", audioTrackStats.timestamp);
-    params.putString("trackId", audioTrackStats.trackId);
+    params.putString(CommonConstants.CODEC, audioTrackStats.codec);
+    params.putDouble(CommonConstants.PACKET_LOST, audioTrackStats.packetsLost);
+    params.putString(CommonConstants.SSRC, audioTrackStats.ssrc);
+    params.putDouble(CommonConstants.TIME_STAMP, audioTrackStats.timestamp);
+    params.putString(CommonConstants.TRACK_ID, audioTrackStats.trackId);
 
     // Local track stats
-    params.putDouble("bytesSent", audioTrackStats.bytesSent);
-    params.putDouble("packetsSent", audioTrackStats.packetsSent);
-    params.putDouble("roundTripTime", audioTrackStats.roundTripTime);
+    params.putDouble(CommonConstants.BYTES_SENT, audioTrackStats.bytesSent);
+    params.putDouble(CommonConstants.PACKET_SENT, audioTrackStats.packetsSent);
+    params.putDouble(CommonConstants.ROUND_TRIP_TIME, audioTrackStats.roundTripTime);
 
     // Local audio track stats
-    params.putDouble("audioLevel", audioTrackStats.audioLevel);
-    params.putDouble("jitter", audioTrackStats.jitter);
+    params.putDouble(CommonConstants.AUDIO_LEVEL, audioTrackStats.audioLevel);
+    params.putDouble(CommonConstants.JITTER, audioTrackStats.jitter);
     return params;
   }
 
   private WritableMap jsonWithRemoteAudioTrackStats(RemoteAudioTrackStats audioTrackStats) throws JSONException {
     WritableMap params = Arguments.createMap();
     // Base track stats
-    params.putString("codec", audioTrackStats.codec);
-    params.putDouble("packetsLost", audioTrackStats.packetsLost);
-    params.putString("ssrc", audioTrackStats.ssrc);
-    params.putDouble("timestamp", audioTrackStats.timestamp);
-    params.putString("trackId", audioTrackStats.trackId);
+    params.putString(CommonConstants.CODEC, audioTrackStats.codec);
+    params.putDouble(CommonConstants.PACKET_LOST, audioTrackStats.packetsLost);
+    params.putString(CommonConstants.SSRC, audioTrackStats.ssrc);
+    params.putDouble(CommonConstants.TIME_STAMP, audioTrackStats.timestamp);
+    params.putString(CommonConstants.TRACK_ID, audioTrackStats.trackId);
 
     // Remote track stats
-    params.putDouble("bytesReceived", audioTrackStats.bytesReceived);
-    params.putDouble("packetsReceived", audioTrackStats.packetsReceived);
+    params.putDouble(CommonConstants.BYTES_RECEIVED, audioTrackStats.bytesReceived);
+    params.putDouble(CommonConstants.PACKET_RECEIVED, audioTrackStats.packetsReceived);
 
     // Remote audio track stats
-    params.putDouble("audioLevel", audioTrackStats.audioLevel);
-    params.putDouble("jitter", audioTrackStats.jitter);
-    params.putDouble("mos", audioTrackStats.mos);
+    params.putDouble(CommonConstants.AUDIO_LEVEL, audioTrackStats.audioLevel);
+    params.putDouble(CommonConstants.JITTER, audioTrackStats.jitter);
+    params.putDouble(CommonConstants.MOS, audioTrackStats.mos);
     return params;
   }
 
   private WritableMap jsonWithIceCandidatePairStats(IceCandidatePairStats iceCandidatePairStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putBoolean("activeCandidatePair", iceCandidatePairStats.activeCandidatePair);
-    params.putDouble("availableIncomingBitrate", iceCandidatePairStats.availableIncomingBitrate);
-    params.putDouble("availableOutgoingBitrate", iceCandidatePairStats.availableOutgoingBitrate);
-    params.putDouble("bytesReceived", iceCandidatePairStats.bytesReceived);
-    params.putDouble("bytesSent", iceCandidatePairStats.bytesSent);
-    params.putDouble("consentRequestsReceived", iceCandidatePairStats.consentRequestsReceived);
-    params.putDouble("consentRequestsSent", iceCandidatePairStats.consentRequestsSent);
-    params.putDouble("consentResponsesReceived", iceCandidatePairStats.consentResponsesReceived);
-    params.putDouble("consentResponsesSent", iceCandidatePairStats.consentResponsesSent);
-    params.putDouble("currentRoundTripTime", iceCandidatePairStats.currentRoundTripTime);
-    params.putString("localCandidateId", iceCandidatePairStats.localCandidateId);
-    params.putString("localCandidateIp", iceCandidatePairStats.localCandidateIp);
-    params.putBoolean("nominated", iceCandidatePairStats.nominated);
-    params.putDouble("priority", iceCandidatePairStats.priority);
-    params.putBoolean("readable", iceCandidatePairStats.readable);
-    params.putString("relayProtocol", iceCandidatePairStats.relayProtocol);
-    params.putString("remoteCandidateId", iceCandidatePairStats.remoteCandidateId);
-    params.putString("remoteCandidateIp", iceCandidatePairStats.remoteCandidateIp);
-    params.putDouble("requestsReceived", iceCandidatePairStats.requestsReceived);
-    params.putDouble("requestsSent", iceCandidatePairStats.requestsSent);
-    params.putDouble("responsesRecieved", iceCandidatePairStats.responsesReceived);
+    params.putBoolean(CommonConstants.ACTIVE_CANDIDATE_PAIR, iceCandidatePairStats.activeCandidatePair);
+    params.putDouble(CommonConstants.AVAILABLE_INCOMING_BITRATE, iceCandidatePairStats.availableIncomingBitrate);
+    params.putDouble(CommonConstants.AVAILABLE_OUTGOING_BITRATE, iceCandidatePairStats.availableOutgoingBitrate);
+    params.putDouble(CommonConstants.BYTES_RECEIVED, iceCandidatePairStats.bytesReceived);
+    params.putDouble(CommonConstants.BYTES_SENT, iceCandidatePairStats.bytesSent);
+    params.putDouble(CommonConstants.CONSENT_REQUEST_RECEIVED, iceCandidatePairStats.consentRequestsReceived);
+    params.putDouble(CommonConstants.CONSENT_REQUEST_SENT, iceCandidatePairStats.consentRequestsSent);
+    params.putDouble(CommonConstants.CONSENT_RESPONSE_RECEIVED, iceCandidatePairStats.consentResponsesReceived);
+    params.putDouble(CommonConstants.CONSENT_RESPONSE_SENT, iceCandidatePairStats.consentResponsesSent);
+    params.putDouble(CommonConstants.CURRENT_ROUND_TRIP_TIME, iceCandidatePairStats.currentRoundTripTime);
+    params.putString(CommonConstants.LOCAL_CANDIDATE_ID, iceCandidatePairStats.localCandidateId);
+    params.putString(CommonConstants.LOCAL_CANDIDATE_IP, iceCandidatePairStats.localCandidateIp);
+    params.putBoolean(CommonConstants.NOMINATED, iceCandidatePairStats.nominated);
+    params.putDouble(CommonConstants.PRIORITY, iceCandidatePairStats.priority);
+    params.putBoolean(CommonConstants.READABLE, iceCandidatePairStats.readable);
+    params.putString(CommonConstants.RELAY_PROTOCOL, iceCandidatePairStats.relayProtocol);
+    params.putString(CommonConstants.REMOTE_CANDIDATE_ID, iceCandidatePairStats.remoteCandidateId);
+    params.putString(CommonConstants.REMOTE_CANDIDATE_IP, iceCandidatePairStats.remoteCandidateIp);
+    params.putDouble(CommonConstants.REQUEST_RECEIVED, iceCandidatePairStats.requestsReceived);
+    params.putDouble(CommonConstants.REQUEST_SENT, iceCandidatePairStats.requestsSent);
+    params.putDouble(CommonConstants.RESPONSE_RECEIVED, iceCandidatePairStats.responsesReceived);
     //TODO - Read the value of iceCandidatePairStats.responsesSent
-    params.putString("responsesSent", "iceCandidatePairStats.responsesSent");
-    params.putDouble("retransmissionsReceived", iceCandidatePairStats.retransmissionsReceived);
-    params.putDouble("retransmissionsSent", iceCandidatePairStats.retransmissionsSent);
-    params.putString("state", stringWithIceCandidatePairState(iceCandidatePairStats.state));
-    params.putDouble("totalRoundTripTime", iceCandidatePairStats.totalRoundTripTime);
-    params.putString("transportId", iceCandidatePairStats.transportId);
-    params.putBoolean("writeable", iceCandidatePairStats.writeable);
+    params.putString(CommonConstants.RESPONSE_SENT, "iceCandidatePairStats.responsesSent");
+    params.putDouble(CommonConstants.RETRANSMISSION_RECEIVED, iceCandidatePairStats.retransmissionsReceived);
+    params.putDouble(CommonConstants.RETRANSMISSION_SENT, iceCandidatePairStats.retransmissionsSent);
+    params.putString(CommonConstants.STATE, stringWithIceCandidatePairState(iceCandidatePairStats.state));
+    params.putDouble(CommonConstants.TOTAL_ROUND_TRIP_TIME, iceCandidatePairStats.totalRoundTripTime);
+    params.putString(CommonConstants.TRANSPORT_ID, iceCandidatePairStats.transportId);
+    params.putBoolean(CommonConstants.WRITEABLE, iceCandidatePairStats.writeable);
 
     return params;
   }
 
   WritableMap jsonWithIceCandidateStats(IceCandidateStats iceCandidateStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putString(EVENT_KEY_TYPE, CallEventReconnecting);
-    params.putString("candidateType", iceCandidateStats.candidateType);
-    params.putBoolean("deleted", iceCandidateStats.deleted);
-    params.putString("ip", iceCandidateStats.ip);
-    params.putBoolean("isRemote", iceCandidateStats.isRemote);
-    params.putInt("port", iceCandidateStats.port);
-    params.putInt("priority", iceCandidateStats.priority);
-    params.putString("protocol", iceCandidateStats.protocol);
-    params.putString("transportId", iceCandidateStats.transportId);
-    params.putString("url", iceCandidateStats.url);
+    params.putString(CommonConstants.CANDIDATE_TYPE, iceCandidateStats.candidateType);
+    params.putBoolean(CommonConstants.DELETED, iceCandidateStats.deleted);
+    params.putString(CommonConstants.IP, iceCandidateStats.ip);
+    params.putBoolean(CommonConstants.IS_REMOTE, iceCandidateStats.isRemote);
+    params.putInt(CommonConstants.PORT, iceCandidateStats.port);
+    params.putInt(CommonConstants.PRIORITY, iceCandidateStats.priority);
+    params.putString(CommonConstants.PROTOCOL, iceCandidateStats.protocol);
+    params.putString(CommonConstants.TRANSPORT_ID, iceCandidateStats.transportId);
+    params.putString(CommonConstants.URL, iceCandidateStats.url);
     return params;
   }
 
