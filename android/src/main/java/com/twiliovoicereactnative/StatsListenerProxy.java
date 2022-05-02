@@ -44,35 +44,35 @@ public class StatsListenerProxy implements StatsListener {
 
         for (int i = 0; i < statsReports.size(); i++) {
           WritableMap params = Arguments.createMap();
-          params.putString(CommonConstants.PEER_CONNECTION_ID, statsReports.get(i).getPeerConnectionId());
+          params.putString(CommonConstants.PeerConnectionId, statsReports.get(i).getPeerConnectionId());
 
           List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
           WritableArray localAudioStatsArray = Arguments.createArray();
           for (int j = 0; j < localAudioStatsList.size(); j++) {
             localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
           }
-          params.putArray(CommonConstants.LOCAL_AUDIO_TRACK_STATS, localAudioStatsArray);
+          params.putArray(CommonConstants.LocalAudioTrackStats, localAudioStatsArray);
 
           List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
           WritableArray remoteAudioStatsArray = Arguments.createArray();
           for (int j = 0; j < remoteAudioStatsList.size(); j++) {
             remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
           }
-          params.putArray(CommonConstants.REMOTE_AUDIO_TRACK_STATS, remoteAudioStatsArray);
+          params.putArray(CommonConstants.RemoteAudioTrackStats, remoteAudioStatsArray);
 
           List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
           WritableArray iceCandidatePairStatsArray = Arguments.createArray();
           for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
             iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
           }
-          params.putArray(CommonConstants.ICE_CANDIDATE_PAIR_STATS, iceCandidatePairStatsArray);
+          params.putArray(CommonConstants.IceCandidatePairStats, iceCandidatePairStatsArray);
 
           List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
           WritableArray iceCandidateStatsArray = Arguments.createArray();
           for (int j = 0; j < iceCandidateStatsList.size(); j++) {
             iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
           }
-          params.putArray(CommonConstants.ICE_CANDIDATE_STATS, iceCandidateStatsArray);
+          params.putArray(CommonConstants.IceCandidateStats, iceCandidateStatsArray);
 
           statsReportsArray.pushMap(params);
         }
@@ -87,106 +87,106 @@ public class StatsListenerProxy implements StatsListener {
 
   private WritableMap jsonWithLocalAudioTrackStats(LocalAudioTrackStats audioTrackStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putString(CommonConstants.CODEC, audioTrackStats.codec);
-    params.putDouble(CommonConstants.PACKET_LOST, audioTrackStats.packetsLost);
-    params.putString(CommonConstants.SSRC, audioTrackStats.ssrc);
-    params.putDouble(CommonConstants.TIME_STAMP, audioTrackStats.timestamp);
-    params.putString(CommonConstants.TRACK_ID, audioTrackStats.trackId);
+    params.putString(CommonConstants.Codec, audioTrackStats.codec);
+    params.putDouble(CommonConstants.PacketsLost, audioTrackStats.packetsLost);
+    params.putString(CommonConstants.Ssrc, audioTrackStats.ssrc);
+    params.putDouble(CommonConstants.Timestamp, audioTrackStats.timestamp);
+    params.putString(CommonConstants.TrackId, audioTrackStats.trackId);
 
     // Local track stats
-    params.putDouble(CommonConstants.BYTES_SENT, audioTrackStats.bytesSent);
-    params.putDouble(CommonConstants.PACKET_SENT, audioTrackStats.packetsSent);
-    params.putDouble(CommonConstants.ROUND_TRIP_TIME, audioTrackStats.roundTripTime);
+    params.putDouble(CommonConstants.BytesSent, audioTrackStats.bytesSent);
+    params.putDouble(CommonConstants.PacketsSent, audioTrackStats.packetsSent);
+    params.putDouble(CommonConstants.RoundTripTime, audioTrackStats.roundTripTime);
 
     // Local audio track stats
-    params.putDouble(CommonConstants.AUDIO_LEVEL, audioTrackStats.audioLevel);
-    params.putDouble(CommonConstants.JITTER, audioTrackStats.jitter);
+    params.putDouble(CommonConstants.AudioLevel, audioTrackStats.audioLevel);
+    params.putDouble(CommonConstants.Jitter, audioTrackStats.jitter);
     return params;
   }
 
   private WritableMap jsonWithRemoteAudioTrackStats(RemoteAudioTrackStats audioTrackStats) throws JSONException {
     WritableMap params = Arguments.createMap();
     // Base track stats
-    params.putString(CommonConstants.CODEC, audioTrackStats.codec);
-    params.putDouble(CommonConstants.PACKET_LOST, audioTrackStats.packetsLost);
-    params.putString(CommonConstants.SSRC, audioTrackStats.ssrc);
-    params.putDouble(CommonConstants.TIME_STAMP, audioTrackStats.timestamp);
-    params.putString(CommonConstants.TRACK_ID, audioTrackStats.trackId);
+    params.putString(CommonConstants.Codec, audioTrackStats.codec);
+    params.putDouble(CommonConstants.PacketsLost, audioTrackStats.packetsLost);
+    params.putString(CommonConstants.Ssrc, audioTrackStats.ssrc);
+    params.putDouble(CommonConstants.Timestamp, audioTrackStats.timestamp);
+    params.putString(CommonConstants.TrackId, audioTrackStats.trackId);
 
     // Remote track stats
-    params.putDouble(CommonConstants.BYTES_RECEIVED, audioTrackStats.bytesReceived);
-    params.putDouble(CommonConstants.PACKET_RECEIVED, audioTrackStats.packetsReceived);
+    params.putDouble(CommonConstants.BytesReceived, audioTrackStats.bytesReceived);
+    params.putDouble(CommonConstants.PacketsReceived, audioTrackStats.packetsReceived);
 
     // Remote audio track stats
-    params.putDouble(CommonConstants.AUDIO_LEVEL, audioTrackStats.audioLevel);
-    params.putDouble(CommonConstants.JITTER, audioTrackStats.jitter);
-    params.putDouble(CommonConstants.MOS, audioTrackStats.mos);
+    params.putDouble(CommonConstants.AudioLevel, audioTrackStats.audioLevel);
+    params.putDouble(CommonConstants.Jitter, audioTrackStats.jitter);
+    params.putDouble(CommonConstants.Mos, audioTrackStats.mos);
     return params;
   }
 
   private WritableMap jsonWithIceCandidatePairStats(IceCandidatePairStats iceCandidatePairStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putBoolean(CommonConstants.ACTIVE_CANDIDATE_PAIR, iceCandidatePairStats.activeCandidatePair);
-    params.putDouble(CommonConstants.AVAILABLE_INCOMING_BITRATE, iceCandidatePairStats.availableIncomingBitrate);
-    params.putDouble(CommonConstants.AVAILABLE_OUTGOING_BITRATE, iceCandidatePairStats.availableOutgoingBitrate);
-    params.putDouble(CommonConstants.BYTES_RECEIVED, iceCandidatePairStats.bytesReceived);
-    params.putDouble(CommonConstants.BYTES_SENT, iceCandidatePairStats.bytesSent);
-    params.putDouble(CommonConstants.CONSENT_REQUEST_RECEIVED, iceCandidatePairStats.consentRequestsReceived);
-    params.putDouble(CommonConstants.CONSENT_REQUEST_SENT, iceCandidatePairStats.consentRequestsSent);
-    params.putDouble(CommonConstants.CONSENT_RESPONSE_RECEIVED, iceCandidatePairStats.consentResponsesReceived);
-    params.putDouble(CommonConstants.CONSENT_RESPONSE_SENT, iceCandidatePairStats.consentResponsesSent);
-    params.putDouble(CommonConstants.CURRENT_ROUND_TRIP_TIME, iceCandidatePairStats.currentRoundTripTime);
-    params.putString(CommonConstants.LOCAL_CANDIDATE_ID, iceCandidatePairStats.localCandidateId);
-    params.putString(CommonConstants.LOCAL_CANDIDATE_IP, iceCandidatePairStats.localCandidateIp);
-    params.putBoolean(CommonConstants.NOMINATED, iceCandidatePairStats.nominated);
-    params.putDouble(CommonConstants.PRIORITY, iceCandidatePairStats.priority);
-    params.putBoolean(CommonConstants.READABLE, iceCandidatePairStats.readable);
-    params.putString(CommonConstants.RELAY_PROTOCOL, iceCandidatePairStats.relayProtocol);
-    params.putString(CommonConstants.REMOTE_CANDIDATE_ID, iceCandidatePairStats.remoteCandidateId);
-    params.putString(CommonConstants.REMOTE_CANDIDATE_IP, iceCandidatePairStats.remoteCandidateIp);
-    params.putDouble(CommonConstants.REQUEST_RECEIVED, iceCandidatePairStats.requestsReceived);
-    params.putDouble(CommonConstants.REQUEST_SENT, iceCandidatePairStats.requestsSent);
-    params.putDouble(CommonConstants.RESPONSE_RECEIVED, iceCandidatePairStats.responsesReceived);
+    params.putBoolean(CommonConstants.ActiveCandidatePair, iceCandidatePairStats.activeCandidatePair);
+    params.putDouble(CommonConstants.AvailableIncomingBitrate, iceCandidatePairStats.availableIncomingBitrate);
+    params.putDouble(CommonConstants.AvailableOutgoingBitrate, iceCandidatePairStats.availableOutgoingBitrate);
+    params.putDouble(CommonConstants.BytesReceived, iceCandidatePairStats.bytesReceived);
+    params.putDouble(CommonConstants.BytesSent, iceCandidatePairStats.bytesSent);
+    params.putDouble(CommonConstants.ConsentRequestsReceived, iceCandidatePairStats.consentRequestsReceived);
+    params.putDouble(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentRequestsSent);
+    params.putDouble(CommonConstants.ConsentResponsesReceived, iceCandidatePairStats.consentResponsesReceived);
+    params.putDouble(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentResponsesSent);
+    params.putDouble(CommonConstants.CurrentRoundTripTime, iceCandidatePairStats.currentRoundTripTime);
+    params.putString(CommonConstants.LocalCandidateId, iceCandidatePairStats.localCandidateId);
+    params.putString(CommonConstants.LocalCandidateIp, iceCandidatePairStats.localCandidateIp);
+    params.putBoolean(CommonConstants.Nominated, iceCandidatePairStats.nominated);
+    params.putDouble(CommonConstants.Priority, iceCandidatePairStats.priority);
+    params.putBoolean(CommonConstants.Readable, iceCandidatePairStats.readable);
+    params.putString(CommonConstants.RelayProtocol, iceCandidatePairStats.relayProtocol);
+    params.putString(CommonConstants.RemoteCandidateId, iceCandidatePairStats.remoteCandidateId);
+    params.putString(CommonConstants.RemoteCandidateIp, iceCandidatePairStats.remoteCandidateIp);
+    params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.requestsReceived);
+    params.putDouble(CommonConstants.RequestsSent, iceCandidatePairStats.requestsSent);
+    params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.responsesReceived);
     //TODO - Read the value of iceCandidatePairStats.responsesSent
-    params.putString(CommonConstants.RESPONSE_SENT, "iceCandidatePairStats.responsesSent");
-    params.putDouble(CommonConstants.RETRANSMISSION_RECEIVED, iceCandidatePairStats.retransmissionsReceived);
-    params.putDouble(CommonConstants.RETRANSMISSION_SENT, iceCandidatePairStats.retransmissionsSent);
-    params.putString(CommonConstants.STATE, stringWithIceCandidatePairState(iceCandidatePairStats.state));
-    params.putDouble(CommonConstants.TOTAL_ROUND_TRIP_TIME, iceCandidatePairStats.totalRoundTripTime);
-    params.putString(CommonConstants.TRANSPORT_ID, iceCandidatePairStats.transportId);
-    params.putBoolean(CommonConstants.WRITEABLE, iceCandidatePairStats.writeable);
+    params.putString(CommonConstants.ResponsesSent, "iceCandidatePairStats.responsesSent");
+    params.putDouble(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived);
+    params.putDouble(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent);
+    params.putString(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state));
+    params.putDouble(CommonConstants.TotalRoundTripTime, iceCandidatePairStats.totalRoundTripTime);
+    params.putString(CommonConstants.TransportId, iceCandidatePairStats.transportId);
+    params.putBoolean(CommonConstants.Writeable, iceCandidatePairStats.writeable);
 
     return params;
   }
 
   WritableMap jsonWithIceCandidateStats(IceCandidateStats iceCandidateStats) throws JSONException {
     WritableMap params = Arguments.createMap();
-    params.putString(CommonConstants.CANDIDATE_TYPE, iceCandidateStats.candidateType);
-    params.putBoolean(CommonConstants.DELETED, iceCandidateStats.deleted);
-    params.putString(CommonConstants.IP, iceCandidateStats.ip);
-    params.putBoolean(CommonConstants.IS_REMOTE, iceCandidateStats.isRemote);
-    params.putInt(CommonConstants.PORT, iceCandidateStats.port);
-    params.putInt(CommonConstants.PRIORITY, iceCandidateStats.priority);
-    params.putString(CommonConstants.PROTOCOL, iceCandidateStats.protocol);
-    params.putString(CommonConstants.TRANSPORT_ID, iceCandidateStats.transportId);
-    params.putString(CommonConstants.URL, iceCandidateStats.url);
+    params.putString(CommonConstants.CandidateType, iceCandidateStats.candidateType);
+    params.putBoolean(CommonConstants.Deleted, iceCandidateStats.deleted);
+    params.putString(CommonConstants.Ip, iceCandidateStats.ip);
+    params.putBoolean(CommonConstants.IsRemote, iceCandidateStats.isRemote);
+    params.putInt(CommonConstants.Port, iceCandidateStats.port);
+    params.putInt(CommonConstants.Priority, iceCandidateStats.priority);
+    params.putString(CommonConstants.Protocol, iceCandidateStats.protocol);
+    params.putString(CommonConstants.TransportId, iceCandidateStats.transportId);
+    params.putString(CommonConstants.Url, iceCandidateStats.url);
     return params;
   }
 
   private String stringWithIceCandidatePairState(IceCandidatePairState state) {
     switch (state) {
       case STATE_FAILED:
-        return CommonConstants.STATE_FAILED;
+        return CommonConstants.StateFailed;
       case STATE_FROZEN:
-        return CommonConstants.STATE_FROZEN;
+        return CommonConstants.StateFrozen;
       case STATE_IN_PROGRESS:
-        return CommonConstants.STATE_IN_PROGRESS;
+        return CommonConstants.StateInProgress;
       case STATE_SUCCEEDED:
-        return CommonConstants.STATE_SUCCEEDED;
+        return CommonConstants.StateSucceeded;
       case STATE_WAITING:
-        return CommonConstants.STATE_WAITING;
+        return CommonConstants.StateWaiting;
       default:
-        return CommonConstants.STATE_UNKNOWN;
+        return CommonConstants.StateUnknown;
     }
   }
 }
