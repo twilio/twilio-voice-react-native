@@ -7,6 +7,8 @@
 
 @import TwilioVoice;
 
+#import "TwilioVoiceReactNativeConstants.h"
+
 @interface TwilioVoiceStatsReport : NSObject
 
 + (NSArray *)jsonWithStatsReportsArray:(NSArray<TVOStatsReport *> *)statsReports;
@@ -32,11 +34,11 @@
 
 + (NSDictionary *)jsonWithStatsReport:(TVOStatsReport *)statsReport {
     return @{
-        @"peerConnectionId": statsReport.peerConnectionId,
-        @"localAudioTrackStats": [self jsonWithLocalAudioTrackStats:statsReport.localAudioTrackStats],
-        @"remoteAudioTrackStats": [self jsonWithRemoteAudioTrackStats:statsReport.remoteAudioTrackStats],
-        @"iceCandidateStats": [self jsonWithIceCandidateStats:statsReport.iceCandidateStats],
-        @"iceCandidatePairStats": [self jsonWithIceCandidatePairStats:statsReport.iceCandidatePairStats]
+        kTwilioVoiceReactNativePeerConnectionId: statsReport.peerConnectionId,
+        kTwilioVoiceReactNativeLocalAudioTrackStats: [self jsonWithLocalAudioTrackStats:statsReport.localAudioTrackStats],
+        kTwilioVoiceReactNativeRemoteAudioTrackStats: [self jsonWithRemoteAudioTrackStats:statsReport.remoteAudioTrackStats],
+        kTwilioVoiceReactNativeIceCandidateStats: [self jsonWithIceCandidateStats:statsReport.iceCandidateStats],
+        kTwilioVoiceReactNativeIceCandidatePairStats: [self jsonWithIceCandidatePairStats:statsReport.iceCandidatePairStats]
     };
 }
 
@@ -46,20 +48,20 @@
     for (TVOLocalAudioTrackStats *localAudioTrackStats in audioTrackStatsArray) {
         [localAudioTrackStatsReport addObject:@{
             // Base track stats
-            @"codec": localAudioTrackStats.codec,
-            @"packetsLost": @(localAudioTrackStats.packetsLost),
-            @"ssrc": localAudioTrackStats.ssrc,
-            @"timestamp": @(localAudioTrackStats.timestamp),
-            @"trackId": localAudioTrackStats.trackId,
+            kTwilioVoiceReactNativeCodec: localAudioTrackStats.codec,
+            kTwilioVoiceReactNativePacketsLost: @(localAudioTrackStats.packetsLost),
+            kTwilioVoiceReactNativeSsrc: localAudioTrackStats.ssrc,
+            kTwilioVoiceReactNativeTimestamp: @(localAudioTrackStats.timestamp),
+            kTwilioVoiceReactNativeTrackId: localAudioTrackStats.trackId,
             
             // Local track stats
-            @"bytesSent": @(localAudioTrackStats.bytesSent),
-            @"packetsSent": @(localAudioTrackStats.packetsSent),
-            @"roundTripTime": @(localAudioTrackStats.roundTripTime),
+            kTwilioVoiceReactNativeBytesSent: @(localAudioTrackStats.bytesSent),
+            kTwilioVoiceReactNativePacketsSent: @(localAudioTrackStats.packetsSent),
+            kTwilioVoiceReactNativeRoundTripTime: @(localAudioTrackStats.roundTripTime),
             
             // Local audio track stats
-            @"audioLevel": @(localAudioTrackStats.audioLevel),
-            @"jitter": @(localAudioTrackStats.jitter)
+            kTwilioVoiceReactNativeAudioLevel: @(localAudioTrackStats.audioLevel),
+            kTwilioVoiceReactNativeJitter: @(localAudioTrackStats.jitter)
         }];
     }
     
@@ -72,20 +74,20 @@
     for (TVORemoteAudioTrackStats *remoteAudioTrackStats in audioTrackStatsArray) {
         [remoteAudioTrackStatsReport addObject:@{
             // Base track stats
-            @"codec": remoteAudioTrackStats.codec,
-            @"packetsLost": @(remoteAudioTrackStats.packetsLost),
-            @"ssrc": remoteAudioTrackStats.ssrc,
-            @"timestamp": @(remoteAudioTrackStats.timestamp),
-            @"trackId": remoteAudioTrackStats.trackId,
+            kTwilioVoiceReactNativeCodec: remoteAudioTrackStats.codec,
+            kTwilioVoiceReactNativePacketsLost: @(remoteAudioTrackStats.packetsLost),
+            kTwilioVoiceReactNativeSsrc: remoteAudioTrackStats.ssrc,
+            kTwilioVoiceReactNativeTimestamp: @(remoteAudioTrackStats.timestamp),
+            kTwilioVoiceReactNativeTrackId: remoteAudioTrackStats.trackId,
             
             // Remote track stats
-            @"bytesRecieved": @(remoteAudioTrackStats.bytesReceived),
-            @"packetsReceived": @(remoteAudioTrackStats.packetsReceived),
+            kTwilioVoiceReactNativeBytesReceived: @(remoteAudioTrackStats.bytesReceived),
+            kTwilioVoiceReactNativePacketsReceived: @(remoteAudioTrackStats.packetsReceived),
             
             // Remote audio track stats
-            @"audioLevel": @(remoteAudioTrackStats.audioLevel),
-            @"jitter": @(remoteAudioTrackStats.jitter),
-            @"mos": @(remoteAudioTrackStats.mos)
+            kTwilioVoiceReactNativeAudioLevel: @(remoteAudioTrackStats.audioLevel),
+            kTwilioVoiceReactNativeJitter: @(remoteAudioTrackStats.jitter),
+            kTwilioVoiceReactNativeMos: @(remoteAudioTrackStats.mos)
         }];
     }
     
@@ -97,15 +99,15 @@
     
     for (TVOIceCandidateStats *iceCandidateStats in iceCandidateStatsArray) {
         [iceCandidateStatsReport addObject:@{
-            @"candidateType": iceCandidateStats.candidateType,
-            @"deleted": @(iceCandidateStats.deleted),
-            @"ip": iceCandidateStats.ip,
-            @"isRemote": @(iceCandidateStats.isRemote),
-            @"port": @(iceCandidateStats.port),
-            @"priority": @(iceCandidateStats.priority),
-            @"protocol": iceCandidateStats.protocol,
-            @"transportId": iceCandidateStats.transportId,
-            @"url": iceCandidateStats.url
+            kTwilioVoiceReactNativeCandidateType: iceCandidateStats.candidateType,
+            kTwilioVoiceReactNativeDeleted: @(iceCandidateStats.deleted),
+            kTwilioVoiceReactNativeIp: iceCandidateStats.ip,
+            kTwilioVoiceReactNativeIsRemote: @(iceCandidateStats.isRemote),
+            kTwilioVoiceReactNativePort: @(iceCandidateStats.port),
+            kTwilioVoiceReactNativePriority: @(iceCandidateStats.priority),
+            kTwilioVoiceReactNativeProtocol: iceCandidateStats.protocol,
+            kTwilioVoiceReactNativeTransportId: iceCandidateStats.transportId,
+            kTwilioVoiceReactNativeUrl: iceCandidateStats.url
         }];
     }
 
@@ -117,34 +119,34 @@
     
     for (TVOIceCandidatePairStats *iceCandidatePairStats in iceCandidatePairStatsArray) {
         [iceCandidatePairStatsReport addObject:@{
-            @"activeCandidatePair": @(iceCandidatePairStats.activeCandidatePair),
-            @"availableIncomingBitrate": @(iceCandidatePairStats.availableIncomingBitrate),
-            @"availableOutgoingBitrate": @(iceCandidatePairStats.availableOutgoingBitrate),
-            @"bytesReceived": @(iceCandidatePairStats.bytesReceived),
-            @"bytesSent": @(iceCandidatePairStats.bytesSent),
-            @"consentRequestsReceived": @(iceCandidatePairStats.consentRequestsReceived),
-            @"consentRequestsSent": @(iceCandidatePairStats.consentRequestsSent),
-            @"consentResponsesReceived": @(iceCandidatePairStats.consentResponsesReceived),
-            @"consentResponsesSent": @(iceCandidatePairStats.consentResponsesSent),
-            @"currentRoundTripTime": @(iceCandidatePairStats.currentRoundTripTime),
-            @"localCandidateId": iceCandidatePairStats.localCandidateId,
-            @"localCandidateIp": iceCandidatePairStats.localCandidateIp,
-            @"nominated": @(iceCandidatePairStats.nominated),
-            @"priority": @(iceCandidatePairStats.priority),
-            @"readable": @(iceCandidatePairStats.readable),
-            @"relayProtocol": iceCandidatePairStats.relayProtocol,
-            @"remoteCandidateId": iceCandidatePairStats.remoteCandidateId,
-            @"remoteCandidateIp": iceCandidatePairStats.remoteCandidateIp,
-            @"requestsReceieved": @(iceCandidatePairStats.requestsReceived),
-            @"requestsSent": @(iceCandidatePairStats.requestsSent),
-            @"responsesRecieved": @(iceCandidatePairStats.responsesReceived),
-            @"responsesSent": @(iceCandidatePairStats.responsesSent),
-            @"retransmissionsReceived": @(iceCandidatePairStats.retransmissionsReceived),
-            @"retransmissionsSent": @(iceCandidatePairStats.retransmissionsSent),
-            @"state": [self stringWithIceCandidatePairState:iceCandidatePairStats.state],
-            @"totalRoundTripTime": @(iceCandidatePairStats.totalRoundTripTime),
-            @"transportId": iceCandidatePairStats.transportId,
-            @"writeable": @(iceCandidatePairStats.writable)
+            kTwilioVoiceReactNativeActiveCandidatePair: @(iceCandidatePairStats.activeCandidatePair),
+            kTwilioVoiceReactNativeAvailableIncomingBitrate: @(iceCandidatePairStats.availableIncomingBitrate),
+            kTwilioVoiceReactNativeAvailableOutgoingBitrate: @(iceCandidatePairStats.availableOutgoingBitrate),
+            kTwilioVoiceReactNativeBytesReceived: @(iceCandidatePairStats.bytesReceived),
+            kTwilioVoiceReactNativeBytesSent: @(iceCandidatePairStats.bytesSent),
+            kTwilioVoiceReactNativeConsentRequestsReceived: @(iceCandidatePairStats.consentRequestsReceived),
+            kTwilioVoiceReactNativeConsentRequestsSent: @(iceCandidatePairStats.consentRequestsSent),
+            kTwilioVoiceReactNativeConsentResponsesReceived: @(iceCandidatePairStats.consentResponsesReceived),
+            kTwilioVoiceReactNativeConsentResponsesSent: @(iceCandidatePairStats.consentResponsesSent),
+            kTwilioVoiceReactNativeCurrentRoundTripTime: @(iceCandidatePairStats.currentRoundTripTime),
+            kTwilioVoiceReactNativeLocalCandidateId: iceCandidatePairStats.localCandidateId,
+            kTwilioVoiceReactNativeLocalCandidateIp: iceCandidatePairStats.localCandidateIp,
+            kTwilioVoiceReactNativeNominated: @(iceCandidatePairStats.nominated),
+            kTwilioVoiceReactNativePriority: @(iceCandidatePairStats.priority),
+            kTwilioVoiceReactNativeReadable: @(iceCandidatePairStats.readable),
+            kTwilioVoiceReactNativeRelayProtocol: iceCandidatePairStats.relayProtocol,
+            kTwilioVoiceReactNativeRemoteCandidateId: iceCandidatePairStats.remoteCandidateId,
+            kTwilioVoiceReactNativeRemoteCandidateIp: iceCandidatePairStats.remoteCandidateIp,
+            kTwilioVoiceReactNativeRequestsReceived: @(iceCandidatePairStats.requestsReceived),
+            kTwilioVoiceReactNativeRequestsSent: @(iceCandidatePairStats.requestsSent),
+            kTwilioVoiceReactNativeResponsesReceived: @(iceCandidatePairStats.responsesReceived),
+            kTwilioVoiceReactNativeResponsesSent: @(iceCandidatePairStats.responsesSent),
+            kTwilioVoiceReactNativeRetransmissionsReceived: @(iceCandidatePairStats.retransmissionsReceived),
+            kTwilioVoiceReactNativeRetransmissionsSent: @(iceCandidatePairStats.retransmissionsSent),
+            kTwilioVoiceReactNativeState: [self stringWithIceCandidatePairState:iceCandidatePairStats.state],
+            kTwilioVoiceReactNativeTotalRoundTripTime: @(iceCandidatePairStats.totalRoundTripTime),
+            kTwilioVoiceReactNativeTransportId: iceCandidatePairStats.transportId,
+            kTwilioVoiceReactNativeWriteable: @(iceCandidatePairStats.writable)
         }];
     }
 
@@ -154,19 +156,19 @@
 + (NSString *)stringWithIceCandidatePairState:(TVOIceCandidatePairState)state {
     switch (state) {
         case TVOIceCandidatePairStateFailed:
-            return @"STATE_FAILED";
+            return kTwilioVoiceReactNativeStateFailed;
         case TVOIceCandidatePairStateFrozen:
-            return @"STATE_FROZEN";
+            return kTwilioVoiceReactNativeStateFrozen;
         case TVOIceCandidatePairStateInProgress:
-            return @"STATE_IN_PROGRESS";
+            return kTwilioVoiceReactNativeStateInProgress;
         case TVOIceCandidatePairStateSucceeded:
-            return @"STATE_SUCCEEDED";
+            return kTwilioVoiceReactNativeStateSucceeded;
         case TVOIceCandidatePairStateWaiting:
-            return @"STATE_WAITING";
+            return kTwilioVoiceReactNativeStateWaiting;
         case TVOIceCandidatePairStateUnknown:
-            return @"STATE_UNKNOWN";
+            return kTwilioVoiceReactNativeStateUnknown;
         default:
-            return @"STATE_UNKNOWN";
+            return kTwilioVoiceReactNativeStateUnknown;
     }
 }
 
