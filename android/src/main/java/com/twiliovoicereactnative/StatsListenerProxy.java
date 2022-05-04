@@ -134,7 +134,7 @@ public class StatsListenerProxy implements StatsListener {
     params.putDouble(CommonConstants.ConsentRequestsReceived, iceCandidatePairStats.consentRequestsReceived);
     params.putDouble(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentRequestsSent);
     params.putDouble(CommonConstants.ConsentResponsesReceived, iceCandidatePairStats.consentResponsesReceived);
-    params.putDouble(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentResponsesSent);
+    params.putDouble(CommonConstants.ConsentResponsesSent, iceCandidatePairStats.consentResponsesSent);
     params.putDouble(CommonConstants.CurrentRoundTripTime, iceCandidatePairStats.currentRoundTripTime);
     params.putString(CommonConstants.LocalCandidateId, iceCandidatePairStats.localCandidateId);
     params.putString(CommonConstants.LocalCandidateIp, iceCandidatePairStats.localCandidateIp);
@@ -146,9 +146,8 @@ public class StatsListenerProxy implements StatsListener {
     params.putString(CommonConstants.RemoteCandidateIp, iceCandidatePairStats.remoteCandidateIp);
     params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.requestsReceived);
     params.putDouble(CommonConstants.RequestsSent, iceCandidatePairStats.requestsSent);
-    params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.responsesReceived);
-    //TODO - Read the value of iceCandidatePairStats.responsesSent
-    params.putString(CommonConstants.ResponsesSent, "iceCandidatePairStats.responsesSent");
+    params.putDouble(CommonConstants.ResponsesReceived, iceCandidatePairStats.responsesReceived);
+    params.putDouble(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent);
     params.putDouble(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived);
     params.putDouble(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent);
     params.putString(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state));
