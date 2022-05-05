@@ -79,6 +79,10 @@ export function useCall(logEvent: (event: string) => void) {
 
       setCallMethod({
         disconnect: () => call.disconnect(),
+        getStats: async () => {
+          const statsReport = await call.getStats();
+          logEvent(`call stats: ${JSON.stringify(statsReport, null, 2)}`);
+        },
         hold: async () => {
           let isOnHold = call.isOnHold();
           isOnHold = await call.hold(!isOnHold);

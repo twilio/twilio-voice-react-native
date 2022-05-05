@@ -4,17 +4,14 @@ import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
-import { TwilioError } from './error/TwilioError';
 import { TwilioVoiceReactNative } from './common';
 import { Constants } from './constants';
-import type {
-  NativeAudioDeviceInfo,
-  NativeCallInfo,
-  NativeCallInviteInfo,
-  NativeVoiceEvent,
-  NativeVoiceEventType,
-  Uuid,
-} from './type';
+import { TwilioError } from './error/TwilioError';
+import type { NativeAudioDeviceInfo } from './type/AudioDevice';
+import type { NativeCallInfo } from './type/Call';
+import type { NativeCallInviteInfo } from './type/CallInvite';
+import type { Uuid } from './type/common';
+import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
 /**
  * Declare strict typings for event-emissions and event-listeners.

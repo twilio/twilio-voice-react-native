@@ -28,6 +28,7 @@ export default function Dialer({
   const acceptNoOp = useNoOp('accept');
   const rejectNoOp = useNoOp('reject');
   const postFeedbackNoOp = useNoOp('post feedback');
+  const getStatsNoOp = useNoOp('get stats');
 
   const connectHandler = React.useCallback(
     () => onConnect(outgoingTo),
@@ -79,6 +80,10 @@ export default function Dialer({
             postFeedbackNoOp
           }
         />,
+        <Button
+          title="Get Stats"
+          onPress={callMethod?.getStats || getStatsNoOp}
+        />,
       ],
     ],
     [
@@ -87,6 +92,7 @@ export default function Dialer({
       callMethod,
       digits,
       disconnectNoOp,
+      getStatsNoOp,
       holdNoOp,
       muteNoOp,
       postFeedbackNoOp,

@@ -10,6 +10,7 @@
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
+#import "TwilioVoiceStatsReport.h"
 
 // Error
 NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
@@ -698,6 +699,22 @@ RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
     if (call) {
         [call postFeedback:(TVOCallFeedbackScore)score issue:[self issueFromString:issue]];
         resolve(nil);
+    } else {
+        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
+}
+
+RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    TVOCall *call = self.callMap[uuid];
+    if (call) {
+        [call getStatsWithBlock:^(NSArray<TVOStatsReport *> *statsReports) {
+            NSAssert([statsReports count] >= 1, @"Invalid stats reports array size");
+            NSArray *statsReportJson = [TwilioVoiceStatsReport jsonWithStatsReportsArray:statsReports];
+            resolve(statsReportJson);
+        }];
     } else {
         reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }

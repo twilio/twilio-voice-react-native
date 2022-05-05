@@ -503,6 +503,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(uuid);
   }
 
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void call_getStats(String uuid,  Promise promise) {
+    Call activeCall = Storage.callMap.get(uuid);
+
+    if (activeCall == null) {
+      promise.reject("No such \"call\" object exists with UUID " + uuid);
+      return;
+    }
+
+    activeCall.getStats(new StatsListenerProxy(uuid, reactContext, promise));
+  }
+
   // Register/UnRegister
 
   @ReactMethod

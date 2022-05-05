@@ -3,13 +3,13 @@ import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './common';
 import { Constants } from './constants';
 import type {
-  CustomParameters,
+  NativeCallQualityWarnings,
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
-  NativeCallQualityWarnings,
-  Uuid,
-} from './type';
+} from './type/Call';
+import type { CustomParameters, Uuid } from './type/common';
+import type { StatsReport as StatsReportType } from './type/StatsReport';
 import { TwilioError } from './error/TwilioError';
 
 /**
@@ -327,6 +327,15 @@ export class Call extends EventEmitter {
     return this._state;
   }
 
+  /**
+   * Gets the PeerConnection WebRTC stats for the ongoing call.
+   * @returns a Promise that resolves with a StatsReport object representing the
+   * WebRTC PeerConnection stats of a call.
+   */
+  getStats(): Promise<Call.StatsReport> {
+    return this._nativeModule.call_getStats(this._uuid);
+  }
+
   getTo(): string | undefined {
     return this._to;
   }
@@ -400,4 +409,6 @@ export namespace Call {
     NoisyCall = 'noisy-call',
     Echo = 'echo',
   }
+
+  export type StatsReport = StatsReportType;
 }
