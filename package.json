@@ -25,9 +25,9 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "prepare": "bob build",
+    "prepare": "yarn run build:constants && bob build",
     "release": "release-it",
-    "example": "yarn --cwd example",
+    "example": "yarn run build:constants && yarn run typescript && yarn run lint && yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn example && yarn && yarn pods",
     "build:constants": "node ./scripts/constants.js"
