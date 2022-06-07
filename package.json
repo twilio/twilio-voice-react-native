@@ -22,15 +22,16 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "test": "jest",
-    "typescript": "tsc --noEmit",
+    "bootstrap": "yarn run build:constants && yarn --cwd example && yarn && yarn pods",
+    "build": "yarn run build:constants && yarn run typescript && yarn run lint",
+    "build:constants": "node ./scripts/constants.js",
+    "example": "yarn run build && yarn --cwd example",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "pods": "cd example && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release-it",
-    "example": "yarn run build:constants && yarn run typescript && yarn run lint && yarn --cwd example",
-    "pods": "cd example && pod-install --quiet",
-    "bootstrap": "yarn example && yarn && yarn pods",
-    "build:constants": "node ./scripts/constants.js"
+    "test": "jest",
+    "typescript": "tsc --noEmit"
   },
   "keywords": [
     "react-native",
