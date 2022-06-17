@@ -2,11 +2,11 @@ package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventErrorCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorMessage;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteCancelled;
@@ -146,16 +146,16 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG, "Successfully received cancel notification");
 
         CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
-        int errorCode = intent.getIntExtra(VoiceEventErrorCode, 0);
-        String errorMessage = intent.getStringExtra(EVENT_KEY_ERROR_MESSAGE);
+        int errorCode = intent.getIntExtra(VoiceErrorCode, 0);
+        String errorMessage = intent.getStringExtra(VoiceErrorMessage);
         WritableMap cancelledCallInviteInfo = TwilioVoiceReactNativeModule.getCancelledCallInviteInfo(cancelledCallInvite);
 
         params.putString(VoiceEventType, VoiceEventCallInviteCancelled);
         params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
         WritableMap error = Arguments.createMap();
-        error.putInt(VoiceEventErrorCode, errorCode);
-        error.putString(EVENT_KEY_ERROR_MESSAGE, errorMessage);
-        params.putMap(EVENT_KEY_ERROR, error);
+        error.putInt(VoiceErrorCode, errorCode);
+        error.putString(VoiceErrorMessage, errorMessage);
+        params.putMap(VoiceError, error);
 
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         break;

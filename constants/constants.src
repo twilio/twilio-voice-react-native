@@ -8,7 +8,9 @@ VoiceEventError=VOICE_EVENT_ERROR
 VoiceEventType=type
 
 // Error
-VoiceEventErrorCode=code
+VoiceError=error
+VoiceErrorCode=code
+VoiceErrorMessage=message
 
 // Registration
 VoiceEventRegistered=VOICE_EVENT_REGISTERED

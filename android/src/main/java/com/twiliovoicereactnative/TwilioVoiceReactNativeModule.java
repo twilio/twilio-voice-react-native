@@ -54,11 +54,11 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_TO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventErrorCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorMessage;
 import static com.twiliovoicereactnative.CommonConstants.Issue;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.Score;
@@ -229,9 +229,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(VoiceEventErrorCode, registrationException.getErrorCode());
-        error.putString(EVENT_KEY_ERROR_MESSAGE, registrationException.getMessage());
-        params.putMap(EVENT_KEY_ERROR, error);
+        error.putInt(VoiceErrorCode, registrationException.getErrorCode());
+        error.putString(VoiceErrorMessage, registrationException.getMessage());
+        params.putMap(VoiceError, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }
@@ -256,9 +256,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(VoiceEventErrorCode, registrationException.getErrorCode());
-        error.putString(EVENT_KEY_ERROR_MESSAGE, registrationException.getMessage());
-        params.putMap(EVENT_KEY_ERROR, error);
+        error.putInt(VoiceErrorCode, registrationException.getErrorCode());
+        error.putString(VoiceErrorMessage, registrationException.getMessage());
+        params.putMap(VoiceError, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }
