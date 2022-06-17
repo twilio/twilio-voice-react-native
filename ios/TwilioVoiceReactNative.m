@@ -13,7 +13,6 @@
 #import "TwilioVoiceStatsReport.h"
 
 // Error
-NSString * const kTwilioVoiceReactNativeEventKeyType = @"type";
 NSString * const kTwilioVoiceReactNativeEventKeyErrorCode = @"code";
 NSString * const kTwilioVoiceReactNativeEventKeyErrorMessage = @"message";
 
@@ -136,19 +135,19 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 - (void)handlePushRegistryNotification:(NSNotification *)notification {
     NSMutableDictionary *eventBody = [notification.userInfo mutableCopy];
-    if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+    if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
         NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
         self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
 
         // Skip the event emitting since 1, the listener has not registered and 2, the app does not need to know about this
         return;
-    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInvite]) {
+    } else if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInvite]) {
         TVOCallInvite *callInvite = eventBody[kTwilioVoicePushRegistryNotificationCallInviteKey];
         NSAssert(callInvite != nil, @"Invalid call invite");
         [self reportNewIncomingCall:callInvite];
 
         eventBody[kTwilioVoiceReactNativeEventKeyCallInvite] = [self callInviteInfo:callInvite];
-    } else if ([eventBody[kTwilioVoiceReactNativeEventKeyType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInviteCancelled]) {
+    } else if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInviteCancelled]) {
         TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
         NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
 
@@ -185,7 +184,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     }
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventAudioDevicesUpdated,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventAudioDevicesUpdated,
                               kTwilioVoiceReactNativeEventKeyAudioDevices: nativeAudioDeviceInfos,
                               kTwilioVoiceReactNativeEventKeySelectedDevice: self.selectedAudioDevice}];
 }
@@ -462,7 +461,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
             NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                               body:@{kTwilioVoiceReactNativeEventKeyType: @"error",
+                               body:@{kTwilioVoiceReactNativeVoiceEventType: @"error",
                                       kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
                                                                                 kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {
@@ -482,7 +481,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
             NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                               body:@{kTwilioVoiceReactNativeEventKeyType: @"error",
+                               body:@{kTwilioVoiceReactNativeVoiceEventType: @"error",
                                       kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
                                                                                 kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {

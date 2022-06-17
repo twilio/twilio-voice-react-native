@@ -17,7 +17,6 @@ public class AndroidEventEmitter {
   /**
    * Common.
    */
-  public static final String EVENT_KEY_TYPE = "type";
   public static final String EVENT_KEY_ERROR = "error";
   public static final String EVENT_KEY_ERROR_CODE = "code";
   public static final String EVENT_KEY_ERROR_MESSAGE = "message";

@@ -161,7 +161,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     }
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInviteAccepted,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteAccepted,
                               kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
 }
 
@@ -191,7 +191,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         TVOCallInvite *callInvite = self.callInviteMap[action.callUUID.UUIDString];
         [callInvite reject];
         [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                           body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInviteRejected,
+                           body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteRejected,
                                   kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
         [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
     }
@@ -270,7 +270,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self playRingback];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventRinging,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventRinging,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
@@ -278,7 +278,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self stopRingback];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventConnected,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnected,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 
     if (self.callKitCompletionCallback) {
@@ -290,12 +290,12 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
     NSDictionary *messageBody = [NSDictionary dictionary];
     if (error) {
-        messageBody = @{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventDisconnected,
+        messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                         kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
                                                                   kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}};
     } else {
-        messageBody = @{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventDisconnected,
+        messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]};
     }
     
@@ -315,7 +315,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventConnectFailure,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnectFailure,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
@@ -347,7 +347,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventReconnecting,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnecting,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
@@ -355,7 +355,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 - (void)callDidReconnect:(TVOCall *)call {
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventReconnected,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnected,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 }
 
@@ -375,7 +375,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     }
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                       body:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeCallEventQualityWarningsChanged,
+                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventQualityWarningsChanged,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                               kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarningEvents,
                               kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarningEvents}];
