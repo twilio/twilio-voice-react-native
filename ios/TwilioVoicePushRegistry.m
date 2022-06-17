@@ -96,7 +96,7 @@ withCompletionHandler:(void (^)(void))completion {
                                                         object:nil
                                                       userInfo:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
                                                                  kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite,
-                                                                 kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                                                 kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                                                            kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 }
 

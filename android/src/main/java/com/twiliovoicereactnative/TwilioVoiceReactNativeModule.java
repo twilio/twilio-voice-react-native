@@ -55,10 +55,10 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_TO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_CODE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventErrorCode;
 import static com.twiliovoicereactnative.CommonConstants.Issue;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.Score;
@@ -229,7 +229,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(EVENT_KEY_ERROR_CODE, registrationException.getErrorCode());
+        error.putInt(VoiceEventErrorCode, registrationException.getErrorCode());
         error.putString(EVENT_KEY_ERROR_MESSAGE, registrationException.getMessage());
         params.putMap(EVENT_KEY_ERROR, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
@@ -256,7 +256,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(EVENT_KEY_ERROR_CODE, registrationException.getErrorCode());
+        error.putInt(VoiceEventErrorCode, registrationException.getErrorCode());
         error.putString(EVENT_KEY_ERROR_MESSAGE, registrationException.getMessage());
         params.putMap(EVENT_KEY_ERROR, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);

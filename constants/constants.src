@@ -7,6 +7,9 @@ ScopeCall=SCOPE_CALL
 VoiceEventError=VOICE_EVENT_ERROR
 VoiceEventType=type
 
+// Error
+VoiceEventErrorCode=code
+
 // Registration
 VoiceEventRegistered=VOICE_EVENT_REGISTERED
 VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED

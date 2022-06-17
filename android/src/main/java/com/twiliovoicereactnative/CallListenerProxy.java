@@ -22,13 +22,13 @@ import static com.twiliovoicereactnative.CommonConstants.CallEventReconnecting;
 import static com.twiliovoicereactnative.CommonConstants.CallEventRinging;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventErrorCode;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CURRENT_CALL_QUALITY;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_CODE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_ERROR_MESSAGE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_PREVIOUS_CALL_QUALITY;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
@@ -60,7 +60,7 @@ class CallListenerProxy implements Call.Listener {
     params.putString(VoiceEventType, CallEventConnectFailure);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
     WritableMap error = Arguments.createMap();
-    error.putInt(EVENT_KEY_ERROR_CODE, callException.getErrorCode());
+    error.putInt(VoiceEventErrorCode, callException.getErrorCode());
     error.putString(EVENT_KEY_ERROR_MESSAGE, callException.getMessage());
     params.putMap(EVENT_KEY_ERROR, error);
     AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
@@ -106,7 +106,7 @@ class CallListenerProxy implements Call.Listener {
     params.putString(VoiceEventType, CallEventReconnecting);
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
     WritableMap error = Arguments.createMap();
-    error.putInt(EVENT_KEY_ERROR_CODE, callException.getErrorCode());
+    error.putInt(VoiceEventErrorCode, callException.getErrorCode());
     error.putString(EVENT_KEY_ERROR_MESSAGE, callException.getMessage());
     params.putMap(EVENT_KEY_ERROR, error);
     AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
@@ -135,7 +135,7 @@ class CallListenerProxy implements Call.Listener {
     params.putMap(EVENT_KEY_CALL_INFO, TwilioVoiceReactNativeModule.getCallInfo(uuid, call));
     if (callException != null) {
       WritableMap error = Arguments.createMap();
-      error.putInt(EVENT_KEY_ERROR_CODE, callException.getErrorCode());
+      error.putInt(VoiceEventErrorCode, callException.getErrorCode());
       error.putString(EVENT_KEY_ERROR_MESSAGE, callException.getMessage());
       params.putMap(EVENT_KEY_ERROR, error);
     }

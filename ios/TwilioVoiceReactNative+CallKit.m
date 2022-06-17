@@ -292,7 +292,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     if (error) {
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                        kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                        kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                   kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}};
     } else {
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
@@ -317,7 +317,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnectFailure,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                              kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 
     if (self.callKitCompletionCallback) {
@@ -349,7 +349,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnecting,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                              kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                         kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
 }
 

@@ -13,7 +13,6 @@
 #import "TwilioVoiceStatsReport.h"
 
 // Error
-NSString * const kTwilioVoiceReactNativeEventKeyErrorCode = @"code";
 NSString * const kTwilioVoiceReactNativeEventKeyErrorMessage = @"message";
 
 // Call & call invite
@@ -462,7 +461,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                body:@{kTwilioVoiceReactNativeVoiceEventType: @"error",
-                                      kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                      kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                                 kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
@@ -482,7 +481,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                body:@{kTwilioVoiceReactNativeVoiceEventType: @"error",
-                                      kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
+                                      kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeVoiceEventErrorCode: @(error.code),
                                                                                 kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
