@@ -25,13 +25,10 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorMessage;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_FROM;
+import static com.twiliovoicereactnative.CommonConstants.CallCurrentWarnings;
+import static com.twiliovoicereactnative.CommonConstants.CallPreviousWarnings;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_TO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CURRENT_CALL_QUALITY;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_PREVIOUS_CALL_QUALITY;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_UUID;
 import static com.twiliovoicereactnative.CommonConstants.CallEventConnectFailure;
 import static com.twiliovoicereactnative.CommonConstants.CallEventQualityWarningsChanged;
 
@@ -159,13 +156,13 @@ class CallListenerProxy implements Call.Listener {
     for (Call.CallQualityWarning warning : currentWarnings) {
       currentWarningsArray.pushString(warning.toString());
     }
-    params.putArray(EVENT_KEY_CURRENT_CALL_QUALITY, currentWarningsArray);
+    params.putArray(CallCurrentWarnings, currentWarningsArray);
 
     WritableArray previousWarningsArray = Arguments.createArray();
     for (Call.CallQualityWarning warning : previousWarnings) {
       previousWarningsArray.pushString(warning.toString());
     }
-    params.putArray(EVENT_KEY_PREVIOUS_CALL_QUALITY, previousWarningsArray);
+    params.putArray(CallPreviousWarnings, previousWarningsArray);
     AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
   }
 

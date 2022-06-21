@@ -18,25 +18,11 @@ NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
 NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallInvite = @"cancelledCallInvite";
 
 // Call info
-NSString * const kTwilioVoiceCallInfoUuid = @"uuid";
-NSString * const kTwilioVoiceCallInfoFrom = @"from";
-NSString * const kTwilioVoiceCallInfoIsMuted = @"isMuted";
-NSString * const kTwilioVoiceCallInfoInOnHold = @"isOnHold";
 NSString * const kTwilioVoiceCallInfoSid = @"sid";
-NSString * const kTwilioVoiceCallInfoTo = @"to";
-NSString * const kTwilioVoiceCallInfoCustomParameters = @"customParameters";
-
-// Call invite info
-NSString * const kTwilioVoiceCallInviteInfoUuid = @"uuid";
-NSString * const kTwilioVoiceCallInviteInfoCallSid = @"callSid";
-NSString * const kTwilioVoiceCallInviteInfoFrom = @"from";
-NSString * const kTwilioVoiceCallInviteInfoTo = @"to";
-NSString * const kTwilioVoiceCallInviteInfoCustomParameters = @"customParameters";
 
 // Audio device
 NSString * const kTwilioVoiceReactNativeEventKeyAudioDevices = @"audioDevices";
 NSString * const kTwilioVoiceReactNativeEventKeySelectedDevice = @"selectedDevice";
-NSString * const kTwilioVoiceAudioDeviceUuid = @"uuid";
 NSString * const kTwilioVoiceAudioDeviceType = @"type";
 NSString * const kTwilioVoiceAudioDeviceName = @"name";
 NSString * const kTwilioVoiceAudioDeviceUid = @"uid";
@@ -187,14 +173,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 - (void)initializeAudioDeviceList {
     NSUUID *receiverUuid = [NSUUID UUID];
-    NSDictionary *builtInReceiver = @{ kTwilioVoiceAudioDeviceUuid: receiverUuid.UUIDString,
+    NSDictionary *builtInReceiver = @{ kTwilioVoiceReactNativeCallUuid: receiverUuid.UUIDString,
                                        kTwilioVoiceAudioDeviceType: kTwilioVoiceAudioDeviceEarpiece,
                                        kTwilioVoiceAudioDeviceName: @"iPhone",
                                        kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInReceiver};
     self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
 
     NSUUID *speakerUuid = [NSUUID UUID];
-    NSDictionary *builtInSpeaker = @{ kTwilioVoiceAudioDeviceUuid: speakerUuid.UUIDString,
+    NSDictionary *builtInSpeaker = @{ kTwilioVoiceReactNativeCallUuid: speakerUuid.UUIDString,
                                       kTwilioVoiceAudioDeviceType: kTwilioVoiceAudioDeviceSpeaker,
                                       kTwilioVoiceAudioDeviceName: @"Speaker",
                                       kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInSpeaker};
@@ -220,7 +206,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
             NSUUID *uuid = [NSUUID UUID];
-            NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+            NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceReactNativeCallUuid: uuid.UUIDString,
                                                   kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
                                                   kTwilioVoiceAudioDeviceName: port.portName,
                                                   kTwilioVoiceAudioDeviceUid: port.UID };
@@ -269,7 +255,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
             if (!found) {
                 NSLog(@"Unidentified output device selected: %@, %@, %@", port.portType, port.portName, port.UID);
                 NSUUID *uuid = [NSUUID UUID];
-                NSDictionary *unidentifiedDevice = @{ kTwilioVoiceAudioDeviceUuid: uuid.UUIDString,
+                NSDictionary *unidentifiedDevice = @{ kTwilioVoiceReactNativeCallUuid: uuid.UUIDString,
                                                       kTwilioVoiceAudioDeviceType: [self audioPortTypeMapping:port.portType],
                                                       kTwilioVoiceAudioDeviceName: port.portName,
                                                       kTwilioVoiceAudioDeviceUid: port.UID };
@@ -358,37 +344,37 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 // TODO: Move to separate utility file someday
 - (NSDictionary *)callInfo:(TVOCall *)call {
-    NSMutableDictionary *callInfo = [@{kTwilioVoiceCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
-                                       kTwilioVoiceCallInfoFrom: call.from? call.from : @"",
-                                       kTwilioVoiceCallInfoIsMuted: @(call.isMuted),
-                                       kTwilioVoiceCallInfoInOnHold: @(call.isOnHold),
+    NSMutableDictionary *callInfo = [@{kTwilioVoiceReactNativeCallUuid: call.uuid? call.uuid.UUIDString : @"",
+                                       kTwilioVoiceReactNativeCallFrom: call.from? call.from : @"",
+                                       kTwilioVoiceReactNativeCallIsMuted: @(call.isMuted),
+                                       kTwilioVoiceReactNativeCallIsOnHold: @(call.isOnHold),
                                        kTwilioVoiceCallInfoSid: call.sid,
-                                       kTwilioVoiceCallInfoTo: call.to? call.to : @""} mutableCopy];
+                                       kTwilioVoiceReactNativeCallTo: call.to? call.to : @""} mutableCopy];
     
     TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
     if (callInvite && callInvite.customParameters) {
-        callInfo[kTwilioVoiceCallInfoCustomParameters] = [callInvite.customParameters copy];
+        callInfo[kTwilioVoiceReactNativeCallCustomParameters] = [callInvite.customParameters copy];
     }
 
     return callInfo;
 }
 
 - (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite {
-    NSMutableDictionary *callInviteInfo = [@{kTwilioVoiceCallInviteInfoUuid: callInvite.uuid.UUIDString,
-                                            kTwilioVoiceCallInviteInfoCallSid: callInvite.callSid,
-                                            kTwilioVoiceCallInviteInfoFrom: callInvite.from,
-                                            kTwilioVoiceCallInviteInfoTo: callInvite.to} mutableCopy];
+    NSMutableDictionary *callInviteInfo = [@{kTwilioVoiceReactNativeCallUuid: callInvite.uuid.UUIDString,
+                                             kTwilioVoiceReactNativeCallSid: callInvite.callSid,
+                                             kTwilioVoiceReactNativeCallFrom: callInvite.from,
+                                             kTwilioVoiceReactNativeCallTo: callInvite.to} mutableCopy];
     if (callInvite.customParameters) {
-        callInviteInfo[kTwilioVoiceCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
+        callInviteInfo[kTwilioVoiceReactNativeCallCustomParameters] = [callInvite.customParameters copy];
     }
 
     return callInviteInfo;
 }
 
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite {
-    return @{kTwilioVoiceCallInviteInfoCallSid: cancelledCallInvite.callSid,
-             kTwilioVoiceCallInviteInfoFrom: cancelledCallInvite.from,
-             kTwilioVoiceCallInviteInfoTo: cancelledCallInvite.to};
+    return @{kTwilioVoiceReactNativeCallSid: cancelledCallInvite.callSid,
+             kTwilioVoiceReactNativeCallFrom: cancelledCallInvite.from,
+             kTwilioVoiceReactNativeCallTo: cancelledCallInvite.to};
 }
 
 RCT_EXPORT_MODULE();

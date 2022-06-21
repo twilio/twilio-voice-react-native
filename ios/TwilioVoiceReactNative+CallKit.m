@@ -11,9 +11,6 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
-NSString * const kTwilioVoiceReactNativeEventKeyCurrentWarnings = @"currentWarnings";
-NSString * const kTwilioVoiceReactNativeEventKeyPreviousWarnings = @"previousWarnings";
-
 NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 @interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate, AVAudioPlayerDelegate>
@@ -377,8 +374,8 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventQualityWarningsChanged,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeEventKeyCurrentWarnings: currentWarningEvents,
-                              kTwilioVoiceReactNativeEventKeyPreviousWarnings: previousWarningEvents}];
+                              kTwilioVoiceReactNativeCallCurrentWarnings: currentWarningEvents,
+                              kTwilioVoiceReactNativeCallPreviousWarnings: previousWarningEvents}];
 }
 
 #pragma mark - Ringback

@@ -16,6 +16,17 @@ VoiceErrorMessage=message
 VoiceEventRegistered=VOICE_EVENT_REGISTERED
 VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED
 
+// Call, call invite, cancelled call invite
+CallUuid=uuid
+CallCustomParameters=customParameters
+CallFrom=from
+CallTo=to
+CallSid=callSid
+CallIsMuted=isMuted
+CallIsOnHold=isOnHold
+CallCurrentWarnings=currentWarnings
+CallPreviousWarnings=previousWarnings
+
 // Call Invite
 VoiceEventCallInvite=VOICE_EVENT_CALL_INVITE
 VoiceEventCallInviteAccepted=VOICE_EVENT_CALL_INVITE_ACCEPTED
