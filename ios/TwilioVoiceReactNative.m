@@ -444,8 +444,8 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
-                                      kTwilioVoiceReactNativeVoiceError: @{kTwilioVoiceReactNativeVoiceErrorCode: @(error.code),
-                                                                           kTwilioVoiceReactNativeVoiceErrorMessage: [error localizedDescription]}}];
+                                      kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                                   kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
         }
@@ -464,8 +464,8 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
             NSLog(@"%@", errorMessage);
             [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
-                                      kTwilioVoiceReactNativeVoiceError: @{kTwilioVoiceReactNativeVoiceErrorCode: @(error.code),
-                                                                           kTwilioVoiceReactNativeVoiceErrorMessage: [error localizedDescription]}}];
+                                      kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                                   kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
         } else {
             resolve(nil);
         }

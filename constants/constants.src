@@ -5,12 +5,12 @@ ScopeCall=SCOPE_CALL
 // Voice events
 // Common
 VoiceEventError=VOICE_EVENT_ERROR
-VoiceEventType=type
+VoiceEventType=VOICE_EVENT_TYPE
 
 // Error
-VoiceError=error
-VoiceErrorCode=code
-VoiceErrorMessage=message
+VoiceErrorKeyError=VOICE_ERROR_KEY_ERROR
+VoiceErrorKeyCode=VOICE_ERROR_KEY_CODE
+VoiceErrorKeyMessage=VOICE_ERROR_KEY_MESSAGE
 
 // Registration
 VoiceEventRegistered=VOICE_EVENT_REGISTERED

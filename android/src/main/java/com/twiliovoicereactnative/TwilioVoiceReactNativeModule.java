@@ -45,9 +45,9 @@ import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEV
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
-import static com.twiliovoicereactnative.CommonConstants.VoiceError;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorCode;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorMessage;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 import static com.twiliovoicereactnative.CommonConstants.CallUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallCustomParameters;
 import static com.twiliovoicereactnative.CommonConstants.CallFrom;
@@ -223,9 +223,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(VoiceErrorCode, registrationException.getErrorCode());
-        error.putString(VoiceErrorMessage, registrationException.getMessage());
-        params.putMap(VoiceError, error);
+        error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
+        error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
+        params.putMap(VoiceErrorKeyError, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }
@@ -250,9 +250,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
-        error.putInt(VoiceErrorCode, registrationException.getErrorCode());
-        error.putString(VoiceErrorMessage, registrationException.getMessage());
-        params.putMap(VoiceError, error);
+        error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
+        error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
+        params.putMap(VoiceErrorKeyError, error);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }

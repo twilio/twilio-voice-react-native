@@ -289,8 +289,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     if (error) {
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                        kTwilioVoiceReactNativeVoiceError: @{kTwilioVoiceReactNativeVoiceErrorCode: @(error.code),
-                                                             kTwilioVoiceReactNativeVoiceErrorMessage: [error localizedDescription]}};
+                        kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                     kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}};
     } else {
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]};
@@ -314,8 +314,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnectFailure,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeVoiceError: @{kTwilioVoiceReactNativeVoiceErrorCode: @(error.code),
-                                                                   kTwilioVoiceReactNativeVoiceErrorMessage: [error localizedDescription]}}];
+                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
 
     if (self.callKitCompletionCallback) {
         self.callKitCompletionCallback(NO);
@@ -346,8 +346,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnecting,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeVoiceError: @{kTwilioVoiceReactNativeVoiceErrorCode: @(error.code),
-                                                                   kTwilioVoiceReactNativeVoiceErrorMessage: [error localizedDescription]}}];
+                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
 }
 
 - (void)callDidReconnect:(TVOCall *)call {

@@ -1,7 +1,7 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorCode;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorMessage;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 
 import android.content.Context;
 import android.content.Intent;
@@ -115,8 +115,8 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
     intent.putExtra(Constants.UUID, uuid);
-    intent.putExtra(VoiceErrorCode, callException.getErrorCode());
-    intent.putExtra(VoiceErrorMessage, callException.getMessage());
+    intent.putExtra(VoiceErrorKeyCode, callException.getErrorCode());
+    intent.putExtra(VoiceErrorKeyMessage, callException.getMessage());
 
     Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
