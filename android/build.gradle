@@ -1,10 +1,12 @@
 
 buildscript {
     ext.versions = [
-      'androidGradlePlugin': '4.1.2',
-      'googleServices'     : '4.3.8',
-      'voiceAndroid'       : '5.7.2',
+      'java'               : JavaVersion.VERSION_11,
+      'androidGradlePlugin': '7.2.1',
+      'googleServices'     : '4.3.10',
+      'voiceAndroid'       : '6.1.1',
       'androidxLifecycle'  : '2.2.0',
+      'audioSwitch'        : '1.1.4',
       'firebaseMessaging'  : '21.1.0'
     ]
     if (project == rootProject) {
@@ -27,8 +29,8 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-    compileSdkVersion safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 29)
-    buildToolsVersion safeExtGet('TwilioVoiceReactNative_buildToolsVersion', '29.0.2')
+    compileSdkVersion safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 31)
+    buildToolsVersion safeExtGet('TwilioVoiceReactNative_buildToolsVersion', '30.0.2')
     defaultConfig {
         minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 16)
         targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 29)
@@ -46,8 +48,8 @@ android {
         disable 'GradleCompatible'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility versions.java
+        targetCompatibility versions.java
     }
 }
 
@@ -67,6 +69,6 @@ dependencies {
     implementation "com.twilio:voice-android:${versions.voiceAndroid}"
     implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
     implementation "com.google.firebase:firebase-messaging:${versions.firebaseMessaging}"
-    implementation "com.twilio:audioswitch:1.1.2"
+    implementation "com.twilio:audioswitch:${versions.audioSwitch}"
     implementation 'com.google.android.material:material:1.1.0'
 }

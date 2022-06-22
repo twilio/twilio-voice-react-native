@@ -147,8 +147,7 @@ public class StatsListenerProxy implements StatsListener {
     params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.requestsReceived);
     params.putDouble(CommonConstants.RequestsSent, iceCandidatePairStats.requestsSent);
     params.putDouble(CommonConstants.ResponsesReceived, iceCandidatePairStats.responsesReceived);
-    //TODO - Read the value of iceCandidatePairStats.responsesSent. Currently not available from the Android Voice SDK.
-    //params.putDouble(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent);
+    params.putDouble(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent);
     params.putDouble(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived);
     params.putDouble(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent);
     params.putString(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state));
