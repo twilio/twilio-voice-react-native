@@ -1,10 +1,10 @@
 // Scope names
-ScopeVoice=SCOPE_VOICE
-ScopeCall=SCOPE_CALL
+ScopeVoice=scopeVoice
+ScopeCall=scopeCall
 
 // Voice events
 // Common
-VoiceEventError=VOICE_EVENT_ERROR
+VoiceEventError=voiceEventError
 VoiceEventType=type
 
 // Error
@@ -13,8 +13,8 @@ VoiceErrorKeyCode=code
 VoiceErrorKeyMessage=message
 
 // Registration
-VoiceEventRegistered=VOICE_EVENT_REGISTERED
-VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED
+VoiceEventRegistered=voiceEventRegistered
+VoiceEventUnregistered=voiceEventUnregistered
 
 // Call Info
 CallInfoUuid=uuid
@@ -39,13 +39,13 @@ CancelledCallInviteInfoTo=to
 CancelledCallInviteInfoCustomParameters=customParameters
 
 // Call Invite
-VoiceEventCallInvite=VOICE_EVENT_CALL_INVITE
-VoiceEventCallInviteAccepted=VOICE_EVENT_CALL_INVITE_ACCEPTED
-VoiceEventCallInviteRejected=VOICE_EVENT_CALL_INVITE_REJECTED
-VoiceEventCallInviteCancelled=VOICE_EVENT_CALL_INVITE_CANCELLED
+VoiceEventCallInvite=voiceEventCallInvite
+VoiceEventCallInviteAccepted=voiceEventCallInviteAccepted
+VoiceEventCallInviteRejected=voiceEventCallInviteRejected
+VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
 
 // Audio Devices Updated Event
-VoiceEventAudioDevicesUpdated=VOICE_EVENT_AUDIO_DEVICES_UPDATED
+VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated
 
 // Audio Device
 AudioDeviceKeyUuid=uuid
@@ -56,21 +56,21 @@ AudioDeviceKeySelectedDevice=selectedDevice
 
 // Call events
 // State
-CallEventConnected=CALL_EVENT_CONNECTED
-CallEventConnectFailure=CALL_EVENT_CONNECT_FAILURE
-CallEventDisconnected=CALL_EVENT_DISCONNECTED
-CallEventReconnecting=CALL_EVENT_RECONNECTING
-CallEventReconnected=CALL_EVENT_RECONNECTED
-CallEventRinging=CALL_EVENT_RINGING
+CallEventConnected=callEventConnected
+CallEventConnectFailure=callEventConnectFailure
+CallEventDisconnected=callEventDisconnected
+CallEventReconnecting=callEventReconnecting
+CallEventReconnected=callEventReconnected
+CallEventRinging=callEventRinging
 
 // Quality warnings
-CallEventQualityWarningsChanged=CALL_EVENT_QUALITY_WARNINGS_CHANGED
-CallEventCurrentWarnings=CALL_EVENT_CURRENT_WANTINGS
-CallEventPreviousWarnings=CALL_EVENT_PREVIOUS_WARNINGS
+CallEventQualityWarningsChanged=callEventQualityWarningsChanged
+CallEventCurrentWarnings=callEventCurrentWarnings
+CallEventPreviousWarnings=callEventPreviousWarnings
 
 // Post feedback
-Score=SCORE
-Issue=ISSUE
+Score=score
+Issue=issue
 
 // StatsReport
 PeerConnectionId=peerConnectionId
@@ -126,9 +126,9 @@ Deleted=deleted
 PacketsReceived=packetsReceived
 
 // IceCandidatePairState
-StateFailed=STATE_FAILED
-StateFrozen=STATE_FROZEN
-StateInProgress=STATE_IN_PROGRESS
-StateSucceeded=STATE_SUCCEEDED
-StateWaiting=STATE_WAITING
-StateUnknown=STATE_UNKNOWN
+StateFailed=stateFailed
+StateFrozen=stateFrozen
+StateInProgress=stateInProgress
+StateSucceeded=stateSucceeded
+StateWaiting=stateWaiting
+StateUnknown=stateUnknown
