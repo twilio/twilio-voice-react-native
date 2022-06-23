@@ -12,13 +12,15 @@
     android:icon="@mipmap/ic_launcher"
     android:label="@string/app_name"
     android:roundIcon="@mipmap/ic_launcher_round"
-    android:theme="@style/AppTheme">
+    android:theme="@style/AppTheme"
+    android:largeHeap="true">
     <activity
       android:name=".MainActivity"
       android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
       android:label="@string/app_name"
       android:launchMode="singleTask"
-      android:windowSoftInputMode="adjustResize">
+      android:windowSoftInputMode="adjustResize"
+      android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
@@ -29,14 +31,16 @@
     <!-- [START fcm_listener] -->
     <service
       android:name="com.twiliovoicereactnative.VoiceFirebaseMessagingService"
-      android:stopWithTask="false">
+      android:stopWithTask="false"
+      android:exported="true">
       <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
       </intent-filter>
     </service>
     <service
       android:enabled="true"
-      android:name="com.twiliovoicereactnative.IncomingCallNotificationService">
+      android:name="com.twiliovoicereactnative.IncomingCallNotificationService"
+      android:exported="true">
       <intent-filter>
         <action android:name="ACTION_ACCEPT" />
         <action android:name="ACTION_REJECT" />
