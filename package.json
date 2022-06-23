@@ -23,16 +23,20 @@
   ],
   "scripts": {
     "bootstrap": "yarn run build:constants && yarn --cwd example && yarn && yarn pods",
-    "build": "yarn run build:constants && yarn run typescript && yarn run lint",
     "build:constants": "node ./scripts/constants.js",
-    "build:docs": "mkdir ./docs/ && touch ./docs/test.txt",
-    "example": "yarn run build && yarn --cwd example",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "build:declaration": "tsc --project tsconfig.declaration.json",
+    "build:api:extractor": "api-extractor run --local",
+    "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
+    "build:doc": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
+    "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "check:test": "jest",
+    "check:type": "tsc --noEmit",
+    "check": "yarn run build:constants && tsc --noEmit && yarn run lint",
+    "example": "yarn run check && yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
-    "test": "jest",
-    "typescript": "tsc --noEmit"
+    "test": "jest"
   },
   "keywords": [
     "react-native",
@@ -51,6 +55,8 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",
+    "@microsoft/api-documenter": "^7.17.19",
+    "@microsoft/api-extractor": "^7.25.2",
     "@react-native-community/eslint-config": "^2.0.0",
     "@release-it/conventional-changelog": "^2.0.0",
     "@types/jest": "^26.0.0",
@@ -79,13 +85,14 @@
     "preset": "react-native",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
-      "<rootDir>/lib/"
+      "<rootDir>/lib/",
+      "<rootDir>/types"
     ]
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn lint && yarn typescript"
+      "pre-commit": "yarn run check"
     }
   },
   "commitlint": {

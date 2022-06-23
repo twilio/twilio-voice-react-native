@@ -17,24 +17,17 @@
 
         "node ./node_modules/.bin/release --bump ${CURRENT_VERSION} ${RELEASE_VERSION}",
         "git add package.json",
-        "git commit -nm \"${RELEASE_VERSION}\"",
-        "git tag ${RELEASE_VERSION}",
-
         "yarn run build:docs",
-        "mv ./docs/ ./docs-${RELEASE_VERSION}",
-        "mkdir docs",
-        "mv ./docs-${RELEASE_VERSION} ./docs/${RELEASE_VERSION}",
-        "git checkout gh-pages",
-        "git add ./docs",
+        "git add -f ./docs",
         "git commit -nm \"${RELEASE_VERSION}\"",
-        "git checkout ${BRANCH}",
-        "git reset --hard"
+        "git tag ${RELEASE_VERSION}"
       ]
     },
     "development": {
       "commands": [
         "node ./node_modules/.bin/release --bump ${RELEASE_VERSION} ${DEVELOPMENT_VERSION}",
         "git add package.json",
+        "git rm -r ./docs",
         "git commit -nm \"${DEVELOPMENT_VERSION}\""
       ]
     },

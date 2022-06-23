@@ -67,7 +67,7 @@ jobs:
       - run:
           name: Lint files
           command: |
-            yarn lint
+            yarn run check:lint
 
   typescript:
     executor: default
@@ -76,7 +76,7 @@ jobs:
       - run:
           name: Typecheck files
           command: |
-            yarn typescript
+            yarn run check:type
 
   unit-tests:
     executor: default
@@ -85,7 +85,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            yarn test --coverage
+            yarn run check:test --coverage
       - store_artifacts:
           path: coverage
           destination: coverage
@@ -97,7 +97,7 @@ jobs:
       - run:
           name: Build package
           command: |
-            yarn prepare
+            yarn run prepare
 
   run-release:
     executor:

@@ -72,3 +72,5 @@ ios/TwilioVoiceReactNativeConstants.h
 
 # docs
 docs/
+temp/
+types/
