@@ -5,38 +5,38 @@ ScopeCall=SCOPE_CALL
 // Voice events
 // Common
 VoiceEventError=VOICE_EVENT_ERROR
-VoiceEventType=VOICE_EVENT_TYPE
+VoiceEventType=type
 
 // Error
-VoiceErrorKeyError=VOICE_ERROR_KEY_ERROR
-VoiceErrorKeyCode=VOICE_ERROR_KEY_CODE
-VoiceErrorKeyMessage=VOICE_ERROR_KEY_MESSAGE
+VoiceErrorKeyError=error
+VoiceErrorKeyCode=code
+VoiceErrorKeyMessage=message
 
 // Registration
 VoiceEventRegistered=VOICE_EVENT_REGISTERED
 VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED
 
 // Call Info
-CallInfoUuid=CALL_INFO_UUID
-CallInfoSid=CALL_INFO_SID
-CallInfoFrom=CALL_INFO_FROM
-CallInfoTo=CALL_INFO_TO
-CallInfoIsMuted=CALL_INFO_IS_MUTED
-CallInfoIsOnHold=CALL_INFO_IS_ON_HOLD
+CallInfoUuid=uuid
+CallInfoSid=sid
+CallInfoFrom=from
+CallInfoTo=to
+CallInfoIsMuted=isMuted
+CallInfoIsOnHold=isOnHold
 
 // Call Invite Info
-CallInviteInfoUuid=CALL_INVITE_INFO_UUID
-CallInviteInfoCallSid=CALL_INVITE_INFO_CALL_SID
-CallInviteInfoFrom=CALL_INVITE_INFO_FROM
-CallInviteInfoTo=CALL_INVITE_INFO_TO
-CallInviteInfoCustomParameters=CALL_INVITE_INFO_CUSTOM_PARAMETERS
+CallInviteInfoUuid=uuid
+CallInviteInfoCallSid=callSid
+CallInviteInfoFrom=from
+CallInviteInfoTo=to
+CallInviteInfoCustomParameters=customParameters
 
 // Cancelled Call Invite Info
-CancelledCallInviteInfoUuid=CANCELLED_CALL_INVITE_INFO_UUID
-CancelledCallInviteInfoCallSid=CANCELLED_CALL_INVITE_INFO_CALL_SID
-CancelledCallInviteInfoFrom=CANCELLED_CALL_INVITE_INFO_FROM
-CancelledCallInviteInfoTo=CANCELLED_CALL_INVITE_INFO_TO
-CancelledCallInviteInfoCustomParameters=CANCELLED_CALL_INVITE_INFO_CUSTOM_PARAMETERS
+CancelledCallInviteInfoUuid=uuid
+CancelledCallInviteInfoCallSid=callSid
+CancelledCallInviteInfoFrom=from
+CancelledCallInviteInfoTo=to
+CancelledCallInviteInfoCustomParameters=customParameters
 
 // Call Invite
 VoiceEventCallInvite=VOICE_EVENT_CALL_INVITE
@@ -48,11 +48,11 @@ VoiceEventCallInviteCancelled=VOICE_EVENT_CALL_INVITE_CANCELLED
 VoiceEventAudioDevicesUpdated=VOICE_EVENT_AUDIO_DEVICES_UPDATED
 
 // Audio Device
-AudioDeviceKeyUuid=AUDIO_DEVICE_UUID
-AudioDeviceKeyName=AUDIO_DEVICE_NAME
-AudioDeviceKeyType=AUDIO_DEVICE_TYPE
-AudioDeviceKeyAudioDevices=AUDIO_DEVICES
-AudioDeviceKeySelectedDevice=SELECTED_AUDIO_DEVICE
+AudioDeviceKeyUuid=uuid
+AudioDeviceKeyName=name
+AudioDeviceKeyType=type
+AudioDeviceKeyAudioDevices=audioDevices
+AudioDeviceKeySelectedDevice=selectedDevice
 
 // Call events
 // State
