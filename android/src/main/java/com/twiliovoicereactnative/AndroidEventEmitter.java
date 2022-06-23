@@ -23,7 +23,6 @@ public class AndroidEventEmitter {
    * Call keys.
    */
   public static final String EVENT_KEY_CALL_INFO = "call";
-  public static final String EVENT_KEY_CALL_SID = "sid";
   public static final String EVENT_KEY_CALL_STATE = "state";
 
   /**
@@ -35,14 +34,6 @@ public class AndroidEventEmitter {
    * CancelledCallInvite event keys.
    */
   public static final String EVENT_KEY_CANCELLED_CALL_INVITE_INFO = "cancelledCallInvite";
-
-  /**
-   * AudioDevice event keys.
-   */
-  public static final String EVENT_KEY_AUDIO_DEVICES_NAME = "name";
-  public static final String EVENT_KEY_AUDIO_DEVICES_TYPE = "type";
-  public static final String EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES = "audioDevices";
-  public static final String EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE = "selectedDevice";
 
   public static AndroidEventEmitter getInstance() {
     if (AndroidEventEmitter.instance == null) {

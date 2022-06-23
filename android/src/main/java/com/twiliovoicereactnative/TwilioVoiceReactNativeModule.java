@@ -38,21 +38,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_NAME;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_AUDIO_DEVICES_TYPE;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_SID;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
-import static com.twiliovoicereactnative.CommonConstants.CallUuid;
-import static com.twiliovoicereactnative.CommonConstants.CallCustomParameters;
-import static com.twiliovoicereactnative.CommonConstants.CallFrom;
-import static com.twiliovoicereactnative.CommonConstants.CallTo;
-import static com.twiliovoicereactnative.CommonConstants.CallSid;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoSid;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoFrom;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoTo;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoUuid;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCallSid;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoFrom;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoTo;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCustomParameters;
+import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCallSid;
+import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
+import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
+import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCustomParameters;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUuid;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyName;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyType;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyAudioDevices;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
 import static com.twiliovoicereactnative.CommonConstants.Issue;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.Score;
@@ -109,8 +117,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
       WritableMap params = Arguments.createMap();
       params.putString(VoiceEventType, VoiceEventAudioDevicesUpdated);
-      params.putArray(EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES, getAudioDeviceInfoArray(audioDeviceMap));
-      params.putMap(EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE, getAudioDeviceInfoMap(selectedDeviceUuid, selectedDevice));
+      params.putArray(AudioDeviceKeyAudioDevices, getAudioDeviceInfoArray(audioDeviceMap));
+      params.putMap(AudioDeviceKeySelectedDevice, getAudioDeviceInfoMap(selectedDeviceUuid, selectedDevice));
 
       AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
 
@@ -135,37 +143,37 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   public static WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
     WritableMap callInviteInfo = Arguments.createMap();
-    callInviteInfo.putString(CallUuid, uuid);
-    callInviteInfo.putString(CallSid, callInvite.getCallSid());
-    callInviteInfo.putString(CallFrom, callInvite.getFrom());
-    callInviteInfo.putString(CallTo, callInvite.getTo());
+    callInviteInfo.putString(CallInviteInfoUuid, uuid);
+    callInviteInfo.putString(CallInviteInfoCallSid, callInvite.getCallSid());
+    callInviteInfo.putString(CallInviteInfoFrom, callInvite.getFrom());
+    callInviteInfo.putString(CallInviteInfoTo, callInvite.getTo());
 
     WritableMap customParameters = getCallInviteCustomParameters(callInvite);
-    callInviteInfo.putMap(CallCustomParameters, customParameters);
+    callInviteInfo.putMap(CallInviteInfoCustomParameters, customParameters);
 
     return callInviteInfo;
   }
 
   public static WritableMap getCancelledCallInviteInfo(CancelledCallInvite cancelledCallInvite) {
     WritableMap cancelledCallInviteInfo = Arguments.createMap();
-    cancelledCallInviteInfo.putString(CallSid, cancelledCallInvite.getCallSid());
-    cancelledCallInviteInfo.putString(CallFrom, cancelledCallInvite.getFrom());
-    cancelledCallInviteInfo.putString(CallTo, cancelledCallInvite.getTo());
+    cancelledCallInviteInfo.putString(CancelledCallInviteInfoCallSid, cancelledCallInvite.getCallSid());
+    cancelledCallInviteInfo.putString(CancelledCallInviteInfoFrom, cancelledCallInvite.getFrom());
+    cancelledCallInviteInfo.putString(CancelledCallInviteInfoTo, cancelledCallInvite.getTo());
     return cancelledCallInviteInfo;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public static WritableMap getCallInfo(String uuid, Call call) {
     WritableMap callInfo = Arguments.createMap();
-    callInfo.putString(CallUuid, uuid);
-    callInfo.putString(EVENT_KEY_CALL_SID, call.getSid());
-    callInfo.putString(CallFrom, call.getFrom());
-    callInfo.putString(CallTo, call.getTo());
+    callInfo.putString(CallInfoUuid, uuid);
+    callInfo.putString(CallInfoSid, call.getSid());
+    callInfo.putString(CallInfoFrom, call.getFrom());
+    callInfo.putString(CallInfoTo, call.getTo());
 
     CallInvite callInvite = Storage.callInviteMap.get(uuid);
     if (callInvite != null) {
       WritableMap customParams = getCallInviteCustomParameters(callInvite);
-      callInfo.putMap(CallCustomParameters, customParams);
+      callInfo.putMap(CallInviteInfoCustomParameters, customParams);
     }
 
     return callInfo;
@@ -173,10 +181,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   private WritableMap getAudioDeviceInfoMap(String uuid, AudioDevice audioDevice) {
     WritableMap audioDeviceInfo = Arguments.createMap();
-    audioDeviceInfo.putString(CallUuid, uuid);
-    audioDeviceInfo.putString(EVENT_KEY_AUDIO_DEVICES_NAME, audioDevice.getName());
+    audioDeviceInfo.putString(AudioDeviceKeyUuid, uuid);
+    audioDeviceInfo.putString(AudioDeviceKeyName, audioDevice.getName());
     String type = audioDevice.getClass().getSimpleName();
-    audioDeviceInfo.putString(EVENT_KEY_AUDIO_DEVICES_TYPE, audioDeviceTypeMap.get(type));
+    audioDeviceInfo.putString(AudioDeviceKeyType, audioDeviceTypeMap.get(type));
     return audioDeviceInfo;
   }
 
@@ -193,8 +201,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   private WritableMap getAudioDeviceInfo() {
     WritableMap audioDevicesInfo = Arguments.createMap();
-    audioDevicesInfo.putArray(EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES, getAudioDeviceInfoArray(audioDeviceMap));
-    audioDevicesInfo.putMap(EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE, getAudioDeviceInfoMap(selectedDeviceUuid, audioSwitch.getSelectedAudioDevice()));
+    audioDevicesInfo.putArray(AudioDeviceKeyAudioDevices, getAudioDeviceInfoArray(audioDeviceMap));
+    audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, getAudioDeviceInfoMap(selectedDeviceUuid, audioSwitch.getSelectedAudioDevice()));
     return audioDevicesInfo;
   }
 

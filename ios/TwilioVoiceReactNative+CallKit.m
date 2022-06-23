@@ -374,8 +374,8 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventQualityWarningsChanged,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
-                              kTwilioVoiceReactNativeCallCurrentWarnings: currentWarningEvents,
-                              kTwilioVoiceReactNativeCallPreviousWarnings: previousWarningEvents}];
+                              kTwilioVoiceReactNativeCallEventCurrentWarnings: currentWarningEvents,
+                              kTwilioVoiceReactNativeCallEventPreviousWarnings: previousWarningEvents}];
 }
 
 #pragma mark - Ringback

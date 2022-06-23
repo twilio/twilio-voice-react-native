@@ -16,16 +16,27 @@ VoiceErrorKeyMessage=VOICE_ERROR_KEY_MESSAGE
 VoiceEventRegistered=VOICE_EVENT_REGISTERED
 VoiceEventUnregistered=VOICE_EVENT_UNREGISTERED
 
-// Call, call invite, cancelled call invite
-CallUuid=uuid
-CallCustomParameters=customParameters
-CallFrom=from
-CallTo=to
-CallSid=callSid
-CallIsMuted=isMuted
-CallIsOnHold=isOnHold
-CallCurrentWarnings=currentWarnings
-CallPreviousWarnings=previousWarnings
+// Call Info
+CallInfoUuid=CALL_INFO_UUID
+CallInfoSid=CALL_INFO_SID
+CallInfoFrom=CALL_INFO_FROM
+CallInfoTo=CALL_INFO_TO
+CallInfoIsMuted=CALL_INFO_IS_MUTED
+CallInfoIsOnHold=CALL_INFO_IS_ON_HOLD
+
+// Call Invite Info
+CallInviteInfoUuid=CALL_INVITE_INFO_UUID
+CallInviteInfoCallSid=CALL_INVITE_INFO_CALL_SID
+CallInviteInfoFrom=CALL_INVITE_INFO_FROM
+CallInviteInfoTo=CALL_INVITE_INFO_TO
+CallInviteInfoCustomParameters=CALL_INVITE_INFO_CUSTOM_PARAMETERS
+
+// Cancelled Call Invite Info
+CancelledCallInviteInfoUuid=CANCELLED_CALL_INVITE_INFO_UUID
+CancelledCallInviteInfoCallSid=CANCELLED_CALL_INVITE_INFO_CALL_SID
+CancelledCallInviteInfoFrom=CANCELLED_CALL_INVITE_INFO_FROM
+CancelledCallInviteInfoTo=CANCELLED_CALL_INVITE_INFO_TO
+CancelledCallInviteInfoCustomParameters=CANCELLED_CALL_INVITE_INFO_CUSTOM_PARAMETERS
 
 // Call Invite
 VoiceEventCallInvite=VOICE_EVENT_CALL_INVITE
@@ -33,8 +44,15 @@ VoiceEventCallInviteAccepted=VOICE_EVENT_CALL_INVITE_ACCEPTED
 VoiceEventCallInviteRejected=VOICE_EVENT_CALL_INVITE_REJECTED
 VoiceEventCallInviteCancelled=VOICE_EVENT_CALL_INVITE_CANCELLED
 
-// Audio Devices
+// Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=VOICE_EVENT_AUDIO_DEVICES_UPDATED
+
+// Audio Device
+AudioDeviceKeyUuid=AUDIO_DEVICE_UUID
+AudioDeviceKeyName=AUDIO_DEVICE_NAME
+AudioDeviceKeyType=AUDIO_DEVICE_TYPE
+AudioDeviceKeyAudioDevices=AUDIO_DEVICES
+AudioDeviceKeySelectedDevice=SELECTED_AUDIO_DEVICE
 
 // Call events
 // State
@@ -47,6 +65,8 @@ CallEventRinging=CALL_EVENT_RINGING
 
 // Quality warnings
 CallEventQualityWarningsChanged=CALL_EVENT_QUALITY_WARNINGS_CHANGED
+CallEventCurrentWarnings=CALL_EVENT_CURRENT_WANTINGS
+CallEventPreviousWarnings=CALL_EVENT_PREVIOUS_WARNINGS
 
 // Post feedback
 Score=SCORE
