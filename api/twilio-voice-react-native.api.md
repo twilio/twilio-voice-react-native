@@ -273,21 +273,6 @@ export class CancelledCallInvite {
     getTo(): string;
 }
 
-// @public (undocumented)
-export enum ShirtSize {
-    // (undocumented)
-    Large = 2,
-    // (undocumented)
-    Medium = 1,
-    // (undocumented)
-    Small = 0
-}
-
-// @public (undocumented)
-export namespace ShirtSize {
-    export function testFunc(): void;
-}
-
 // @public
 export interface Voice {
     addEventListener(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;

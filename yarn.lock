@@ -1499,19 +1499,6 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@microsoft/api-documenter@^7.17.19":
-  version "7.17.19"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-documenter/-/api-documenter-7.17.19.tgz#1ddc5c1d157d257ffa3a1138f533c8bc8e5c41f9"
-  integrity sha512-6aUzSTmzU4dIXkAwbrpNGVxBigH1e+h49jStQ2f0uH+Z155GEFRoNmyZTZW0b/Q9sjsgSaa+EdJK0UkNwEM1Qw==
-  dependencies:
-    "@microsoft/api-extractor-model" "7.18.2"
-    "@microsoft/tsdoc" "0.14.1"
-    "@rushstack/node-core-library" "3.45.7"
-    "@rushstack/ts-command-line" "4.11.1"
-    colors "~1.2.1"
-    js-yaml "~3.13.1"
-    resolve "~1.17.0"
-
 "@microsoft/api-extractor-model@7.18.2":
   version "7.18.2"
   resolved "https://registry.yarnpkg.com/@microsoft/api-extractor-model/-/api-extractor-model-7.18.2.tgz#def74be8bc785beb9a6f52a0a4c0b9f8f782e587"
@@ -1520,6 +1507,15 @@
     "@microsoft/tsdoc" "0.14.1"
     "@microsoft/tsdoc-config" "~0.16.1"
     "@rushstack/node-core-library" "3.45.7"
+
+"@microsoft/api-extractor-model@^7.20.1":
+  version "7.20.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor-model/-/api-extractor-model-7.20.1.tgz#62a57641b9c85c64f23a977c784871c532827c6e"
+  integrity sha512-841Ynykxf8/qzUkxiVEu8DP1MrIne0hv6WKheHUe4nObD2YU56PeyfpXCg4DmQUEwQEO88a+nanbQmH4T4XQBw==
+  dependencies:
+    "@microsoft/tsdoc" "0.14.1"
+    "@microsoft/tsdoc-config" "~0.16.1"
+    "@rushstack/node-core-library" "3.47.0"
 
 "@microsoft/api-extractor@^7.25.2":
   version "7.25.2"
@@ -1845,6 +1841,21 @@
     timsort "~0.3.0"
     z-schema "~5.0.2"
 
+"@rushstack/node-core-library@3.47.0", "@rushstack/node-core-library@^3.47.0":
+  version "3.47.0"
+  resolved "https://registry.yarnpkg.com/@rushstack/node-core-library/-/node-core-library-3.47.0.tgz#e732251050cba59bfd196578b649d30fc45e216a"
+  integrity sha512-+ak0y/cAAXFZKXCXs7l+USq7l+pUe8cKRRjc2GRFm/erFX8RBlEvJi9M9iFhylckWtUS4NkfzCw4rWREZHZWIA==
+  dependencies:
+    "@types/node" "12.20.24"
+    colors "~1.2.1"
+    fs-extra "~7.0.1"
+    import-lazy "~4.0.0"
+    jju "~1.4.0"
+    resolve "~1.17.0"
+    semver "~7.3.0"
+    timsort "~0.3.0"
+    z-schema "~5.0.2"
+
 "@rushstack/rig-package@0.3.12":
   version "0.3.12"
   resolved "https://registry.yarnpkg.com/@rushstack/rig-package/-/rig-package-0.3.12.tgz#6bf2d45374ba665902bf31ec0c6e5dad55ba1b73"
@@ -1857,6 +1868,16 @@
   version "4.11.1"
   resolved "https://registry.yarnpkg.com/@rushstack/ts-command-line/-/ts-command-line-4.11.1.tgz#10b80960ddaed685445289807c75743e4ef0b5e9"
   integrity sha512-Xo8LaQOXlNSfp+qIuIPb1tfX7b4H21ksqiMo/HbeZI5AX1klHMqKjWcEs0AqgE9huvQj6cvnCla8Eq/GDcwMIg==
+  dependencies:
+    "@types/argparse" "1.0.38"
+    argparse "~1.0.9"
+    colors "~1.2.1"
+    string-argv "~0.3.1"
+
+"@rushstack/ts-command-line@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@rushstack/ts-command-line/-/ts-command-line-4.12.0.tgz#8691d16771ed085c3431d5799875bdd2489e012b"
+  integrity sha512-+dC3ZwT1PjvsEnybXzM9UUYg4xdDOl6vmE+23eByxbWmAxo/nB8VAD5iFs+jbbUd9MtG/7xqCBWbMWEDA+cBjw==
   dependencies:
     "@types/argparse" "1.0.38"
     argparse "~1.0.9"
@@ -2410,6 +2431,18 @@ anymatch@^3.0.3:
   dependencies:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
+
+"api-documenter@github:twilio/api-documenter#v0.0.1":
+  version "7.17.24"
+  resolved "git+ssh://git@github.com/twilio/api-documenter.git#d4475f504a43b543c08a900aeae2b0eb7c67ee4d"
+  dependencies:
+    "@microsoft/api-extractor-model" "^7.20.1"
+    "@microsoft/tsdoc" "0.14.1"
+    "@rushstack/node-core-library" "^3.47.0"
+    "@rushstack/ts-command-line" "^4.12.0"
+    colors "~1.2.1"
+    js-yaml "~3.13.1"
+    resolve "~1.17.0"
 
 argparse@^1.0.7, argparse@~1.0.9:
   version "1.0.10"
