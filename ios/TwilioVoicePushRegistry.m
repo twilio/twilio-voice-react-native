@@ -44,7 +44,7 @@ didUpdatePushCredentials:(PKPushCredentials *)credentials
     if ([type isEqualToString:PKPushTypeVoIP]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                             object:nil
-                                                          userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoicePushRegistryNotificationDeviceTokenUpdated,
+                                                          userInfo:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoicePushRegistryNotificationDeviceTokenUpdated,
                                                                      kTwilioVoicePushRegistryNotificationDeviceTokenKey: credentials.token}];
     }
 }
@@ -86,7 +86,7 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCallInvite *invite = callInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInvite,
+                                                      userInfo:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInvite,
                                                                  kTwilioVoicePushRegistryNotificationCallInviteKey: invite}];
 }
 
@@ -94,10 +94,10 @@ withCompletionHandler:(void (^)(void))completion {
     TVOCancelledCallInvite *cancelledInvite = cancelledCallInvite;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                         object:nil
-                                                      userInfo:@{kTwilioVoiceReactNativeEventKeyType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
+                                                      userInfo:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
                                                                  kTwilioVoicePushRegistryNotificationCancelledCallInviteKey: cancelledInvite,
-                                                                 kTwilioVoiceReactNativeVoiceEventError: @{kTwilioVoiceReactNativeEventKeyErrorCode: @(error.code),
-                                                                                                           kTwilioVoiceReactNativeEventKeyErrorMessage: [error localizedDescription]}}];
+                                                                 kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                                                              kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
 }
 
 @end

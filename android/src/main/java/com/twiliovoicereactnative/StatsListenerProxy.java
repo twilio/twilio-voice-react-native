@@ -1,6 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_TYPE;
 import static com.twiliovoicereactnative.CommonConstants.CallEventReconnecting;
 
 import android.content.Context;

@@ -15,15 +15,6 @@ public class AndroidEventEmitter {
   private ReactApplicationContext context;
 
   /**
-   * Common.
-   */
-  public static final String EVENT_KEY_TYPE = "type";
-  public static final String EVENT_KEY_ERROR = "error";
-  public static final String EVENT_KEY_ERROR_CODE = "code";
-  public static final String EVENT_KEY_ERROR_MESSAGE = "message";
-  public static final String EVENT_KEY_UUID = "uuid";
-
-  /**
    * Push notification registration.
    */
   public static final String ACTION_FCM_TOKEN_REQUEST = "ACTION_FCM_TOKEN_REQUEST";
@@ -32,40 +23,17 @@ public class AndroidEventEmitter {
    * Call keys.
    */
   public static final String EVENT_KEY_CALL_INFO = "call";
-  public static final String EVENT_KEY_CALL_CUSTOM_PARAMETERS = "customParameters";
-  public static final String EVENT_KEY_CALL_FROM = "from";
-  public static final String EVENT_KEY_CALL_IS_MUTED = "isMuted";
-  public static final String EVENT_KEY_CALL_IS_ON_HOLD = "isOnHold";
-  public static final String EVENT_KEY_CALL_SID = "sid";
   public static final String EVENT_KEY_CALL_STATE = "state";
-  public static final String EVENT_KEY_CALL_TO = "to";
-  public static final String EVENT_KEY_CURRENT_CALL_QUALITY = "currentWarnings";
-  public static final String EVENT_KEY_PREVIOUS_CALL_QUALITY = "previousWarnings";
 
   /**
    * CallInvite event keys.
    */
   public static final String EVENT_KEY_CALL_INVITE_INFO = "callInvite";
-  public static final String EVENT_KEY_CALL_INVITE_CALL_SID = "callSid";
-  public static final String EVENT_KEY_CALL_INVITE_CUSTOM_PARAMETERS = "customParameters";
-  public static final String EVENT_KEY_CALL_INVITE_FROM = "from";
-  public static final String EVENT_KEY_CALL_INVITE_TO = "to";
 
   /**
    * CancelledCallInvite event keys.
    */
   public static final String EVENT_KEY_CANCELLED_CALL_INVITE_INFO = "cancelledCallInvite";
-  public static final String EVENT_KEY_CANCELLED_CALL_INVITE_CALL_SID = "callSid";
-  public static final String EVENT_KEY_CANCELLED_CALL_INVITE_FROM = "from";
-  public static final String EVENT_KEY_CANCELLED_CALL_INVITE_TO = "to";
-
-  /**
-   * AudioDevice event keys.
-   */
-  public static final String EVENT_KEY_AUDIO_DEVICES_NAME = "name";
-  public static final String EVENT_KEY_AUDIO_DEVICES_TYPE = "type";
-  public static final String EVENT_KEY_AUDIO_DEVICES_AUDIO_DEVICES = "audioDevices";
-  public static final String EVENT_KEY_AUDIO_DEVICES_SELECTED_DEVICE = "selectedDevice";
 
   public static AndroidEventEmitter getInstance() {
     if (AndroidEventEmitter.instance == null) {
