@@ -1,9 +1,23 @@
 version: 2.1
 
+###
+# Parameters
+###
+parameters:
+  pr_workflow:
+    type: boolean
+    default: true # by default pr workflow will get executed.
+  release_workflow:
+    type: boolean
+    default: false
+  release_command:
+    type: string
+    default: "echo \"no release-command specified\""
+
 executors:
   default:
     docker:
-      - image: circleci/node:10
+      - image: cimg/node:lts
     working_directory: ~/project
 
 commands:
@@ -11,9 +25,18 @@ commands:
     steps:
       - attach_workspace:
           at: ~/project
+  install-dependencies:
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            yarn run build:constants
+            yarn install --cwd example --frozen-lockfile
+            yarn install --frozen-lockfile
+
 
 jobs:
-  install-dependencies:
+  cache-install-dependencies:
     executor: default
     steps:
       - checkout
@@ -26,11 +49,7 @@ jobs:
           keys:
             - dependencies-example-{{ checksum "example/package.json" }}
             - dependencies-example-
-      - run:
-          name: Install dependencies
-          command: |
-            yarn install --cwd example --frozen-lockfile
-            yarn install --frozen-lockfile
+      - install-dependencies
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
           paths: node_modules
@@ -48,7 +67,7 @@ jobs:
       - run:
           name: Lint files
           command: |
-            yarn lint
+            yarn run check:lint
 
   typescript:
     executor: default
@@ -57,7 +76,7 @@ jobs:
       - run:
           name: Typecheck files
           command: |
-            yarn typescript
+            yarn run check:type
 
   unit-tests:
     executor: default
@@ -66,7 +85,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            yarn test --coverage
+            yarn run check:test --coverage
       - store_artifacts:
           path: coverage
           destination: coverage
@@ -78,21 +97,80 @@ jobs:
       - run:
           name: Build package
           command: |
-            yarn prepare
+            yarn run prepare
 
-workflows:
-  build-and-test:
-    jobs:
+  run-release:
+    executor:
+      name: default
+    parameters:
+      dry-run:
+        type: boolean
+        default: true
+    steps:
+      - checkout
       - install-dependencies
+      - when:
+          condition: << parameters.dry-run >>
+          steps:
+            - run: echo "Will run \"<< pipeline.parameters.release_command >>\""
+      - unless:
+          condition: << parameters.dry-run >>
+          steps:
+            - run: << pipeline.parameters.release_command >>
+
+###
+# Workflows
+###
+workflows:
+  ###
+  # Pull request workflow
+  ###
+  build-test:
+    when:
+          and:
+            - equal: [true, << pipeline.parameters.pr_workflow >>]
+            - equal: [false, << pipeline.parameters.release_workflow >>]
+    jobs:
+      - cache-install-dependencies
       - lint:
           requires:
-            - install-dependencies
+            - cache-install-dependencies
       - typescript:
           requires:
-            - install-dependencies
+            - cache-install-dependencies
       - unit-tests:
           requires:
-            - install-dependencies
+            - cache-install-dependencies
       - build-package:
           requires:
-            - install-dependencies
+            - cache-install-dependencies
+  ###
+  # Release workflow
+  ###
+  build-test-release:
+    when: << pipeline.parameters.release_workflow >>
+    jobs:
+      - cache-install-dependencies
+      - lint:
+          requires:
+            - cache-install-dependencies
+      - typescript:
+          requires:
+            - cache-install-dependencies
+      - unit-tests:
+          requires:
+            - cache-install-dependencies
+      - build-package:
+          requires:
+            - cache-install-dependencies
+      - run-release:
+          name: Release dry run
+          dry-run: true
+      - hold:
+          name: Release approval
+          type: approval
+      - run-release:
+          name: Release
+          dry-run: false
+          requires:
+            - Release approval

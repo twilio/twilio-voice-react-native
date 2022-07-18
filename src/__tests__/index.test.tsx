@@ -1,4 +1,4 @@
-import { MockNativeEventEmitter } from './mocks/NativeEventEmitter';
+import { MockNativeEventEmitter } from '../__mocks__/NativeEventEmitter';
 import { Voice } from '../Voice';
 
 describe('Voice', () => {
