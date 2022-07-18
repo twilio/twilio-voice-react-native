@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) Twilio Inc. All rights reserved. Licensed under the Twilio
+ * license.
+ *
+ * See LICENSE in the project root for license information.
+ */
+
 import { EventEmitter } from 'eventemitter3';
 import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './common';
@@ -9,22 +16,53 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import type { StatsReport as StatsReportType } from './type/StatsReport';
+import type { StatsReport } from './type/StatsReport';
 import { TwilioError } from './error/TwilioError';
 
 /**
- * Declare strict typings for event-emissions and event-listeners.
+ * Strict typings for all events emitted by {@link (Call:class) | Call objects}.
+ *
+ * @remarks
+ * Note that the `on` function is an alias for the `addEventListener` function.
+ * They share identical functionality and either may be used interchangeably.
+ *
+ * @public
  */
 export declare interface Call {
   /**
-   * Emit typings.
+   * ------------
+   * Emit Typings
+   * ------------
    */
-  emit(callEvent: Call.Event.Connected): boolean;
-  emit(callEvent: Call.Event.ConnectFailure, error: TwilioError): boolean;
-  emit(callEvent: Call.Event.Reconnecting, error: TwilioError): boolean;
-  emit(callEvent: Call.Event.Reconnected): boolean;
-  emit(callEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
-  emit(callEvent: Call.Event.Ringing): boolean;
+
+  /** @internal */
+  emit(connectedEvent: Call.Event.Connected): boolean;
+
+  /** @internal */
+  emit(
+    connectFailureEvent: Call.Event.ConnectFailure,
+    twilioError: TwilioError
+  ): boolean;
+
+  /** @internal */
+  emit(
+    reconnectingEvent: Call.Event.Reconnecting,
+    twilioError: TwilioError
+  ): boolean;
+
+  /** @internal */
+  emit(reconnectedEvent: Call.Event.Reconnected): boolean;
+
+  /** @internal */
+  emit(
+    disconnectedEvent: Call.Event.Disconnected,
+    twilioError?: TwilioError
+  ): boolean;
+
+  /** @internal */
+  emit(ringingEvent: Call.Event.Ringing): boolean;
+
+  /** @internal */
   emit(
     callEvent: Call.Event.QualityWarningsChanged,
     currentQualityWarnings: Call.QualityWarning[],
@@ -32,86 +70,265 @@ export declare interface Call {
   ): boolean;
 
   /**
-   * Listener typings.
+   * ----------------
+   * Listener Typings
+   * ----------------
+   */
+
+  /**
+   * Generic event listener typings.
+   * @param callEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
    */
   addEventListener(
     callEvent: Call.Event,
     listener: (...args: any[]) => void
   ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:1)}
+   */
   on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
 
-  addEventListener(callEvent: Call.Event.Connected, listener: () => void): this;
-  on(callEvent: Call.Event.Connected, listener: () => void): this;
-
+  /**
+   * Connected event. Raised when the call has successfully connected.
+   * @param connectedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
   addEventListener(
-    callEvent: Call.Event.ConnectFailure,
-    listener: () => void
+    connectedEvent: Call.Event.Connected,
+    listener: Call.Listener.Connected
   ): this;
-  on(callEvent: Call.Event.ConnectFailure, listener: () => void): this;
-
-  addEventListener(
-    callEvent: Call.Event.Reconnecting,
-    listener: () => void
-  ): this;
-  on(callEvent: Call.Event.Reconnecting, listener: () => void): this;
-
-  addEventListener(
-    callEvent: Call.Event.Reconnected,
-    listener: () => void
-  ): this;
-  on(callEvent: Call.Event.Reconnected, listener: () => void): this;
-
-  addEventListener(
-    callEvent: Call.Event.Disconnected,
-    listener: () => void
-  ): this;
-  on(callEvent: Call.Event.Disconnected, listener: () => void): this;
-
-  addEventListener(callEvent: Call.Event.Ringing, listener: () => void): this;
-  on(callEvent: Call.Event.Ringing, listener: () => void): this;
-
-  addEventListener(
-    callEvent: Call.Event.QualityWarningsChanged,
-    listener: (
-      currentQualityWarnings: NativeCallQualityWarnings,
-      previousQualityWarnings: NativeCallQualityWarnings
-    ) => void
-  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:2)}
+   */
   on(
-    callEvent: Call.Event.QualityWarningsChanged,
+    connectedEvent: Call.Event.Connected,
+    listener: Call.Listener.Connected
+  ): this;
+
+  /**
+   * Connect failure event. Raised when the call has failed to connect.
+   * @param connectFailureEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    connectFailureEvent: Call.Event.ConnectFailure,
+    listener: Call.Listener.ConnectFailure
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:3)}
+   */
+  on(
+    connectFailureEvent: Call.Event.ConnectFailure,
+    listener: Call.Listener.ConnectFailure
+  ): this;
+
+  /**
+   * Reconnecting event. Raised when the call is reconnecting.
+   * @param reconnectingEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    reconnectingEvent: Call.Event.Reconnecting,
+    listener: Call.Listener.Reconnecting
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:4)}
+   */
+  on(
+    reconnectingEvent: Call.Event.Reconnecting,
+    listener: Call.Listener.Reconnecting
+  ): this;
+
+  /**
+   * Reconnected event. Raised when the call has recovered and reconnected.
+   * @param reconnectedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    reconnectedEvent: Call.Event.Reconnected,
+    listener: Call.Listener.Reconnected
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:5)}
+   */
+  on(
+    reconnectedEvent: Call.Event.Reconnected,
+    listener: Call.Listener.Reconnected
+  ): this;
+
+  /**
+   * Disconnected event. Raised when the call has disconnected.
+   *
+   * @remarks
+   * This event can occur in "naturally" disconnected calls and calls
+   * disconnected from issues such as network problems. If the SDK has detected
+   * an issue that has caused the call to disconnect, then the error parameter
+   * will be defined, otherwise it will be undefined.
+   *
+   * @param disconnectedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    disconnectedEvent: Call.Event.Disconnected,
+    listener: Call.Listener.Disconnected
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:6)}
+   */
+  on(
+    disconnectedEvent: Call.Event.Disconnected,
+    listener: Call.Listener.Disconnected
+  ): this;
+
+  /**
+   * Ringing event. Raised when the call has begun to ring.
+   * @param ringingEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    ringingEvent: Call.Event.Ringing,
+    listener: Call.Listener.Ringing
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:7)}
+   */
+  on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
+
+  /**
+   * Quality warnings changed event. Raised when a call quality warning is set
+   * or unset. All "ongoing" call quality warnings are passed to the invoked
+   * listener function.
+   * @param qualityWarningsChangedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   */
+  addEventListener(
+    qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
     listener: (
       currentQualityWarnings: NativeCallQualityWarnings,
       previousQualityWarnings: NativeCallQualityWarnings
     ) => void
+  ): this;
+  /**
+   * {@inheritDoc (Call:interface).(addEventListener:8)}
+   */
+  on(
+    qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
+    listener: Call.Listener.QualityWarningsChanged
   ): this;
 }
 
+/**
+ * Provides access to information about a call, including the call parameters,
+ * and exposes functionality for a call such as disconnecting, muting, and
+ * holding.
+ *
+ * @remarks
+ *  - See the {@link (Call:interface) | Call interface} for events emitted by
+ *    this class and their typings.
+ *
+ *  - See the {@link (Call:namespace) | Call namespace} for types and
+ *    enumerations used by this class.
+ *
+ * @public
+ */
 export class Call extends EventEmitter {
-  private _eventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>> =
-    {
-      [Constants.CallEventConnected]: Call.State.Connected,
-      [Constants.CallEventConnectFailure]: Call.State.Disconnected,
-      [Constants.CallEventDisconnected]: Call.State.Disconnected,
-      [Constants.CallEventReconnecting]: Call.State.Reconnecting,
-      [Constants.CallEventReconnected]: Call.State.Connected,
-      [Constants.CallEventRinging]: Call.State.Ringing,
-    };
+  /**
+   * --------------
+   * Native Members
+   * --------------
+   */
+
+  /**
+   * The ReactNative `NativeEventEmitter`. Used to receive call events from the
+   * native layer.
+   */
+  private _nativeEventEmitter: NativeEventEmitter;
+  /**
+   * The ReactNative `NativeModule`. Used to invoke native call functionality
+   * from the JS layer.
+   */
+  private _nativeModule: typeof TwilioVoiceReactNative;
+
+  /**
+   * ------------
+   * Data Members
+   * ------------
+   */
+
+  /**
+   * The `Uuid` of this call. Used to identify calls between the JS and native
+   * layer so we can associate events and native functionality between the
+   * layers.
+   */
+  private _uuid: Uuid;
+  /**
+   * Call custom parameters.
+   */
+  private _customParameters: CustomParameters;
+  /**
+   * Call `from` parameter.
+   */
+  private _from?: string;
+  /**
+   * A boolean representing if the call is currently muted.
+   */
+  private _isMuted?: boolean;
+  /**
+   * A boolean representing if the call is currently on hold.
+   */
+  private _isOnHold?: boolean;
+  /**
+   * A string representing the SID of this call.
+   */
+  private _sid?: string;
+  /**
+   * The current state of the call.
+   *
+   * @remarks
+   * See {@link (Call:namespace).State}.
+   */
+  private _state: Call.State = Call.State.Connecting;
+  /**
+   * Call `to` parameter.
+   */
+  private _to?: string;
+
+  /**
+   * Handlers for native call events. Set upon construction so we can
+   * dynamically bind events to handlers.
+   *
+   * @privateRemarks
+   * This is done by the constructor so this mapping isn't made every time the
+   * {@link (Call:class)._handleNativeEvent} function is invoked.
+   */
   private _nativeEventHandler: Record<
     NativeCallEventType,
     (callEvent: NativeCallEvent) => void
   >;
-  private _nativeEventEmitter: NativeEventEmitter;
-  private _nativeModule: typeof TwilioVoiceReactNative;
 
-  private _uuid: Uuid;
-  private _customParameters: CustomParameters;
-  private _from?: string;
-  private _isMuted?: boolean;
-  private _isOnHold?: boolean;
-  private _sid?: string;
-  private _state: Call.State = Call.State.Connecting;
-  private _to?: string;
-
+  /**
+   * Constructor for the {@link (Call:class) | Call class}. This should not be
+   * invoked by the consumer of the SDK. All instances of the
+   * {@link (Call:class) | Call class} should be made by the SDK and emitted by
+   * {@link (Voice:class) | Voice objects}.
+   *
+   * @param nativeCallInfo - An object containing all of the data from the
+   * native layer necessary to fully describe a call, as well as invoke native
+   * functionality for the call.
+   * @param options - Options to pass to {@link (Call:class) | Call objects}.
+   * Used internally for passing mocks for testing.
+   *
+   * @internal
+   */
   constructor(
     {
       uuid,
@@ -163,6 +380,12 @@ export class Call extends EventEmitter {
     );
   }
 
+  /**
+   * This intermediate native call event handler acts as a "gate", only
+   * executing the actual call event handler (such as `Connected`) if this call
+   * object matches the `Uuid` of the call that had an event raised.
+   * @param nativeCallEvent - A call event directly from the native layer.
+   */
   private _handleNativeEvent = (nativeCallEvent: NativeCallEvent) => {
     const { type, call: callInfo } = nativeCallEvent;
 
@@ -178,8 +401,16 @@ export class Call extends EventEmitter {
     }
   };
 
+  /**
+   * Helper function to update the state of the call when a call event occurs
+   * that necessitates an update, i.e. upon a
+   * {@link (Call:namespace).Event.Connected | Connected event} we want to
+   * update the state of the call to also reflect the
+   * {@link (Call:namespace).State.Connected | Connected state}.
+   * @param nativeCallEvent - The native call event.
+   */
   private _update({ type, call: { from, sid, to } }: NativeCallEvent) {
-    const newState = this._eventTypeStateMap[type];
+    const newState = Call.EventTypeStateMap[type];
     if (typeof newState === 'string') {
       this._state = newState;
     }
@@ -188,10 +419,15 @@ export class Call extends EventEmitter {
     this._to = to;
   }
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.Connected} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleConnectedEvent = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventConnected) {
       throw new Error(
-        `Incorrect "call#connected" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#connected" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -200,10 +436,15 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Connected);
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.ConnectFailure} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleConnectFailure = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventConnectFailure) {
       throw new Error(
-        `Incorrect "call#connectFailure" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#connectFailure" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -216,10 +457,15 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.ConnectFailure, error);
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.Disconnected} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleDisconnected = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventDisconnected) {
       throw new Error(
-        `Incorrect "call#disconnected" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#disconnected" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -236,10 +482,15 @@ export class Call extends EventEmitter {
     }
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.Reconnecting} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleReconnecting = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
       throw new Error(
-        `Incorrect "call#reconnecting" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#reconnecting" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -252,10 +503,15 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Reconnecting, error);
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.Reconnected} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleReconnected = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
       throw new Error(
-        `Incorrect "call#reconnected" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#reconnected" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -264,10 +520,15 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Reconnected);
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.Ringing} event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleRinging = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventRinging) {
       throw new Error(
-        `Incorrect "call#ringing" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#ringing" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -276,12 +537,18 @@ export class Call extends EventEmitter {
     this.emit(Call.Event.Ringing);
   };
 
+  /**
+   * Handler for the the {@link (Call:namespace).Event.QualityWarningsChanged}
+   * event.
+   * @param nativeCallEvent - The native call event.
+   */
   private _handleQualityWarningsChanged = (
     nativeCallEvent: NativeCallEvent
   ) => {
     if (nativeCallEvent.type !== Constants.CallEventQualityWarningsChanged) {
       throw new Error(
-        `Incorrect "call#qualityWarnings" handler called for type "${nativeCallEvent.type}".`
+        'Incorrect "call#qualityWarnings" handler called for type ' +
+          `"${nativeCallEvent.type}".`
       );
     }
 
@@ -297,118 +564,508 @@ export class Call extends EventEmitter {
   };
 
   /**
-   * Native functionality.
+   * Disconnect the call.
+   * @returns
+   *  - Resolves when the call has disconnected.
    */
   disconnect(): Promise<void> {
     return this._nativeModule.call_disconnect(this._uuid);
   }
 
+  /**
+   * Return an optional boolean representing whether or not the call is muted.
+   *
+   * @remarks
+   * Could possibly return `undefined` if the call state has not yet been
+   * received from the native layer.
+   *
+   * @returns - An optional boolean representing the muted status of the call.
+   */
   isMuted(): boolean | undefined {
     return this._isMuted;
   }
 
+  /**
+   * Return an optional boolean representing whether or not the call is on hold.
+   *
+   * @remarks
+   * Could possibly return `undefined` if the call state has not yet been
+   * received from the native layer.
+   *
+   * @returns - An optional boolean representing the hold status of the call.
+   */
   isOnHold(): boolean | undefined {
     return this._isOnHold;
   }
 
+  /**
+   * Return a `Record` of custom parameters given to this call.
+   * @returns - A `Record` of custom parameters.
+   */
   getCustomParameters(): CustomParameters {
     return this._customParameters;
   }
 
+  /**
+   * Get the value of the `from` parameter given to this call.
+   *
+   * @remarks
+   * The string returned by this function is possibly `undefined` if the call
+   * information has not yet been received from the native layer.
+   *
+   * @returns - An optional `String` representing the `from` parameter.
+   */
   getFrom(): string | undefined {
     return this._from;
   }
 
+  /**
+   * Get the call `SID`.
+   *
+   * @remarks
+   * The string returned by this function is possibly `undefined` if the call
+   * information has not yet been received from the native layer.
+   *
+   * @returns - An optional `String` representing the `SID`.
+   */
   getSid(): string | undefined {
     return this._sid;
   }
 
+  /**
+   * Get the call state.
+   * @returns - A {@link (Call:namespace).State}.
+   */
   getState(): Call.State {
     return this._state;
   }
 
   /**
    * Gets the PeerConnection WebRTC stats for the ongoing call.
-   * @returns a Promise that resolves with a StatsReport object representing the
-   * WebRTC PeerConnection stats of a call.
+   * @returns
+   *  - Resolves with a {@link StatsReport} object representing the WebRTC
+   *    PeerConnection stats of a call.
    */
-  getStats(): Promise<Call.StatsReport> {
+  getStats(): Promise<StatsReport> {
     return this._nativeModule.call_getStats(this._uuid);
   }
 
+  /**
+   * Get the value of the `to` parameter given to this call.
+   *
+   * @remarks
+   * The string returned by this function is possibly `undefined` if the call
+   * information has not yet been received from the native layer.
+   *
+   * @returns - An optional `String` representing the `to` parameter.
+   */
   getTo(): string | undefined {
     return this._to;
   }
 
+  /**
+   * Set the hold status of the call.
+   * @param hold - A boolean representing the hold status of the call.
+   * @returns
+   *  - Resolves with the hold status when the hold status of the call is set.
+   */
   async hold(hold: boolean): Promise<boolean> {
     this._isOnHold = await this._nativeModule.call_hold(this._uuid, hold);
     return this._isOnHold;
   }
 
+  /**
+   * Set the mute status of the call.
+   * @param mute - A boolean representing the mute status of the call.
+   * @returns
+   *  - Resolves with the mute status when the mute status of the call is set.
+   */
   async mute(mute: boolean): Promise<boolean> {
     this._isMuted = await this._nativeModule.call_mute(this._uuid, mute);
     return this._isMuted;
   }
 
+  /**
+   * Send DTMF digits.
+   *
+   * @example
+   * To imitate pressing just `0` on the dialpad:
+   * ```
+   * call.sendDigits('0');
+   * ```
+   *
+   * @example
+   * To imitate pressing `0` then `1` on the dialpad:
+   * ```
+   * call.sendDigits('01');
+   * ```
+   *
+   * @param digits - A sequence of DTMF digits in a string.
+   * @returns
+   *  - Resolves when the DTMF digits have been sent.
+   */
   sendDigits(digits: string): Promise<void> {
     return this._nativeModule.call_sendDigits(this._uuid, digits);
   }
 
+  /**
+   * Post feedback about a call.
+   *
+   * @example
+   * To report that a call had very significant audio latency:
+   * ```
+   * call.postFeedback(Call.Score.Five, Call.Issue.AudioLatency);
+   * ```
+   *
+   * @param score - A score representing the serverity of the issue being
+   * reported.
+   * @param issue - The issue being reported.
+   * @returns
+   *  - Resolves when the feedback has been posted.
+   */
   postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
     return this._nativeModule.call_postFeedback(this._uuid, score, issue);
   }
 }
 
+/**
+ * Namespace for enumerations and types used by
+ * {@link (Call:class) | Call objects}.
+ *
+ * @public
+ */
 export namespace Call {
+  /**
+   * Enumeration of all event strings emitted by {@link (Call:class)} objects.
+   */
   export enum Event {
+    /**
+     * Event string for the `Connected` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:2)}.
+     */
     'Connected' = 'connected',
+
+    /**
+     * Event string for the `ConnectedFailure` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:3)}.
+     */
     'ConnectFailure' = 'connectFailure',
+
+    /**
+     * Event string for the `Reconnecting` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:4)}.
+     */
     'Reconnecting' = 'reconnecting',
+
+    /**
+     * Event string for the `Reconnected` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:5)}.
+     */
     'Reconnected' = 'reconnected',
+
+    /**
+     * Event string for the `Disconnected` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:6)}.
+     */
     'Disconnected' = 'disconnected',
+
+    /**
+     * Event string for the `Ringing` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:7)}.
+     */
     'Ringing' = 'ringing',
+
+    /**
+     * Event string for the `QualityWarningsChanged` event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:8)}.
+     */
     'QualityWarningsChanged' = 'qualityWarningsChanged',
   }
 
+  /**
+   * An enumeration of all possible {@link (Call:class) | Call object} states.
+   */
   export enum State {
+    /**
+     * Call `Connected` state. Occurs when the `Connected` event is raised.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:2)}.
+     */
     'Connected' = 'connected',
+
+    /**
+     * Call `Connecting` state. Occurs when the `Connecting` event is raised.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:3)}.
+     */
     'Connecting' = 'connecting',
+
+    /**
+     * Call `Disconnected` state. Occurs when the `Disconnected` event is
+     * raised.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:4)}.
+     */
     'Disconnected' = 'disconnected',
+
+    /**
+     * Call `Reconnected` state. Occurs when the `Reconnected` event is raised.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:5)}.
+     */
     'Reconnecting' = 'reconnected',
+
+    /**
+     * Call `Ringing` state. Occurs when the `Ringing` event is raised.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:6)}.
+     */
     'Ringing' = 'ringing',
   }
 
+  /**
+   * Mapping of {@link (Call:namespace).Event | Call events} to
+   * {@link (Call:namespace).State | Call states}.
+   *
+   * @remarks
+   * Note that this mapping is not a 1:1 bijection. Not every event coming from
+   * the native layer has a relevant state, and some events share a state.
+   * Therefore, this `Record` needs to be marked as `Partial` and
+   * undefined-checking logic is needed when using this mapping.
+   *
+   * @internal
+   */
+  export const EventTypeStateMap: Partial<
+    Record<NativeCallEventType, Call.State>
+  > = {
+    [Constants.CallEventConnected]: Call.State.Connected,
+    [Constants.CallEventConnectFailure]: Call.State.Disconnected,
+    [Constants.CallEventDisconnected]: Call.State.Disconnected,
+    [Constants.CallEventReconnecting]: Call.State.Reconnecting,
+    [Constants.CallEventReconnected]: Call.State.Connected,
+    [Constants.CallEventRinging]: Call.State.Ringing,
+  };
+
+  /**
+   * Options to pass to `Call` objects upon construction, used for mocking the
+   * native module and for internal testing.
+   *
+   * @internal
+   */
   export interface Options {
+    /**
+     * The ReactNative `NativeEventEmitter` that is used to negotiate events
+     * between the native mobile layers and the JS layer.
+     *
+     * @remarks
+     * Used by the {@link (Call:class) | Call object} to receive Call events
+     * from the native layer.
+     */
     nativeEventEmitter: NativeEventEmitter;
+    /**
+     * The ReactNative `NativeModule` that is used to invoke native
+     * functionality exposed on the native layer for use by the JS layer.
+     *
+     * @remarks
+     * Used by {@link (Call:class) | Call object} to invoke native
+     * functionality, such as answering or declining an incoming call.
+     */
     nativeModule: typeof TwilioVoiceReactNative;
   }
 
+  /**
+   * An enumeration of all call quality-warning types.
+   */
   export enum QualityWarning {
+    /**
+     * Raised when the call detects constant audio input, such as silence.
+     */
     ConstantAudioInputLevel = 'constant-audio-input-level',
+    /**
+     * Raised when the network encounters high jitter.
+     */
     HighJitter = 'high-jitter',
+    /**
+     * Raised when the network encounters high packet loss.
+     */
     HighPacketLoss = 'high-packet-loss',
+    /**
+     * Raised when the network encounters high packet round-trip-time.
+     */
     HighRtt = 'high-rtt',
+    /**
+     * Raised when the call detects a low mean-opinion-score or MOS.
+     */
     LowMos = 'low-mos',
   }
 
+  /**
+   * An enumeration of all scores that could be used to rate the experience of
+   * a call or issues encountered during the call.
+   */
   export enum Score {
+    /**
+     * An issue was not encountered or there is no desire to report said issue.
+     */
     NotReported = 0,
+    /**
+     * An issue had severity approximately 1/5.
+     */
     One = 1,
+    /**
+     * An issue had severity approximately 2/5.
+     */
     Two = 2,
+    /**
+     * An issue had severity approximately 3/5.
+     */
     Three = 3,
+    /**
+     * An issue had severity approximately 4/5.
+     */
     Four = 4,
+    /**
+     * An issue had severity approximately 5/5.
+     */
     Five = 5,
   }
 
+  /**
+   * An enumeration of call issues that can be reported.
+   */
   export enum Issue {
+    /**
+     * No issue is reported.
+     */
     NotReported = 'not-reported',
+    /**
+     * The call was dropped unexpectedly.
+     */
     DroppedCall = 'dropped-call',
+    /**
+     * The call encountered significant audio latency.
+     */
     AudioLatency = 'audio-latency',
+    /**
+     * One party of the call could not hear the other callee.
+     */
     OneWayAudio = 'one-way-audio',
+    /**
+     * Call audio was choppy.
+     */
     ChoppyAudio = 'choppy-audio',
+    /**
+     * Call audio had significant noise.
+     */
     NoisyCall = 'noisy-call',
+    /**
+     * Call audio had significant echo.
+     */
     Echo = 'echo',
   }
 
-  export type StatsReport = StatsReportType;
+  /**
+   *
+   */
+  export namespace Listener {
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any call event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:1)}.
+     */
+    export type Generic = (...args: any[]) => void;
+
+    /**
+     * Connected event listener. This should be the function signature of any
+     * event listener bound to the {@link (Call:namespace).Event.Connected}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:2)}.
+     */
+    export type Connected = () => void;
+
+    /**
+     * Connect failure event listener. This should be the function signature of
+     * any event listener bound to the
+     * {@link (Call:namespace).Event.ConnectFailure} event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:3)}.
+     */
+    export type ConnectFailure = (twilioError: TwilioError) => void;
+
+    /**
+     * Reconnecting event listener. This should be the function signature of any
+     * event listener bound to the {@link (Call:namespace).Event.Reconnecting}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:4)}.
+     */
+    export type Reconnecting = (twilioError: TwilioError) => void;
+
+    /**
+     * Reconnected event listener. This should be the function signature of any
+     * event listener bound to the {@link (Call:namespace).Event.Reconnected}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:5)}.
+     */
+    export type Reconnected = () => void;
+
+    /**
+     * Disconnected event listener. This should be the function signature of any
+     * event listener bound to the {@link (Call:namespace).Event.Disconnected}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:6)}.
+     */
+    export type Disconnected = (twilioError?: TwilioError) => void;
+
+    /**
+     * Ringing event listener. This should be the function signature of any
+     * event listener bound to the {@link (Call:namespace).Event.Ringing} event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:7)}.
+     */
+    export type Ringing = () => void;
+
+    /**
+     * Quality warnings changed event listener. This should be the function
+     * signature of any event listener bound to the
+     * {@link (Call:namespace).Event.QualityWarningsChanged} event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addEventListener:8)}.
+     */
+    export type QualityWarningsChanged = (
+      currentQualityWarnings: NativeCallQualityWarnings,
+      previousQualityWarnings: NativeCallQualityWarnings
+    ) => void;
+  }
 }

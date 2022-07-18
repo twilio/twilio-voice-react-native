@@ -14,7 +14,7 @@ import type { Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
 /**
- * Declare strict typings for event-emissions and event-listeners.
+ * Strict typings for Voice related events.
  */
 export declare interface Voice {
   /**

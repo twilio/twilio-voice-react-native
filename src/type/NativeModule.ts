@@ -5,13 +5,14 @@ import type { NativeAudioDevicesInfo } from './AudioDevice';
 import type { NativeCallInfo } from './Call';
 import type { NativeCallInviteInfo } from './CallInvite';
 import type { Uuid } from './common';
+import type { StatsReport } from './StatsReport';
 
 export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
    * Call bindings.
    */
   call_disconnect(callUuid: Uuid): Promise<void>;
-  call_getStats(callUuid: Uuid): Promise<Call.StatsReport>;
+  call_getStats(callUuid: Uuid): Promise<StatsReport>;
   call_hold(callUuid: Uuid, hold: boolean): Promise<boolean>;
   call_isOnHold(callUuid: Uuid): Promise<boolean>;
   call_isMuted(callUuid: Uuid): Promise<boolean>;

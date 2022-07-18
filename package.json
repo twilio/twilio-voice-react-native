@@ -92,7 +92,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn run check"
+      "pre-commit": "yarn run check && yarn run build:doc"
     }
   },
   "commitlint": {

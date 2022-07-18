@@ -79,6 +79,9 @@ export interface RemoteAudioTrackStats extends RemoteTrackStats {
   mos: number;
 }
 
+/**
+ * @public
+ */
 export interface StatsReport {
   iceCandidatePairStats: IceCandidatePairStats[];
   iceCandidateStats: IceCandidateStats[];
