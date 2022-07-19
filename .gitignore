@@ -40,7 +40,6 @@ example/android/app/google-services.json
 # Cocoapods
 #
 example/ios/Pods
-example/ios/Podfile.lock
 
 # node.js
 #
