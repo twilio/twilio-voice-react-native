@@ -220,6 +220,7 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
+          detox_configuration: ios.release
           requires:
             - cache-install-dependencies
             - build-app-ios
