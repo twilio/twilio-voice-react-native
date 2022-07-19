@@ -33,6 +33,33 @@ commands:
             yarn run build:constants
             yarn install --cwd example --frozen-lockfile
             yarn install --frozen-lockfile
+  setup-detox:
+    description: Setup environment for running test on detox
+    steps:
+      - run: npm install -g react-native-cli
+      - run: npm install -g detox-cli
+  setup-pods:
+    description: Setup pods used for ios builds
+    steps:
+      - restore_cache:
+          name: Restoring cocoapods cache
+          key: pods-{{ .Environment.cacheVersion }}-{{ checksum "example/ios/Podfile.lock" }}
+      - run:
+          name: Install cocoapods
+          command: cd example/ios && pod install && cd ../..
+      - save_cache:
+          name: Saving cocoapods cache
+          key: pods-{{ .Environment.cacheVersion }}-{{ checksum "example/ios/Podfile.lock" }}
+          paths:
+            - example/ios/Pods
+  simulator-dependencies:
+    description: "Install iOS simulator dependencies"
+    steps:
+      - run:
+          name: "Install applesimutils"
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
 
 
 jobs:
@@ -118,6 +145,22 @@ jobs:
           steps:
             - run: << pipeline.parameters.release_command >>
 
+  build-app-ios:
+    macos:
+      xcode: "13.2.1"
+    steps:
+      - checkout
+
+  e2e-ios:
+    macos:
+     xcode: "13.2.1"
+    steps:
+      - checkout
+      - setup-detox
+      - setup-pods
+      - simulator-dependencies
+      # detox build, test, report, artifacts
+
 ###
 # Workflows
 ###
@@ -144,6 +187,14 @@ workflows:
       - build-package:
           requires:
             - cache-install-dependencies
+      - build-app-ios:
+          requires:
+            - cache-install-dependencies
+      - e2e-ios:
+          requires:
+            - cache-install-dependencies
+            - build-app-ios
+
   ###
   # Release workflow
   ###
