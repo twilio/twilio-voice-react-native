@@ -150,6 +150,8 @@ jobs:
       xcode: "13.2.1"
     steps:
       - checkout
+      - install-dependencies
+      - setup-pods
 
   e2e-ios:
     macos:
@@ -157,7 +159,6 @@ jobs:
     steps:
       - checkout
       - setup-detox
-      - setup-pods
       - simulator-dependencies
       # detox build, test, report, artifacts
 
