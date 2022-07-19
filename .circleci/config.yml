@@ -38,6 +38,20 @@ commands:
     steps:
       - run: npm install -g react-native-cli
       - run: npm install -g detox-cli
+  detox-build:
+    description: Builds the app with given Detox configuration, as specified in detoxrc.json file
+    parameters:
+      configuration:
+        description: The Detox configuration to build
+        type: string
+    steps:
+      - run:
+          name: Detox Build
+          command: |
+            cd example 
+            detox build -c <<parameters.configuration>>
+            cd ..
+          no_output_timeout: 20m
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -155,12 +169,26 @@ jobs:
 
   e2e-ios:
     macos:
-     xcode: "13.2.1"
+      xcode: "13.2.1"
+    parameters:
+      detox_configuration:
+        type: string
     steps:
       - checkout
       - setup-detox
       - simulator-dependencies
       # detox build, test, report, artifacts
+      # run E2E tests
+      - detox-build:
+          configuration: <<parameters.detox_configuration>>
+      # - detox-test:
+      #     configuration: <<parameters.detox_configuration>>
+      #     artifacts: <<parameters.artifacts_location>>
+      #     test_suite: --cleanup <<parameters.test_suite>>
+      # - store_artifacts:
+      #     path: ./packages/mobile/test-report.html
+      # - store_artifacts:
+      #     path: <<parameters.artifacts_location>>
 
 ###
 # Workflows
