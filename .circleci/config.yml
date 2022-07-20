@@ -37,7 +37,7 @@ commands:
     description: Setup environment for running test on detox
     steps:
       - run: npm install -g react-native-cli
-      - run: npm install -g detox-cli
+      - run: npm install -g detox-cli && npm link detox
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
