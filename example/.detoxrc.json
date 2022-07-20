@@ -2,14 +2,6 @@
     "testRunner": "jest",
     "runnerConfig": "e2e/jest.config.js",
     "configurations": {
-        // "ios": {
-        //     "type": "ios.simulator",
-        //     "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/Frontline.app",
-        //     "build": "ENVFILE=.env.testing xcodebuild -workspace ios/Frontline.xcworkspace -scheme Frontline -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64",
-        //     "device": {
-        //         "type": "iPhone 13 Pro Max"
-        //     }
-        // },
         "ios.release": {
             "type": "ios.simulator",
             "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceReactNativeExample.app",
@@ -18,37 +10,5 @@
                 "type": "iPhone 13 Pro Max"
             }
         }
-        // "android.emulator": {
-        //     "type": "android.emulator",
-        //     "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        //     "build": "cd android && ENVFILE=.env.testing ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
-        //     "device": {
-        //         "avdName": "emulator"
-        //     }
-        // },
-        // "android.release.emulator": {
-        //     "type": "android.emulator",
-        //     "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-        //     "build": "cd android && ENVFILE=.env.testing ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
-        //     "device": {
-        //         "avdName": "emulator"
-        //     }
-        // },
-        // "android.attached": {
-        //     "type": "android.attached",
-        //     "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-        //     "build": "cd android && ENVFILE=.env.testing ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
-        //     "device": {
-        //         "adbName": "R5CN71GKKFN"
-        //     }
-        // },
-        // "android.release.attached": {
-        //     "type": "android.attached",
-        //     "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
-        //     "build": "cd android && ENVFILE=.env.testing ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release && cd ..",
-        //     "device": {
-        //         "adbName": "R5CN71GKKFN"
-        //     }
-        // }
     }
 }
