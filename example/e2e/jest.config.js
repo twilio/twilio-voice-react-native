@@ -4,20 +4,20 @@ require('dotenv').config();
 const jestTestRegex = process.env.JEST_TEST_REGEX_PATTERN || '^(?!.*voice).*.spec.ts$';
 
 module.exports = {
-    testEnvironment: './environment',
-    testTimeout: 120000,
-    testRegex: jestTestRegex,
-    reporters: [
-        'detox/runners/jest/streamlineReporter',
-        [
-            'jest-html-reporter',
-            {
-                pageTitle: 'Test Report',
-                includeFailureMsg: true,
-            },
-        ],
+  testEnvironment: './environment',
+  testTimeout: 120000,
+  testRegex: jestTestRegex,
+  reporters: [
+    'detox/runners/jest/streamlineReporter',
+    [
+      'jest-html-reporter',
+      {
+        pageTitle: 'Test Report',
+        includeFailureMsg: true,
+      },
     ],
-    verbose: true,
-    preset: 'ts-jest',
-    setupFilesAfterEnv: ['./init.ts'],
+  ],
+  verbose: true,
+  preset: 'ts-jest',
+  setupFilesAfterEnv: ['./init.ts'],
 };
