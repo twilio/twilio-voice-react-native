@@ -57,13 +57,13 @@ commands:
     steps:
       - restore_cache:
           name: Restoring cocoapods cache
-          key: pods-{{ .Environment.cacheVersion }}-{{ checksum "example/ios/Podfile.lock" }}
+          key: pods-{{ checksum "example/ios/Podfile.lock" }}
       - run:
           name: Install cocoapods
           command: cd example/ios && pod install && cd ../..
       - save_cache:
           name: Saving cocoapods cache
-          key: pods-{{ .Environment.cacheVersion }}-{{ checksum "example/ios/Podfile.lock" }}
+          key: pods-{{ checksum "example/ios/Podfile.lock" }}
           paths:
             - example/ios/Pods
   simulator-dependencies:
