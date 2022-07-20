@@ -157,15 +157,7 @@ jobs:
       - unless:
           condition: << parameters.dry-run >>
           steps:
-            - run: << pipeline.parameters.release_command >>
-
-  build-app-ios:
-    macos:
-      xcode: "13.2.1"
-    steps:
-      - checkout
-      - install-dependencies
-      - setup-pods
+            - run: << pipeline.parameters.release_command >>  
 
   e2e-ios:
     macos:
@@ -175,8 +167,10 @@ jobs:
         type: string
     steps:
       - checkout
+      - install-dependencies
       - setup-detox
       - simulator-dependencies
+      - setup-pods
       # detox build, test, report, artifacts
       # run E2E tests
       - detox-build:
@@ -216,14 +210,10 @@ workflows:
       - build-package:
           requires:
             - cache-install-dependencies
-      - build-app-ios:
-          requires:
-            - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
           requires:
             - cache-install-dependencies
-            - build-app-ios
 
   ###
   # Release workflow
