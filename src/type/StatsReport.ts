@@ -80,6 +80,9 @@ export interface RemoteAudioTrackStats extends RemoteTrackStats {
 }
 
 /**
+ * WebRTC stats report. Contains diagnostics information about
+ * `RTCPeerConnection`s and summarizes data for an ongoing call.
+ *
  * @public
  */
 export interface StatsReport {
