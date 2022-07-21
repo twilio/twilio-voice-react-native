@@ -13,6 +13,10 @@ parameters:
   release_command:
     type: string
     default: "echo \"no release-command specified\""
+  e2e-test-suite:
+    type: string
+    description: Run specific test suite, like "#smoke", "#regression" or run tests with specific keyword - "@convo", "@login". Need to pass using keyword "-t", example "-t=@convo"
+    default: ""
 
 executors:
   default:
@@ -38,20 +42,6 @@ commands:
     steps:
       - run: npm install -g react-native-cli
       - run: npm install -g detox-cli && npm link detox
-  detox-build:
-    description: Builds the app with given Detox configuration, as specified in detoxrc.json file
-    parameters:
-      configuration:
-        description: The Detox configuration to build
-        type: string
-    steps:
-      - run:
-          name: Detox Build
-          command: |
-            cd example 
-            detox build -c <<parameters.configuration>>
-            cd ..
-          no_output_timeout: 20m
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -77,7 +67,51 @@ commands:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
-
+  detox-build:
+    description: Builds the app with given Detox configuration, as specified in detoxrc.json file
+    parameters:
+      configuration:
+        description: The Detox configuration to build
+        type: string
+    steps:
+      - run:
+          name: Detox Build
+          command: |
+            cd example 
+            detox build -c <<parameters.configuration>>
+            cd ..
+          no_ou4tput_timeout: 20m
+  detox-test:
+    description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
+    parameters:
+      configuration:
+        description: The Detox configuration to test
+        type: string
+      loglevel:
+        default: "info"
+        description: The Detox logging level to use. Default value - "info".
+        enum: [ "fatal", "error", "warn", "info", "verbose", "trace" ]
+        type: enum
+      screenshots:
+        default: "failing"
+        description: Save screenshots of each test to artifacts directory. Default values - "failing"
+        enum: [ "none", "failing", "all" ]
+        type: enum
+      artifacts:
+        default: /tmp/artifacts
+        description: Artifacts (logs, screenshots, etc) root directory.
+        type: string
+      test_suite:
+        default: ""
+        description: Run specific test suite, like "#smoke", "#regression" or run tests with specific keyword - "@convo", "@login". Need to pass using keyword "-t", example "-t=@convo"
+        type: string
+    steps:
+      - run:
+          name: Detox Test
+          command: |
+            cd example
+            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless <<parameters.test_suite>> -- --ci --forceExit
+            cd ../../
 
 jobs:
   cache-install-dependencies:
@@ -168,6 +202,12 @@ jobs:
     parameters:
       detox_configuration:
         type: string
+      artifacts_location:
+        default: /tmp/artifacts
+        type: string
+      test_suite:
+        default: ""
+        type: string
     steps:
       - checkout
       - install-dependencies
@@ -183,10 +223,10 @@ jobs:
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
-      # - detox-test:
-      #     configuration: <<parameters.detox_configuration>>
-      #     artifacts: <<parameters.artifacts_location>>
-      #     test_suite: --cleanup <<parameters.test_suite>>
+      - detox-test:
+          configuration: <<parameters.detox_configuration>>
+          artifacts: <<parameters.artifacts_location>>
+          test_suite: --cleanup <<parameters.test_suite>>
       # - store_artifacts:
       #     path: ./packages/mobile/test-report.html
       # - store_artifacts:
@@ -220,6 +260,7 @@ workflows:
             - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
+          test_suite: <<pipeline.parameters.e2e-test-suite>>
           requires:
             - cache-install-dependencies
 
