@@ -170,10 +170,10 @@ jobs:
       - install-dependencies
       - setup-detox
       - run:
-        command: |
-          cd example
-          yarn install
-          cd ..
+          command: |
+            cd example
+            yarn install
+            cd ..
       - simulator-dependencies
       - setup-pods
       # detox build, test, report, artifacts
