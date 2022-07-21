@@ -61,7 +61,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            if [ ! -d "example/ios/Pod" ]; then
+            if [ ! -d "example/ios/Pods" ]; then
               cd example/ios && pod install && cd ../..
             fi
       - save_cache:
