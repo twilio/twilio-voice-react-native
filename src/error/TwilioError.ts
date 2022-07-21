@@ -1,5 +1,8 @@
 /**
- * NOTE(mhuynh): This error class exists as future-proofing.
+ * Generic error that the SDK will raise when encountering an error. Can be
+ * used to describe backend errors.
+ *
+ * @public
  */
 export class TwilioError extends Error {
   code: number | undefined;

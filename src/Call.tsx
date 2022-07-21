@@ -80,6 +80,7 @@ export declare interface Call {
    * @param callEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     callEvent: Call.Event,
@@ -95,6 +96,7 @@ export declare interface Call {
    * @param connectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     connectedEvent: Call.Event.Connected,
@@ -113,6 +115,7 @@ export declare interface Call {
    * @param connectFailureEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     connectFailureEvent: Call.Event.ConnectFailure,
@@ -131,6 +134,7 @@ export declare interface Call {
    * @param reconnectingEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     reconnectingEvent: Call.Event.Reconnecting,
@@ -149,6 +153,7 @@ export declare interface Call {
    * @param reconnectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     reconnectedEvent: Call.Event.Reconnected,
@@ -174,6 +179,7 @@ export declare interface Call {
    * @param disconnectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     disconnectedEvent: Call.Event.Disconnected,
@@ -192,6 +198,7 @@ export declare interface Call {
    * @param ringingEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     ringingEvent: Call.Event.Ringing,
@@ -209,6 +216,7 @@ export declare interface Call {
    * @param qualityWarningsChangedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
+   * @returns - The call object.
    */
   addEventListener(
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
@@ -317,7 +325,7 @@ export class Call extends EventEmitter {
 
   /**
    * Constructor for the {@link (Call:class) | Call class}. This should not be
-   * invoked by the consumer of the SDK. All instances of the
+   * invoked by third-party code. All instances of the
    * {@link (Call:class) | Call class} should be made by the SDK and emitted by
    * {@link (Voice:class) | Voice objects}.
    *
@@ -984,7 +992,8 @@ export namespace Call {
   }
 
   /**
-   *
+   * Listener types for all events emitted by a
+   * {@link (Call:class) | Call object.}
    */
   export namespace Listener {
     /**
