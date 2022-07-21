@@ -59,8 +59,11 @@ commands:
           name: Restoring cocoapods cache
           key: pods-{{ checksum "example/ios/Podfile.lock" }}
       - run:
-          name: Install cocoapods
-          command: cd example/ios && pod install && cd ../..
+          name: Install cocoapods if cache does not exist
+          command: |
+            if [ ! -d "example/ios/Pod" ] then
+              cd example/ios && pod install && cd ../..
+            fi
       - save_cache:
           name: Saving cocoapods cache
           key: pods-{{ checksum "example/ios/Podfile.lock" }}
