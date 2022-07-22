@@ -35,7 +35,7 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
-            yarn install --cwd example --frozen-lockfile
+            yarn install --cwd example
             yarn install --frozen-lockfile
   setup-detox:
     description: Setup environment for running test on detox
