@@ -42,6 +42,7 @@ commands:
     steps:
       - run: npm install -g react-native-cli
       - run: npm install -g detox-cli && npm link detox
+      - run: npm install -g jest && npm link jest
   setup-pods:
     description: Setup pods used for ios builds
     steps:
