@@ -111,7 +111,7 @@ commands:
           command: |
             cd example
             detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless <<parameters.test_suite>> -- --ci --forceExit
-            cd ../../
+            cd ..
 
 jobs:
   cache-install-dependencies:
@@ -219,7 +219,6 @@ jobs:
             cd ..
       - simulator-dependencies
       - setup-pods
-      # detox build, test, report, artifacts
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
