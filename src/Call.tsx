@@ -16,8 +16,8 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import type { StatsReport } from './type/StatsReport';
-import { TwilioError } from './error/TwilioError';
+import type { RTCStats } from './';
+import { GenericError } from './error/GenericError';
 
 /**
  * Strict typings for all events emitted by {@link (Call:class) | Call objects}.
@@ -41,13 +41,13 @@ export declare interface Call {
   /** @internal */
   emit(
     connectFailureEvent: Call.Event.ConnectFailure,
-    twilioError: TwilioError
+    error: GenericError
   ): boolean;
 
   /** @internal */
   emit(
     reconnectingEvent: Call.Event.Reconnecting,
-    twilioError: TwilioError
+    error: GenericError
   ): boolean;
 
   /** @internal */
@@ -56,7 +56,7 @@ export declare interface Call {
   /** @internal */
   emit(
     disconnectedEvent: Call.Event.Disconnected,
-    twilioError?: TwilioError
+    error?: GenericError
   ): boolean;
 
   /** @internal */
@@ -458,7 +458,7 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new TwilioError(
+    const error = new GenericError(
       nativeCallEvent.error.message,
       nativeCallEvent.error.code
     );
@@ -480,7 +480,7 @@ export class Call extends EventEmitter {
     this._update(nativeCallEvent);
 
     if (nativeCallEvent.error) {
-      const error = new TwilioError(
+      const error = new GenericError(
         nativeCallEvent.error.message,
         nativeCallEvent.error.code
       );
@@ -504,7 +504,7 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new TwilioError(
+    const error = new GenericError(
       nativeCallEvent.error.message,
       nativeCallEvent.error.code
     );
@@ -651,10 +651,10 @@ export class Call extends EventEmitter {
   /**
    * Gets the PeerConnection WebRTC stats for the ongoing call.
    * @returns
-   *  - Resolves with a {@link StatsReport} object representing the WebRTC
+   *  - Resolves with a {@link RTCStats.StatsReport} object representing the WebRTC
    *    PeerConnection stats of a call.
    */
-  getStats(): Promise<StatsReport> {
+  getStats(): Promise<RTCStats.StatsReport> {
     return this._nativeModule.call_getStats(this._uuid);
   }
 
@@ -1023,7 +1023,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addEventListener:3)}.
      */
-    export type ConnectFailure = (twilioError: TwilioError) => void;
+    export type ConnectFailure = (error: GenericError) => void;
 
     /**
      * Reconnecting event listener. This should be the function signature of any
@@ -1033,7 +1033,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addEventListener:4)}.
      */
-    export type Reconnecting = (twilioError: TwilioError) => void;
+    export type Reconnecting = (error: GenericError) => void;
 
     /**
      * Reconnected event listener. This should be the function signature of any
@@ -1053,7 +1053,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addEventListener:6)}.
      */
-    export type Disconnected = (twilioError?: TwilioError) => void;
+    export type Disconnected = (error?: GenericError) => void;
 
     /**
      * Ringing event listener. This should be the function signature of any

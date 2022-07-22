@@ -56,13 +56,13 @@ export interface Call {
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
     // @internal (undocumented)
-    emit(connectFailureEvent: Call.Event.ConnectFailure, twilioError: TwilioError): boolean;
+    emit(connectFailureEvent: Call.Event.ConnectFailure, error: GenericError): boolean;
     // @internal (undocumented)
-    emit(reconnectingEvent: Call.Event.Reconnecting, twilioError: TwilioError): boolean;
+    emit(reconnectingEvent: Call.Event.Reconnecting, error: GenericError): boolean;
     // @internal (undocumented)
     emit(reconnectedEvent: Call.Event.Reconnected): boolean;
     // @internal (undocumented)
-    emit(disconnectedEvent: Call.Event.Disconnected, twilioError?: TwilioError): boolean;
+    emit(disconnectedEvent: Call.Event.Disconnected, error?: GenericError): boolean;
     // @internal (undocumented)
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
@@ -88,7 +88,7 @@ export class Call extends EventEmitter {
     getFrom(): string | undefined;
     getSid(): string | undefined;
     getState(): Call.State;
-    getStats(): Promise<StatsReport>;
+    getStats(): Promise<RTCStats.StatsReport>;
     getTo(): string | undefined;
     hold(hold: boolean): Promise<boolean>;
     isMuted(): boolean | undefined;
@@ -124,12 +124,12 @@ export namespace Call {
     EventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>>;
     export namespace Listener {
         export type Connected = () => void;
-        export type ConnectFailure = (twilioError: TwilioError) => void;
-        export type Disconnected = (twilioError?: TwilioError) => void;
+        export type ConnectFailure = (error: GenericError) => void;
+        export type Disconnected = (error?: GenericError) => void;
         export type Generic = (...args: any[]) => void;
         export type QualityWarningsChanged = (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void;
         export type Reconnected = () => void;
-        export type Reconnecting = (twilioError: TwilioError) => void;
+        export type Reconnecting = (error: GenericError) => void;
         export type Ringing = () => void;
     }
     // @internal
@@ -209,42 +209,182 @@ export class CancelledCallInvite {
     getTo(): string;
 }
 
-// @public (undocumented)
+// @public
 export type CustomParameters = Record<string, any>;
 
 // @public
-export class InvalidStateError extends TwilioError {
-    constructor(message: string);
-}
-
-// @public (undocumented)
-export interface StatsReport {
-    // Warning: (ae-forgotten-export) The symbol "IceCandidatePairStats" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    iceCandidatePairStats: IceCandidatePairStats[];
-    // Warning: (ae-forgotten-export) The symbol "IceCandidateStats" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    iceCandidateStats: IceCandidateStats[];
-    // Warning: (ae-forgotten-export) The symbol "LocalAudioTrackStats" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    localAudioTrackStats: LocalAudioTrackStats[];
-    // (undocumented)
-    peerConnectionId: string;
-    // Warning: (ae-forgotten-export) The symbol "RemoteAudioTrackStats" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    remoteAudioTrackStats: RemoteAudioTrackStats[];
-}
-
-// @public
-export class TwilioError extends Error {
+class GenericError extends Error {
     constructor(message: string, code?: number);
     // (undocumented)
     code: number | undefined;
 }
+
+// @public
+class InvalidStateError extends GenericError {
+    constructor(message: string);
+}
+
+// @public
+export namespace RTCStats {
+    // (undocumented)
+    export interface BaseTrackStats {
+        // (undocumented)
+        codec: string;
+        // (undocumented)
+        packetsLost: number;
+        // (undocumented)
+        ssrc: string;
+        // (undocumented)
+        timestamp: number;
+        // (undocumented)
+        trackId: string;
+    }
+    // (undocumented)
+    export enum IceCandidatePairState {
+        // (undocumented)
+        STATE_FAILED = "STATE_FAILED",
+        // (undocumented)
+        STATE_FROZEN = "STATE_FROZEN",
+        // (undocumented)
+        STATE_IN_PROGRESS = "STATE_IN_PROGRESS",
+        // (undocumented)
+        STATE_SUCCEEDED = "STATE_SUCCEEDED",
+        // (undocumented)
+        STATE_WAITING = "STATE_WAITING"
+    }
+    // (undocumented)
+    export interface IceCandidatePairStats {
+        // (undocumented)
+        activeCandidatePair: boolean;
+        // (undocumented)
+        availableIncomingBitrate: number;
+        // (undocumented)
+        availableOutgoingBitrate: number;
+        // (undocumented)
+        bytesReceived: number;
+        // (undocumented)
+        bytesSent: number;
+        // (undocumented)
+        consentRequestsReceived: number;
+        // (undocumented)
+        consentRequestsSent: number;
+        // (undocumented)
+        consentResponsesReceived: number;
+        // (undocumented)
+        consentResponsesSent: number;
+        // (undocumented)
+        currentRoundTripTime: number;
+        // (undocumented)
+        localCandidateId: string;
+        // (undocumented)
+        localCandidateIp: string;
+        // (undocumented)
+        nominated: boolean;
+        // (undocumented)
+        priority: number;
+        // (undocumented)
+        readable: boolean;
+        // (undocumented)
+        relayProtocol: string;
+        // (undocumented)
+        remoteCandidateId: string;
+        // (undocumented)
+        remoteCandidateIp: string;
+        // (undocumented)
+        requestsReceieved: number;
+        // (undocumented)
+        requestsSent: number;
+        // (undocumented)
+        responsesRecieved: number;
+        // (undocumented)
+        responsesSent: number;
+        // (undocumented)
+        retransmissionsReceived: number;
+        // (undocumented)
+        retransmissionsSent: number;
+        // (undocumented)
+        state: IceCandidatePairState;
+        // (undocumented)
+        totalRoundTripTime: number;
+        // (undocumented)
+        transportId: string;
+        // (undocumented)
+        writeable: boolean;
+    }
+    // (undocumented)
+    export interface IceCandidateStats {
+        // (undocumented)
+        candidateType: string;
+        // (undocumented)
+        deleted: boolean;
+        // (undocumented)
+        ip: string;
+        // (undocumented)
+        isRemote: boolean;
+        // (undocumented)
+        port: number;
+        // (undocumented)
+        priority: number;
+        // (undocumented)
+        protocol: string;
+        // (undocumented)
+        transportId: string;
+        // (undocumented)
+        url: string;
+    }
+    // (undocumented)
+    export interface LocalAudioTrackStats extends LocalTrackStats {
+        // (undocumented)
+        audioLevel: number;
+        // (undocumented)
+        jitter: number;
+    }
+    // (undocumented)
+    export interface LocalTrackStats extends BaseTrackStats {
+        // (undocumented)
+        bytesSent: number;
+        // (undocumented)
+        packetsSent: number;
+        // (undocumented)
+        roundTripTime: number;
+    }
+    // (undocumented)
+    export interface RemoteAudioTrackStats extends RemoteTrackStats {
+        // (undocumented)
+        audioLevel: number;
+        // (undocumented)
+        jitter: number;
+        // (undocumented)
+        mos: number;
+    }
+    // (undocumented)
+    export interface RemoteTrackStats extends BaseTrackStats {
+        // (undocumented)
+        bytesRecieved: number;
+        // (undocumented)
+        packetsReceived: number;
+    }
+    export interface StatsReport {
+        // (undocumented)
+        iceCandidatePairStats: IceCandidatePairStats[];
+        // (undocumented)
+        iceCandidateStats: IceCandidateStats[];
+        // (undocumented)
+        localAudioTrackStats: LocalAudioTrackStats[];
+        // (undocumented)
+        peerConnectionId: string;
+        // (undocumented)
+        remoteAudioTrackStats: RemoteAudioTrackStats[];
+    }
+}
+
+declare namespace TwilioErrors {
+    export {
+        InvalidStateError,
+        GenericError
+    }
+}
+export { TwilioErrors }
 
 // @public
 export interface Voice {
@@ -268,9 +408,9 @@ export interface Voice {
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteRejected, callInvite: CallInvite): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: TwilioError): boolean;
+    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: GenericError): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
+    emit(voiceEvent: Voice.Event.Error, error: GenericError): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Registered): boolean;
     // @internal (undocumented)
@@ -320,8 +460,8 @@ export namespace Voice {
         export type CallInvite = (callInvite: CallInvite) => void;
         export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
         export type CallInviteRejected = (callInvite: CallInvite) => void;
-        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void;
-        export type Error = (error: TwilioError) => void;
+        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: GenericError) => void;
+        export type Error = (error: GenericError) => void;
         export type Generic = (...args: any[]) => void;
         export type Registered = () => void;
         export type Unregistered = () => void;

@@ -4,7 +4,7 @@
  *
  * @public
  */
-export class TwilioError extends Error {
+export class GenericError extends Error {
   code: number | undefined;
 
   constructor(message: string, code?: number) {
@@ -12,7 +12,7 @@ export class TwilioError extends Error {
 
     this.code = code;
 
-    Object.setPrototypeOf(this, TwilioError.prototype);
-    this.name = TwilioError.name;
+    Object.setPrototypeOf(this, GenericError.prototype);
+    this.name = GenericError.name;
   }
 }

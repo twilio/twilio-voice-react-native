@@ -1,2 +1,2 @@
 export { InvalidStateError } from './InvalidStateError';
-export { TwilioError } from './TwilioError';
+export { GenericError } from './GenericError';
