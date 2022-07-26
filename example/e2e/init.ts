@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { init } from 'detox';
 
 const config = require('../package.json').detox;
