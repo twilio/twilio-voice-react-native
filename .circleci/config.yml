@@ -111,7 +111,7 @@ commands:
           name: Detox Test
           command: |
             cd example
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless <<parameters.test_suite>> -- --ci --forceExit
+            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless <<parameters.test_suite>> -- --ci --forceExit --detectOpenHandles
             cd ..
 
 jobs:
@@ -227,10 +227,8 @@ jobs:
           configuration: <<parameters.detox_configuration>>
           artifacts: <<parameters.artifacts_location>>
           test_suite: --cleanup <<parameters.test_suite>>
-      # - store_artifacts:
-      #     path: ./packages/mobile/test-report.html
-      # - store_artifacts:
-      #     path: <<parameters.artifacts_location>>
+      - store_artifacts:
+          path: ./example/test-report.html
 
 ###
 # Workflows
