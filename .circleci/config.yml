@@ -13,10 +13,6 @@ parameters:
   release_command:
     type: string
     default: "echo \"no release-command specified\""
-  e2e-test-suite:
-    type: string
-    description: Run specific test suite, like "#smoke", "#regression" or run tests with specific keyword - "@convo", "@login". Need to pass using keyword "-t", example "-t=@convo"
-    default: ""
 
 executors:
   default:
@@ -102,16 +98,12 @@ commands:
         default: /tmp/artifacts
         description: Artifacts (logs, screenshots, etc) root directory.
         type: string
-      test_suite:
-        default: ""
-        description: Run specific test suite, like "#smoke", "#regression" or run tests with specific keyword - "@convo", "@login". Need to pass using keyword "-t", example "-t=@convo"
-        type: string
     steps:
       - run:
           name: Detox Test
           command: |
             cd example
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless <<parameters.test_suite>> -- --ci --forceExit --detectOpenHandles
+            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ..
 
 jobs:
@@ -206,9 +198,6 @@ jobs:
       artifacts_location:
         default: /tmp/artifacts
         type: string
-      test_suite:
-        default: ""
-        type: string
     steps:
       - checkout
       - install-dependencies
@@ -226,7 +215,6 @@ jobs:
       - detox-test:
           configuration: <<parameters.detox_configuration>>
           artifacts: <<parameters.artifacts_location>>
-          test_suite: --cleanup <<parameters.test_suite>>
       - store_artifacts:
           path: ./example/test-report.html
 
@@ -258,7 +246,6 @@ workflows:
             - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
-          test_suite: <<pipeline.parameters.e2e-test-suite>>
           requires:
             - cache-install-dependencies
 
