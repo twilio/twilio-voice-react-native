@@ -1,13 +1,5 @@
-import { MockNativeEventEmitter } from '../__mocks__/NativeEventEmitter';
-import { Voice } from '../Voice';
+import { createMockNativeEventEmitter } from '../__mocks__/NativeEventEmitter';
 
-describe('Voice', () => {
-  describe('.connect', () => {
-    it('should call the native connect', () => {
-      const voice = new Voice({
-        nativeEventEmitter: new MockNativeEventEmitter() as any,
-      });
-      voice.connect('fake token');
-    });
-  });
+it('test', () => {
+  createMockNativeEventEmitter();
 });

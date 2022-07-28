@@ -1,6 +1,12 @@
 import { EventEmitter } from 'eventemitter3';
+import * as Sinon from 'sinon';
 
-export class MockNativeEventEmitter extends EventEmitter {
-  removeCurrentListener() {}
-  removeSubscription() {}
+export function createMockNativeEventEmitter() {
+  const mockNativeEventEmitter = new EventEmitter();
+
+  const spies = {
+    addListener: Sinon.spy(mockNativeEventEmitter),
+  };
+
+  return { mockNativeEventEmitter, spies };
 }
