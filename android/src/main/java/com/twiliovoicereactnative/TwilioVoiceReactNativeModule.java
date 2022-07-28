@@ -80,10 +80,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   private String selectedDeviceUuid;
   private Map<String, String> audioDeviceTypeMap = new HashMap();
 
+  private static String GLOBAL_ENV = "com.twilio.voice.env";
+
   @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
+
+    String envReactNative = "react-native";
+    System.setProperty(GLOBAL_ENV, envReactNative);
+
     if (BuildConfig.DEBUG) {
       Voice.setLogLevel(LogLevel.DEBUG);
     } else {

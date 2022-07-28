@@ -79,6 +79,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
         _audioDevices = [NSMutableDictionary dictionary];
 
+        setenv("global-env-sdk", "react-native", 1);
+
         sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
 
