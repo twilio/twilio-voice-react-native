@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
+import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
@@ -87,8 +88,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     super(reactContext);
     this.reactContext = reactContext;
 
-    String envReactNative = "react-native";
-    System.setProperty(GLOBAL_ENV, envReactNative);
+    System.setProperty(GLOBAL_ENV, ReactNativeVoiceSDK);
 
     if (BuildConfig.DEBUG) {
       Voice.setLogLevel(LogLevel.DEBUG);
