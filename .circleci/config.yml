@@ -50,6 +50,8 @@ commands:
             if [ ! -d "example/ios/Pods" ]; then
               cd example/ios && pod install && cd ../..
             fi
+      - store_artifacts:
+          path: ./example/ios/Podfile.lock
       - save_cache:
           name: Saving cocoapods cache
           key: pods-{{ checksum "example/ios/Podfile.lock" }}
