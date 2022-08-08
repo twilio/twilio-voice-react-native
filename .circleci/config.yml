@@ -36,7 +36,6 @@ commands:
   setup-detox-dependencies:
     description: Setup environment for running test on detox
     steps:
-      - run: npm install -g react-native-cli
       - run: npm install -g detox-cli && npm link detox
       - run: npm install -g jest && npm link jest
   setup-pods:
