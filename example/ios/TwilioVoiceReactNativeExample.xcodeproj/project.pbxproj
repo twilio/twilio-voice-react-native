@@ -53,6 +53,7 @@
 		47F7ED3B7971BE374F7B8635 /* Pods-TwilioVoiceReactNativeExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwilioVoiceReactNativeExample.debug.xcconfig"; path = "Target Support Files/Pods-TwilioVoiceReactNativeExample/Pods-TwilioVoiceReactNativeExample.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = TwilioVoiceReactNativeExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8F19C42E2683E50100F765F1 /* TwilioVoiceReactNativeExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TwilioVoiceReactNativeExample.entitlements; path = TwilioVoiceReactNativeExample/TwilioVoiceReactNativeExample.entitlements; sourceTree = "<group>"; };
+		8F2B5A0128936EAB0089A973 /* TwilioVoice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TwilioVoice.xcframework; path = Pods/TwilioVoice/TwilioVoice.xcframework; sourceTree = "<group>"; };
 		8F30769F26F01A490096F858 /* ringtone.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringtone.wav; sourceTree = "<group>"; };
 		CA3E69C5B9553B26FBA2DF04 /* libPods-TwilioVoiceReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TwilioVoiceReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00ACF0FDA8BF921659E2F9A /* Pods-TwilioVoiceReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwilioVoiceReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-TwilioVoiceReactNativeExample/Pods-TwilioVoiceReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
@@ -129,6 +130,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8F2B5A0128936EAB0089A973 /* TwilioVoice.xcframework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				CA3E69C5B9553B26FBA2DF04 /* libPods-TwilioVoiceReactNativeExample.a */,
@@ -142,7 +144,6 @@
 				47F7ED3B7971BE374F7B8635 /* Pods-TwilioVoiceReactNativeExample.debug.xcconfig */,
 				E00ACF0FDA8BF921659E2F9A /* Pods-TwilioVoiceReactNativeExample.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};

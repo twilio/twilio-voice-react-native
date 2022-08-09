@@ -33,7 +33,79 @@ commands:
             yarn run build:constants
             yarn install --cwd example --frozen-lockfile
             yarn install --frozen-lockfile
-
+  setup-detox-dependencies:
+    description: Setup environment for running test on detox
+    steps:
+      - run: npm install -g detox-cli && npm link detox
+      - run: npm install -g jest && npm link jest
+  setup-pods:
+    description: Setup pods used for ios builds
+    steps:
+      - restore_cache:
+          name: Restoring cocoapods cache
+          key: pods-{{ checksum "example/ios/Podfile.lock" }}
+      - run:
+          name: Install cocoapods if cache does not exist
+          command: |
+            if [ ! -d "example/ios/Pods" ]; then
+              cd example/ios && pod install && cd ../..
+            fi
+      - store_artifacts:
+          path: ./example/ios/Podfile.lock
+      - save_cache:
+          name: Saving cocoapods cache
+          key: pods-{{ checksum "example/ios/Podfile.lock" }}
+          paths:
+            - example/ios/Pods
+  simulator-dependencies:
+    description: "Install iOS simulator dependencies"
+    steps:
+      - run:
+          name: "Install applesimutils"
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
+  detox-build:
+    description: Builds the app with given Detox configuration, as specified in detoxrc.json file
+    parameters:
+      configuration:
+        description: The Detox configuration to build
+        type: string
+    steps:
+      - run:
+          name: Detox Build
+          command: |
+            cd example 
+            detox build -c <<parameters.configuration>>
+            cd ..
+          no_ou4tput_timeout: 20m
+  detox-test:
+    description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
+    parameters:
+      configuration:
+        description: The Detox configuration to test
+        type: string
+      loglevel:
+        default: "info"
+        description: The Detox logging level to use. Default value - "info".
+        enum: [ "fatal", "error", "warn", "info", "verbose", "trace" ]
+        type: enum
+      screenshots:
+        default: "failing"
+        description: Save screenshots of each test to artifacts directory. Default values - "failing"
+        enum: [ "none", "failing", "all" ]
+        type: enum
+      artifacts:
+        default: /tmp/artifacts
+        description: Artifacts (logs, screenshots, etc) root directory.
+        type: string
+    steps:
+      - run:
+          name: Detox Test
+          command: |
+            cd example
+            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            cd ..
 
 jobs:
   cache-install-dependencies:
@@ -116,7 +188,36 @@ jobs:
       - unless:
           condition: << parameters.dry-run >>
           steps:
-            - run: << pipeline.parameters.release_command >>
+            - run: << pipeline.parameters.release_command >>  
+
+  e2e-ios:
+    macos:
+      xcode: "12.5.1"
+    parameters:
+      detox_configuration:
+        type: string
+      artifacts_location:
+        default: /tmp/artifacts
+        type: string
+    steps:
+      - checkout
+      - install-dependencies
+      - setup-detox-dependencies
+      - run:
+          command: |
+            cd example
+            yarn install
+            cd ..
+      - simulator-dependencies
+      - setup-pods
+      # run E2E tests
+      - detox-build:
+          configuration: <<parameters.detox_configuration>>
+      - detox-test:
+          configuration: <<parameters.detox_configuration>>
+          artifacts: <<parameters.artifacts_location>>
+      - store_artifacts:
+          path: ./example/test-report.html
 
 ###
 # Workflows
@@ -144,6 +245,11 @@ workflows:
       - build-package:
           requires:
             - cache-install-dependencies
+      - e2e-ios:
+          detox_configuration: ios.release
+          requires:
+            - cache-install-dependencies
+
   ###
   # Release workflow
   ###
