@@ -73,3 +73,6 @@ ios/TwilioVoiceReactNativeConstants.h
 docs/
 temp/
 types/
+
+# e2e tests
+example/e2e/config.json
