@@ -9,12 +9,5 @@ Main entry-point of the Voice SDK. Provides access to the entire feature-set of 
 <b>Signature:</b>
 
 ```typescript
-constructor(options?: Partial<Voice.Options>);
+constructor();
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  options | Partial&lt;Voice.Options&gt; | <i>(Optional)</i> Options to pass to [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->. Used internally for passing mocks for testing. |
-

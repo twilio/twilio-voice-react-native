@@ -39,7 +39,7 @@ voice.register(token);
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(options)](./twilio-voice-react-native.voice_class._constructor__constructor.md) |  | Main entry-point of the Voice SDK. Provides access to the entire feature-set of the library. |
+|  [(constructor)()](./twilio-voice-react-native.voice_class._constructor__constructor.md) |  | Main entry-point of the Voice SDK. Provides access to the entire feature-set of the library. |
 
 ## Methods
 

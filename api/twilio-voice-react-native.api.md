@@ -5,15 +5,13 @@
 ```ts
 
 import { EventEmitter } from 'eventemitter3';
-import type { EventSubscriptionVendor } from 'react-native';
-import { NativeEventEmitter } from 'react-native';
 
 // @public
 export class AudioDevice {
     // Warning: (ae-forgotten-export) The symbol "NativeAudioDeviceInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, type, name }: NativeAudioDeviceInfo, options?: Partial<AudioDevice.Options>);
+    constructor({ uuid, type, name }: NativeAudioDeviceInfo);
     name: string;
     select(): Promise<void>;
     type: AudioDevice.Type;
@@ -25,13 +23,6 @@ export class AudioDevice {
 
 // @public
 export namespace AudioDevice {
-    // @internal
-    export interface Options {
-        // Warning: (ae-forgotten-export) The symbol "TwilioVoiceReactNative" needs to be exported by the entry point index.d.ts
-        //
-        // (undocumented)
-        nativeModule: typeof TwilioVoiceReactNative;
-    }
     export enum Type {
         // (undocumented)
         Bluetooth = "bluetooth",
@@ -82,7 +73,7 @@ export class Call extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, customParameters, from, sid, to, isMuted, isOnHold, }: NativeCallInfo, options?: Partial<Call.Options>);
+    constructor({ uuid, customParameters, from, sid, to, isMuted, isOnHold, }: NativeCallInfo);
     disconnect(): Promise<void>;
     getCustomParameters(): CustomParameters;
     getFrom(): string | undefined;
@@ -132,11 +123,6 @@ export namespace Call {
         export type Reconnecting = (error: GenericError) => void;
         export type Ringing = () => void;
     }
-    // @internal
-    export interface Options {
-        nativeEventEmitter: NativeEventEmitter;
-        nativeModule: typeof TwilioVoiceReactNative;
-    }
     export enum QualityWarning {
         ConstantAudioInputLevel = "constant-audio-input-level",
         HighJitter = "high-jitter",
@@ -166,11 +152,12 @@ export class CallInvite {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInviteInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, callSid, customParameters, from, to }: NativeCallInviteInfo, options?: Partial<CallInvite.Options>);
+    constructor({ uuid, callSid, customParameters, from, to }: NativeCallInviteInfo, state: CallInvite.State);
     accept(options?: CallInvite.AcceptOptions): Promise<Call>;
     getCallSid(): string;
     getCustomParameters(): CustomParameters;
     getFrom(): string;
+    getState(): CallInvite.State;
     getTo(): string;
     // @alpha
     isValid(): Promise<boolean>;
@@ -180,13 +167,6 @@ export class CallInvite {
 // @public
 export namespace CallInvite {
     export interface AcceptOptions {
-    }
-    // @internal
-    export interface Options {
-        // (undocumented)
-        nativeEventEmitter: NativeEventEmitter;
-        // (undocumented)
-        nativeModule: typeof TwilioVoiceReactNative;
     }
     export enum State {
         // (undocumented)
@@ -428,7 +408,7 @@ export interface Voice {
 
 // @public
 export class Voice extends EventEmitter {
-    constructor(options?: Partial<Voice.Options>);
+    constructor();
     connect(token: string, params?: Record<string, any>): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
@@ -465,11 +445,6 @@ export namespace Voice {
         export type Generic = (...args: any[]) => void;
         export type Registered = () => void;
         export type Unregistered = () => void;
-    }
-    // @internal
-    export interface Options {
-        nativeEventEmitter: NativeEventEmitter;
-        nativeModule: typeof TwilioVoiceReactNative;
     }
 }
 

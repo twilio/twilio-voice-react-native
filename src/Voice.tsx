@@ -6,12 +6,11 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
-import { NativeEventEmitter } from 'react-native';
 import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
-import { TwilioVoiceReactNative } from './common';
+import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
 import { GenericError } from './error';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
@@ -275,23 +274,6 @@ export declare interface Voice {
  */
 export class Voice extends EventEmitter {
   /**
-   * --------------
-   * Native Members
-   * --------------
-   */
-
-  /**
-   * The ReactNative `NativeEventEmitter`. Used to receive voice events from the
-   * native layer.
-   */
-  private _nativeEventEmitter: NativeEventEmitter;
-  /**
-   * The ReactNative `NativeModule`. Used to invoke native voice functionality
-   * from the JS layer.
-   */
-  private _nativeModule: typeof TwilioVoiceReactNative;
-
-  /**
    * Handlers for native voice events. Set upon construction so we can
    * dynamically bind events to handlers.
    *
@@ -307,16 +289,9 @@ export class Voice extends EventEmitter {
   /**
    * Main entry-point of the Voice SDK. Provides access to the entire
    * feature-set of the library.
-   * @param options - Options to pass to {@link (Voice:class) | Voice objects}.
-   * Used internally for passing mocks for testing.
    */
-  constructor(options: Partial<Voice.Options> = {}) {
+  constructor() {
     super();
-
-    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
-
-    this._nativeEventEmitter =
-      options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._nativeEventHandler = {
       /**
@@ -346,7 +321,7 @@ export class Voice extends EventEmitter {
         this._handleAudioDevicesUpdated,
     };
 
-    this._nativeEventEmitter.addListener(
+    NativeEventEmitter.addListener(
       Constants.ScopeVoice,
       this._handleNativeEvent
     );
@@ -385,10 +360,7 @@ export class Voice extends EventEmitter {
 
     const { callInvite: callInviteInfo } = nativeVoiceEvent;
 
-    const callInvite = new CallInvite(callInviteInfo, {
-      nativeEventEmitter: this._nativeEventEmitter,
-      nativeModule: this._nativeModule,
-    });
+    const callInvite = new CallInvite(callInviteInfo, CallInvite.State.Pending);
 
     this.emit(Voice.Event.CallInvite, callInvite);
   };
@@ -408,7 +380,10 @@ export class Voice extends EventEmitter {
 
     const { callInvite: callInviteInfo } = nativeVoiceEvent;
 
-    const callInvite = new CallInvite(callInviteInfo);
+    const callInvite = new CallInvite(
+      callInviteInfo,
+      CallInvite.State.Accepted
+    );
 
     const callInfo = {
       uuid: callInviteInfo.uuid,
@@ -418,10 +393,7 @@ export class Voice extends EventEmitter {
       to: callInviteInfo.to,
     };
 
-    const call = new Call(callInfo, {
-      nativeEventEmitter: this._nativeEventEmitter,
-      nativeModule: this._nativeModule,
-    });
+    const call = new Call(callInfo);
 
     this.emit(Voice.Event.CallInviteAccepted, callInvite, call);
   };
@@ -441,7 +413,10 @@ export class Voice extends EventEmitter {
 
     const { callInvite: callInviteInfo } = nativeVoiceEvent;
 
-    const callInvite = new CallInvite(callInviteInfo);
+    const callInvite = new CallInvite(
+      callInviteInfo,
+      CallInvite.State.Rejected
+    );
 
     this.emit(Voice.Event.CallInviteRejected, callInvite);
   };
@@ -498,7 +473,14 @@ export class Voice extends EventEmitter {
    * Registered event handler. Emits a
    * {@link (Voice:namespace).Event.Registered} event.
    */
-  private _handleRegistered = () => {
+  private _handleRegistered = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventRegistered) {
+      throw new Error(
+        'Incorrect "voice#error" handler called for type ' +
+          `"${nativeVoiceEvent.type}".`
+      );
+    }
+
     this.emit(Voice.Event.Registered);
   };
 
@@ -506,7 +488,14 @@ export class Voice extends EventEmitter {
    * Unregistered event handler. Emits a
    * {@link (Voice:namespace).Event.Unregistered} event.
    */
-  private _handleUnregistered = () => {
+  private _handleUnregistered = (nativeVoiceEvent: NativeVoiceEvent) => {
+    if (nativeVoiceEvent.type !== Constants.VoiceEventUnregistered) {
+      throw new Error(
+        'Incorrect "voice#error" handler called for type ' +
+          `"${nativeVoiceEvent.type}".`
+      );
+    }
+
     this.emit(Voice.Event.Unregistered);
   };
 
@@ -557,12 +546,9 @@ export class Voice extends EventEmitter {
     token: string,
     params: Record<string, any> = {}
   ): Promise<Call> {
-    const callInfo = await this._nativeModule.voice_connect(token, params);
+    const callInfo = await NativeModule.voice_connect(token, params);
 
-    const call = new Call(callInfo, {
-      nativeEventEmitter: this._nativeEventEmitter,
-      nativeModule: this._nativeModule,
-    });
+    const call = new Call(callInfo);
 
     return call;
   }
@@ -576,7 +562,7 @@ export class Voice extends EventEmitter {
    *  - Resolves with a string representing the version of the native SDK.
    */
   getVersion(): Promise<string> {
-    return this._nativeModule.voice_getVersion();
+    return NativeModule.voice_getVersion();
   }
 
   /**
@@ -585,7 +571,7 @@ export class Voice extends EventEmitter {
    * token.
    */
   getDeviceToken(): Promise<string> {
-    return this._nativeModule.voice_getDeviceToken();
+    return NativeModule.voice_getDeviceToken();
   }
 
   /**
@@ -596,7 +582,7 @@ export class Voice extends EventEmitter {
    *  - Resolves with a mapping of `Uuid`s to {@link (Call:class)}s.
    */
   async getCalls(): Promise<ReadonlyMap<Uuid, Call>> {
-    const callInfos = await this._nativeModule.voice_getCalls();
+    const callInfos = await NativeModule.voice_getCalls();
     const callsMap = new Map<Uuid, Call>(
       callInfos.map((callInfo: NativeCallInfo) => [
         callInfo.uuid,
@@ -618,11 +604,11 @@ export class Voice extends EventEmitter {
    *  - Resolves with a mapping of `Uuid`s to {@link (CallInvite:class)}s.
    */
   async getCallInvites(): Promise<ReadonlyMap<Uuid, CallInvite>> {
-    const callInviteInfos = await this._nativeModule.voice_getCallInvites();
+    const callInviteInfos = await NativeModule.voice_getCallInvites();
     const callInvitesMap = new Map<Uuid, CallInvite>(
       callInviteInfos.map((callInviteInfo: NativeCallInviteInfo) => [
         callInviteInfo.uuid,
-        new CallInvite(callInviteInfo),
+        new CallInvite(callInviteInfo, CallInvite.State.Pending),
       ])
     );
     return callInvitesMap;
@@ -636,7 +622,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been registered.
    */
   register(token: string): Promise<void> {
-    return this._nativeModule.voice_register(token);
+    return NativeModule.voice_register(token);
   }
 
   /**
@@ -647,7 +633,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been unregistered.
    */
   unregister(token: string): Promise<void> {
-    return this._nativeModule.voice_unregister(token);
+    return NativeModule.voice_unregister(token);
   }
 
   /**
@@ -664,7 +650,7 @@ export class Voice extends EventEmitter {
     const {
       audioDevices: audioDeviceInfos,
       selectedDevice: selectedDeviceInfo,
-    } = await this._nativeModule.voice_getAudioDevices();
+    } = await NativeModule.voice_getAudioDevices();
 
     const audioDevices = audioDeviceInfos.map(
       (audioDeviceInfo: NativeAudioDeviceInfo) =>
@@ -689,7 +675,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the AV Route Picker View is shown.
    */
   showAvRoutePickerView(): Promise<void> {
-    return this._nativeModule.voice_showNativeAvRoutePicker();
+    return NativeModule.voice_showNativeAvRoutePicker();
   }
 }
 
@@ -848,24 +834,5 @@ export namespace Voice {
      * See {@link (Voice:interface).(addEventListener:8)}.
      */
     export type Unregistered = () => void;
-  }
-
-  /**
-   * Options to pass to `Voice` objects upon construction, used for mocking the
-   * native module and for internal testing.
-   *
-   * @internal
-   */
-  export interface Options {
-    /**
-     * The ReactNative `NativeEventEmitter`. Used to receive voice events from the
-     * native layer.
-     */
-    nativeEventEmitter: NativeEventEmitter;
-    /**
-     * The ReactNative `NativeModule`. Used to invoke native voice functionality
-     * from the JS layer.
-     */
-    nativeModule: typeof TwilioVoiceReactNative;
   }
 }

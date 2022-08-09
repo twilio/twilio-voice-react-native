@@ -32,6 +32,7 @@ The constructor for this class is marked as internal. Third-party code should no
 |  [getCallSid()](./twilio-voice-react-native.callinvite_class.getcallsid_method.md) |  | Get the call SID associated with this <code>CallInvite</code> class. |
 |  [getCustomParameters()](./twilio-voice-react-native.callinvite_class.getcustomparameters_method.md) |  | Get the custom parameters of the call associated with this <code>CallInvite</code> class. |
 |  [getFrom()](./twilio-voice-react-native.callinvite_class.getfrom_method.md) |  | Get the <code>from</code> parameter of the call associated with this <code>CallInvite</code> class. |
+|  [getState()](./twilio-voice-react-native.callinvite_class.getstate_method.md) |  | Get the <code>state</code> of the <code>CallInvite</code>. |
 |  [getTo()](./twilio-voice-react-native.callinvite_class.getto_method.md) |  | Get the <code>to</code> parameter of the call associated with this <code>CallInvite</code> class. |
 |  [reject()](./twilio-voice-react-native.callinvite_class.reject_method.md) |  | Reject a call invite. Sets the state of this call invite to [CallInvite.State.Rejected](./twilio-voice-react-native.callinvite_namespace.state_enum.md)<!-- -->. |
 
