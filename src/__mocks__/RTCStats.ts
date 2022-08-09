@@ -1,6 +1,6 @@
 import { RTCStats } from '../type/RTCStats';
 
-export function createDefaultMockIceCandidatePairStats(): RTCStats.IceCandidatePairStats {
+export function createIceCandidatePairStats(): RTCStats.IceCandidatePairStats {
   return {
     activeCandidatePair: false,
     availableIncomingBitrate: 0,
@@ -33,7 +33,7 @@ export function createDefaultMockIceCandidatePairStats(): RTCStats.IceCandidateP
   };
 }
 
-export function createDefaultMockIceCandidateStats(): RTCStats.IceCandidateStats {
+export function createIceCandidateStats(): RTCStats.IceCandidateStats {
   return {
     candidateType: 'mock-icecandidatestats-candidatetype',
     deleted: false,
@@ -47,7 +47,7 @@ export function createDefaultMockIceCandidateStats(): RTCStats.IceCandidateStats
   };
 }
 
-export function createDefaultMockLocalAudioTrackStats(): RTCStats.LocalAudioTrackStats {
+export function createLocalAudioTrackStats(): RTCStats.LocalAudioTrackStats {
   return {
     codec: 'mock-localaudiotrackstats-codec',
     packetsLost: 0,
@@ -62,7 +62,7 @@ export function createDefaultMockLocalAudioTrackStats(): RTCStats.LocalAudioTrac
   };
 }
 
-export function createDefaultMockRemoteAudioTrackStats(): RTCStats.RemoteAudioTrackStats {
+export function createRemoteAudioTrackStats(): RTCStats.RemoteAudioTrackStats {
   return {
     codec: 'mock-remoteaudiotrackstats-codec',
     packetsLost: 0,
@@ -77,12 +77,12 @@ export function createDefaultMockRemoteAudioTrackStats(): RTCStats.RemoteAudioTr
   };
 }
 
-export function createDefaultMockStatsReport(): RTCStats.StatsReport {
+export function createStatsReport(): RTCStats.StatsReport {
   return {
-    iceCandidatePairStats: [createDefaultMockIceCandidatePairStats()],
-    iceCandidateStats: [createDefaultMockIceCandidateStats()],
-    localAudioTrackStats: [createDefaultMockLocalAudioTrackStats()],
+    iceCandidatePairStats: [createIceCandidatePairStats()],
+    iceCandidateStats: [createIceCandidateStats()],
+    localAudioTrackStats: [createLocalAudioTrackStats()],
     peerConnectionId: 'mock-statsreport-peerconnectionid',
-    remoteAudioTrackStats: [createDefaultMockRemoteAudioTrackStats()],
+    remoteAudioTrackStats: [createRemoteAudioTrackStats()],
   };
 }
