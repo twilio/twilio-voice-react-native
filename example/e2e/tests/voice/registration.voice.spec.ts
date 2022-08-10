@@ -2,20 +2,32 @@
 
 import {generateAccessToken} from '../../common/TokenUtility';
 
+export const DEFAULT_TIME_OUT = 10000;
+
+export async function isVisibleByText(text: string, timeout: number = DEFAULT_TIME_OUT) {
+  await waitFor(element(by.text(text)))
+    .toBeVisible()
+    .withTimeout(timeout);
+}
+
 describe('Registration APIs', () => {
     let accessToken: string;
 
     beforeAll(async () => {
-        console.log("beforeAll");
         accessToken = generateAccessToken('john');
     });
     beforeEach(async () => {
-        console.log("beforeEach");
+
     });
     it('Voice | Registration | :ios:', async () => {
-        console.log("debug checkpoint");
+        await isVisibleByText('Register', DEFAULT_TIME_OUT);
+        await element(by.text('Register')).tap();
+    });
+    it('Voice | Unregistration | :ios:', async () => {
+        await isVisibleByText('Unregister', DEFAULT_TIME_OUT);
+        await element(by.text('Unregister')).tap();
     });
     afterEach(async () => {
-        console.log("afterEach");
+
     });
 });
