@@ -1,10 +1,13 @@
-import {generateAccessToken} from '../../commons/tokenUtility.ts';
+// @ts-nocheck
+
+import {generateAccessToken} from '../../common/TokenUtility';
 
 describe('Registration APIs', () => {
+    let accessToken: string;
+
     beforeAll(async () => {
         console.log("beforeAll");
-        let token = generateAccessToken('john');
-        console.log(token);
+        accessToken = generateAccessToken('john');
     });
     beforeEach(async () => {
         console.log("beforeEach");
