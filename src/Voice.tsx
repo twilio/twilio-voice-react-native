@@ -12,7 +12,7 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
-import { GenericError } from './error';
+import { GenericError } from './error/GenericError';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';

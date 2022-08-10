@@ -6,6 +6,7 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
+import type { RTCStats } from './';
 import { NativeModule, NativeEventEmitter } from './common';
 import { Constants } from './constants';
 import type {
@@ -15,7 +16,6 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import type { RTCStats } from './';
 import { GenericError } from './error/GenericError';
 
 /**

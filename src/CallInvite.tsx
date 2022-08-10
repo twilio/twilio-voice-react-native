@@ -7,9 +7,9 @@
 
 import { Call } from './Call';
 import { NativeModule } from './common';
+import { InvalidStateError } from './error/InvalidStateError';
 import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { InvalidStateError } from './error';
 
 /**
  * Provides access to information about a call invite, including the call
