@@ -13,7 +13,7 @@ import type {
   EventLogItem,
 } from './type';
 
-import {generateAccessToken} from './tokenUtility';
+import { generateAccessToken } from './tokenUtility';
 
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
