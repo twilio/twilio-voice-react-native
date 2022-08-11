@@ -12,7 +12,7 @@ const MockNativeModule = jest.mocked(NativeModule);
 let MockGenericError: jest.Mock;
 
 jest.mock('../common');
-jest.mock('../error', () => ({
+jest.mock('../error/GenericError', () => ({
   GenericError: (MockGenericError = jest.fn()),
 }));
 
@@ -130,10 +130,30 @@ describe('Call class', () => {
     /**
      * Event forwarding tests.
      */
-    type ListenerAssertionTest = (listener: jest.Mock) => void;
-    let listenerCalledWithoutArgs: ListenerAssertionTest = () => {};
-    let listenerCalledWithGenericError: ListenerAssertionTest = () => {};
-    let listenerCalledWithQualityWarnings: ListenerAssertionTest = () => {};
+    const listenerCalledWithoutArgs = (listenerMock: jest.Mock) => {
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      expect(listenerMock).toHaveBeenNthCalledWith(1);
+    };
+
+    const listenerCalledWithGenericError = (listenerMock: jest.Mock) => {
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      const args = listenerMock.mock.calls[0];
+      expect(args).toHaveLength(1);
+
+      const [error] = args;
+      expect(error).toBeInstanceOf(MockGenericError);
+    };
+
+    const listenerCalledWithQualityWarnings = (listenerMock: jest.Mock) => {
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      const args = listenerMock.mock.calls[0];
+      expect(args).toHaveLength(2);
+
+      const [currentWarnings, previousWarnings] = args;
+      expect(Array.isArray(currentWarnings)).toBe(true);
+      expect(Array.isArray(previousWarnings)).toBe(true);
+    };
+
     (
       [
         // Example test case configuration:
@@ -185,34 +205,6 @@ describe('Call class', () => {
       ] as const
     ).forEach(([{ name, nativeEvent }, callEvent, assertion]) => {
       describe(name, () => {
-        beforeAll(() => {
-          listenerCalledWithoutArgs = (listenerMock: jest.Mock) => {
-            expect(listenerMock).toHaveBeenCalledTimes(1);
-            expect(listenerMock).toHaveBeenNthCalledWith(1);
-          };
-
-          listenerCalledWithGenericError = (listenerMock: jest.Mock) => {
-            expect(listenerMock).toHaveBeenCalledTimes(1);
-            const args = listenerMock.mock.calls[0];
-            expect(args).toHaveLength(1);
-
-            const [error] = args;
-            expect(error).toBeInstanceOf(MockGenericError);
-            expect(error.code).toBe(0);
-            expect(error.message).toBe('mock-error-message');
-          };
-
-          listenerCalledWithQualityWarnings = (listenerMock: jest.Mock) => {
-            expect(listenerMock).toHaveBeenCalledTimes(1);
-            const args = listenerMock.mock.calls[0];
-            expect(args).toHaveLength(2);
-
-            const [currentWarnings, previousWarnings] = args;
-            expect(Array.isArray(currentWarnings)).toBe(true);
-            expect(Array.isArray(previousWarnings)).toBe(true);
-          };
-        });
-
         it('re-emits the native event', () => {
           const call = new Call(createNativeCallInfo());
           const listenerMock = jest.fn();

@@ -5,18 +5,18 @@ import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mock
 import { createNativeErrorInfo } from '../__mocks__/Error';
 import { mockVoiceNativeEvents } from '../__mocks__/Voice';
 import type { AudioDevice } from '../AudioDevice';
-import { CallInvite } from '../CallInvite';
-import { Voice } from '../Voice';
+import type { CallInvite } from '../CallInvite';
 import { NativeEventEmitter, NativeModule } from '../common';
 import { Constants } from '../constants';
 import type { NativeVoiceEventType } from '../type/Voice';
+import { Voice } from '../Voice';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
 const MockNativeModule = jest.mocked(NativeModule);
 let MockAudioDevice: jest.Mock;
 let MockCall: jest.Mock;
-let MockCallInvite: jest.Mock;
+let MockCallInvite: jest.Mock & { State: typeof CallInvite.State };
 let MockCancelledCallInvite: jest.Mock;
 let MockGenericError: jest.Mock;
 
@@ -27,21 +27,19 @@ jest.mock('../AudioDevice', () => ({
 jest.mock('../Call', () => ({
   Call: (MockCall = jest.fn()),
 }));
-jest.mock('../CallInvite', () => {
-  MockCallInvite = jest.fn();
-  (MockCallInvite as any).State = {
-    Pending: 'pending',
-    Accepted: 'accepted',
-    Rejected: 'rejected',
-  };
-  return {
-    CallInvite: MockCallInvite,
-  };
-});
+jest.mock('../CallInvite', () => ({
+  CallInvite: (MockCallInvite = Object.assign(jest.fn(), {
+    State: {
+      Pending: 'pending' as CallInvite.State.Pending,
+      Accepted: 'accepted' as CallInvite.State.Accepted,
+      Rejected: 'rejected' as CallInvite.State.Rejected,
+    },
+  })),
+}));
 jest.mock('../CancelledCallInvite', () => ({
   CancelledCallInvite: (MockCancelledCallInvite = jest.fn()),
 }));
-jest.mock('../error', () => ({
+jest.mock('../error/GenericError', () => ({
   GenericError: (MockGenericError = jest.fn()),
 }));
 
@@ -162,7 +160,7 @@ describe('Voice class', () => {
 
         expect(MockCallInvite.mock.instances).toHaveLength(1);
         expect(MockCallInvite.mock.calls).toEqual([
-          [createNativeCallInviteInfo(), CallInvite.State.Pending],
+          [createNativeCallInviteInfo(), MockCallInvite.State.Pending],
         ]);
       });
 
@@ -203,7 +201,7 @@ describe('Voice class', () => {
 
         expect(MockCallInvite.mock.instances).toHaveLength(1);
         expect(MockCallInvite.mock.calls).toEqual([
-          [callInviteInfo, CallInvite.State.Accepted],
+          [callInviteInfo, MockCallInvite.State.Accepted],
         ]);
 
         expect(MockCall.mock.instances).toHaveLength(1);
@@ -277,7 +275,7 @@ describe('Voice class', () => {
 
         expect(MockCallInvite.mock.instances).toHaveLength(1);
         expect(MockCallInvite.mock.calls).toEqual([
-          [createNativeCallInviteInfo(), CallInvite.State.Rejected],
+          [createNativeCallInviteInfo(), MockCallInvite.State.Rejected],
         ]);
       });
 
