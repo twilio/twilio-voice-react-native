@@ -1,5 +1,5 @@
 const twilio = require('../../node_modules/twilio');
-const config = require('../config.json');
+const config = require('./config.json');
 
 const outgoingApplicationSid = config.prod.twimlAppSid;
 const accountSid = config.prod.accountSid;
