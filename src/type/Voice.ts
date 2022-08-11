@@ -8,13 +8,23 @@ import type {
 } from './CallInvite';
 import type { NativeErrorEvent } from './Error';
 
+export interface NativeRegisteredEvent {
+  type: Constants.VoiceEventRegistered;
+}
+
+export interface NativeUnregisteredEvent {
+  type: Constants.VoiceEventUnregistered;
+}
+
 export type NativeVoiceEvent =
   | NativeAudioDevicesUpdatedEvent
   | NativeCallInviteEvent
   | NativeCallInviteAcceptedEvent
   | NativeCallInviteRejectedEvent
   | NativeCancelledCallInviteEvent
-  | NativeErrorEvent;
+  | NativeErrorEvent
+  | NativeRegisteredEvent
+  | NativeUnregisteredEvent;
 
 export type NativeVoiceEventType =
   | Constants.VoiceEventAudioDevicesUpdated
