@@ -11,9 +11,10 @@ export function generateAccessToken(identity: string) {
   const accessToken = new twilio.jwt.AccessToken(
     accountSid,
     apiKeySid,
-    apiKeySecret, {
+    apiKeySecret,
+    {
       identity,
-    },
+    }
   );
 
   const voiceGrant = new twilio.jwt.AccessToken.VoiceGrant({

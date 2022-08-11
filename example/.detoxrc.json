@@ -5,7 +5,7 @@
         "ios.release": {
             "type": "ios.simulator",
             "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceReactNativeExample.app",
-            "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64 GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS INTEGRATION_TEST_DEVICE_TOKEN=@\"deadbeefdeadbeefdeadbeefdeadbeef\"'",
+            "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64 GCC_PREPROCESSOR_DEFINITIONS='$GCC_PREPROCESSOR_DEFINITIONS INTEGRATION_TEST_DEVICE_TOKEN=deadbeefdeadbeefdeadbeefdeadbeef'",
             "device": {
                 "type": "iPhone 12 Pro Max"
             }
