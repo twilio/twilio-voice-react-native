@@ -75,7 +75,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            echo $E2E_CONFIG_FILE | base64 -D -o example/e2e/config.json
+            echo $E2E_CONFIG_FILE | base64 -D -o example/src/config.json
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:

@@ -13,6 +13,8 @@ import type {
   EventLogItem,
 } from './type';
 
+import {generateAccessToken} from './tokenUtility';
+
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
     console.log(usage);
@@ -223,6 +225,10 @@ export function useCallInvites(
 }
 
 export function useVoice(token: string) {
+  if (!token.length) {
+    token = generateAccessToken('voice-react-native-sdk-test');
+  }
+
   const voice = React.useMemo(() => new Voice(), []);
 
   const [registered, setRegistered] = React.useState<boolean>(false);
