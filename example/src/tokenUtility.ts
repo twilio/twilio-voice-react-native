@@ -1,4 +1,4 @@
-const twilio = require('../../node_modules/twilio');
+const twilio = require('../node_modules/twilio');
 const config = require('./config.json');
 
 const outgoingApplicationSid = config.prod.twimlAppSid;
