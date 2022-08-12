@@ -7495,7 +7495,7 @@ ts-jest@^28.0.7:
     semver "7.x"
     yargs-parser "^21.0.1"
 
-twilio@^3.80.1:
+twilio@^3.57.0:
   version "3.80.1"
   resolved "https://registry.yarnpkg.com/twilio/-/twilio-3.80.1.tgz#4d9ad8221c86c4b70acd81ca1e60c245988a6449"
   integrity sha512-eFqYefcuFCoHU3nSsYFdWjBpbzj3EdMl+kBwB1Uhv3+YC/Zt/WhEMZRG9YQqdQvApEhFlNSiO8YAvqvOvUN36w==
