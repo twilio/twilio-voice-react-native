@@ -7495,10 +7495,10 @@ ts-jest@^28.0.7:
     semver "7.x"
     yargs-parser "^21.0.1"
 
-twilio@^3.57.0:
-  version "3.80.0"
-  resolved "https://registry.yarnpkg.com/twilio/-/twilio-3.80.0.tgz#94f6ea786f26c702ad366bb3f38af2f212ecf6f4"
-  integrity sha512-ACzeSFqyMViOXDYBQr4CoPoscNWDbHt/gGqU2YpVyVQ/5fsFo/fe+ZAeZBKvrMllP81bhCtPS7H5Lfi9n2cOFw==
+twilio@^3.80.1:
+  version "3.80.1"
+  resolved "https://registry.yarnpkg.com/twilio/-/twilio-3.80.1.tgz#4d9ad8221c86c4b70acd81ca1e60c245988a6449"
+  integrity sha512-eFqYefcuFCoHU3nSsYFdWjBpbzj3EdMl+kBwB1Uhv3+YC/Zt/WhEMZRG9YQqdQvApEhFlNSiO8YAvqvOvUN36w==
   dependencies:
     axios "^0.26.1"
     dayjs "^1.8.29"
