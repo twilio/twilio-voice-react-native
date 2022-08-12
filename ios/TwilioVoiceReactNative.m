@@ -458,6 +458,15 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if TARGET_IPHONE_SIMULATOR
+#ifdef INTEGRATION_TEST_DEVICE_TOKEN
+    if (!self.deviceTokenData) {
+        NSString *testDeviceToken = [NSString stringWithFormat:@"%@", @OS_STRINGIFY(INTEGRATION_TEST_DEVICE_TOKEN)];
+        self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
+    }
+#endif
+#endif
+
     [TwilioVoiceSDK unregisterWithAccessToken:accessToken
                                   deviceToken:self.deviceTokenData
                                    completion:^(NSError *error) {
