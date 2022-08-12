@@ -1,6 +1,3 @@
-// React Native Voice SDK
-ReactNativeVoiceSDK=react-native
-
 // Scope names
 ScopeVoice=scopeVoice
 ScopeCall=scopeCall

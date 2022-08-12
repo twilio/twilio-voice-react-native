@@ -146,7 +146,7 @@
             kTwilioVoiceReactNativeState: [self stringWithIceCandidatePairState:iceCandidatePairStats.state],
             kTwilioVoiceReactNativeTotalRoundTripTime: @(iceCandidatePairStats.totalRoundTripTime),
             kTwilioVoiceReactNativeTransportId: iceCandidatePairStats.transportId,
-            kTwilioVoiceReactNativeWriteable: @(iceCandidatePairStats.writeable)
+            kTwilioVoiceReactNativeWriteable: @(iceCandidatePairStats.writable)
         }];
     }
 
