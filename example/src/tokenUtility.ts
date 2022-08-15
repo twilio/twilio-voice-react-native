@@ -1,4 +1,5 @@
-const twilio = require('twilio');
+import { Twilio } from 'twilio';
+
 const config = require('./config.json');
 
 const outgoingApplicationSid = config.prod.twimlAppSid;
