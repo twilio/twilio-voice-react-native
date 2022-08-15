@@ -4,7 +4,7 @@ import { init } from 'detox';
 
 const config = require('../package.json').detox;
 require('dotenv').config();
-jest.setTimeout(150000);
+jest.setTimeout(60000);
 
 beforeAll(async () => {
   await device.installApp();

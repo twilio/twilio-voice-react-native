@@ -1,4 +1,4 @@
-import { Twilio } from 'twilio';
+import twilio from 'twilio';
 
 const config = require('./config.json');
 
