@@ -1,5 +1,5 @@
-import twilio from 'twilio';
-
+const AccessToken = require('twilio').jwt.AccessToken;
+const VoiceGrant = AccessToken.VoiceGrant;
 const config = require('./config.json');
 
 const outgoingApplicationSid = config.prod.twimlAppSid;
@@ -9,7 +9,7 @@ const apiKeySecret = config.prod.apiKeySecret;
 const pushCredentialSid = config.prod.pushCredentialSid;
 
 export function generateAccessToken(identity: string) {
-  const accessToken = new twilio.jwt.AccessToken(
+  const accessToken = new AccessToken(
     accountSid,
     apiKeySid,
     apiKeySecret,
@@ -18,7 +18,7 @@ export function generateAccessToken(identity: string) {
     }
   );
 
-  const voiceGrant = new twilio.jwt.AccessToken.VoiceGrant({
+  const voiceGrant = new VoiceGrant({
     outgoingApplicationSid,
     pushCredentialSid,
   });
