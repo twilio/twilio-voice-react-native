@@ -71,7 +71,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            echo $E2E_CONFIG_FILE | base64 -D -o example/src/config.json
+            curl $ACCESS_TOKEN_URL > example/src/e2e-tests-token.txt
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -210,10 +210,6 @@ jobs:
       - checkout
       - install-dependencies
       - setup-detox-dependencies
-      - run:
-          name: Install util
-          command: |
-            npm install util
       - setup-e2e-creds
       - simulator-dependencies
       - setup-pods

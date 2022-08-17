@@ -16,7 +16,6 @@
     "@babel/core": "^7.12.10",
     "@babel/runtime": "^7.12.5",
     "@types/jest": "^27.0.2",
-    "@types/twilio": "^3.19.3",
     "babel-plugin-module-resolver": "^4.0.0",
     "detox-cli": "^19.0.0",
     "detox": "^19.8.2",
@@ -26,7 +25,6 @@
     "jest-html-reporter": "^3.4.1",
     "jest-junit": "^13.0.0",
     "metro-react-native-babel-preset": "^0.64.0",
-    "ts-jest": "^28.0.7",
-    "jsonwebtoken": "^8.5.1"
+    "ts-jest": "^28.0.7"
   }
 }
