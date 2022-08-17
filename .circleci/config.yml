@@ -41,10 +41,6 @@ commands:
   setup-pods:
     description: Setup pods used for ios builds
     steps:
-      - run:
-          name: "Install Cocoapods 1.11.2"
-          command: |
-            sudo gem install cocoapods -v 1.11.2
       - restore_cache:
           name: Restoring cocoapods cache
           key: pods-{{ checksum "example/ios/Podfile.lock" }}
@@ -215,10 +211,9 @@ jobs:
       - install-dependencies
       - setup-detox-dependencies
       - run:
+          name: Install util
           command: |
-            cd example
-            yarn install
-            cd ..
+            npm install util
       - setup-e2e-creds
       - simulator-dependencies
       - setup-pods
