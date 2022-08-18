@@ -226,7 +226,7 @@ export function useCallInvites(
 
 export function useVoice(token: string) {
   if (!token.length) {
-    token = generateAccessToken('voice-react-native-sdk-test');
+    token = generateAccessToken();
   }
 
   const voice = React.useMemo(() => new Voice(), []);
