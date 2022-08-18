@@ -284,7 +284,7 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs:
+  https://github.com/CocoaPods/Specs.git:
     - boost-for-react-native
     - TwilioVoice
 
@@ -375,6 +375,6 @@ SPEC CHECKSUMS:
   TwilioVoice: 577a3c58f77032a141a56c4050a8fb802618835c
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: f8628a11b536f59d888f5bd74b1db2f4591c26f3
+PODFILE CHECKSUM: 87aa3d0034e6c342eba8678e7fb81a16dc76f856
 
 COCOAPODS: 1.11.2
