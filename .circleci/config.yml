@@ -229,7 +229,6 @@ jobs:
       - setup-e2e-creds
       - simulator-dependencies
       - setup-pods
-      - clear-detox-cache
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
