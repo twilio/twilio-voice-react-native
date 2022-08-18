@@ -1,5 +1,10 @@
 version: 2.1
 
+orbs:
+  android: circleci/android@1.0.3
+  node: circleci/node@5.0.0
+  macos: circleci/macos@2
+
 ###
 # Parameters
 ###
@@ -72,6 +77,17 @@ commands:
           name: "Decode creds"
           command: |
             curl $ACCESS_TOKEN_URL > example/src/e2e-tests-token.txt
+  clear-detox-cache:
+    description: "Clears detox framework cache"
+    steps:
+      - run:
+          working_directory: .
+          name: Clear detox cache
+          command: |
+            cd example
+            detox clean-framework-cache
+            detox build-framework-cache
+            cd ../
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -213,6 +229,7 @@ jobs:
       - setup-e2e-creds
       - simulator-dependencies
       - setup-pods
+      - clear-detox-cache
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>

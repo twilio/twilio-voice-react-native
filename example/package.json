@@ -20,6 +20,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/runtime": "^7.12.5",
+    "@types/detox": "^17.14.0",
     "@types/jest": "^27.0.2",
     "babel-plugin-module-resolver": "^4.0.0",
     "detox-cli": "^19.0.0",
