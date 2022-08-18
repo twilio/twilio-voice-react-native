@@ -224,11 +224,11 @@ jobs:
         type: string
     steps:
       - checkout
-      - install-dependencies
-      - setup-detox-dependencies
       - setup-e2e-creds
-      - simulator-dependencies
+      - setup-detox-dependencies
+      - install-dependencies
       - setup-pods
+      - simulator-dependencies
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
