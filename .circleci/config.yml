@@ -213,8 +213,6 @@ jobs:
       - setup-e2e-creds
       - simulator-dependencies
       - setup-pods
-      - run:
-          command: npm install fs
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
