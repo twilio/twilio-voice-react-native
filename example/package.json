@@ -8,10 +8,13 @@
     "ios": "react-native run-ios",
     "start": "react-native start"
   },
+  "resolutions": {
+    "@types/react-native": "0.63.37"
+  },
   "dependencies": {
     "fs": "0.0.1-security",
     "react": "16.13.1",
-    "react-native": "0.63.4"
+    "react-native": "0.66.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
@@ -25,7 +28,7 @@
     "jest-circus": "^27.2.4",
     "jest-html-reporter": "^3.4.1",
     "jest-junit": "^13.0.0",
-    "metro-react-native-babel-preset": "^0.64.0",
+    "metro-react-native-babel-preset": "^0.66.2",
     "ts-jest": "^28.0.7"
   }
 }
