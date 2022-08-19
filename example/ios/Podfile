@@ -9,7 +9,7 @@ target 'TwilioVoiceReactNativeExample' do
   use_react_native!(:path => config["reactNativePath"])
 
   pod 'twilio-voice-react-native', :path => '../..'
-  pod 'TwilioVoice', '6.4.0'
+  pod 'TwilioVoice', '~> 6.4'
 
   post_install do |installer|
     installer.pods_project.targets.each do |target|

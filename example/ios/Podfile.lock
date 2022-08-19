@@ -316,7 +316,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNFS (from `../node_modules/react-native-fs`)
   - twilio-voice-react-native (from `../..`)
-  - TwilioVoice (= 6.4.0)
+  - TwilioVoice (~> 6.4)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -426,6 +426,6 @@ SPEC CHECKSUMS:
   TwilioVoice: a5e54e522af8ee24f3fb1797ac26ef9ac5ca5bb7
   Yoga: c11abbf5809216c91fcd62f5571078b83d9b6720
 
-PODFILE CHECKSUM: dbc0a26d3b55c4b74fee6bbb41d346d8aba67603
+PODFILE CHECKSUM: b3313ef49136940b2f35050c9a35888ff2692afa
 
 COCOAPODS: 1.11.2
