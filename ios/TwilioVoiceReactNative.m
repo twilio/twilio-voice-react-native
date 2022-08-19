@@ -429,7 +429,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-#if TARGET_IPHONE_SIMULATOR && E2E_FAKE_DEVICE_TOKEN
+#if TARGET_IPHONE_SIMULATOR
     if (!self.deviceTokenData) {
         NSString *testDeviceToken = @"deadbeefdeadbeefdeadbeefdeadbeef";
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
@@ -456,7 +456,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-#if TARGET_IPHONE_SIMULATOR && E2E_FAKE_DEVICE_TOKEN
+#if TARGET_IPHONE_SIMULATOR
     if (!self.deviceTokenData) {
         NSString *testDeviceToken = @"deadbeefdeadbeefdeadbeefdeadbeef";
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
