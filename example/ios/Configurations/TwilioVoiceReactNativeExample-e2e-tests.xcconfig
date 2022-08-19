@@ -1,0 +1,6 @@
+//
+//  TwilioVoiceReactNativeExample-e2e-tests.xcconfig
+//
+//
+
+OTHER_CFLAGS[sdk=iphonesimulator*] = -DE2E_FAKE_DEVICE_TOKEN
