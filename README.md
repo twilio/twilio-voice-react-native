@@ -1,60 +1,45 @@
-# twilio-voice-react-native
+# Twilio Voice React Native SDK
 
-Twilio Voice React Native SDK
+Twilio's Voice React Native SDK allows you to add real-time voice and PSTN calling to your React Native apps.
+
+Please check out the following if you are new to Twilio's Programmable Voice or React Native. Or contact [help@twilio.com](mailto:help@twilio.com) if you need technical support.
+
+- [Programmable Voice](https://www.twilio.com/docs/voice)
+- [React Native](https://reactnative.dev/docs/getting-started)
+
+## Prerequisites
+
+### Incoming Calls
+
+To allow for incoming calls, you need to create a push credential for [Android](https://github.com/twilio/voice-quickstart-android/blob/master/Docs/manage-push-credentials.md) and [iOS](https://github.com/twilio/voice-quickstart-ios#6-create-a-push-credential-with-your-voip-service-certificate). Additionally, for Android, you need to download the `google-services.json` file from the Firebase console and place it under `/app` directory.
+
+### Access Tokens
+
+An Access Token is required to make outgoing calls or receive incoming calls. Please check out this [page](https://www.twilio.com/docs/iam/access-tokens#create-an-access-token-for-voice) for more details on creating Access Tokens.
 
 ## Installation
 
 ```sh
-npm install twilio-voice-react-native
-```
-
-### Android Installation
-
-* For incoming call, you need to create a push credential. Follow the details [here](https://github.com/twilio/voice-quickstart-android/blob/master/Docs/manage-push-credentials.md) to get started.
-* You need to download the file `google-services.json` from the Firebase console and place it under `/app` directory for registration for incoming call to work.
-
-## Building Constants
-
-The `build:constants` script within `package.json` will build the constants files for each platform.
-This step needs to be done if a constant is changed or added, or if a constant language-template is changed.
-
-```sh
-npm run build:constants
-
-# Or using `yarn`...
-
-yarn run build:constants
+npm install @twilio/voice-react-native-sdk
 ```
 
 ## Usage
 
-```js
-import { Voice } from "twilio-voice-react-native";
+Please refer to the [API Docs](docs/twilio-voice-react-native.md) for more information. Or try running the [example app](example).
 
-const token = ...;
+```ts
+import { Voice } from '@twilio/voice-react-native-sdk';
+
+const token = getAccessToken();
 const voice = new Voice();
+
+// Allow incoming calls
 await voice.register(token);
-const call = await voice.connect(...);
+
+// Make an outgoing call
+const call = await voice.connect(token, params);
 ```
-
-## Running the Example App
-
-Please ensure that your development environment is set up properly for React Native.
-
-See this page for more information: [React Native Docs](https://reactnative.dev/docs/0.63/environment-setup).
-
-All dependencies under `React Native Native CLI Quickstart` need to be installed to run the example app.
-
-After cloning this repository, please run `yarn` (see this page for more information [Yarn Getting Started](https://yarnpkg.com/getting-started)) to bootstrap the project.
-
-Then, perform `yarn run build:constants`.
-
-Then, the example app can be started using `yarn example android` or `yarn example ios`. If the example app is installed or started without using `yarn example {android | ios}` then the Metro bundler will need to be started separately by using `yarn example start`.
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
 
 ## License
 
-MIT
+See [LICENSE.md](LICENSE.md)
