@@ -55,7 +55,6 @@
 		8F19C42E2683E50100F765F1 /* TwilioVoiceReactNativeExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TwilioVoiceReactNativeExample.entitlements; path = TwilioVoiceReactNativeExample/TwilioVoiceReactNativeExample.entitlements; sourceTree = "<group>"; };
 		8F2B5A0128936EAB0089A973 /* TwilioVoice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TwilioVoice.xcframework; path = Pods/TwilioVoice/TwilioVoice.xcframework; sourceTree = "<group>"; };
 		8F30769F26F01A490096F858 /* ringtone.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringtone.wav; sourceTree = "<group>"; };
-		8FCB0C0628B0125000455507 /* TwilioVoiceReactNativeExample-e2e-tests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "TwilioVoiceReactNativeExample-e2e-tests.xcconfig"; sourceTree = "<group>"; };
 		CA3E69C5B9553B26FBA2DF04 /* libPods-TwilioVoiceReactNativeExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TwilioVoiceReactNativeExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00ACF0FDA8BF921659E2F9A /* Pods-TwilioVoiceReactNativeExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwilioVoiceReactNativeExample.release.xcconfig"; path = "Target Support Files/Pods-TwilioVoiceReactNativeExample/Pods-TwilioVoiceReactNativeExample.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -159,7 +158,6 @@
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* TwilioVoiceReactNativeExample */,
-				8FCB0C0528B0120A00455507 /* Configurations */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* TwilioVoiceReactNativeExampleTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -180,14 +178,6 @@
 				2D02E4901E0B4A5D006451C7 /* TwilioVoiceReactNativeExample-tvOSTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		8FCB0C0528B0120A00455507 /* Configurations */ = {
-			isa = PBXGroup;
-			children = (
-				8FCB0C0628B0125000455507 /* TwilioVoiceReactNativeExample-e2e-tests.xcconfig */,
-			);
-			path = Configurations;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
