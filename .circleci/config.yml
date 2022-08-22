@@ -46,6 +46,10 @@ commands:
   setup-pods:
     description: Setup pods used for ios builds
     steps:
+      - run:
+          name: "Install Cocoapods 1.11.2"
+          command: |
+            sudo gem install cocoapods -v 1.11.2
       - restore_cache:
           name: Restoring cocoapods cache
           key: pods-{{ checksum "example/ios/Podfile.lock" }}
