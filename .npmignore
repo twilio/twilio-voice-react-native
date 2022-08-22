@@ -1,0 +1,5 @@
+.circleci
+coverage
+docs
+node_modules
+temp
