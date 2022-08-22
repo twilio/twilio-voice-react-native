@@ -20,7 +20,7 @@ An Access Token is required to make outgoing calls or receive incoming calls. Pl
 ## Installation
 
 ```sh
-npm install @twilio/voice-react-native-sdk
+yarn add @twilio/voice-react-native-sdk
 ```
 
 ## Usage
