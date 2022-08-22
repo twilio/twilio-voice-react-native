@@ -1,7 +1,5 @@
-var RNFS = require('react-native-fs');
-const tokenString = RNFS.readFile('./e2e-tests-token.txt', 'utf-8');
+import { token } from './e2e-tests-token';
 
 export function generateAccessToken() {
-  console.log(tokenString);
-  return tokenString;
+  return token;
 }

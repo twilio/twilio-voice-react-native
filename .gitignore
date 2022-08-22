@@ -76,3 +76,4 @@ types/
 
 # e2e tests
 example/src/config.json
+example/src/e2e-tests-token.ts

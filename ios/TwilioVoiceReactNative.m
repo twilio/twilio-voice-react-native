@@ -438,8 +438,6 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
     
     NSString *testDeviceToken = @"deadbeefdeadbeefdeadbeefdeadbeef";
     self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
-    
-    accessToken = @"temp_fake_token";
 
     [TwilioVoiceSDK registerWithAccessToken:accessToken
                                 deviceToken:self.deviceTokenData

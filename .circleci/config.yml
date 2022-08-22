@@ -76,7 +76,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            curl $ACCESS_TOKEN_URL > example/src/e2e-tests-token.txt
+            echo "const export const token ='$(curl $ACCESS_TOKEN_URL)'" >> example/src/e2e-tests-token.ts
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
