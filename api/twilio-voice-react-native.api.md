@@ -44,15 +44,14 @@ export namespace AudioDevice {
 
 // @public
 export interface Call {
-    addEventListener(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+    addEventListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     addEventListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
     addEventListener(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
     addEventListener(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
     addEventListener(reconnectedEvent: Call.Event.Reconnected, listener: Call.Listener.Reconnected): this;
     addEventListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
     addEventListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
-    // Warning: (ae-forgotten-export) The symbol "NativeCallQualityWarnings" needs to be exported by the entry point index.d.ts
-    addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void): this;
+    addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
     // @internal (undocumented)
@@ -67,7 +66,7 @@ export interface Call {
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
     emit(callEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
-    on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+    on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
     on(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
     on(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
@@ -127,7 +126,7 @@ export namespace Call {
         export type ConnectFailure = (error: GenericError) => void;
         export type Disconnected = (error?: GenericError) => void;
         export type Generic = (...args: any[]) => void;
-        export type QualityWarningsChanged = (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void;
+        export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
         export type Reconnected = () => void;
         export type Reconnecting = (error: GenericError) => void;
         export type Ringing = () => void;
@@ -472,7 +471,5 @@ export namespace Voice {
         nativeModule: typeof TwilioVoiceReactNative;
     }
 }
-
-// (No @packageDocumentation comment for this package)
 
 ```

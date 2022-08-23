@@ -10,7 +10,6 @@ import { NativeEventEmitter } from 'react-native';
 import { TwilioVoiceReactNative } from './common';
 import { Constants } from './constants';
 import type {
-  NativeCallQualityWarnings,
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
@@ -20,11 +19,15 @@ import type { RTCStats } from './';
 import { GenericError } from './error/GenericError';
 
 /**
- * Strict typings for all events emitted by {@link (Call:class) | Call objects}.
+ * Defines strict typings for all events emitted by {@link (Call:class)
+ * | Call objects}.
  *
  * @remarks
  * Note that the `on` function is an alias for the `addEventListener` function.
  * They share identical functionality and either may be used interchangeably.
+ *
+ * - See also the {@link (Call:class) | Call class}.
+ * - See also the {@link (Call:namespace) | Call namespace}.
  *
  * @public
  */
@@ -84,15 +87,23 @@ export declare interface Call {
    */
   addEventListener(
     callEvent: Call.Event,
-    listener: (...args: any[]) => void
+    listener: Call.Listener.Generic
   ): this;
   /**
    * {@inheritDoc (Call:interface).(addEventListener:1)}
    */
-  on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+  on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 
   /**
    * Connected event. Raised when the call has successfully connected.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.Connected, () => {
+   *   // call has been connected
+   * });
+   * ```
+   *
    * @param connectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -112,6 +123,14 @@ export declare interface Call {
 
   /**
    * Connect failure event. Raised when the call has failed to connect.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.ConnectFailure, (error) => {
+   *   // call was unable to connect, handle error
+   * });
+   * ```
+   *
    * @param connectFailureEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -131,6 +150,14 @@ export declare interface Call {
 
   /**
    * Reconnecting event. Raised when the call is reconnecting.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.Reconnecting, (error) => {
+   *   // call is attempting to reconnect, handle error
+   * });
+   * ```
+   *
    * @param reconnectingEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -150,6 +177,14 @@ export declare interface Call {
 
   /**
    * Reconnected event. Raised when the call has recovered and reconnected.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.Reconnected, () => {
+   *   // call has reconnected
+   * });
+   * ```
+   *
    * @param reconnectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -176,6 +211,15 @@ export declare interface Call {
    * an issue that has caused the call to disconnect, then the error parameter
    * will be defined, otherwise it will be undefined.
    *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.Disconnected, (error) => {
+   *   // call has disconnected
+   *   // if a natural disconnect occurred, then error is `undefined`
+   *   // if an unnatural disconnect occurred, then error is defined
+   * });
+   * ```
+   *
    * @param disconnectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -195,6 +239,14 @@ export declare interface Call {
 
   /**
    * Ringing event. Raised when the call has begun to ring.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(Call.Event.Ringing, () => {
+   *   // call is ringing
+   * });
+   * ```
+   *
    * @param ringingEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -213,6 +265,20 @@ export declare interface Call {
    * Quality warnings changed event. Raised when a call quality warning is set
    * or unset. All "ongoing" call quality warnings are passed to the invoked
    * listener function.
+   *
+   * @example
+   * ```typescript
+   * call.addEventListener(
+   *   Call.Event.QualityWarningsChanged,
+   *   (
+   *      currentWarnings: Call.QualityWarning[],
+   *      previousWarnings: Call.QualityWarning[]
+   *   ) => {
+   *     // call quality warnings have changed
+   *   }
+   * );
+   * ```
+   *
    * @param qualityWarningsChangedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -220,10 +286,7 @@ export declare interface Call {
    */
   addEventListener(
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
-    listener: (
-      currentQualityWarnings: NativeCallQualityWarnings,
-      previousQualityWarnings: NativeCallQualityWarnings
-    ) => void
+    listener: Call.Listener.QualityWarningsChanged
   ): this;
   /**
    * {@inheritDoc (Call:interface).(addEventListener:8)}
@@ -240,9 +303,20 @@ export declare interface Call {
  * holding.
  *
  * @remarks
- *  - See the {@link (Call:interface) | Call interface} for events emitted by
- *    this class and their typings.
+ * Note that the call information is fetched as soon as possible from the native
+ * layer, but there is no guarantee that all information is immediately
+ * available. Methods such as `Call.getFrom()` or `Call.getTo()` may return
+ * `undefined`.
  *
+ * As call events are received from the native layer, call information will
+ * propogate from the native layer to the JS layer and become available.
+ * Therefore, it is good practice to read information from the call after an
+ * event occurs, or as events occur.
+ *
+ *  - See the {@link (Call:namespace).Event} enum for events emitted by `Call`
+ *    objects.
+ *  - See the {@link (Call:interface) | Call interface} for overloaded event
+ *    listening methods.
  *  - See the {@link (Call:namespace) | Call namespace} for types and
  *    enumerations used by this class.
  *
@@ -572,35 +646,33 @@ export class Call extends EventEmitter {
   };
 
   /**
-   * Disconnect the call.
+   * Disconnect this side of the call.
    * @returns
-   *  - Resolves when the call has disconnected.
+   *  A `Promise` that
+   *    - Resolves when the call has disconnected.
+   *    - Rejects if the native layer cannot disconnect the call.
    */
   disconnect(): Promise<void> {
     return this._nativeModule.call_disconnect(this._uuid);
   }
 
   /**
-   * Return an optional boolean representing whether or not the call is muted.
-   *
-   * @remarks
-   * Could possibly return `undefined` if the call state has not yet been
-   * received from the native layer.
-   *
-   * @returns - An optional boolean representing the muted status of the call.
+   * Get the mute status of this side of the call.
+   * @returns
+   *  - A boolean representing the muted status of the call.
+   *  - `undefined` if the call state has not yet been received from the native
+   *    layer.
    */
   isMuted(): boolean | undefined {
     return this._isMuted;
   }
 
   /**
-   * Return an optional boolean representing whether or not the call is on hold.
-   *
-   * @remarks
-   * Could possibly return `undefined` if the call state has not yet been
-   * received from the native layer.
-   *
-   * @returns - An optional boolean representing the hold status of the call.
+   * Get the hold status of this side of the call.
+   * @returns
+   *  - A boolean representing the hold status of the call.
+   *  - `undefined` if the call state has not yet been received from the native
+   *    layer.
    */
   isOnHold(): boolean | undefined {
     return this._isOnHold;
@@ -608,7 +680,8 @@ export class Call extends EventEmitter {
 
   /**
    * Return a `Record` of custom parameters given to this call.
-   * @returns - A `Record` of custom parameters.
+   * @returns
+   *   - A `Record` of custom parameters.
    */
   getCustomParameters(): CustomParameters {
     return this._customParameters;
@@ -616,12 +689,10 @@ export class Call extends EventEmitter {
 
   /**
    * Get the value of the `from` parameter given to this call.
-   *
-   * @remarks
-   * The string returned by this function is possibly `undefined` if the call
-   * information has not yet been received from the native layer.
-   *
-   * @returns - An optional `String` representing the `from` parameter.
+   * @returns
+   *  - A `String` representing the `from` parameter.
+   *  - `undefined` if the call information has not yet been received from the
+   *    native layer.
    */
   getFrom(): string | undefined {
     return this._from;
@@ -629,30 +700,33 @@ export class Call extends EventEmitter {
 
   /**
    * Get the call `SID`.
-   *
-   * @remarks
-   * The string returned by this function is possibly `undefined` if the call
-   * information has not yet been received from the native layer.
-   *
-   * @returns - An optional `String` representing the `SID`.
+   * @returns
+   *  - A `String` representing the `SID` of the call.
+   *  - `undefined` if the call information has not yet been received from the
+   *    native layer.
    */
   getSid(): string | undefined {
     return this._sid;
   }
 
   /**
-   * Get the call state.
-   * @returns - A {@link (Call:namespace).State}.
+   * Get the state of the call object, such as {@link (Call:namespace).State.Connected} or
+   * {@link (Call:namespace).State.Disconnected}.
+   * @returns
+   *  - A {@link (Call:namespace).State}.
    */
   getState(): Call.State {
     return this._state;
   }
 
   /**
-   * Gets the PeerConnection WebRTC stats for the ongoing call.
+   * Gets the `PeerConnection` `WebRTC` stats for the ongoing call.
    * @returns
-   *  - Resolves with a {@link RTCStats.StatsReport} object representing the WebRTC
-   *    PeerConnection stats of a call.
+   *  A `Promise` that
+   *    - Resolves with a {@link RTCStats.StatsReport} object representing the
+   *      `WebRTC` `PeerConnection` stats of a call.
+   *    - Rejects when a {@link RTCStats.StatsReport} cannot be generated for a
+   *      call.
    */
   getStats(): Promise<RTCStats.StatsReport> {
     return this._nativeModule.call_getStats(this._uuid);
@@ -660,22 +734,37 @@ export class Call extends EventEmitter {
 
   /**
    * Get the value of the `to` parameter given to this call.
-   *
-   * @remarks
-   * The string returned by this function is possibly `undefined` if the call
-   * information has not yet been received from the native layer.
-   *
-   * @returns - An optional `String` representing the `to` parameter.
+   * @returns
+   *  - A `String` representing the `to` parameter.
+   *  - `undefined` if the call information has not yet been received from the
+   *    native layer.
    */
   getTo(): string | undefined {
     return this._to;
   }
 
   /**
-   * Set the hold status of the call.
-   * @param hold - A boolean representing the hold status of the call.
+   * Put this end of the call on hold or not on hold.
+   *
+   * @example
+   * To put a call on hold
+   * ```typescript
+   * call.hold(true);
+   * ```
+   * @example
+   * To take a call off hold
+   * ```typescript
+   * call.hold(false);
+   * ```
+   *
+   * @param hold - A `boolean` representing whether or not to put this end of
+   *  the call on hold.
+   *
    * @returns
-   *  - Resolves with the hold status when the hold status of the call is set.
+   *  A `Promise` that
+   *    - Resolves with the hold status when the call is put on hold or not on
+   *      hold.
+   *    - Rejects when the call is not able to be put on hold or not on hold.
    */
   async hold(hold: boolean): Promise<boolean> {
     this._isOnHold = await this._nativeModule.call_hold(this._uuid, hold);
@@ -683,10 +772,28 @@ export class Call extends EventEmitter {
   }
 
   /**
-   * Set the mute status of the call.
-   * @param mute - A boolean representing the mute status of the call.
+   * Mute or unmute this end of the call.
+   *
+   * @example
+   * To mute a call
+   * ```typescript
+   * call.mute(true);
+   * ```
+   *
+   * @example
+   * To unmute a call
+   * ```typescript
+   * call.mute(false);
+   * ```
+   *
+   * @param mute - A `boolean` representing whether or not to mute this end of
+   *  the call.
+   *
    * @returns
-   *  - Resolves with the mute status when the mute status of the call is set.
+   *  A `Promise` that
+   *    - Resolves with the muted status of the call when the call is muted or
+   *      unmuted.
+   *    - Rejects when the call is not able to be muted or unmuted.
    */
   async mute(mute: boolean): Promise<boolean> {
     this._isMuted = await this._nativeModule.call_mute(this._uuid, mute);
@@ -697,20 +804,23 @@ export class Call extends EventEmitter {
    * Send DTMF digits.
    *
    * @example
-   * To imitate pressing just `0` on the dialpad:
-   * ```
+   * To send the `0` dialtone:
+   * ```typescript
    * call.sendDigits('0');
    * ```
    *
    * @example
-   * To imitate pressing `0` then `1` on the dialpad:
-   * ```
+   * To send the `0` and then `1` dialtone:
+   * ```typescript
    * call.sendDigits('01');
    * ```
    *
    * @param digits - A sequence of DTMF digits in a string.
+   *
    * @returns
-   *  - Resolves when the DTMF digits have been sent.
+   *  A `Promise` that
+   *    - Resolves when the DTMF digits have been sent.
+   *    - Rejects when DTMF tones are not able to be sent.
    */
   sendDigits(digits: string): Promise<void> {
     return this._nativeModule.call_sendDigits(this._uuid, digits);
@@ -721,7 +831,7 @@ export class Call extends EventEmitter {
    *
    * @example
    * To report that a call had very significant audio latency:
-   * ```
+   * ```typescript
    * call.postFeedback(Call.Score.Five, Call.Issue.AudioLatency);
    * ```
    *
@@ -729,7 +839,9 @@ export class Call extends EventEmitter {
    * reported.
    * @param issue - The issue being reported.
    * @returns
-   *  - Resolves when the feedback has been posted.
+   *  A `Promise` that
+   *    - Resolves when the feedback has been posted.
+   *    - Rejects when the feedback is unable to be sent.
    */
   postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
     return this._nativeModule.call_postFeedback(this._uuid, score, issue);
@@ -740,6 +852,10 @@ export class Call extends EventEmitter {
  * Namespace for enumerations and types used by
  * {@link (Call:class) | Call objects}.
  *
+ * @remarks
+ *  - See also the {@link (Call:class) | Call class}.
+ *  - See also the {@link (Call:interface) | Call interface}.
+ *
  * @public
  */
 export namespace Call {
@@ -749,56 +865,42 @@ export namespace Call {
   export enum Event {
     /**
      * Event string for the `Connected` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:2)}.
      */
     'Connected' = 'connected',
 
     /**
      * Event string for the `ConnectedFailure` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:3)}.
      */
     'ConnectFailure' = 'connectFailure',
 
     /**
      * Event string for the `Reconnecting` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:4)}.
      */
     'Reconnecting' = 'reconnecting',
 
     /**
      * Event string for the `Reconnected` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:5)}.
      */
     'Reconnected' = 'reconnected',
 
     /**
      * Event string for the `Disconnected` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:6)}.
      */
     'Disconnected' = 'disconnected',
 
     /**
      * Event string for the `Ringing` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:7)}.
      */
     'Ringing' = 'ringing',
 
     /**
      * Event string for the `QualityWarningsChanged` event.
-     *
-     * @remarks
      * See {@link (Call:interface).(addEventListener:8)}.
      */
     'QualityWarningsChanged' = 'qualityWarningsChanged',
@@ -1073,8 +1175,8 @@ export namespace Call {
      * See {@link (Call:interface).(addEventListener:8)}.
      */
     export type QualityWarningsChanged = (
-      currentQualityWarnings: NativeCallQualityWarnings,
-      previousQualityWarnings: NativeCallQualityWarnings
+      currentQualityWarnings: Call.QualityWarning[],
+      previousQualityWarnings: Call.QualityWarning[]
     ) => void;
   }
 }

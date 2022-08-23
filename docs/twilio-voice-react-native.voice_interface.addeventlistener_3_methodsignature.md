@@ -29,3 +29,12 @@ this
 
 This event is raised when call invites are accepted outside of the SDK, i.e. through the native iOS or Android UI.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.CallInviteAccepted, (callInvite: CallInvite, call: Call) => {
+  // handle the incoming call invite and the call associated with it
+});
+```
+

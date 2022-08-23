@@ -4,7 +4,7 @@
 
 ## AudioDevice.Type enum
 
-Audio device type enumeration. Describes all possible audio device types as reported by the native layer.
+Audio device type enumeration. Describes all possible audio device types as reportable by the native layer.
 
 <b>Signature:</b>
 

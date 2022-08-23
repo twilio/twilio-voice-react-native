@@ -27,7 +27,7 @@
     "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
-    "build:doc": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
+    "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
@@ -92,7 +92,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn run check && yarn run build:doc"
+      "pre-commit": "yarn run check && yarn run build:docs"
     }
   },
   "commitlint": {

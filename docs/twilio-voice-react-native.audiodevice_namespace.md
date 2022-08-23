@@ -4,7 +4,7 @@
 
 ## AudioDevice namespace
 
-Audio device namespace. Contains interfaces and enumerations associated with audio devices.
+Contains interfaces and enumerations associated with audio devices.
 
 <b>Signature:</b>
 
@@ -12,9 +12,13 @@ Audio device namespace. Contains interfaces and enumerations associated with aud
 export declare namespace AudioDevice 
 ```
 
+## Remarks
+
+- See also the [AudioDevice class](./twilio-voice-react-native.audiodevice_class.md)<!-- -->.
+
 ## Enumerations
 
 |  Enumeration | Description |
 |  --- | --- |
-|  [Type](./twilio-voice-react-native.audiodevice_namespace.type_enum.md) | Audio device type enumeration. Describes all possible audio device types as reported by the native layer. |
+|  [Type](./twilio-voice-react-native.audiodevice_namespace.type_enum.md) | Audio device type enumeration. Describes all possible audio device types as reportable by the native layer. |
 

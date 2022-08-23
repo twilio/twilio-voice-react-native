@@ -15,9 +15,11 @@ export declare class Call extends EventEmitter
 
 ## Remarks
 
-- See the [Call interface](./twilio-voice-react-native.call_interface.md) for events emitted by this class and their typings.
+Note that the call information is fetched as soon as possible from the native layer, but there is no guarantee that all information is immediately available. Methods such as `Call.getFrom()` or `Call.getTo()` may return `undefined`<!-- -->.
 
-- See the [Call namespace](./twilio-voice-react-native.call_namespace.md) for types and enumerations used by this class.
+As call events are received from the native layer, call information will propogate from the native layer to the JS layer and become available. Therefore, it is good practice to read information from the call after an event occurs, or as events occur.
+
+- See the [Call.Event](./twilio-voice-react-native.call_namespace.event_enum.md) enum for events emitted by `Call` objects. - See the [Call interface](./twilio-voice-react-native.call_interface.md) for overloaded event listening methods. - See the [Call namespace](./twilio-voice-react-native.call_namespace.md) for types and enumerations used by this class.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `Call` class.
 
@@ -25,17 +27,17 @@ The constructor for this class is marked as internal. Third-party code should no
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [disconnect()](./twilio-voice-react-native.call_class.disconnect_method.md) |  | Disconnect the call. |
+|  [disconnect()](./twilio-voice-react-native.call_class.disconnect_method.md) |  | Disconnect this side of the call. |
 |  [getCustomParameters()](./twilio-voice-react-native.call_class.getcustomparameters_method.md) |  | Return a <code>Record</code> of custom parameters given to this call. |
 |  [getFrom()](./twilio-voice-react-native.call_class.getfrom_method.md) |  | Get the value of the <code>from</code> parameter given to this call. |
 |  [getSid()](./twilio-voice-react-native.call_class.getsid_method.md) |  | Get the call <code>SID</code>. |
-|  [getState()](./twilio-voice-react-native.call_class.getstate_method.md) |  | Get the call state. |
-|  [getStats()](./twilio-voice-react-native.call_class.getstats_method.md) |  | Gets the PeerConnection WebRTC stats for the ongoing call. |
+|  [getState()](./twilio-voice-react-native.call_class.getstate_method.md) |  | Get the state of the call object, such as [Call.State.Connected](./twilio-voice-react-native.call_namespace.state_enum.md) or [Call.State.Disconnected](./twilio-voice-react-native.call_namespace.state_enum.md)<!-- -->. |
+|  [getStats()](./twilio-voice-react-native.call_class.getstats_method.md) |  | Gets the <code>PeerConnection</code> <code>WebRTC</code> stats for the ongoing call. |
 |  [getTo()](./twilio-voice-react-native.call_class.getto_method.md) |  | Get the value of the <code>to</code> parameter given to this call. |
-|  [hold(hold)](./twilio-voice-react-native.call_class.hold_method.md) |  | Set the hold status of the call. |
-|  [isMuted()](./twilio-voice-react-native.call_class.ismuted_method.md) |  | Return an optional boolean representing whether or not the call is muted. |
-|  [isOnHold()](./twilio-voice-react-native.call_class.isonhold_method.md) |  | Return an optional boolean representing whether or not the call is on hold. |
-|  [mute(mute)](./twilio-voice-react-native.call_class.mute_method.md) |  | Set the mute status of the call. |
+|  [hold(hold)](./twilio-voice-react-native.call_class.hold_method.md) |  | Put this end of the call on hold or not on hold. |
+|  [isMuted()](./twilio-voice-react-native.call_class.ismuted_method.md) |  | Get the mute status of this side of the call. |
+|  [isOnHold()](./twilio-voice-react-native.call_class.isonhold_method.md) |  | Get the hold status of this side of the call. |
+|  [mute(mute)](./twilio-voice-react-native.call_class.mute_method.md) |  | Mute or unmute this end of the call. |
 |  [postFeedback(score, issue)](./twilio-voice-react-native.call_class.postfeedback_method.md) |  | Post feedback about a call. |
 |  [sendDigits(digits)](./twilio-voice-react-native.call_class.senddigits_method.md) |  | Send DTMF digits. |
 

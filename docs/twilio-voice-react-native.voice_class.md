@@ -15,9 +15,7 @@ export declare class Voice extends EventEmitter
 
 ## Remarks
 
-- See the [Voice interface](./twilio-voice-react-native.voice_interface.md) for events emitted by this class and their typings.
-
-- See the [Call namespace](./twilio-voice-react-native.voice_namespace.md) for types and enumerations used by this class.
+- See also the [Voice.Event](./twilio-voice-react-native.voice_namespace.event_enum.md) enum for events emitted by `Voice` objects. - See also the [Voice interface](./twilio-voice-react-native.voice_interface.md) for events emitted by this class and associated types. - See also the [Voice namespace](./twilio-voice-react-native.voice_namespace.md) for types and enumerations used by this class.
 
 ## Example
 
@@ -28,7 +26,7 @@ const token = '...';
 
 const voice = new Voice();
 
-voice.on(Voice.Events.CallInvite, (callInvite: CallInvite) => {
+voice.on(Voice.Event.CallInvite, (callInvite: CallInvite) => {
   callInvite.accept();
 });
 

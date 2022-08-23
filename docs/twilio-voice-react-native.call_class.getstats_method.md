@@ -4,7 +4,7 @@
 
 ## Call.getStats() method
 
-Gets the PeerConnection WebRTC stats for the ongoing call.
+Gets the `PeerConnection` `WebRTC` stats for the ongoing call.
 
 <b>Signature:</b>
 
@@ -15,5 +15,5 @@ getStats(): Promise<RTCStats.StatsReport>;
 
 Promise&lt;[RTCStats.StatsReport](./twilio-voice-react-native.rtcstats_namespace.statsreport_interface.md)<!-- -->&gt;
 
-- Resolves with a [RTCStats.StatsReport](./twilio-voice-react-native.rtcstats_namespace.statsreport_interface.md) object representing the WebRTC PeerConnection stats of a call.
+A `Promise` that - Resolves with a [RTCStats.StatsReport](./twilio-voice-react-native.rtcstats_namespace.statsreport_interface.md) object representing the `WebRTC` `PeerConnection` stats of a call. - Rejects when a [RTCStats.StatsReport](./twilio-voice-react-native.rtcstats_namespace.statsreport_interface.md) cannot be generated for a call.
 

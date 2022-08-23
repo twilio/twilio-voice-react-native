@@ -9,7 +9,7 @@ Generic event listener typings.
 <b>Signature:</b>
 
 ```typescript
-on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
+on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 ```
 
 ## Parameters
@@ -17,7 +17,7 @@ on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  callEvent | [Call.Event](./twilio-voice-react-native.call_namespace.event_enum.md) | The raised event string. |
-|  listener | (...args: any\[\]) =&gt; void | A listener function that will be invoked when the event is raised. |
+|  listener | [Call.Listener.Generic](./twilio-voice-react-native.call_namespace.listener_namespace.generic_typealias.md) | A listener function that will be invoked when the event is raised. |
 
 <b>Returns:</b>
 

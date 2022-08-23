@@ -4,7 +4,7 @@
 
 ## Call.disconnect() method
 
-Disconnect the call.
+Disconnect this side of the call.
 
 <b>Signature:</b>
 
@@ -15,5 +15,5 @@ disconnect(): Promise<void>;
 
 Promise&lt;void&gt;
 
-- Resolves when the call has disconnected.
+A `Promise` that - Resolves when the call has disconnected. - Rejects if the native layer cannot disconnect the call.
 

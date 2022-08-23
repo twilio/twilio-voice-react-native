@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+call.addEventListener(Call.Event.Ringing, () => {
+  // call is ringing
+});
+```
+

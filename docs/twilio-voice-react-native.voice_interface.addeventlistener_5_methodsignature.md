@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.CancelledCallInvite, (cancelledCallInvite: CancelledCallInvite) => {
+  // handle the cancellation of the incoming call invite
+});
+```
+

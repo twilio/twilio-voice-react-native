@@ -15,9 +15,5 @@ getSid(): string | undefined;
 
 string \| undefined
 
-- An optional `String` representing the `SID`<!-- -->.
-
-## Remarks
-
-The string returned by this function is possibly `undefined` if the call information has not yet been received from the native layer.
+- A `String` representing the `SID` of the call. - `undefined` if the call information has not yet been received from the native layer.
 

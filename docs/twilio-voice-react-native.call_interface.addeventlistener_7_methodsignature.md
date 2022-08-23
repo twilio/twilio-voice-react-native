@@ -9,7 +9,7 @@ Quality warnings changed event. Raised when a call quality warning is set or uns
 <b>Signature:</b>
 
 ```typescript
-addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void): this;
+addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
 ```
 
 ## Parameters
@@ -17,11 +17,26 @@ addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  qualityWarningsChangedEvent | [Call.Event.QualityWarningsChanged](./twilio-voice-react-native.call_namespace.event_enum.md) | The raised event string. |
-|  listener | (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) =&gt; void | A listener function that will be invoked when the event is raised. |
+|  listener | [Call.Listener.QualityWarningsChanged](./twilio-voice-react-native.call_namespace.listener_namespace.qualitywarningschanged_typealias.md) | A listener function that will be invoked when the event is raised. |
 
 <b>Returns:</b>
 
 this
 
 - The call object.
+
+## Example
+
+
+```typescript
+call.addEventListener(
+  Call.Event.QualityWarningsChanged,
+  (
+     currentWarnings: Call.QualityWarning[],
+     previousWarnings: Call.QualityWarning[]
+  ) => {
+    // call quality warnings have changed
+  }
+);
+```
 

@@ -15,9 +15,5 @@ getTo(): string | undefined;
 
 string \| undefined
 
-- An optional `String` representing the `to` parameter.
-
-## Remarks
-
-The string returned by this function is possibly `undefined` if the call information has not yet been received from the native layer.
+- A `String` representing the `to` parameter. - `undefined` if the call information has not yet been received from the native layer.
 

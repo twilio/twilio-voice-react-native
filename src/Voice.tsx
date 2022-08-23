@@ -21,12 +21,15 @@ import type { Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
 /**
- * Strict typings for all events emitted by
- * {@link (Voice:class) | Voice objects}.
+ * Defines strict typings for all events emitted by {@link (Voice:class)
+ * | Voice objects}.
  *
  * @remarks
  * Note that the `on` function is an alias for the `addEventListener` function.
  * They share identical functionality and either may be used interchangeably.
+ *
+ * - See also the {@link (Voice:class) | Voice class}.
+ * - See also the {@link (Voice:namespace) | Voice namespace}.
  *
  * @public
  */
@@ -101,6 +104,15 @@ export declare interface Voice {
 
   /**
    * Audio devices updated event. Raised when the list of audio devices changes.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.AudioDevicesUpdated, () => {
+   *   // the list of available audio devices has changed and/or the selected
+   *   // audio device has been changed
+   * });
+   * ```
+   *
    * @param audioDevicesUpdatedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -118,6 +130,14 @@ export declare interface Voice {
 
   /**
    * Call invite event. Raised when an incoming call invite is received.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.CallInvite, (callInvite: CallInvite) => {
+   *   // handle the incoming call invite
+   * });
+   * ```
+   *
    * @param callInviteEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -140,6 +160,13 @@ export declare interface Voice {
    * @remarks
    * This event is raised when call invites are accepted outside of the SDK,
    * i.e. through the native iOS or Android UI.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.CallInviteAccepted, (callInvite: CallInvite, call: Call) => {
+   *   // handle the incoming call invite and the call associated with it
+   * });
+   * ```
    *
    * @param callInviteAcceptedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
@@ -164,6 +191,13 @@ export declare interface Voice {
    * This event is raised when call invites are rejected outside of the SDK,
    * i.e. through the native iOS or Android UI.
    *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.CallInviteRejected, (callInvite: CallInvite) => {
+   *   // handle the rejection of the incoming call invite
+   * });
+   * ```
+   *
    * @param callInviteRejectedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -182,6 +216,14 @@ export declare interface Voice {
   /**
    * Cancelled call invite event. Raised when a pending incoming call invite has
    * been cancelled and is no longer valid.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.CancelledCallInvite, (cancelledCallInvite: CancelledCallInvite) => {
+   *   // handle the cancellation of the incoming call invite
+   * });
+   * ```
+   *
    * @param cancelledCallInviteEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -199,6 +241,14 @@ export declare interface Voice {
 
   /**
    * Error event. Raised when the SDK encounters an error.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.Error, (error: TwilioError.GenericError) => {
+   *   // handle a generic Voice SDK error
+   * });
+   * ```
+   *
    * @param errorEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -213,6 +263,14 @@ export declare interface Voice {
 
   /**
    * Registered event. Raised when the SDK is registered for incoming calls.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.Registered, () => {
+   *   // handle successful registration for incoming calls
+   * });
+   * ```
+   *
    * @param registeredEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -230,6 +288,14 @@ export declare interface Voice {
 
   /**
    * Unregistered event. Raised when the SDK is unregistered for incoming calls.
+   *
+   * @example
+   * ```typescript
+   * voice.addEventListener(Voice.Event.Unregistered, () => {
+   *   // handle successful unregistration for incoming calls
+   * });
+   * ```
+   *
    * @param unregisteredEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
@@ -257,7 +323,7 @@ export declare interface Voice {
  *
  * const voice = new Voice();
  *
- * voice.on(Voice.Events.CallInvite, (callInvite: CallInvite) => {
+ * voice.on(Voice.Event.CallInvite, (callInvite: CallInvite) => {
  *   callInvite.accept();
  * });
  *
@@ -265,10 +331,11 @@ export declare interface Voice {
  * ```
  *
  * @remarks
- *  - See the {@link (Voice:interface) | Voice interface} for events emitted by
- *    this class and their typings.
- *
- *  - See the {@link (Voice:namespace) | Call namespace} for types and
+ *  - See also the {@link (Voice:namespace).Event} enum for events emitted by
+ *    `Voice` objects.
+ *  - See also the {@link (Voice:interface) | Voice interface} for events
+ *    emitted by this class and associated types.
+ *  - See also the {@link (Voice:namespace) | Voice namespace} for types and
  *    enumerations used by this class.
  *
  * @public
@@ -694,8 +761,12 @@ export class Voice extends EventEmitter {
 }
 
 /**
- * Namespace for enumerations and types used by
- * {@link (Voice:class) | Voice objects}.
+ * Provides enumerations and types used by {@link (Voice:class)
+ * | Voice objects}.
+ *
+ * @remarks
+ * - See also the {@link (Voice:class) | Voice class}.
+ * - See also the {@link (Voice:interface) | Voice interface}.
  *
  * @public
  */
@@ -706,49 +777,62 @@ export namespace Voice {
   export enum Event {
     /**
      * Raised when there is a change in available audio devices.
+     * See {@link (Voice:interface).(addEventListener:2)
+     * | Voice.addEventListener(AudioDevicesUpdated)}.
      */
     'AudioDevicesUpdated' = 'audioDevicesUpdated',
     /**
      * Raised when there is an incoming call invite.
+     * See {@link (Voice:interface).(addEventListener:3)
+     * | Voice.addEventListener(CallInvite)}.
      */
     'CallInvite' = 'callInvite',
     /**
      * Raised when an incoming call invite has been accepted.
-     *
-     * @remarks
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
+     * See {@link (Voice:interface).(addEventListener:4)
+     * | Voice.addEventListener(CallInviteAccepted)}.
      */
     'CallInviteAccepted' = 'callInviteAccepted',
     /**
      * Raised when an incoming call invite has been rejected.
-     *
-     * @remarks
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
+     * See {@link (Voice:interface).(addEventListener:5)
+     * | Voice.addEventListener(CallInviteRejected)}.
      */
     'CallInviteRejected' = 'callInviteRejected',
     /**
      * Raised when an incoming call invite has been cancelled, thus invalidating
      * the associated call invite.
+     * See {@link (Voice:interface).(addEventListener:6)
+     * | Voice.addEventListener(CancelledCallInvite)}.
      */
     'CancelledCallInvite' = 'cancelledCallInvite',
     /**
      * Raised when the SDK encounters an error.
+     * See {@link (Voice:interface).(addEventListener:7)
+     * | Voice.addEventListener(Error)}.
      */
     'Error' = 'error',
     /**
      * Raised when the SDK is registered for incoming calls.
+     * See {@link (Voice:interface).(addEventListener:8)
+     * | Voice.addEventListener(Registered)}.
      */
     'Registered' = 'registered',
     /**
      * Raised when the SDK is unregistered for incoming calls.
+     * See {@link (Voice:interface).(addEventListener:9)
+     * | Voice.addEventListener(Unregistered)}.
      */
     'Unregistered' = 'unregistered',
   }
 
   /**
-   * Listener types for all events emitted by a {@link (Voice:class) | Voice object.}
+   * Listener types for all events emitted by a {@link (Voice:class)
+   * | Voice object.}
    */
   export namespace Listener {
     /**

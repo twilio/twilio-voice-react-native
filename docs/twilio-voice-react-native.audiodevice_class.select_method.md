@@ -4,7 +4,7 @@
 
 ## AudioDevice.select() method
 
-Select the audio device as described by the data fields in this object.
+Calling this method will select this audio device as the active audio device.
 
 <b>Signature:</b>
 
@@ -15,5 +15,5 @@ select(): Promise<void>;
 
 Promise&lt;void&gt;
 
-- Resolves with `void` when the audio device has been successfully selected.
+A `Promise` that - Resolves with `void` when the audio device has been successfully selected as the active audio device. - Rejects if the audio device cannot be selected.
 

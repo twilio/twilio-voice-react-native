@@ -4,7 +4,7 @@
 
 ## Call.hold() method
 
-Set the hold status of the call.
+Put this end of the call on hold or not on hold.
 
 <b>Signature:</b>
 
@@ -16,11 +16,27 @@ hold(hold: boolean): Promise<boolean>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  hold | boolean | A boolean representing the hold status of the call. |
+|  hold | boolean | A <code>boolean</code> representing whether or not to put this end of the call on hold. |
 
 <b>Returns:</b>
 
 Promise&lt;boolean&gt;
 
-- Resolves with the hold status when the hold status of the call is set.
+A `Promise` that - Resolves with the hold status when the call is put on hold or not on hold. - Rejects when the call is not able to be put on hold or not on hold.
+
+## Example 1
+
+To put a call on hold
+
+```typescript
+call.hold(true);
+```
+
+## Example 2
+
+To take a call off hold
+
+```typescript
+call.hold(false);
+```
 

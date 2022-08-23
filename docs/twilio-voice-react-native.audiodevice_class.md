@@ -14,7 +14,9 @@ export declare class AudioDevice
 
 ## Remarks
 
-- See the [AudioDevice namespace](./twilio-voice-react-native.audiodevice_namespace.md) for types used by this class.
+To fetch a list of available audio devices and the currently selected audio device, see [Voice.getAudioDevices()](./twilio-voice-react-native.voice_class.getaudiodevices_method.md)<!-- -->.
+
+- See also the [AudioDevice namespace](./twilio-voice-react-native.audiodevice_namespace.md) for types used by this class.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `AudioDevice` class.
 
@@ -29,5 +31,5 @@ The constructor for this class is marked as internal. Third-party code should no
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [select()](./twilio-voice-react-native.audiodevice_class.select_method.md) |  | Select the audio device as described by the data fields in this object. |
+|  [select()](./twilio-voice-react-native.audiodevice_class.select_method.md) |  | Calling this method will select this audio device as the active audio device. |
 

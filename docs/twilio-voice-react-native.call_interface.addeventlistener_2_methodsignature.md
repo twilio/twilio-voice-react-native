@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+call.addEventListener(Call.Event.ConnectFailure, (error) => {
+  // call was unable to connect, handle error
+});
+```
+

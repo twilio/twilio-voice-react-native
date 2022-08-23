@@ -210,11 +210,11 @@ export class CallInvite {
 }
 
 /**
- * Provides enumerations and types used by a
- * {@link (CallInvite:class) | CallInvite object}.
+ * Provides enumerations and types used by a {@link (CallInvite:class)
+ * | CallInvite object}.
  *
  * @remarks
- *  - See the {@link (CallInvite:class) | CallInvite class}.
+ *  - See also the {@link (CallInvite:class) | CallInvite class}.
  *
  * @public
  */

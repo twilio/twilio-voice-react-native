@@ -14,8 +14,11 @@ import type { Uuid } from './type/common';
  * native selection of the described audio device.
  *
  * @remarks
- *  - See the {@link (AudioDevice:namespace) | AudioDevice namespace} for types
- *    used by this class.
+ * To fetch a list of available audio devices and the currently selected audio
+ * device, see {@link (Voice:class).getAudioDevices}.
+ *
+ *  - See also the {@link (AudioDevice:namespace) | AudioDevice namespace} for
+ *    types used by this class.
  *
  * @public
  */
@@ -62,10 +65,13 @@ export class AudioDevice {
   }
 
   /**
-   * Select the audio device as described by the data fields in this object.
+   * Calling this method will select this audio device as the active audio
+   * device.
    * @returns
-   *  - Resolves with `void` when the audio device has been successfully
-   *    selected.
+   *  A `Promise` that
+   *    - Resolves with `void` when the audio device has been successfully
+   *      selected as the active audio device.
+   *    - Rejects if the audio device cannot be selected.
    */
   select(): Promise<void> {
     return this._nativeModule.voice_selectAudioDevice(this.uuid);
@@ -73,15 +79,17 @@ export class AudioDevice {
 }
 
 /**
- * Audio device namespace. Contains interfaces and enumerations associated with
- * audio devices.
+ * Contains interfaces and enumerations associated with audio devices.
+ *
+ * @remarks
+ *  - See also the {@link (AudioDevice:class) | AudioDevice class}.
  *
  * @public
  */
 export namespace AudioDevice {
   /**
    * Audio device type enumeration. Describes all possible audio device types as
-   * reported by the native layer.
+   * reportable by the native layer.
    */
   export enum Type {
     Earpiece = 'earpiece',

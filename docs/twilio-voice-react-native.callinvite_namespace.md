@@ -14,7 +14,7 @@ export declare namespace CallInvite
 
 ## Remarks
 
-- See the [CallInvite class](./twilio-voice-react-native.callinvite_class.md)<!-- -->.
+- See also the [CallInvite class](./twilio-voice-react-native.callinvite_class.md)<!-- -->.
 
 ## Enumerations
 

@@ -23,13 +23,13 @@ postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
 
 Promise&lt;void&gt;
 
-- Resolves when the feedback has been posted.
+A `Promise` that - Resolves when the feedback has been posted. - Rejects when the feedback is unable to be sent.
 
 ## Example
 
 To report that a call had very significant audio latency:
 
-```
+```typescript
 call.postFeedback(Call.Score.Five, Call.Issue.AudioLatency);
 ```
 

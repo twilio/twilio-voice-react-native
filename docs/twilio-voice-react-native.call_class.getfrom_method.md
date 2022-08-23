@@ -15,9 +15,5 @@ getFrom(): string | undefined;
 
 string \| undefined
 
-- An optional `String` representing the `from` parameter.
-
-## Remarks
-
-The string returned by this function is possibly `undefined` if the call information has not yet been received from the native layer.
+- A `String` representing the `from` parameter. - `undefined` if the call information has not yet been received from the native layer.
 

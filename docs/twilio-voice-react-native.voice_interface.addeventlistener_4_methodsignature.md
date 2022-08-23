@@ -29,3 +29,12 @@ this
 
 This event is raised when call invites are rejected outside of the SDK, i.e. through the native iOS or Android UI.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.CallInviteRejected, (callInvite: CallInvite) => {
+  // handle the rejection of the incoming call invite
+});
+```
+

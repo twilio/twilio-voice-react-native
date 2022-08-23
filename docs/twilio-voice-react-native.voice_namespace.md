@@ -4,13 +4,17 @@
 
 ## Voice namespace
 
-Namespace for enumerations and types used by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->.
+Provides enumerations and types used by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
 export declare namespace Voice 
 ```
+
+## Remarks
+
+- See also the [Voice class](./twilio-voice-react-native.voice_class.md)<!-- -->. - See also the [Voice interface](./twilio-voice-react-native.voice_interface.md)<!-- -->.
 
 ## Enumerations
 

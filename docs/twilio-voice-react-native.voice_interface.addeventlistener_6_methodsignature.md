@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.Error, (error: TwilioError.GenericError) => {
+  // handle a generic Voice SDK error
+});
+```
+

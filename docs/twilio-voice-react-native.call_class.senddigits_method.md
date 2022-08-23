@@ -22,21 +22,21 @@ sendDigits(digits: string): Promise<void>;
 
 Promise&lt;void&gt;
 
-- Resolves when the DTMF digits have been sent.
+A `Promise` that - Resolves when the DTMF digits have been sent. - Rejects when DTMF tones are not able to be sent.
 
 ## Example 1
 
-To imitate pressing just `0` on the dialpad:
+To send the `0` dialtone:
 
-```
+```typescript
 call.sendDigits('0');
 ```
 
 ## Example 2
 
-To imitate pressing `0` then `1` on the dialpad:
+To send the `0` and then `1` dialtone:
 
-```
+```typescript
 call.sendDigits('01');
 ```
 

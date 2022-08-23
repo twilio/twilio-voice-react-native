@@ -9,8 +9,9 @@ Quality warnings changed event listener. This should be the function signature o
 <b>Signature:</b>
 
 ```typescript
-type QualityWarningsChanged = (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void;
+type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
 ```
+<b>References:</b> [Call.QualityWarning](./twilio-voice-react-native.call_namespace.qualitywarning_enum.md)
 
 ## Remarks
 

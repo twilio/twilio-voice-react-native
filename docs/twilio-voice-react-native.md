@@ -4,6 +4,8 @@
 
 ## twilio-voice-react-native package
 
+Provides access to Twilio Programmable Voice for React Native applications running on iOS and Android devices.
+
 ## Classes
 
 |  Class | Description |
@@ -18,19 +20,19 @@
 
 |  Interface | Description |
 |  --- | --- |
-|  [Call](./twilio-voice-react-native.call_interface.md) | Strict typings for all events emitted by [Call objects](./twilio-voice-react-native.call_class.md)<!-- -->. |
-|  [Voice](./twilio-voice-react-native.voice_interface.md) | Strict typings for all events emitted by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->. |
+|  [Call](./twilio-voice-react-native.call_interface.md) | Defines strict typings for all events emitted by [Call objects](./twilio-voice-react-native.call_class.md)<!-- -->. |
+|  [Voice](./twilio-voice-react-native.voice_interface.md) | Defines strict typings for all events emitted by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->. |
 
 ## Namespaces
 
 |  Namespace | Description |
 |  --- | --- |
-|  [AudioDevice](./twilio-voice-react-native.audiodevice_namespace.md) | Audio device namespace. Contains interfaces and enumerations associated with audio devices. |
+|  [AudioDevice](./twilio-voice-react-native.audiodevice_namespace.md) | Contains interfaces and enumerations associated with audio devices. |
 |  [Call](./twilio-voice-react-native.call_namespace.md) | Namespace for enumerations and types used by [Call objects](./twilio-voice-react-native.call_class.md)<!-- -->. |
 |  [CallInvite](./twilio-voice-react-native.callinvite_namespace.md) | Provides enumerations and types used by a [CallInvite object](./twilio-voice-react-native.callinvite_class.md)<!-- -->. |
 |  [RTCStats](./twilio-voice-react-native.rtcstats_namespace.md) | Types related to WebRTC stats. |
 |  [TwilioErrors](./twilio-voice-react-native.twilioerrors_namespace.md) |  |
-|  [Voice](./twilio-voice-react-native.voice_namespace.md) | Namespace for enumerations and types used by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->. |
+|  [Voice](./twilio-voice-react-native.voice_namespace.md) | Provides enumerations and types used by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->. |
 
 ## Type Aliases
 

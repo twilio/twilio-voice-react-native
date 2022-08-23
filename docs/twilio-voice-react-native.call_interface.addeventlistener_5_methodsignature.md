@@ -29,3 +29,14 @@ this
 
 This event can occur in "naturally" disconnected calls and calls disconnected from issues such as network problems. If the SDK has detected an issue that has caused the call to disconnect, then the error parameter will be defined, otherwise it will be undefined.
 
+## Example
+
+
+```typescript
+call.addEventListener(Call.Event.Disconnected, (error) => {
+  // call has disconnected
+  // if a natural disconnect occurred, then error is `undefined`
+  // if an unnatural disconnect occurred, then error is defined
+});
+```
+

@@ -4,7 +4,7 @@
 
 ## Call interface
 
-Strict typings for all events emitted by [Call objects](./twilio-voice-react-native.call_class.md)<!-- -->.
+Defines strict typings for all events emitted by [Call objects](./twilio-voice-react-native.call_class.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -15,6 +15,8 @@ export declare interface Call
 ## Remarks
 
 Note that the `on` function is an alias for the `addEventListener` function. They share identical functionality and either may be used interchangeably.
+
+- See also the [Call class](./twilio-voice-react-native.call_class.md)<!-- -->. - See also the [Call namespace](./twilio-voice-react-native.call_namespace.md)<!-- -->.
 
 ## Methods
 

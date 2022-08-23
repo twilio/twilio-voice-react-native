@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.CallInvite, (callInvite: CallInvite) => {
+  // handle the incoming call invite
+});
+```
+

@@ -1,3 +1,15 @@
+// Copyright (c) Twilio Inc. All rights reserved. Licensed under the Twilio
+// license.
+
+// See LICENSE in the project root for license information.
+
+/**
+ * Provides access to Twilio Programmable Voice for React Native applications
+ * running on iOS and Android devices.
+ *
+ * @packageDocumentation
+ */
+
 export { Voice } from './Voice';
 
 export { AudioDevice } from './AudioDevice';
@@ -9,10 +21,3 @@ export { RTCStats } from './type/RTCStats';
 
 import * as TwilioErrors from './error';
 export { TwilioErrors };
-
-/**
- * Provides access to Twilio Programmable Voice for React Native applications
- * running on iOS and Android devices.
- *
- * @packageDocumentation
- */

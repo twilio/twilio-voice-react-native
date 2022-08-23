@@ -12,6 +12,10 @@ Namespace for enumerations and types used by [Call objects](./twilio-voice-react
 export declare namespace Call 
 ```
 
+## Remarks
+
+- See also the [Call class](./twilio-voice-react-native.call_class.md)<!-- -->. - See also the [Call interface](./twilio-voice-react-native.call_interface.md)<!-- -->.
+
 ## Enumerations
 
 |  Enumeration | Description |

@@ -25,3 +25,12 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.Unregistered, () => {
+  // handle successful unregistration for incoming calls
+});
+```
+

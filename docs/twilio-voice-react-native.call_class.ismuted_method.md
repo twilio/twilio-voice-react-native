@@ -4,7 +4,7 @@
 
 ## Call.isMuted() method
 
-Return an optional boolean representing whether or not the call is muted.
+Get the mute status of this side of the call.
 
 <b>Signature:</b>
 
@@ -15,9 +15,5 @@ isMuted(): boolean | undefined;
 
 boolean \| undefined
 
-- An optional boolean representing the muted status of the call.
-
-## Remarks
-
-Could possibly return `undefined` if the call state has not yet been received from the native layer.
+- A boolean representing the muted status of the call. - `undefined` if the call state has not yet been received from the native layer.
 

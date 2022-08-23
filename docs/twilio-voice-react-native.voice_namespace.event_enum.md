@@ -16,12 +16,12 @@ enum Event
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  AudioDevicesUpdated | <code>&quot;audioDevicesUpdated&quot;</code> | Raised when there is a change in available audio devices. |
-|  CallInvite | <code>&quot;callInvite&quot;</code> | Raised when there is an incoming call invite. |
-|  CallInviteAccepted | <code>&quot;callInviteAccepted&quot;</code> | Raised when an incoming call invite has been accepted. |
-|  CallInviteRejected | <code>&quot;callInviteRejected&quot;</code> | Raised when an incoming call invite has been rejected. |
-|  CancelledCallInvite | <code>&quot;cancelledCallInvite&quot;</code> | Raised when an incoming call invite has been cancelled, thus invalidating the associated call invite. |
-|  Error | <code>&quot;error&quot;</code> | Raised when the SDK encounters an error. |
-|  Registered | <code>&quot;registered&quot;</code> | Raised when the SDK is registered for incoming calls. |
-|  Unregistered | <code>&quot;unregistered&quot;</code> | Raised when the SDK is unregistered for incoming calls. |
+|  AudioDevicesUpdated | <code>&quot;audioDevicesUpdated&quot;</code> | Raised when there is a change in available audio devices. See [Voice.addEventListener(AudioDevicesUpdated)](./twilio-voice-react-native.voice_interface.addeventlistener_1_methodsignature.md)<!-- -->. |
+|  CallInvite | <code>&quot;callInvite&quot;</code> | Raised when there is an incoming call invite. See [Voice.addEventListener(CallInvite)](./twilio-voice-react-native.voice_interface.addeventlistener_2_methodsignature.md)<!-- -->. |
+|  CallInviteAccepted | <code>&quot;callInviteAccepted&quot;</code> | Raised when an incoming call invite has been accepted. This event can be raised either through the SDK or outside of the SDK (i.e. through native UI/UX such as push notifications). See [Voice.addEventListener(CallInviteAccepted)](./twilio-voice-react-native.voice_interface.addeventlistener_3_methodsignature.md)<!-- -->. |
+|  CallInviteRejected | <code>&quot;callInviteRejected&quot;</code> | Raised when an incoming call invite has been rejected. This event can be raised either through the SDK or outside of the SDK (i.e. through native UI/UX such as push notifications). See [Voice.addEventListener(CallInviteRejected)](./twilio-voice-react-native.voice_interface.addeventlistener_4_methodsignature.md)<!-- -->. |
+|  CancelledCallInvite | <code>&quot;cancelledCallInvite&quot;</code> | Raised when an incoming call invite has been cancelled, thus invalidating the associated call invite. See [Voice.addEventListener(CancelledCallInvite)](./twilio-voice-react-native.voice_interface.addeventlistener_5_methodsignature.md)<!-- -->. |
+|  Error | <code>&quot;error&quot;</code> | Raised when the SDK encounters an error. See [Voice.addEventListener(Error)](./twilio-voice-react-native.voice_interface.addeventlistener_6_methodsignature.md)<!-- -->. |
+|  Registered | <code>&quot;registered&quot;</code> | Raised when the SDK is registered for incoming calls. See [Voice.addEventListener(Registered)](./twilio-voice-react-native.voice_interface.addeventlistener_7_methodsignature.md)<!-- -->. |
+|  Unregistered | <code>&quot;unregistered&quot;</code> | Raised when the SDK is unregistered for incoming calls. See [Voice.addEventListener(Unregistered)](./twilio-voice-react-native.voice_interface.addeventlistener_8_methodsignature.md)<!-- -->. |
 

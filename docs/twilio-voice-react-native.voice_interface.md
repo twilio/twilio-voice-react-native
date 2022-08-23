@@ -4,7 +4,7 @@
 
 ## Voice interface
 
-Strict typings for all events emitted by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->.
+Defines strict typings for all events emitted by [Voice objects](./twilio-voice-react-native.voice_class.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -15,6 +15,8 @@ export declare interface Voice
 ## Remarks
 
 Note that the `on` function is an alias for the `addEventListener` function. They share identical functionality and either may be used interchangeably.
+
+- See also the [Voice class](./twilio-voice-react-native.voice_class.md)<!-- -->. - See also the [Voice namespace](./twilio-voice-react-native.voice_namespace.md)<!-- -->.
 
 ## Methods
 

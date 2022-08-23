@@ -4,7 +4,7 @@
 
 ## Call.mute() method
 
-Set the mute status of the call.
+Mute or unmute this end of the call.
 
 <b>Signature:</b>
 
@@ -16,11 +16,27 @@ mute(mute: boolean): Promise<boolean>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  mute | boolean | A boolean representing the mute status of the call. |
+|  mute | boolean | A <code>boolean</code> representing whether or not to mute this end of the call. |
 
 <b>Returns:</b>
 
 Promise&lt;boolean&gt;
 
-- Resolves with the mute status when the mute status of the call is set.
+A `Promise` that - Resolves with the muted status of the call when the call is muted or unmuted. - Rejects when the call is not able to be muted or unmuted.
+
+## Example 1
+
+To mute a call
+
+```typescript
+call.mute(true);
+```
+
+## Example 2
+
+To unmute a call
+
+```typescript
+call.mute(false);
+```
 

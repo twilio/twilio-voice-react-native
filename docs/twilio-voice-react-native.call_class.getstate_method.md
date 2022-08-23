@@ -4,7 +4,7 @@
 
 ## Call.getState() method
 
-Get the call state.
+Get the state of the call object, such as [Call.State.Connected](./twilio-voice-react-native.call_namespace.state_enum.md) or [Call.State.Disconnected](./twilio-voice-react-native.call_namespace.state_enum.md)<!-- -->.
 
 <b>Signature:</b>
 

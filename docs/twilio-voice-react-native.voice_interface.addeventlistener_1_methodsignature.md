@@ -25,3 +25,13 @@ this
 
 - The call object.
 
+## Example
+
+
+```typescript
+voice.addEventListener(Voice.Event.AudioDevicesUpdated, () => {
+  // the list of available audio devices has changed and/or the selected
+  // audio device has been changed
+});
+```
+
