@@ -50,9 +50,10 @@ commands:
           name: "Install Cocoapods 1.11.3"
           command: |
             sudo gem install cocoapods -v 1.11.3
-      - restore_cache:
-          name: Restoring cocoapods cache
-          key: pods-{{ checksum "example/ios/Podfile.lock" }}
+      # Force pod install to avoid dependency inconsistency and build failure
+      # - restore_cache:
+      #     name: Restoring cocoapods cache
+      #     key: pods-{{ checksum "example/ios/Podfile.lock" }}
       - run:
           name: Install cocoapods if cache does not exist
           command: |
@@ -61,11 +62,11 @@ commands:
             fi
       - store_artifacts:
           path: ./example/ios/Podfile.lock
-      - save_cache:
-          name: Saving cocoapods cache
-          key: pods-{{ checksum "example/ios/Podfile.lock" }}
-          paths:
-            - example/ios/Pods
+      # - save_cache:
+      #     name: Saving cocoapods cache
+      #     key: pods-{{ checksum "example/ios/Podfile.lock" }}
+      #     paths:
+      #       - example/ios/Pods
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
     steps:
