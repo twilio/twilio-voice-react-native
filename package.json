@@ -82,7 +82,7 @@
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
+      "<rootDir>/example",
       "<rootDir>/lib/",
       "<rootDir>/types"
     ]
@@ -120,7 +120,8 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "example/e2e/"
+    "example/e2e/",
+    "example/src/e2e-tests-token.ts"
   ],
   "prettier": {
     "quoteProps": "consistent",
