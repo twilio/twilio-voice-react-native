@@ -219,7 +219,7 @@ jobs:
 
   e2e-ios:
     macos:
-      xcode: "13.4"
+      xcode: "12.5.1"
     parameters:
       detox_configuration:
         type: string
