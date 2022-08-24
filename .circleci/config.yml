@@ -1,10 +1,5 @@
 version: 2.1
 
-orbs:
-  android: circleci/android@1.0.3
-  node: circleci/node@5.0.0
-  macos: circleci/macos@2
-
 ###
 # Parameters
 ###
@@ -50,23 +45,11 @@ commands:
           name: "Install Cocoapods 1.11.3"
           command: |
             sudo gem install cocoapods -v 1.11.3
-      # Force pod install to avoid dependency inconsistency and build failure
-      # - restore_cache:
-      #     name: Restoring cocoapods cache
-      #     key: pods-{{ checksum "example/ios/Podfile.lock" }}
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            if [ ! -d "example/ios/Pods" ]; then
-              cd example/ios && pod install && cd ../..
-            fi
-      - store_artifacts:
-          path: ./example/ios/Podfile.lock
-      # - save_cache:
-      #     name: Saving cocoapods cache
-      #     key: pods-{{ checksum "example/ios/Podfile.lock" }}
-      #     paths:
-      #       - example/ios/Pods
+            cd example/ios && pod install && cd ../..
+
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
     steps:
