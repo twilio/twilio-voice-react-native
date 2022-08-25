@@ -1,8 +1,5 @@
 // @ts-nocheck
 
-import { init } from 'detox';
-
-const config = require('../package.json').detox;
 require('dotenv').config();
 jest.setTimeout(60000);
 
