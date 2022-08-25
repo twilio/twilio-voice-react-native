@@ -274,7 +274,7 @@ PODS:
     - React-jsi (= 0.66.0)
     - React-logger (= 0.66.0)
     - React-perflogger (= 0.66.0)
-  - twilio-voice-react-native (0.1.0-dev):
+  - twilio-voice-react-native (1.0.0-dev):
     - React-Core
     - TwilioVoice
   - TwilioVoice (6.4.3)
@@ -416,10 +416,10 @@ SPEC CHECKSUMS:
   React-RCTVibration: 53b92d54b923283638cb0186da7a5c2d2b70a49b
   React-runtimeexecutor: 4bb657a97aa74568d9ed634c8bd478299bb8a3a6
   ReactCommon: eb059748e842a1a86025ebbd4ac9d99e74492f88
-  twilio-voice-react-native: de18964163aafee305983a9203d50415846c8b31
+  twilio-voice-react-native: 8cb5127e8c82f3458bcb032d1041ffee7c47d171
   TwilioVoice: 577a3c58f77032a141a56c4050a8fb802618835c
   Yoga: c11abbf5809216c91fcd62f5571078b83d9b6720
 
-PODFILE CHECKSUM: 87aa3d0034e6c342eba8678e7fb81a16dc76f856 
+PODFILE CHECKSUM: 87aa3d0034e6c342eba8678e7fb81a16dc76f856
 
 COCOAPODS: 1.11.2

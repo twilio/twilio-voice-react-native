@@ -5,7 +5,7 @@ import {
   CallInvite,
   CancelledCallInvite,
   Voice,
-} from 'twilio-voice-react-native';
+} from '@twilio/voice-react-native-sdk';
 import type {
   BoundCallInfo,
   BoundCallInvite,
