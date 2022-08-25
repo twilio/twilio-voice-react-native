@@ -13,7 +13,3 @@ beforeAll(async () => {
     delete: true,
   });
 });
-
-beforeEach(async () => {
-
-});

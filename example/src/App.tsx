@@ -15,7 +15,7 @@ import Grid from './Grid';
 
 import { generateAccessToken } from './tokenUtility';
 
-var token = '';
+let token = '';
 if (!token.length) {
   token = generateAccessToken();
 }
