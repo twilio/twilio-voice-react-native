@@ -25,7 +25,8 @@ yarn add @twilio/voice-react-native-sdk
 
 ## Usage
 
-The following simple example demonstrates how to make and receive calls. You will need to implement the `getAccessToken()` method for it to work properly. Please see [Access Tokens](#access-tokens). For more information, refer to the [API Docs](docs/twilio-voice-react-native.md) or try running the [example app](example).
+The following simple example demonstrates how to make and receive calls. You will need to implement the `getAccessToken()` method for it to work properly. Please see [Access Tokens](#access-tokens) section for more details or check out the [iOS quickstart](https://github.com/twilio/voice-quickstart-ios) for examples on how to generate the tokens.
+For more information on the Voice React Native SDK API, refer to the [API Docs](docs/twilio-voice-react-native.md) or try running the [example app](example).
 
 ```ts
 import { Voice } from '@twilio/voice-react-native-sdk';
