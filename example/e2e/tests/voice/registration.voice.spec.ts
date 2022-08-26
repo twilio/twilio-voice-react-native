@@ -1,3 +1,5 @@
+import { by, element, waitFor } from 'detox';
+
 export const DEFAULT_TIME_OUT = 10000;
 
 async function isVisibleByText(text: string, timeout: number = DEFAULT_TIME_OUT) {

@@ -1,3 +1,11 @@
+// detox will initialize the device during the import
+import 'detox';
+
+declare const device: {
+  installApp: () => void;
+  launchApp: (param: any) => void;
+}
+
 require('dotenv').config();
 jest.setTimeout(60000);
 
