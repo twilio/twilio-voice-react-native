@@ -309,7 +309,7 @@ export declare interface Call {
  * `undefined`.
  *
  * As call events are received from the native layer, call information will
- * propogate from the native layer to the JS layer and become available.
+ * propagate from the native layer to the JS layer and become available.
  * Therefore, it is good practice to read information from the call after an
  * event occurs, or as events occur.
  *
