@@ -37,6 +37,11 @@ const voice = new Voice();
 // Allow incoming calls
 await voice.register(token);
 
+// Handle incoming calls
+voice.on('callInvite', (callInvite) => {
+  callInvite.accept();
+});
+
 // Make an outgoing call
 const call = await voice.connect(token, params);
 ```
