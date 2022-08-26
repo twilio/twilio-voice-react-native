@@ -120,8 +120,7 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "example/e2e/",
-    "example/src/e2e-tests-token.ts"
+    "example/e2e/"
   ],
   "prettier": {
     "quoteProps": "consistent",
