@@ -5,13 +5,15 @@ import {
   CallInvite,
   CancelledCallInvite,
   Voice,
-} from 'twilio-voice-react-native';
+} from '@twilio/voice-react-native-sdk';
 import type {
   BoundCallInfo,
   BoundCallInvite,
   BoundCallMethod,
   EventLogItem,
 } from './type';
+
+import { generateAccessToken } from './tokenUtility';
 
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
@@ -223,6 +225,10 @@ export function useCallInvites(
 }
 
 export function useVoice(token: string) {
+  if (!token.length) {
+    token = generateAccessToken();
+  }
+
   const voice = React.useMemo(() => new Voice(), []);
 
   const [registered, setRegistered] = React.useState<boolean>(false);

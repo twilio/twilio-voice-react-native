@@ -82,7 +82,7 @@
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
+      "<rootDir>/example",
       "<rootDir>/lib/",
       "<rootDir>/types"
     ]
@@ -120,6 +120,7 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
+    "example/e2e/",
     "coverage/"
   ],
   "prettier": {

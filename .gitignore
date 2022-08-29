@@ -40,7 +40,6 @@ example/android/app/google-services.json
 # Cocoapods
 #
 example/ios/Pods
-example/ios/Podfile.lock
 
 # node.js
 #
@@ -73,4 +72,9 @@ ios/TwilioVoiceReactNativeConstants.h
 # docs
 docs/
 temp/
+
+# e2e tests
+example/src/e2e-tests-token.ts
+
 coverage/
+
