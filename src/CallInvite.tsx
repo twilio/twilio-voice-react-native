@@ -5,12 +5,11 @@
  * See LICENSE in the project root for license information.
  */
 
-import { NativeEventEmitter } from 'react-native';
 import { Call } from './Call';
-import { TwilioVoiceReactNative } from './common';
+import { NativeModule } from './common';
+import { InvalidStateError } from './error/InvalidStateError';
 import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { InvalidStateError } from './error/InvalidStateError';
 
 /**
  * Provides access to information about a call invite, including the call
@@ -18,10 +17,12 @@ import { InvalidStateError } from './error/InvalidStateError';
  *
  * @remarks
  *
- * Note that when a `CallInvite` is acted upon (i.e. when {@link (CallInvite:class).accept} or
- * {@link (CallInvite:class).reject} is invoked), then the `CallInvite` is "settled".
+ * Note that when a `CallInvite` is acted upon (i.e. when
+ * {@link (CallInvite:class).accept} or {@link (CallInvite:class).reject} is
+ * invoked), then the `CallInvite` is "settled".
  *
- * The state of the `CallInvite` is changed from {@link (CallInvite:namespace).State.Pending} to
+ * The state of the `CallInvite` is changed from
+ * {@link (CallInvite:namespace).State.Pending} to
  * {@link (CallInvite:namespace).State.Accepted} or
  * {@link (CallInvite:namespace).State.Rejected} and the `CallInvite` can no
  * longer be acted upon further.
@@ -34,29 +35,6 @@ import { InvalidStateError } from './error/InvalidStateError';
  * @public
  */
 export class CallInvite {
-  /**
-   * --------------
-   * Native Members
-   * --------------
-   */
-
-  /**
-   * The ReactNative `NativeEventEmitter`. Used to receive `CallInvite` events
-   * from the native layer.
-   */
-  private _nativeEventEmitter: NativeEventEmitter;
-  /**
-   * The ReactNative `NativeModule`. Used to invoke native call functionality
-   * from the JS layer.
-   */
-  private _nativeModule: typeof TwilioVoiceReactNative;
-
-  /**
-   * ------------
-   * Data Members
-   * ------------
-   */
-
   /**
    * The current state of the call invite.
    *
@@ -93,25 +71,21 @@ export class CallInvite {
    *
    * @param nativeCallInviteInfo - A dataobject containing the native
    * information of a call invite.
-   * @param options - Mocking options for testing.
+   * @param state - Mocking options for testing.
    *
    * @internal
    */
   constructor(
     { uuid, callSid, customParameters, from, to }: NativeCallInviteInfo,
-    options: Partial<CallInvite.Options> = {}
+    state: CallInvite.State
   ) {
-    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
-    this._nativeEventEmitter =
-      options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
-
     this._uuid = uuid;
     this._callSid = callSid;
     this._customParameters = { ...customParameters };
     this._from = from;
     this._to = to;
 
-    this._state = CallInvite.State.Pending;
+    this._state = state;
   }
 
   /**
@@ -131,15 +105,9 @@ export class CallInvite {
       );
     }
 
-    const callInfo = await this._nativeModule.callInvite_accept(
-      this._uuid,
-      options
-    );
+    const callInfo = await NativeModule.callInvite_accept(this._uuid, options);
 
-    const call = new Call(callInfo, {
-      nativeEventEmitter: this._nativeEventEmitter,
-      nativeModule: this._nativeModule,
-    });
+    const call = new Call(callInfo);
 
     return call;
   }
@@ -154,11 +122,11 @@ export class CallInvite {
     if (this._state !== CallInvite.State.Pending) {
       throw new InvalidStateError(
         `Call in state "${this._state}", ` +
-          `expected state "${CallInvite.State.Pending}"`
+          `expected state "${CallInvite.State.Pending}".`
       );
     }
 
-    await this._nativeModule.callInvite_reject(this._uuid);
+    await NativeModule.callInvite_reject(this._uuid);
   }
 
   /**
@@ -170,7 +138,7 @@ export class CallInvite {
    * @alpha
    */
   isValid(): Promise<boolean> {
-    return this._nativeModule.callInvite_isValid(this._uuid);
+    return NativeModule.callInvite_isValid(this._uuid);
   }
 
   /**
@@ -200,6 +168,14 @@ export class CallInvite {
   }
 
   /**
+   * Get the `state` of the `CallInvite`.
+   * @returns - The `state` of this `CallInvite`.
+   */
+  getState(): CallInvite.State {
+    return this._state;
+  }
+
+  /**
    * Get the `to` parameter of the call associated with this `CallInvite`
    * class.
    * @returns - A `string` representing the `to` parameter.
@@ -223,16 +199,6 @@ export namespace CallInvite {
    * Options to pass to the native layer when accepting the call.
    */
   export interface AcceptOptions {}
-
-  /**
-   * Mock options.
-   *
-   * @internal
-   */
-  export interface Options {
-    nativeEventEmitter: NativeEventEmitter;
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
 
   /**
    * An enumeration of {@link (CallInvite:class)} states.

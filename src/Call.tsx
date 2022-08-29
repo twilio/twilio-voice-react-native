@@ -6,8 +6,8 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
-import { NativeEventEmitter } from 'react-native';
-import { TwilioVoiceReactNative } from './common';
+import type { RTCStats } from './';
+import { NativeModule, NativeEventEmitter } from './common';
 import { Constants } from './constants';
 import type {
   NativeCallEvent,
@@ -15,7 +15,6 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import type { RTCStats } from './';
 import { GenericError } from './error/GenericError';
 
 /**
@@ -324,29 +323,6 @@ export declare interface Call {
  */
 export class Call extends EventEmitter {
   /**
-   * --------------
-   * Native Members
-   * --------------
-   */
-
-  /**
-   * The ReactNative `NativeEventEmitter`. Used to receive call events from the
-   * native layer.
-   */
-  private _nativeEventEmitter: NativeEventEmitter;
-  /**
-   * The ReactNative `NativeModule`. Used to invoke native call functionality
-   * from the JS layer.
-   */
-  private _nativeModule: typeof TwilioVoiceReactNative;
-
-  /**
-   * ------------
-   * Data Members
-   * ------------
-   */
-
-  /**
    * The `Uuid` of this call. Used to identify calls between the JS and native
    * layer so we can associate events and native functionality between the
    * layers.
@@ -406,29 +382,19 @@ export class Call extends EventEmitter {
    * @param nativeCallInfo - An object containing all of the data from the
    * native layer necessary to fully describe a call, as well as invoke native
    * functionality for the call.
-   * @param options - Options to pass to {@link (Call:class) | Call objects}.
-   * Used internally for passing mocks for testing.
    *
    * @internal
    */
-  constructor(
-    {
-      uuid,
-      customParameters,
-      from,
-      sid,
-      to,
-      isMuted,
-      isOnHold,
-    }: NativeCallInfo,
-    options: Partial<Call.Options> = {}
-  ) {
+  constructor({
+    uuid,
+    customParameters,
+    from,
+    sid,
+    to,
+    isMuted,
+    isOnHold,
+  }: NativeCallInfo) {
     super();
-
-    this._nativeModule = options.nativeModule || TwilioVoiceReactNative;
-
-    this._nativeEventEmitter =
-      options.nativeEventEmitter || new NativeEventEmitter(this._nativeModule);
 
     this._uuid = uuid;
     this._customParameters = { ...customParameters };
@@ -443,20 +409,20 @@ export class Call extends EventEmitter {
        * Call State
        */
       [Constants.CallEventConnected]: this._handleConnectedEvent,
-      [Constants.CallEventConnectFailure]: this._handleConnectFailure,
-      [Constants.CallEventDisconnected]: this._handleDisconnected,
-      [Constants.CallEventReconnecting]: this._handleReconnecting,
-      [Constants.CallEventReconnected]: this._handleReconnected,
-      [Constants.CallEventRinging]: this._handleRinging,
+      [Constants.CallEventConnectFailure]: this._handleConnectFailureEvent,
+      [Constants.CallEventDisconnected]: this._handleDisconnectedEvent,
+      [Constants.CallEventReconnected]: this._handleReconnectedEvent,
+      [Constants.CallEventReconnecting]: this._handleReconnectingEvent,
+      [Constants.CallEventRinging]: this._handleRingingEvent,
 
       /**
        * Call Quality
        */
       [Constants.CallEventQualityWarningsChanged]:
-        this._handleQualityWarningsChanged,
+        this._handleQualityWarningsChangedEvent,
     };
 
-    this._nativeEventEmitter.addListener(
+    NativeEventEmitter.addListener(
       Constants.ScopeCall,
       this._handleNativeEvent
     );
@@ -522,7 +488,7 @@ export class Call extends EventEmitter {
    * Handler for the the {@link (Call:namespace).Event.ConnectFailure} event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleConnectFailure = (nativeCallEvent: NativeCallEvent) => {
+  private _handleConnectFailureEvent = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventConnectFailure) {
       throw new Error(
         'Incorrect "call#connectFailure" handler called for type ' +
@@ -543,7 +509,7 @@ export class Call extends EventEmitter {
    * Handler for the the {@link (Call:namespace).Event.Disconnected} event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleDisconnected = (nativeCallEvent: NativeCallEvent) => {
+  private _handleDisconnectedEvent = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventDisconnected) {
       throw new Error(
         'Incorrect "call#disconnected" handler called for type ' +
@@ -568,7 +534,7 @@ export class Call extends EventEmitter {
    * Handler for the the {@link (Call:namespace).Event.Reconnecting} event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleReconnecting = (nativeCallEvent: NativeCallEvent) => {
+  private _handleReconnectingEvent = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
       throw new Error(
         'Incorrect "call#reconnecting" handler called for type ' +
@@ -589,8 +555,8 @@ export class Call extends EventEmitter {
    * Handler for the the {@link (Call:namespace).Event.Reconnected} event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleReconnected = (nativeCallEvent: NativeCallEvent) => {
-    if (nativeCallEvent.type !== Constants.CallEventReconnecting) {
+  private _handleReconnectedEvent = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== Constants.CallEventReconnected) {
       throw new Error(
         'Incorrect "call#reconnected" handler called for type ' +
           `"${nativeCallEvent.type}".`
@@ -606,7 +572,7 @@ export class Call extends EventEmitter {
    * Handler for the the {@link (Call:namespace).Event.Ringing} event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleRinging = (nativeCallEvent: NativeCallEvent) => {
+  private _handleRingingEvent = (nativeCallEvent: NativeCallEvent) => {
     if (nativeCallEvent.type !== Constants.CallEventRinging) {
       throw new Error(
         'Incorrect "call#ringing" handler called for type ' +
@@ -624,7 +590,7 @@ export class Call extends EventEmitter {
    * event.
    * @param nativeCallEvent - The native call event.
    */
-  private _handleQualityWarningsChanged = (
+  private _handleQualityWarningsChangedEvent = (
     nativeCallEvent: NativeCallEvent
   ) => {
     if (nativeCallEvent.type !== Constants.CallEventQualityWarningsChanged) {
@@ -653,7 +619,7 @@ export class Call extends EventEmitter {
    *    - Rejects if the native layer cannot disconnect the call.
    */
   disconnect(): Promise<void> {
-    return this._nativeModule.call_disconnect(this._uuid);
+    return NativeModule.call_disconnect(this._uuid);
   }
 
   /**
@@ -729,7 +695,7 @@ export class Call extends EventEmitter {
    *      call.
    */
   getStats(): Promise<RTCStats.StatsReport> {
-    return this._nativeModule.call_getStats(this._uuid);
+    return NativeModule.call_getStats(this._uuid);
   }
 
   /**
@@ -767,7 +733,7 @@ export class Call extends EventEmitter {
    *    - Rejects when the call is not able to be put on hold or not on hold.
    */
   async hold(hold: boolean): Promise<boolean> {
-    this._isOnHold = await this._nativeModule.call_hold(this._uuid, hold);
+    this._isOnHold = await NativeModule.call_hold(this._uuid, hold);
     return this._isOnHold;
   }
 
@@ -796,7 +762,7 @@ export class Call extends EventEmitter {
    *    - Rejects when the call is not able to be muted or unmuted.
    */
   async mute(mute: boolean): Promise<boolean> {
-    this._isMuted = await this._nativeModule.call_mute(this._uuid, mute);
+    this._isMuted = await NativeModule.call_mute(this._uuid, mute);
     return this._isMuted;
   }
 
@@ -823,7 +789,7 @@ export class Call extends EventEmitter {
    *    - Rejects when DTMF tones are not able to be sent.
    */
   sendDigits(digits: string): Promise<void> {
-    return this._nativeModule.call_sendDigits(this._uuid, digits);
+    return NativeModule.call_sendDigits(this._uuid, digits);
   }
 
   /**
@@ -844,7 +810,7 @@ export class Call extends EventEmitter {
    *    - Rejects when the feedback is unable to be sent.
    */
   postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
-    return this._nativeModule.call_postFeedback(this._uuid, score, issue);
+    return NativeModule.call_postFeedback(this._uuid, score, issue);
   }
 }
 
@@ -974,33 +940,6 @@ export namespace Call {
     [Constants.CallEventReconnected]: Call.State.Connected,
     [Constants.CallEventRinging]: Call.State.Ringing,
   };
-
-  /**
-   * Options to pass to `Call` objects upon construction, used for mocking the
-   * native module and for internal testing.
-   *
-   * @internal
-   */
-  export interface Options {
-    /**
-     * The ReactNative `NativeEventEmitter` that is used to negotiate events
-     * between the native mobile layers and the JS layer.
-     *
-     * @remarks
-     * Used by the {@link (Call:class) | Call object} to receive Call events
-     * from the native layer.
-     */
-    nativeEventEmitter: NativeEventEmitter;
-    /**
-     * The ReactNative `NativeModule` that is used to invoke native
-     * functionality exposed on the native layer for use by the JS layer.
-     *
-     * @remarks
-     * Used by {@link (Call:class) | Call object} to invoke native
-     * functionality, such as answering or declining an incoming call.
-     */
-    nativeModule: typeof TwilioVoiceReactNative;
-  }
 
   /**
    * An enumeration of all call quality-warning types.
