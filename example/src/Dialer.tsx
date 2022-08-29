@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Call } from 'twilio-voice-react-native';
+import { Call } from '@twilio/voice-react-native-sdk';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNoOp } from './hook';
 import type { BoundCallMethod, BoundCallInfo, BoundCallInvite } from './type';

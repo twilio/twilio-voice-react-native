@@ -1,17 +1,16 @@
-// @ts-nocheck
+// detox will initialize the device during the import
+import 'detox';
 
-import { init } from 'detox';
+declare const device: {
+  installApp: () => void;
+  launchApp: (param: any) => void;
+}
 
-const config = require('../package.json').detox;
 require('dotenv').config();
-jest.setTimeout(150000);
+jest.setTimeout(60000);
 
 beforeAll(async () => {
-  await device.uninstallApp();
   await device.installApp();
-});
-
-beforeEach(async () => {
   await device.launchApp({
     permissions: { calendar: 'YES', notifications: 'YES', microphone: 'YES' },
     delete: true,

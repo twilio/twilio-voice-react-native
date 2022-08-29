@@ -41,22 +41,15 @@ commands:
   setup-pods:
     description: Setup pods used for ios builds
     steps:
-      - restore_cache:
-          name: Restoring cocoapods cache
-          key: pods-{{ checksum "example/ios/Podfile.lock" }}
+      - run:
+          name: "Install Cocoapods 1.11.3"
+          command: |
+            sudo gem install cocoapods -v 1.11.3
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            if [ ! -d "example/ios/Pods" ]; then
-              cd example/ios && pod install && cd ../..
-            fi
-      - store_artifacts:
-          path: ./example/ios/Podfile.lock
-      - save_cache:
-          name: Saving cocoapods cache
-          key: pods-{{ checksum "example/ios/Podfile.lock" }}
-          paths:
-            - example/ios/Pods
+            cd example/ios && pod install && cd ../..
+
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
     steps:
@@ -65,6 +58,24 @@ commands:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
+  setup-e2e-creds:
+    description: "Decode account credentials for e2e tests"
+    steps:
+      - run:
+          name: "Decode creds"
+          command: |
+            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> example/src/e2e-tests-token.ts
+  clear-detox-cache:
+    description: "Clears detox framework cache"
+    steps:
+      - run:
+          working_directory: .
+          name: Clear detox cache
+          command: |
+            cd example
+            detox clean-framework-cache
+            detox build-framework-cache
+            cd ../
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -201,15 +212,11 @@ jobs:
         type: string
     steps:
       - checkout
-      - install-dependencies
+      - setup-e2e-creds
       - setup-detox-dependencies
-      - run:
-          command: |
-            cd example
-            yarn install
-            cd ..
-      - simulator-dependencies
+      - install-dependencies
       - setup-pods
+      - simulator-dependencies
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>

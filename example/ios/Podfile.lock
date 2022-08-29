@@ -245,10 +245,10 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
-  - twilio-voice-react-native (0.1.0-dev):
+  - twilio-voice-react-native (1.0.0-dev):
     - React-Core
     - TwilioVoice
-  - TwilioVoice (6.4.0)
+  - TwilioVoice (6.4.3)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -280,11 +280,11 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - twilio-voice-react-native (from `../..`)
-  - TwilioVoice (~> 6.4)
+  - TwilioVoice (~> 6.4.3)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs:
+  trunk:
     - boost-for-react-native
     - TwilioVoice
 
@@ -371,10 +371,10 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
-  twilio-voice-react-native: de18964163aafee305983a9203d50415846c8b31
-  TwilioVoice: a5e54e522af8ee24f3fb1797ac26ef9ac5ca5bb7
+  twilio-voice-react-native: 8cb5127e8c82f3458bcb032d1041ffee7c47d171
+  TwilioVoice: 577a3c58f77032a141a56c4050a8fb802618835c
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: 5a278ebf1ce5808336e2bb974c004b23860b1f23
+PODFILE CHECKSUM: 87aa3d0034e6c342eba8678e7fb81a16dc76f856
 
 COCOAPODS: 1.11.2

@@ -13,7 +13,12 @@ import type { EventLogItem } from './type';
 import Dialer from './Dialer';
 import Grid from './Grid';
 
-const token = '';
+import { generateAccessToken } from './tokenUtility';
+
+let token = '';
+if (!token.length) {
+  token = generateAccessToken();
+}
 
 export default function App() {
   const {

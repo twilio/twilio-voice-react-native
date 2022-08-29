@@ -432,6 +432,14 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if TARGET_IPHONE_SIMULATOR
+    if (!self.deviceTokenData) {
+        NSLog(@"Please note that PushKit and incoming call are not supported on simulators");
+        NSString *testDeviceToken = @"deadbeefdeadbeefdeadbeefdeadbeef";
+        self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
+    }
+#endif
+
     [TwilioVoiceSDK registerWithAccessToken:accessToken
                                 deviceToken:self.deviceTokenData
                                  completion:^(NSError *error) {
@@ -452,6 +460,14 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+#if TARGET_IPHONE_SIMULATOR
+    if (!self.deviceTokenData) {
+        NSLog(@"Please note that PushKit and incoming call are not supported on simulators");
+        NSString *testDeviceToken = @"deadbeefdeadbeefdeadbeefdeadbeef";
+        self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
+    }
+#endif
+
     [TwilioVoiceSDK unregisterWithAccessToken:accessToken
                                   deviceToken:self.deviceTokenData
                                    completion:^(NSError *error) {
