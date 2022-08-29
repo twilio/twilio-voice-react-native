@@ -72,7 +72,6 @@ ios/TwilioVoiceReactNativeConstants.h
 # docs
 docs/
 temp/
-types/
 
 # e2e tests
 example/src/e2e-tests-token.ts

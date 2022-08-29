@@ -89,7 +89,7 @@ commands:
             cd example 
             detox build -c <<parameters.configuration>>
             cd ..
-          no_ou4tput_timeout: 20m
+          no_output_timeout: 20m
   detox-test:
     description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
     parameters:
