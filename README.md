@@ -4,7 +4,7 @@ Twilio's Voice React Native SDK allows you to add real-time voice and PSTN calli
 
 Please check out the following if you are new to Twilio's Programmable Voice or React Native. Or contact [help@twilio.com](mailto:help@twilio.com) if you need technical support.
 
-- [Programmable Voice](https://www.twilio.com/docs/voice)
+- [Programmable Voice](https://www.twilio.com/docs/voice/sdks)
 - [React Native](https://reactnative.dev/docs/getting-started)
 
 ## Prerequisites
@@ -25,7 +25,8 @@ yarn add @twilio/voice-react-native-sdk
 
 ## Usage
 
-Please refer to the [API Docs](docs/twilio-voice-react-native.md) for more information. Or try running the [example app](example).
+The following simple example demonstrates how to make and receive calls. You will need to implement your own `getAccessToken()` method for it to work properly. Please see [Access Tokens](#access-tokens) section for more details or check out the [iOS quickstart](https://github.com/twilio/voice-quickstart-ios) for examples on how to generate the tokens.
+For more information on the Voice React Native SDK API, refer to the [API Docs](docs/twilio-voice-react-native.md) or try running the [example app](example).
 
 ```ts
 import { Voice } from '@twilio/voice-react-native-sdk';
@@ -35,6 +36,11 @@ const voice = new Voice();
 
 // Allow incoming calls
 await voice.register(token);
+
+// Handle incoming calls
+voice.on('callInvite', (callInvite) => {
+  callInvite.accept();
+});
 
 // Make an outgoing call
 const call = await voice.connect(token, params);

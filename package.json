@@ -27,7 +27,7 @@
     "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
-    "build:doc": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
+    "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
@@ -57,7 +57,7 @@
     "@commitlint/config-conventional": "^11.0.0",
     "@microsoft/api-extractor": "^7.25.2",
     "@react-native-community/eslint-config": "^2.0.0",
-    "@types/jest": "^26.0.0",
+    "@types/jest": "^28.1.6",
     "@types/react": "^16.9.19",
     "@types/react-native": "0.62.13",
     "api-documenter": "github:twilio/api-documenter#v0.0.1",
@@ -66,7 +66,7 @@
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-prettier": "^3.1.3",
     "husky": "^4.2.5",
-    "jest": "^26.0.1",
+    "jest": "^28.1.3",
     "pod-install": "^0.1.0",
     "prettier": "^2.0.5",
     "react": "16.13.1",
@@ -90,7 +90,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn run check"
+      "pre-commit": "yarn run check && yarn run build:docs"
     }
   },
   "commitlint": {
@@ -120,7 +120,8 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "example/e2e/"
+    "example/e2e/",
+    "coverage/"
   ],
   "prettier": {
     "quoteProps": "consistent",

@@ -76,3 +76,6 @@ types/
 
 # e2e tests
 example/src/e2e-tests-token.ts
+
+coverage/
+
