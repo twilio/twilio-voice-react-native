@@ -8,32 +8,30 @@ import { EventEmitter } from 'eventemitter3';
 import type { EventSubscriptionVendor } from 'react-native';
 import { NativeEventEmitter } from 'react-native';
 
-// @public (undocumented)
+// @public
 export class AudioDevice {
     // Warning: (ae-forgotten-export) The symbol "NativeAudioDeviceInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
     constructor({ uuid, type, name }: NativeAudioDeviceInfo, options?: Partial<AudioDevice.Options>);
-    // (undocumented)
     name: string;
-    // (undocumented)
     select(): Promise<void>;
-    // (undocumented)
     type: AudioDevice.Type;
     // Warning: (ae-forgotten-export) The symbol "Uuid" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal
     uuid: Uuid;
 }
 
-// @public (undocumented)
+// @public
 export namespace AudioDevice {
-    // (undocumented)
+    // @internal
     export interface Options {
         // Warning: (ae-forgotten-export) The symbol "TwilioVoiceReactNative" needs to be exported by the entry point index.d.ts
         //
         // (undocumented)
         nativeModule: typeof TwilioVoiceReactNative;
     }
-    // (undocumented)
     export enum Type {
         // (undocumented)
         Bluetooth = "bluetooth",
@@ -46,211 +44,149 @@ export namespace AudioDevice {
 
 // @public
 export interface Call {
-    addEventListener(callEvent: Call.Event, listener: (...args: any[]) => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.Connected, listener: () => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.ConnectFailure, listener: () => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.Reconnecting, listener: () => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.Reconnected, listener: () => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.Disconnected, listener: () => void): this;
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.Ringing, listener: () => void): this;
-    // Warning: (ae-forgotten-export) The symbol "NativeCallQualityWarnings" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    addEventListener(callEvent: Call.Event.QualityWarningsChanged, listener: (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void): this;
-    emit(callEvent: Call.Event.Connected): boolean;
-    // Warning: (ae-forgotten-export) The symbol "TwilioError" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    emit(callEvent: Call.Event.ConnectFailure, error: TwilioError): boolean;
-    // (undocumented)
-    emit(callEvent: Call.Event.Reconnecting, error: TwilioError): boolean;
-    // (undocumented)
-    emit(callEvent: Call.Event.Reconnected): boolean;
-    // (undocumented)
-    emit(callEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
-    // (undocumented)
-    emit(callEvent: Call.Event.Ringing): boolean;
-    // (undocumented)
+    addEventListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
+    addEventListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
+    addEventListener(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
+    addEventListener(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
+    addEventListener(reconnectedEvent: Call.Event.Reconnected, listener: Call.Listener.Reconnected): this;
+    addEventListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
+    addEventListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
+    addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    // @internal (undocumented)
+    emit(connectedEvent: Call.Event.Connected): boolean;
+    // @internal (undocumented)
+    emit(connectFailureEvent: Call.Event.ConnectFailure, error: GenericError): boolean;
+    // @internal (undocumented)
+    emit(reconnectingEvent: Call.Event.Reconnecting, error: GenericError): boolean;
+    // @internal (undocumented)
+    emit(reconnectedEvent: Call.Event.Reconnected): boolean;
+    // @internal (undocumented)
+    emit(disconnectedEvent: Call.Event.Disconnected, error?: GenericError): boolean;
+    // @internal (undocumented)
+    emit(ringingEvent: Call.Event.Ringing): boolean;
+    // @internal (undocumented)
     emit(callEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
-    // (undocumented)
-    on(callEvent: Call.Event, listener: (...args: any[]) => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.Connected, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.ConnectFailure, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.Reconnecting, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.Reconnected, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.Disconnected, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.Ringing, listener: () => void): this;
-    // (undocumented)
-    on(callEvent: Call.Event.QualityWarningsChanged, listener: (currentQualityWarnings: NativeCallQualityWarnings, previousQualityWarnings: NativeCallQualityWarnings) => void): this;
+    on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
+    on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
+    on(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
+    on(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
+    on(reconnectedEvent: Call.Event.Reconnected, listener: Call.Listener.Reconnected): this;
+    on(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
+    on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
+    on(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
 }
 
-// @public (undocumented)
+// @public
 export class Call extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
     constructor({ uuid, customParameters, from, sid, to, isMuted, isOnHold, }: NativeCallInfo, options?: Partial<Call.Options>);
     disconnect(): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "CustomParameters" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     getCustomParameters(): CustomParameters;
-    // (undocumented)
     getFrom(): string | undefined;
-    // (undocumented)
     getSid(): string | undefined;
-    // (undocumented)
     getState(): Call.State;
-    getStats(): Promise<Call.StatsReport>;
-    // (undocumented)
+    getStats(): Promise<RTCStats.StatsReport>;
     getTo(): string | undefined;
-    // (undocumented)
     hold(hold: boolean): Promise<boolean>;
-    // (undocumented)
     isMuted(): boolean | undefined;
-    // (undocumented)
     isOnHold(): boolean | undefined;
-    // (undocumented)
     mute(mute: boolean): Promise<boolean>;
-    // (undocumented)
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
-    // (undocumented)
     sendDigits(digits: string): Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export namespace Call {
-    // (undocumented)
     export enum Event {
-        // (undocumented)
         'Connected' = "connected",
-        // (undocumented)
         'ConnectFailure' = "connectFailure",
-        // (undocumented)
         'Disconnected' = "disconnected",
-        // (undocumented)
         'QualityWarningsChanged' = "qualityWarningsChanged",
-        // (undocumented)
         'Reconnected' = "reconnected",
-        // (undocumented)
         'Reconnecting' = "reconnecting",
-        // (undocumented)
         'Ringing' = "ringing"
     }
-    // (undocumented)
     export enum Issue {
-        // (undocumented)
         AudioLatency = "audio-latency",
-        // (undocumented)
         ChoppyAudio = "choppy-audio",
-        // (undocumented)
         DroppedCall = "dropped-call",
-        // (undocumented)
         Echo = "echo",
-        // (undocumented)
         NoisyCall = "noisy-call",
-        // (undocumented)
         NotReported = "not-reported",
-        // (undocumented)
         OneWayAudio = "one-way-audio"
     }
-    // (undocumented)
+    const // Warning: (ae-forgotten-export) The symbol "NativeCallEventType" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    EventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>>;
+    export namespace Listener {
+        export type Connected = () => void;
+        export type ConnectFailure = (error: GenericError) => void;
+        export type Disconnected = (error?: GenericError) => void;
+        export type Generic = (...args: any[]) => void;
+        export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
+        export type Reconnected = () => void;
+        export type Reconnecting = (error: GenericError) => void;
+        export type Ringing = () => void;
+    }
+    // @internal
     export interface Options {
-        // (undocumented)
         nativeEventEmitter: NativeEventEmitter;
-        // (undocumented)
         nativeModule: typeof TwilioVoiceReactNative;
     }
-    // (undocumented)
     export enum QualityWarning {
-        // (undocumented)
         ConstantAudioInputLevel = "constant-audio-input-level",
-        // (undocumented)
         HighJitter = "high-jitter",
-        // (undocumented)
         HighPacketLoss = "high-packet-loss",
-        // (undocumented)
         HighRtt = "high-rtt",
-        // (undocumented)
         LowMos = "low-mos"
     }
-    // (undocumented)
     export enum Score {
-        // (undocumented)
         Five = 5,
-        // (undocumented)
         Four = 4,
-        // (undocumented)
         NotReported = 0,
-        // (undocumented)
         One = 1,
-        // (undocumented)
         Three = 3,
-        // (undocumented)
         Two = 2
     }
-    // (undocumented)
     export enum State {
-        // (undocumented)
         'Connected' = "connected",
-        // (undocumented)
         'Connecting' = "connecting",
-        // (undocumented)
         'Disconnected' = "disconnected",
-        // (undocumented)
         'Reconnecting' = "reconnected",
-        // (undocumented)
         'Ringing' = "ringing"
     }
-    // Warning: (ae-forgotten-export) The symbol "StatsReport" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    export type StatsReport = StatsReport;
 }
 
-// @public (undocumented)
+// @public
 export class CallInvite {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInviteInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
     constructor({ uuid, callSid, customParameters, from, to }: NativeCallInviteInfo, options?: Partial<CallInvite.Options>);
-    // (undocumented)
     accept(options?: CallInvite.AcceptOptions): Promise<Call>;
-    // (undocumented)
     getCallSid(): string;
-    // (undocumented)
     getCustomParameters(): CustomParameters;
-    // (undocumented)
     getFrom(): string;
-    // (undocumented)
     getTo(): string;
-    // (undocumented)
+    // @alpha
     isValid(): Promise<boolean>;
-    // (undocumented)
     reject(): Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export namespace CallInvite {
-    // (undocumented)
     export interface AcceptOptions {
     }
-    // (undocumented)
+    // @internal
     export interface Options {
         // (undocumented)
         nativeEventEmitter: NativeEventEmitter;
         // (undocumented)
         nativeModule: typeof TwilioVoiceReactNative;
     }
-    // (undocumented)
     export enum State {
         // (undocumented)
         Accepted = "accepted",
@@ -261,72 +197,232 @@ export namespace CallInvite {
     }
 }
 
-// @public (undocumented)
+// @public
 export class CancelledCallInvite {
     // Warning: (ae-forgotten-export) The symbol "NativeCancelledCallInviteInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
     constructor({ callSid, from, to }: NativeCancelledCallInviteInfo);
-    // (undocumented)
     getCallSid(): string;
-    // (undocumented)
     getFrom(): string;
-    // (undocumented)
     getTo(): string;
 }
 
 // @public
+export type CustomParameters = Record<string, any>;
+
+// @public
+class GenericError extends Error {
+    constructor(message: string, code?: number);
+    // (undocumented)
+    code: number | undefined;
+}
+
+// @public
+class InvalidStateError extends GenericError {
+    constructor(message: string);
+}
+
+// @public
+export namespace RTCStats {
+    // (undocumented)
+    export interface BaseTrackStats {
+        // (undocumented)
+        codec: string;
+        // (undocumented)
+        packetsLost: number;
+        // (undocumented)
+        ssrc: string;
+        // (undocumented)
+        timestamp: number;
+        // (undocumented)
+        trackId: string;
+    }
+    // (undocumented)
+    export enum IceCandidatePairState {
+        // (undocumented)
+        STATE_FAILED = "STATE_FAILED",
+        // (undocumented)
+        STATE_FROZEN = "STATE_FROZEN",
+        // (undocumented)
+        STATE_IN_PROGRESS = "STATE_IN_PROGRESS",
+        // (undocumented)
+        STATE_SUCCEEDED = "STATE_SUCCEEDED",
+        // (undocumented)
+        STATE_WAITING = "STATE_WAITING"
+    }
+    // (undocumented)
+    export interface IceCandidatePairStats {
+        // (undocumented)
+        activeCandidatePair: boolean;
+        // (undocumented)
+        availableIncomingBitrate: number;
+        // (undocumented)
+        availableOutgoingBitrate: number;
+        // (undocumented)
+        bytesReceived: number;
+        // (undocumented)
+        bytesSent: number;
+        // (undocumented)
+        consentRequestsReceived: number;
+        // (undocumented)
+        consentRequestsSent: number;
+        // (undocumented)
+        consentResponsesReceived: number;
+        // (undocumented)
+        consentResponsesSent: number;
+        // (undocumented)
+        currentRoundTripTime: number;
+        // (undocumented)
+        localCandidateId: string;
+        // (undocumented)
+        localCandidateIp: string;
+        // (undocumented)
+        nominated: boolean;
+        // (undocumented)
+        priority: number;
+        // (undocumented)
+        readable: boolean;
+        // (undocumented)
+        relayProtocol: string;
+        // (undocumented)
+        remoteCandidateId: string;
+        // (undocumented)
+        remoteCandidateIp: string;
+        // (undocumented)
+        requestsReceieved: number;
+        // (undocumented)
+        requestsSent: number;
+        // (undocumented)
+        responsesRecieved: number;
+        // (undocumented)
+        responsesSent: number;
+        // (undocumented)
+        retransmissionsReceived: number;
+        // (undocumented)
+        retransmissionsSent: number;
+        // (undocumented)
+        state: IceCandidatePairState;
+        // (undocumented)
+        totalRoundTripTime: number;
+        // (undocumented)
+        transportId: string;
+        // (undocumented)
+        writeable: boolean;
+    }
+    // (undocumented)
+    export interface IceCandidateStats {
+        // (undocumented)
+        candidateType: string;
+        // (undocumented)
+        deleted: boolean;
+        // (undocumented)
+        ip: string;
+        // (undocumented)
+        isRemote: boolean;
+        // (undocumented)
+        port: number;
+        // (undocumented)
+        priority: number;
+        // (undocumented)
+        protocol: string;
+        // (undocumented)
+        transportId: string;
+        // (undocumented)
+        url: string;
+    }
+    // (undocumented)
+    export interface LocalAudioTrackStats extends LocalTrackStats {
+        // (undocumented)
+        audioLevel: number;
+        // (undocumented)
+        jitter: number;
+    }
+    // (undocumented)
+    export interface LocalTrackStats extends BaseTrackStats {
+        // (undocumented)
+        bytesSent: number;
+        // (undocumented)
+        packetsSent: number;
+        // (undocumented)
+        roundTripTime: number;
+    }
+    // (undocumented)
+    export interface RemoteAudioTrackStats extends RemoteTrackStats {
+        // (undocumented)
+        audioLevel: number;
+        // (undocumented)
+        jitter: number;
+        // (undocumented)
+        mos: number;
+    }
+    // (undocumented)
+    export interface RemoteTrackStats extends BaseTrackStats {
+        // (undocumented)
+        bytesRecieved: number;
+        // (undocumented)
+        packetsReceived: number;
+    }
+    export interface StatsReport {
+        // (undocumented)
+        iceCandidatePairStats: IceCandidatePairStats[];
+        // (undocumented)
+        iceCandidateStats: IceCandidateStats[];
+        // (undocumented)
+        localAudioTrackStats: LocalAudioTrackStats[];
+        // (undocumented)
+        peerConnectionId: string;
+        // (undocumented)
+        remoteAudioTrackStats: RemoteAudioTrackStats[];
+    }
+}
+
+declare namespace TwilioErrors {
+    export {
+        InvalidStateError,
+        GenericError
+    }
+}
+export { TwilioErrors }
+
+// @public
 export interface Voice {
-    addEventListener(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.AudioDevicesUpdated, listener: (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.CallInvite, listener: (callInvite: CallInvite) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.CallInviteAccepted, listener: (callInvite: CallInvite, call: Call) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.CallInviteRejected, listener: (callInvite: CallInvite) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.CancelledCallInvite, listener: (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.Error, listener: (error: TwilioError) => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.Registered, listener: () => void): this;
-    // (undocumented)
-    addEventListener(voiceEvent: Voice.Event.Unregistered, listener: () => void): this;
+    addEventListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+    addEventListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
+    addEventListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
+    addEventListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
+    addEventListener(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
+    addEventListener(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
+    addEventListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
+    addEventListener(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
+    addEventListener(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
-    // (undocumented)
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice: AudioDevice): boolean;
-    // (undocumented)
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
-    // (undocumented)
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteAccepted, callInvite: CallInvite, call: Call): boolean;
-    // (undocumented)
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteRejected, callInvite: CallInvite): boolean;
-    // (undocumented)
-    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: TwilioError): boolean;
-    // (undocumented)
-    emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
-    // (undocumented)
+    // @internal (undocumented)
+    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: GenericError): boolean;
+    // @internal (undocumented)
+    emit(voiceEvent: Voice.Event.Error, error: GenericError): boolean;
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Registered): boolean;
-    // (undocumented)
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Unregistered): boolean;
-    // (undocumented)
-    on(voiceEvent: Voice.Event, listener: (...args: any[]) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.AudioDevicesUpdated, listener: (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.CallInvite, listener: (callInvite: CallInvite) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.CallInviteAccepted, listener: (callInvite: CallInvite, call: Call) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.CallInviteRejected, listener: (callInvite: CallInvite) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.CancelledCallInvite, listener: (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.Error, listener: () => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.Registered, listener: () => void): this;
-    // (undocumented)
-    on(voiceEvent: Voice.Event.Unregistered, listener: () => void): this;
+    on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+    on(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
+    on(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
+    on(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
+    on(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
+    on(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
+    on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
+    on(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
+    on(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
 }
 
 // @public
@@ -348,34 +444,32 @@ export class Voice extends EventEmitter {
 
 // @public
 export namespace Voice {
-    // (undocumented)
     export enum Event {
-        // (undocumented)
         'AudioDevicesUpdated' = "audioDevicesUpdated",
-        // (undocumented)
         'CallInvite' = "callInvite",
-        // (undocumented)
         'CallInviteAccepted' = "callInviteAccepted",
-        // (undocumented)
         'CallInviteRejected' = "callInviteRejected",
-        // (undocumented)
         'CancelledCallInvite' = "cancelledCallInvite",
-        // (undocumented)
         'Error' = "error",
-        // (undocumented)
         'Registered' = "registered",
-        // (undocumented)
         'Unregistered' = "unregistered"
     }
-    // (undocumented)
+    export namespace Listener {
+        export type AudioDevicesUpdated = (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => void;
+        export type CallInvite = (callInvite: CallInvite) => void;
+        export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
+        export type CallInviteRejected = (callInvite: CallInvite) => void;
+        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: GenericError) => void;
+        export type Error = (error: GenericError) => void;
+        export type Generic = (...args: any[]) => void;
+        export type Registered = () => void;
+        export type Unregistered = () => void;
+    }
+    // @internal
     export interface Options {
-        // (undocumented)
         nativeEventEmitter: NativeEventEmitter;
-        // (undocumented)
         nativeModule: typeof TwilioVoiceReactNative;
     }
 }
-
-// (No @packageDocumentation comment for this package)
 
 ```
