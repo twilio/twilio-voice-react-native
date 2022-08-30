@@ -283,6 +283,7 @@ workflows:
           name: Release approval
           type: approval
       - run-release:
+          context: vblocks-js
           name: Release
           dry-run: false
           requires:
