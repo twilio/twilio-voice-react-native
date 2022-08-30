@@ -9,6 +9,14 @@
             "device": {
                 "type": "iPhone 12 Pro Max"
             }
+        },
+        "android.emulator": {
+            "type": "android.emulator",
+            "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+            "build": "cd android && ENVFILE=.env.testing ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..",
+            "device": {
+                "avdName": "rn-sdk-integration-tests-avd"
+            }
         }
     }
 }

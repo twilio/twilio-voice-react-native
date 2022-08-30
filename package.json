@@ -37,7 +37,8 @@
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
     "test:unit": "jest",
-    "test:e2e:token": "node ./example/e2e/scripts/generateToken.js"
+    "test:e2e:token": "node ./example/e2e/scripts/generateToken.js",
+    "test:e2e:google-services": "node ./example/e2e/scripts/generateGoogleServices.js"
   },
   "keywords": [
     "react-native",
