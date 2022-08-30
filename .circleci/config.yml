@@ -28,7 +28,7 @@ executors:
     working_directory: ~/project
   android:
     machine:
-      image: android:2022.08.01
+      image: android:2022.07.1
     working_directory: ~/project
 
 ###
@@ -41,7 +41,7 @@ orbs:
 # Commands
 ###
 commands:
-  attach_project:
+  attach-project:
     steps:
       - attach_workspace:
           at: ~/project
@@ -58,7 +58,8 @@ commands:
   setup-detox-dependencies:
     description: Setup environment for running test on detox
     steps:
-      - run: npm install -g detox-cli jest
+      - run: npm install -g detox-cli && npm link detox
+      - run: npm install -g jest && npm link jest
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -87,7 +88,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            yarn run test:e2e:token
+            IDENTITY=rn-sdk-integration-tests yarn run test:e2e:token
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -152,7 +153,7 @@ jobs:
     executor: default
     steps:
       - checkout
-      - attach_project
+      - attach-project
       - restore_cache:
           keys:
             - dependencies-{{ checksum "package.json" }}
@@ -175,7 +176,7 @@ jobs:
   lint:
     executor: default
     steps:
-      - attach_project
+      - attach-project
       - run:
           name: Lint files
           command: |
@@ -184,7 +185,7 @@ jobs:
   typescript:
     executor: default
     steps:
-      - attach_project
+      - attach-project
       - run:
           name: Typecheck files
           command: |
@@ -193,7 +194,7 @@ jobs:
   unit-tests:
     executor: default
     steps:
-      - attach_project
+      - attach-project
       - run:
           name: Run unit tests
           command: |
@@ -205,15 +206,14 @@ jobs:
   build-package:
     executor: default
     steps:
-      - attach_project
+      - attach-project
       - run:
           name: Build package
           command: |
             yarn run prepare
 
   run-release:
-    executor:
-      name: default
+    executor: default
     parameters:
       dry-run:
         type: boolean
@@ -231,8 +231,7 @@ jobs:
             - run: << pipeline.parameters.release_command >>
 
   e2e-ios:
-    executor:
-      name: ios
+    executor: ios
     parameters:
       detox_configuration:
         type: string
@@ -256,8 +255,7 @@ jobs:
           path: ./example/test-report.html
 
   e2e-android:
-    executor:
-      name: android
+    executor: android
     parameters:
       detox_configuration:
         type: string
@@ -269,14 +267,22 @@ jobs:
       - install-dependencies
       - setup-e2e-creds
       - setup-detox-dependencies
+      - android/create-avd:
+          avd-name: rn-sdk-integration-test-avd
+          install: true
+          system-image: system-images;android-30;default;x86_64
+      - android/start-emulator:
+          avd-name: rn-sdk-integration-test-avd
+          post-emulator-launch-assemble-command: ""
+          restore-gradle-cache-post-emulator-launch: false
       # run E2E tests
       - detox-build:
-          configuration: <<parameters.detox_configuration>>
+         configuration: <<parameters.detox_configuration>>
       - detox-test:
-          configuration: <<parameters.detox_configuration>>
-          artifacts: <<parameters.artifacts_location>>
+         configuration: <<parameters.detox_configuration>>
+         artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
-          path: ./example/test-report.html
+         path: ./example/test-report.html
 
 ###
 # Workflows
@@ -305,7 +311,13 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
+          context:
+            - vblocks-js
           detox_configuration: ios.release
+      - e2e-android:
+          context:
+            - vblocks-js
+          detox_configuration: android.release
 
   ###
   # Release workflow

@@ -10,7 +10,7 @@ const {
   API_KEY_SECRET,
   IDENTITY,
   INCOMING_ALLOWED,
-  RN_OUTGOING_APPLICATION_SID,
+  APPLICATION_SID,
   PUSH_CREDENTIAL_SID,
 } = process.env;
 
@@ -19,20 +19,22 @@ const {
  * @returns - a string representing the JWT.
  */
 function generateAccessToken() {
-  for (
-    const [k, v] of Object.entries({
-      ACCOUNT_SID,
-      API_KEY_SID,
-      API_KEY_SECRET,
-      IDENTITY,
-      INCOMING_ALLOWED,
-      RN_OUTGOING_APPLICATION_SID,
-      PUSH_CREDENTIAL_SID,
-    })
-  ) {
-    if (!Boolean(v)) {
-      throw new Error(`Missing required environment variable "${k}".`);
-    }
+  const missingEnvVars = Object.entries({
+    ACCOUNT_SID,
+    API_KEY_SID,
+    API_KEY_SECRET,
+    IDENTITY,
+    INCOMING_ALLOWED,
+    APPLICATION_SID,
+    PUSH_CREDENTIAL_SID,
+  })
+    .filter(([_, v]) => typeof v !== 'string')
+    .map(([k]) => k);
+
+  if (missingEnvVars.length > 0) {
+    throw new Error(
+      `Missing environment variables "${missingEnvVars.join(', ')}".`
+    );
   }
 
   let incomingAllowed;
@@ -54,7 +56,7 @@ function generateAccessToken() {
 
   const voiceGrantOptions = {
     incomingAllowed,
-    outgoingApplicationSid: RN_OUTGOING_APPLICATION_SID,
+    outgoingApplicationSid: APPLICATION_SID,
     pushCredentialSid: PUSH_CREDENTIAL_SID,
   };
   const voiceGrant = new AccessToken.VoiceGrant(voiceGrantOptions);
@@ -73,9 +75,8 @@ function generateAccessToken() {
  *    - Rejects if the file already exists, or if unable to write the file.
  */
 async function saveAccessToken(accessTokenPath, token) {
-  const fileContents = `export const accessToken = '${token}';`;
-  const accessTokenFileHandle =
-    await fs.open(accessTokenPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL);
+  const fileContents = `export const token = '${token}';`;
+  const accessTokenFileHandle = await fs.open(accessTokenPath, 'wx');
   await accessTokenFileHandle.write(fileContents);
   await accessTokenFileHandle.close();
 }
@@ -94,4 +95,7 @@ async function main() {
   await saveAccessToken(accessTokenPath, accessToken);
 }
 
-main();
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
