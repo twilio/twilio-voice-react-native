@@ -36,7 +36,8 @@
     "pods": "cd example && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
-    "test": "jest"
+    "test:unit": "jest",
+    "test:e2e:token": "node ./example/e2e/scripts/generateToken.js"
   },
   "keywords": [
     "react-native",

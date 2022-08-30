@@ -25,6 +25,7 @@
     "jest-html-reporter": "^3.4.1",
     "jest-junit": "^13.0.0",
     "metro-react-native-babel-preset": "^0.64.0",
-    "ts-jest": "^28.0.7"
+    "ts-jest": "^28.0.7",
+    "twilio": "^3.81.0"
   }
 }

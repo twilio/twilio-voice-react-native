@@ -14,17 +14,38 @@ parameters:
     type: string
     default: "echo \"no release-command specified\""
 
+###
+# Executors
+###
 executors:
   default:
     docker:
       - image: cimg/node:lts
     working_directory: ~/project
+  ios:
+    macos:
+      xcode: 12.5.1
+    working_directory: ~/project
+  android:
+    machine:
+      image: android:2022.08.01
+    working_directory: ~/project
 
+###
+# Orbs
+###
+orbs:
+  android: circleci/android@2.1.2
+
+###
+# Commands
+###
 commands:
   attach_project:
     steps:
       - attach_workspace:
           at: ~/project
+
   install-dependencies:
     steps:
       - run:
@@ -33,11 +54,12 @@ commands:
             yarn run build:constants
             yarn install --cwd example --frozen-lockfile
             yarn install --frozen-lockfile
+
   setup-detox-dependencies:
     description: Setup environment for running test on detox
     steps:
-      - run: npm install -g detox-cli && npm link detox
-      - run: npm install -g jest && npm link jest
+      - run: npm install -g detox-cli jest
+
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -58,13 +80,15 @@ commands:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
+
   setup-e2e-creds:
     description: "Decode account credentials for e2e tests"
     steps:
       - run:
           name: "Decode creds"
           command: |
-            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> example/src/e2e-tests-token.ts
+            yarn run test:e2e:token
+
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
@@ -76,6 +100,7 @@ commands:
             detox clean-framework-cache
             detox build-framework-cache
             cd ../
+
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -86,10 +111,11 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd example 
+            cd example
             detox build -c <<parameters.configuration>>
             cd ..
           no_output_timeout: 20m
+
   detox-test:
     description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -118,6 +144,9 @@ commands:
             detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ..
 
+###
+# Jobs
+###
 jobs:
   cache-install-dependencies:
     executor: default
@@ -199,11 +228,11 @@ jobs:
       - unless:
           condition: << parameters.dry-run >>
           steps:
-            - run: << pipeline.parameters.release_command >>  
+            - run: << pipeline.parameters.release_command >>
 
   e2e-ios:
-    macos:
-      xcode: "12.5.1"
+    executor:
+      name: ios
     parameters:
       detox_configuration:
         type: string
@@ -212,11 +241,34 @@ jobs:
         type: string
     steps:
       - checkout
+      - install-dependencies
       - setup-e2e-creds
       - setup-detox-dependencies
-      - install-dependencies
       - setup-pods
       - simulator-dependencies
+      # run E2E tests
+      - detox-build:
+          configuration: <<parameters.detox_configuration>>
+      - detox-test:
+          configuration: <<parameters.detox_configuration>>
+          artifacts: <<parameters.artifacts_location>>
+      - store_artifacts:
+          path: ./example/test-report.html
+
+  e2e-android:
+    executor:
+      name: android
+    parameters:
+      detox_configuration:
+        type: string
+      artifacts_location:
+        default: /tmp/artifacts
+        type: string
+    steps:
+      - checkout
+      - install-dependencies
+      - setup-e2e-creds
+      - setup-detox-dependencies
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
@@ -254,8 +306,6 @@ workflows:
             - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
-          requires:
-            - cache-install-dependencies
 
   ###
   # Release workflow
@@ -276,6 +326,8 @@ workflows:
       - build-package:
           requires:
             - cache-install-dependencies
+      - e2e-ios:
+          detox_configuration: ios.release
       - run-release:
           name: Release dry run
           dry-run: true
