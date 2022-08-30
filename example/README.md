@@ -4,6 +4,10 @@
 
 - [React Native CLI](https://reactnative.dev/docs/environment-setup)
 - [Yarn](https://yarnpkg.com/getting-started)
+- Token - Create a file, `e2e-tests-token.ts` under `example/src` directory with the following content.
+  ```ts
+  export const token = 'my-token-goes-here';
+  ```
 
 ## Setup
 
@@ -15,7 +19,7 @@
   ```sh
   cd twilio-voice-react-native
   ```
-3. Install dependencies
+3. Install SDK dependencies
   ```sh
   yarn install
   ```
@@ -23,15 +27,38 @@
   ```sh
   yarn run build:constants
   ```
+5. Switch to the example directory
+  ```sh
+  cd example
+  ```
+6. Install app dependencies
+  ```sh
+  yarn install
+  ```
+7. Install pods for iOS
+  ```sh
+  cd ios
+  pod install
+  ```
 
 ## Running the app
 
-To run on Android:
+Switch to the example directory
 ```sh
-yarn example android
+cd example
 ```
 
-To run on iOS:
+Start metro bundler:
 ```sh
-yarn example ios
+yarn start
+```
+
+On a different terminal window, run on Android:
+```sh
+yarn run android
+```
+
+On a different terminal window, run on iOS:
+```sh
+yarn run ios
 ```
