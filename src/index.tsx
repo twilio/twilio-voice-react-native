@@ -1,4 +1,4 @@
-// Copyright (c) Twilio Inc. All rights reserved. Licensed under the Twilio
+// Copyright © 2022 Twilio, Inc. All rights reserved. Licensed under the Twilio
 // license.
 
 // See LICENSE in the project root for license information.

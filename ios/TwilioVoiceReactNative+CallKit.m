@@ -2,7 +2,7 @@
 //  TwilioVoiceReactNative+CallKit.m
 //  TwilioVoiceReactNative
 //
-//  Copyright © 2021 Twilio, Inc. All rights reserved.
+//  Copyright © 2022 Twilio, Inc. All rights reserved.
 //
 
 @import CallKit;

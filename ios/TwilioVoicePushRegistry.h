@@ -2,7 +2,7 @@
 //  TwilioVoicePushRegistry.h
 //  TwilioVoiceReactNative
 //
-//  Copyright © 2021 Twilio, Inc. All rights reserved.
+//  Copyright © 2022 Twilio, Inc. All rights reserved.
 //
 
 FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotification;
