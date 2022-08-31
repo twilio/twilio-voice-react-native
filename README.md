@@ -48,4 +48,4 @@ const call = await voice.connect(token, params);
 
 ## License
 
-See [LICENSE.md](LICENSE.md)
+See [LICENSE](LICENSE)
