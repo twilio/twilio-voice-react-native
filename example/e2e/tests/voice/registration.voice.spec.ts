@@ -8,14 +8,15 @@ async function isVisibleByText(text: string, timeout: number = DEFAULT_TIME_OUT)
     .withTimeout(timeout);
 }
 
-describe('Registration APIs', () => {
-    it('Voice | Registration | :ios:', async () => {
+describe('registration', () => {
+    it('successfully registers', async () => {
         await isVisibleByText('Registered: false');
         await isVisibleByText('Register');
         await element(by.text('Register')).tap();
         await isVisibleByText('Registered: true');
     });
-    it('Voice | Unregistration | :ios:', async () => {
+
+    it('succesfully unregisters', async () => {
         await isVisibleByText('Registered: true');
         await isVisibleByText('Unregister');
         await element(by.text('Unregister')).tap();

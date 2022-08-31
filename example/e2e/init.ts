@@ -2,8 +2,8 @@
 import 'detox';
 
 declare const device: {
-  installApp: () => void;
-  launchApp: (param: any) => void;
+  installApp: () => Promise<void>;
+  launchApp: (param: any) => Promise<void>;
 }
 
 require('dotenv').config();
