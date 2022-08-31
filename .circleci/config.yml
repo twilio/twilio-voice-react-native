@@ -25,10 +25,12 @@ executors:
   ios:
     macos:
       xcode: 12.5.1
+    resource_class: large
     working_directory: ~/project
   android:
     machine:
       image: android:2022.07.1
+    resource_class: large
     working_directory: ~/project
 
 ###
@@ -150,7 +152,7 @@ commands:
           name: Detox Test
           command: |
             cd example
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --headless -- --ci --forceExit --detectOpenHandles
             cd ..
 
 ###
