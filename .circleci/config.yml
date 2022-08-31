@@ -290,6 +290,7 @@ jobs:
       - detox-test:
          configuration: <<parameters.detox_configuration>>
          artifacts: <<parameters.artifacts_location>>
+      - android/kill-emulators
       - store_artifacts:
          path: ./example/test-report.html
 
