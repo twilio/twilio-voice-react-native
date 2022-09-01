@@ -19,6 +19,8 @@ An Access Token is required to make outgoing calls or receive incoming calls. Pl
 
 ## Installation
 
+The package is available through [npm](https://www.npmjs.com/package/@twilio/voice-react-native-sdk).
+
 ```sh
 yarn add @twilio/voice-react-native-sdk
 ```
