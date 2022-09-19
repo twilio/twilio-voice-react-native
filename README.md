@@ -2,6 +2,18 @@
 
 [![NPM](https://img.shields.io/npm/v/%40twilio/voice-react-native-sdk.svg?color=blue)](https://www.npmjs.com/package/%40twilio/voice-react-native-sdk)
 
+**_WARNING - PLEASE READ:_**
+
+This is a Pilot release.
+
+That means:
+- The SDK and associated open source repo are offered as-is. While we take professional pride in all releases, including Pilots, there may be vulnerabilities or bugs present that we’re not yet aware of. 
+- We’ve targeted this release to “power users”; documentation is sparse and code samples non-existent. These will come in later (public) releases.
+- Although rare in practice, we reserve the right to introduce breaking API changes in future releases before ultimately going stable/GA.
+- We will tear out the embedded example app and replace it with a proper Quickstart in our first public release. As such, we do not plan to invest any time into fixing or enhancing the current example app.
+- Traditional Twilio Support channels and resources are not available to help. 
+- We welcome your feedback and SDK bug reports (note: non-example app bugs) via the [issues](https://github.com/twilio/twilio-voice-react-native/issues) page.
+
 Twilio's Voice React Native SDK allows you to add real-time voice and PSTN calling to your React Native apps.
 
 Please check out the following if you are new to Twilio's Programmable Voice or React Native. Also, please checkout our [common issues](COMMON_ISSUES.md) page or contact [help@twilio.com](mailto:help@twilio.com) if you need technical support.
