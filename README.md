@@ -2,7 +2,11 @@
 
 [![NPM](https://img.shields.io/npm/v/%40twilio/voice-react-native-sdk.svg?color=blue)](https://www.npmjs.com/package/%40twilio/voice-react-native-sdk)
 
-**_WARNING - PLEASE READ:_** This is a Pilot release. That means:
+**_WARNING - PLEASE READ:_**
+
+This is a Pilot release.
+
+That means:
 - The SDK and associated open source repo are offered as-is. While we take professional pride in all releases, including Pilots, there may be vulnerabilities or bugs present that we’re not yet aware of. 
 - We’ve targeted this release to “power users”; documentation is sparse and code samples non-existent. These will come in later (public) releases.
 - Although rare in practice, we reserve the right to introduce breaking API changes in future releases before ultimately going stable/GA.
