@@ -35,14 +35,15 @@ project.xcworkspace
 .gradle
 local.properties
 android.iml
-example/android/app/google-services.json
+test-application/android/app/google-services.json
 
 # Cocoapods
 #
-example/ios/Pods
+test-application/ios/Pods
 
 # node.js
 #
+test-application/node_modules/
 node_modules/
 npm-debug.log
 yarn-debug.log
@@ -74,7 +75,5 @@ docs/
 temp/
 
 # e2e tests
-example/src/e2e-tests-token.ts
-
+test-application/src/e2e-tests-token.ts
 coverage/
-
