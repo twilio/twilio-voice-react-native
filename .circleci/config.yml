@@ -31,7 +31,7 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
-            yarn install --cwd example --frozen-lockfile
+            yarn install --cwd test-application --frozen-lockfile
             yarn install --frozen-lockfile
   setup-detox-dependencies:
     description: Setup environment for running test on detox
@@ -48,7 +48,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd example/ios && pod install && cd ../..
+            cd test-application/ios && pod install && cd ../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -86,7 +86,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd example 
+            cd example
             detox build -c <<parameters.configuration>>
             cd ..
           no_output_timeout: 20m
@@ -199,7 +199,7 @@ jobs:
       - unless:
           condition: << parameters.dry-run >>
           steps:
-            - run: << pipeline.parameters.release_command >>  
+            - run: << pipeline.parameters.release_command >>
 
   e2e-ios:
     macos:
