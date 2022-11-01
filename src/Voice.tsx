@@ -24,7 +24,7 @@ import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
  * | Voice objects}.
  *
  * @remarks
- * Note that the `on` function is an alias for the `addEventListener` function.
+ * Note that the `on` function is an alias for the `addListener` function.
  * They share identical functionality and either may be used interchangeably.
  *
  * - See also the {@link (Voice:class) | Voice class}.
@@ -94,11 +94,8 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
-    voiceEvent: Voice.Event,
-    listener: Voice.Listener.Generic
-  ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:1)} */
+  addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+  /** {@inheritDoc (Voice:interface).(addListener:1)} */
   on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
 
   /**
@@ -106,7 +103,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.AudioDevicesUpdated, () => {
+   * voice.addListener(Voice.Event.AudioDevicesUpdated, () => {
    *   // the list of available audio devices has changed and/or the selected
    *   // audio device has been changed
    * });
@@ -117,11 +114,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated,
     listener: Voice.Listener.AudioDevicesUpdated
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:2)} */
+  /** {@inheritDoc (Voice:interface).(addListener:2)} */
   on(
     audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated,
     listener: Voice.Listener.AudioDevicesUpdated
@@ -132,7 +129,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.CallInvite, (callInvite: CallInvite) => {
+   * voice.addListener(Voice.Event.CallInvite, (callInvite: CallInvite) => {
    *   // handle the incoming call invite
    * });
    * ```
@@ -142,11 +139,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     callInviteEvent: Voice.Event.CallInvite,
     listener: Voice.Listener.CallInvite
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:3)} */
+  /** {@inheritDoc (Voice:interface).(addListener:3)} */
   on(
     callInviteEvent: Voice.Event.CallInvite,
     listener: Voice.Listener.CallInvite
@@ -162,7 +159,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.CallInviteAccepted, (callInvite: CallInvite, call: Call) => {
+   * voice.addListener(Voice.Event.CallInviteAccepted, (callInvite: CallInvite, call: Call) => {
    *   // handle the incoming call invite and the call associated with it
    * });
    * ```
@@ -172,11 +169,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
     listener: Voice.Listener.CallInviteAccepted
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:4)} */
+  /** {@inheritDoc (Voice:interface).(addListener:4)} */
   on(
     callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
     listener: Voice.Listener.CallInviteAccepted
@@ -192,7 +189,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.CallInviteRejected, (callInvite: CallInvite) => {
+   * voice.addListener(Voice.Event.CallInviteRejected, (callInvite: CallInvite) => {
    *   // handle the rejection of the incoming call invite
    * });
    * ```
@@ -202,11 +199,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     callInviteRejectedEvent: Voice.Event.CallInviteRejected,
     listener: Voice.Listener.CallInviteRejected
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:5)} */
+  /** {@inheritDoc (Voice:interface).(addListener:5)} */
   on(
     callInviteRejectedEvent: Voice.Event.CallInviteRejected,
     listener: Voice.Listener.CallInviteRejected
@@ -218,7 +215,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.CancelledCallInvite, (cancelledCallInvite: CancelledCallInvite) => {
+   * voice.addListener(Voice.Event.CancelledCallInvite, (cancelledCallInvite: CancelledCallInvite) => {
    *   // handle the cancellation of the incoming call invite
    * });
    * ```
@@ -228,11 +225,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
     listener: Voice.Listener.CancelledCallInvite
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:6)} */
+  /** {@inheritDoc (Voice:interface).(addListener:6)} */
   on(
     cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
     listener: Voice.Listener.CancelledCallInvite
@@ -243,7 +240,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.Error, (error: TwilioError.GenericError) => {
+   * voice.addListener(Voice.Event.Error, (error: TwilioError.GenericError) => {
    *   // handle a generic Voice SDK error
    * });
    * ```
@@ -253,11 +250,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     errorEvent: Voice.Event.Error,
     listener: Voice.Listener.Error
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:7)} */
+  /** {@inheritDoc (Voice:interface).(addListener:7)} */
   on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
 
   /**
@@ -265,7 +262,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.Registered, () => {
+   * voice.addListener(Voice.Event.Registered, () => {
    *   // handle successful registration for incoming calls
    * });
    * ```
@@ -275,11 +272,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:8)} */
+  /** {@inheritDoc (Voice:interface).(addListener:8)} */
   on(
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
@@ -290,7 +287,7 @@ export declare interface Voice {
    *
    * @example
    * ```typescript
-   * voice.addEventListener(Voice.Event.Unregistered, () => {
+   * voice.addListener(Voice.Event.Unregistered, () => {
    *   // handle successful unregistration for incoming calls
    * });
    * ```
@@ -300,11 +297,11 @@ export declare interface Voice {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addEventListener:9)} */
+  /** {@inheritDoc (Voice:interface).(addListener:9)} */
   on(
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
@@ -763,55 +760,55 @@ export namespace Voice {
   export enum Event {
     /**
      * Raised when there is a change in available audio devices.
-     * See {@link (Voice:interface).(addEventListener:2)
-     * | Voice.addEventListener(AudioDevicesUpdated)}.
+     * See {@link (Voice:interface).(addListener:2)
+     * | Voice.addListener(AudioDevicesUpdated)}.
      */
     'AudioDevicesUpdated' = 'audioDevicesUpdated',
     /**
      * Raised when there is an incoming call invite.
-     * See {@link (Voice:interface).(addEventListener:3)
-     * | Voice.addEventListener(CallInvite)}.
+     * See {@link (Voice:interface).(addListener:3)
+     * | Voice.addListener(CallInvite)}.
      */
     'CallInvite' = 'callInvite',
     /**
      * Raised when an incoming call invite has been accepted.
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
-     * See {@link (Voice:interface).(addEventListener:4)
-     * | Voice.addEventListener(CallInviteAccepted)}.
+     * See {@link (Voice:interface).(addListener:4)
+     * | Voice.addListener(CallInviteAccepted)}.
      */
     'CallInviteAccepted' = 'callInviteAccepted',
     /**
      * Raised when an incoming call invite has been rejected.
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
-     * See {@link (Voice:interface).(addEventListener:5)
-     * | Voice.addEventListener(CallInviteRejected)}.
+     * See {@link (Voice:interface).(addListener:5)
+     * | Voice.addListener(CallInviteRejected)}.
      */
     'CallInviteRejected' = 'callInviteRejected',
     /**
      * Raised when an incoming call invite has been cancelled, thus invalidating
      * the associated call invite.
-     * See {@link (Voice:interface).(addEventListener:6)
-     * | Voice.addEventListener(CancelledCallInvite)}.
+     * See {@link (Voice:interface).(addListener:6)
+     * | Voice.addListener(CancelledCallInvite)}.
      */
     'CancelledCallInvite' = 'cancelledCallInvite',
     /**
      * Raised when the SDK encounters an error.
-     * See {@link (Voice:interface).(addEventListener:7)
-     * | Voice.addEventListener(Error)}.
+     * See {@link (Voice:interface).(addListener:7)
+     * | Voice.addListener(Error)}.
      */
     'Error' = 'error',
     /**
      * Raised when the SDK is registered for incoming calls.
-     * See {@link (Voice:interface).(addEventListener:8)
-     * | Voice.addEventListener(Registered)}.
+     * See {@link (Voice:interface).(addListener:8)
+     * | Voice.addListener(Registered)}.
      */
     'Registered' = 'registered',
     /**
      * Raised when the SDK is unregistered for incoming calls.
-     * See {@link (Voice:interface).(addEventListener:9)
-     * | Voice.addEventListener(Unregistered)}.
+     * See {@link (Voice:interface).(addListener:9)
+     * | Voice.addListener(Unregistered)}.
      */
     'Unregistered' = 'unregistered',
   }
@@ -826,7 +823,7 @@ export namespace Voice {
      * event listener bound to any voice event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:1)}.
+     * See {@link (Voice:interface).(addListener:1)}.
      */
     export type Generic = (...args: any[]) => void;
 
@@ -836,7 +833,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.AudioDevicesUpdated} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:2)}.
+     * See {@link (Voice:interface).(addListener:2)}.
      */
     export type AudioDevicesUpdated = (
       audioDevices: AudioDevice[],
@@ -849,7 +846,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInvite} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:3)}.
+     * See {@link (Voice:interface).(addListener:3)}.
      */
     export type CallInvite = (callInvite: CallInvite) => void;
 
@@ -859,7 +856,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInviteAccepted} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:4)}.
+     * See {@link (Voice:interface).(addListener:4)}.
      */
     export type CallInviteAccepted = (
       callInvite: CallInvite,
@@ -872,7 +869,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInviteRejected} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:5)}.
+     * See {@link (Voice:interface).(addListener:5)}.
      */
     export type CallInviteRejected = (callInvite: CallInvite) => void;
 
@@ -882,7 +879,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CancelledCallInvite} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:6)}.
+     * See {@link (Voice:interface).(addListener:6)}.
      */
     export type CancelledCallInvite = (
       cancelledCallInvite: CancelledCallInvite,
@@ -895,7 +892,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Error} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:7)}.
+     * See {@link (Voice:interface).(addListener:7)}.
      */
     export type Error = (error: GenericError) => void;
 
@@ -905,7 +902,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Registered} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:7)}.
+     * See {@link (Voice:interface).(addListener:7)}.
      */
     export type Registered = () => void;
 
@@ -915,7 +912,7 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Unregistered} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addEventListener:8)}.
+     * See {@link (Voice:interface).(addListener:8)}.
      */
     export type Unregistered = () => void;
   }
