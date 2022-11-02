@@ -1,9 +1,9 @@
-1.0.0-beta.1 (November 1, 2022)
-===============================
+1.0.0-beta.1 (In Progress)
+==========================
 
 ## Fixes
 
-- Fix incorrectly exported types and references to `addEventListener`, instead now correctly exporting as `addListener`.
+- Fixed an issue where some types on the `Call` and `Voice` classes were being incorrectly exported. Types and references to `addEventListener` are instead now correctly exported as `addListener`.
 
 1.0.0-preview.1 (September 1, 2022)
 ===================================
