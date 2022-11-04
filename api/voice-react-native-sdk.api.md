@@ -35,14 +35,14 @@ export namespace AudioDevice {
 
 // @public
 export interface Call {
-    addEventListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
-    addEventListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
-    addEventListener(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
-    addEventListener(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
-    addEventListener(reconnectedEvent: Call.Event.Reconnected, listener: Call.Listener.Reconnected): this;
-    addEventListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
-    addEventListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
-    addEventListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
+    addListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
+    addListener(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
+    addListener(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
+    addListener(reconnectedEvent: Call.Event.Reconnected, listener: Call.Listener.Reconnected): this;
+    addListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
+    addListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
+    addListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
     // @internal (undocumented)
@@ -367,15 +367,15 @@ export { TwilioErrors }
 
 // @public
 export interface Voice {
-    addEventListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
-    addEventListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
-    addEventListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
-    addEventListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
-    addEventListener(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
-    addEventListener(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
-    addEventListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
-    addEventListener(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
-    addEventListener(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
+    addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+    addListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
+    addListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
+    addListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
+    addListener(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
+    addListener(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
+    addListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
+    addListener(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
+    addListener(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
     // @internal (undocumented)

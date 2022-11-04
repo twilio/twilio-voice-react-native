@@ -22,7 +22,7 @@ import { GenericError } from './error/GenericError';
  * | Call objects}.
  *
  * @remarks
- * Note that the `on` function is an alias for the `addEventListener` function.
+ * Note that the `on` function is an alias for the `addListener` function.
  * They share identical functionality and either may be used interchangeably.
  *
  * - See also the {@link (Call:class) | Call class}.
@@ -84,12 +84,9 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
-    callEvent: Call.Event,
-    listener: Call.Listener.Generic
-  ): this;
+  addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:1)}
+   * {@inheritDoc (Call:interface).(addListener:1)}
    */
   on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 
@@ -98,7 +95,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.Connected, () => {
+   * call.addListener(Call.Event.Connected, () => {
    *   // call has been connected
    * });
    * ```
@@ -108,12 +105,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     connectedEvent: Call.Event.Connected,
     listener: Call.Listener.Connected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:2)}
+   * {@inheritDoc (Call:interface).(addListener:2)}
    */
   on(
     connectedEvent: Call.Event.Connected,
@@ -125,7 +122,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.ConnectFailure, (error) => {
+   * call.addListener(Call.Event.ConnectFailure, (error) => {
    *   // call was unable to connect, handle error
    * });
    * ```
@@ -135,12 +132,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     connectFailureEvent: Call.Event.ConnectFailure,
     listener: Call.Listener.ConnectFailure
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:3)}
+   * {@inheritDoc (Call:interface).(addListener:3)}
    */
   on(
     connectFailureEvent: Call.Event.ConnectFailure,
@@ -152,7 +149,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.Reconnecting, (error) => {
+   * call.addListener(Call.Event.Reconnecting, (error) => {
    *   // call is attempting to reconnect, handle error
    * });
    * ```
@@ -162,12 +159,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     reconnectingEvent: Call.Event.Reconnecting,
     listener: Call.Listener.Reconnecting
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:4)}
+   * {@inheritDoc (Call:interface).(addListener:4)}
    */
   on(
     reconnectingEvent: Call.Event.Reconnecting,
@@ -179,7 +176,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.Reconnected, () => {
+   * call.addListener(Call.Event.Reconnected, () => {
    *   // call has reconnected
    * });
    * ```
@@ -189,12 +186,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     reconnectedEvent: Call.Event.Reconnected,
     listener: Call.Listener.Reconnected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:5)}
+   * {@inheritDoc (Call:interface).(addListener:5)}
    */
   on(
     reconnectedEvent: Call.Event.Reconnected,
@@ -212,7 +209,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.Disconnected, (error) => {
+   * call.addListener(Call.Event.Disconnected, (error) => {
    *   // call has disconnected
    *   // if a natural disconnect occurred, then error is `undefined`
    *   // if an unnatural disconnect occurred, then error is defined
@@ -224,12 +221,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     disconnectedEvent: Call.Event.Disconnected,
     listener: Call.Listener.Disconnected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:6)}
+   * {@inheritDoc (Call:interface).(addListener:6)}
    */
   on(
     disconnectedEvent: Call.Event.Disconnected,
@@ -241,7 +238,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(Call.Event.Ringing, () => {
+   * call.addListener(Call.Event.Ringing, () => {
    *   // call is ringing
    * });
    * ```
@@ -251,12 +248,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     ringingEvent: Call.Event.Ringing,
     listener: Call.Listener.Ringing
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:7)}
+   * {@inheritDoc (Call:interface).(addListener:7)}
    */
   on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
 
@@ -267,7 +264,7 @@ export declare interface Call {
    *
    * @example
    * ```typescript
-   * call.addEventListener(
+   * call.addListener(
    *   Call.Event.QualityWarningsChanged,
    *   (
    *      currentWarnings: Call.QualityWarning[],
@@ -283,12 +280,12 @@ export declare interface Call {
    * is raised.
    * @returns - The call object.
    */
-  addEventListener(
+  addListener(
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
     listener: Call.Listener.QualityWarningsChanged
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addEventListener:8)}
+   * {@inheritDoc (Call:interface).(addListener:8)}
    */
   on(
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
@@ -831,43 +828,43 @@ export namespace Call {
   export enum Event {
     /**
      * Event string for the `Connected` event.
-     * See {@link (Call:interface).(addEventListener:2)}.
+     * See {@link (Call:interface).(addListener:2)}.
      */
     'Connected' = 'connected',
 
     /**
      * Event string for the `ConnectedFailure` event.
-     * See {@link (Call:interface).(addEventListener:3)}.
+     * See {@link (Call:interface).(addListener:3)}.
      */
     'ConnectFailure' = 'connectFailure',
 
     /**
      * Event string for the `Reconnecting` event.
-     * See {@link (Call:interface).(addEventListener:4)}.
+     * See {@link (Call:interface).(addListener:4)}.
      */
     'Reconnecting' = 'reconnecting',
 
     /**
      * Event string for the `Reconnected` event.
-     * See {@link (Call:interface).(addEventListener:5)}.
+     * See {@link (Call:interface).(addListener:5)}.
      */
     'Reconnected' = 'reconnected',
 
     /**
      * Event string for the `Disconnected` event.
-     * See {@link (Call:interface).(addEventListener:6)}.
+     * See {@link (Call:interface).(addListener:6)}.
      */
     'Disconnected' = 'disconnected',
 
     /**
      * Event string for the `Ringing` event.
-     * See {@link (Call:interface).(addEventListener:7)}.
+     * See {@link (Call:interface).(addListener:7)}.
      */
     'Ringing' = 'ringing',
 
     /**
      * Event string for the `QualityWarningsChanged` event.
-     * See {@link (Call:interface).(addEventListener:8)}.
+     * See {@link (Call:interface).(addListener:8)}.
      */
     'QualityWarningsChanged' = 'qualityWarningsChanged',
   }
@@ -880,7 +877,7 @@ export namespace Call {
      * Call `Connected` state. Occurs when the `Connected` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:2)}.
+     * See {@link (Call:interface).(addListener:2)}.
      */
     'Connected' = 'connected',
 
@@ -888,7 +885,7 @@ export namespace Call {
      * Call `Connecting` state. Occurs when the `Connecting` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:3)}.
+     * See {@link (Call:interface).(addListener:3)}.
      */
     'Connecting' = 'connecting',
 
@@ -897,7 +894,7 @@ export namespace Call {
      * raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:4)}.
+     * See {@link (Call:interface).(addListener:4)}.
      */
     'Disconnected' = 'disconnected',
 
@@ -905,7 +902,7 @@ export namespace Call {
      * Call `Reconnected` state. Occurs when the `Reconnected` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:5)}.
+     * See {@link (Call:interface).(addListener:5)}.
      */
     'Reconnecting' = 'reconnected',
 
@@ -913,7 +910,7 @@ export namespace Call {
      * Call `Ringing` state. Occurs when the `Ringing` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:6)}.
+     * See {@link (Call:interface).(addListener:6)}.
      */
     'Ringing' = 'ringing',
   }
@@ -1042,7 +1039,7 @@ export namespace Call {
      * event listener bound to any call event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:1)}.
+     * See {@link (Call:interface).(addListener:1)}.
      */
     export type Generic = (...args: any[]) => void;
 
@@ -1052,7 +1049,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:2)}.
+     * See {@link (Call:interface).(addListener:2)}.
      */
     export type Connected = () => void;
 
@@ -1062,7 +1059,7 @@ export namespace Call {
      * {@link (Call:namespace).Event.ConnectFailure} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:3)}.
+     * See {@link (Call:interface).(addListener:3)}.
      */
     export type ConnectFailure = (error: GenericError) => void;
 
@@ -1072,7 +1069,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:4)}.
+     * See {@link (Call:interface).(addListener:4)}.
      */
     export type Reconnecting = (error: GenericError) => void;
 
@@ -1082,7 +1079,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:5)}.
+     * See {@link (Call:interface).(addListener:5)}.
      */
     export type Reconnected = () => void;
 
@@ -1092,7 +1089,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:6)}.
+     * See {@link (Call:interface).(addListener:6)}.
      */
     export type Disconnected = (error?: GenericError) => void;
 
@@ -1101,7 +1098,7 @@ export namespace Call {
      * event listener bound to the {@link (Call:namespace).Event.Ringing} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:7)}.
+     * See {@link (Call:interface).(addListener:7)}.
      */
     export type Ringing = () => void;
 
@@ -1111,7 +1108,7 @@ export namespace Call {
      * {@link (Call:namespace).Event.QualityWarningsChanged} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addEventListener:8)}.
+     * See {@link (Call:interface).(addListener:8)}.
      */
     export type QualityWarningsChanged = (
       currentQualityWarnings: Call.QualityWarning[],
