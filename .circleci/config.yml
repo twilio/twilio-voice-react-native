@@ -64,7 +64,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> example/src/e2e-tests-token.ts
+            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test-application/src/e2e-tests-token.ts
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
@@ -72,7 +72,7 @@ commands:
           working_directory: .
           name: Clear detox cache
           command: |
-            cd example
+            cd test-application
             detox clean-framework-cache
             detox build-framework-cache
             cd ../
@@ -86,7 +86,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd example
+            cd test-application
             detox build -c <<parameters.configuration>>
             cd ..
           no_output_timeout: 20m
@@ -114,7 +114,7 @@ commands:
       - run:
           name: Detox Test
           command: |
-            cd example
+            cd test-application
             detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ..
 
@@ -130,15 +130,15 @@ jobs:
             - dependencies-
       - restore_cache:
           keys:
-            - dependencies-example-{{ checksum "example/package.json" }}
-            - dependencies-example-
+            - dependencies-test-application-{{ checksum "test-application/package.json" }}
+            - dependencies-test-application-
       - install-dependencies
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
           paths: node_modules
       - save_cache:
-          key: dependencies-example-{{ checksum "example/package.json" }}
-          paths: example/node_modules
+          key: dependencies-test-application-{{ checksum "test-application/package.json" }}
+          paths: test-application/node_modules
       - persist_to_workspace:
           root: .
           paths: .
@@ -224,7 +224,7 @@ jobs:
           configuration: <<parameters.detox_configuration>>
           artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
-          path: ./example/test-report.html
+          path: ./test-application/test-report.html
 
 ###
 # Workflows
