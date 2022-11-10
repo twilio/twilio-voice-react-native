@@ -22,7 +22,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "bootstrap": "yarn run build:constants && yarn --cwd test-application && yarn && yarn pods",
+    "bootstrap": "yarn run build:constants && yarn --cwd test/test-application && yarn && yarn pods",
     "build:constants": "node ./scripts/constants.js",
     "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:api:extractor": "api-extractor run --local",
@@ -32,8 +32,8 @@
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check": "yarn run build:constants && tsc --noEmit && yarn run check:lint",
-    "test-application": "yarn run check && yarn --cwd test-application",
-    "pods": "cd test-application && pod-install --quiet",
+    "test-application": "yarn run check && yarn --cwd test/test-application",
+    "pods": "cd test/test-application && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
     "test": "jest"
@@ -82,7 +82,7 @@
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
-      "<rootDir>/test-application",
+      "<rootDir>/test/test-application",
       "<rootDir>/lib/",
       "<rootDir>/types"
     ]
@@ -120,7 +120,7 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "test-application/e2e/",
+    "test/test-application/e2e/",
     "coverage/"
   ],
   "prettier": {
