@@ -31,7 +31,7 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
-            yarn install --cwd test/test-application --frozen-lockfile
+            yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
   setup-detox-dependencies:
     description: Setup environment for running test on detox
@@ -48,7 +48,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/test-application/ios && pod install && cd ../..
+            cd test/app/ios && pod install && cd ../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -64,7 +64,7 @@ commands:
       - run:
           name: "Decode creds"
           command: |
-            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test/test-application/src/e2e-tests-token.ts
+            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test/app/src/e2e-tests-token.ts
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
@@ -72,7 +72,7 @@ commands:
           working_directory: .
           name: Clear detox cache
           command: |
-            cd test/test-application
+            cd test/app
             detox clean-framework-cache
             detox build-framework-cache
             cd ../
@@ -86,7 +86,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd test/test-application
+            cd test/app
             detox build -c <<parameters.configuration>>
             cd ..
           no_output_timeout: 20m
@@ -114,7 +114,7 @@ commands:
       - run:
           name: Detox Test
           command: |
-            cd test/test-application
+            cd test/app
             detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ..
 
@@ -130,15 +130,15 @@ jobs:
             - dependencies-
       - restore_cache:
           keys:
-            - dependencies-test-application-{{ checksum "test/test-application/package.json" }}
+            - dependencies-test-application-{{ checksum "test/app/package.json" }}
             - dependencies-test-application-
       - install-dependencies
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
           paths: node_modules
       - save_cache:
-          key: dependencies-test-application-{{ checksum "test/test-application/package.json" }}
-          paths: test-application/node_modules
+          key: dependencies-test-application-{{ checksum "test/app/package.json" }}
+          paths: test/app/node_modules
       - persist_to_workspace:
           root: .
           paths: .
@@ -224,7 +224,7 @@ jobs:
           configuration: <<parameters.detox_configuration>>
           artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
-          path: ./test/test-application/test-report.html
+          path: ./test/app/test-report.html
 
 ###
 # Workflows

@@ -14,7 +14,7 @@ coverage
 docs
 node_modules
 temp
-test/test-application
+test/app
 scripts
 src
 PULL_REQUEST_TEMPLATE.md
