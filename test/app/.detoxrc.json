@@ -4,18 +4,20 @@
     "apps": {
         "TwilioVoiceReactNativeExample.ios": {
             "type": "ios.app",
-            "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceReactNativeExample.app",
-        },
+            "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceReactNativeExample.app"
+        }
     },
     "devices": {
         "simulator": {
             "type": "ios.simulator",
-            "device": { "type": "iPhone 12 Pro Max" }
-        },
+            "device": {
+                "type": "iPhone 12 Pro Max"
+            }
+        }
     },
     "configurations": {
         "ios.release": {
-            "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64",
+            "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64"
         }
     }
 }
