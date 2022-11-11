@@ -18,6 +18,7 @@
     "configurations": {
         "ios.release": {
             "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64",
+            "app": "TwilioVoiceReactNativeExample.ios",
             "device": "simulator"
         }
     }
