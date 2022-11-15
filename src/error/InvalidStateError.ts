@@ -1,4 +1,4 @@
-import { GenericError } from './GenericError';
+import { TwilioError } from './TwilioError';
 
 /**
  * Error describing that the SDK has entered or is attempting to enter an
@@ -6,7 +6,7 @@ import { GenericError } from './GenericError';
  *
  * @public
  */
-export class InvalidStateError extends GenericError {
+export class InvalidStateError extends TwilioError {
   constructor(message: string) {
     super(message);
 

@@ -1,20 +1,20 @@
-import { GenericError } from '../error/GenericError';
+import { TwilioError } from '../error/TwilioError';
 import { InvalidStateError } from '../error/InvalidStateError';
 
 describe('GenericError', () => {
   it('sets an error name', () => {
-    const error = new GenericError('mock-error-message');
+    const error = new TwilioError('mock-error-message');
     expect(error.name).toBe('GenericError');
   });
 
   it.each([[undefined], [0]])('sets a code "%o"', (code) => {
-    const error = new GenericError('mock-error-message', code);
+    const error = new TwilioError('mock-error-message', code);
     expect(error.code).toBe(code);
   });
 
   it('properly sets the prototype', () => {
-    const error = new GenericError('mock-error-message');
-    expect(error).toBeInstanceOf(GenericError);
+    const error = new TwilioError('mock-error-message');
+    expect(error).toBeInstanceOf(TwilioError);
   });
 });
 

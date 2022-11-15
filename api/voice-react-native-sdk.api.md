@@ -35,7 +35,7 @@ export namespace AudioDevice {
 
 // @public
 namespace AuthorizationErrors {
-    class AccessTokenRejected extends GenericError {
+    class AccessTokenExpired extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -48,11 +48,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-}
-
-// @public
-namespace AuthorizationErrors {
-    class AccessTokenExpired extends GenericError {
+    class AccessTokenGrantsInvalid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -65,7 +61,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenGrantsInvalid extends GenericError {
+    class AccessTokenHeaderInvalid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -78,7 +74,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenHeaderInvalid extends GenericError {
+    class AccessTokenInvalid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -91,7 +87,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenInvalid extends GenericError {
+    class AccessTokenIssuerInvalid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -104,7 +100,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenIssuerInvalid extends GenericError {
+    class AccessTokenNotYetValid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -117,7 +113,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenNotYetValid extends GenericError {
+    class AccessTokenRejected extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -130,7 +126,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AccessTokenSignatureInvalid extends GenericError {
+    class AccessTokenSignatureInvalid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -143,7 +139,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class AuthenticationFailed extends GenericError {
+    class AuthenticationFailed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -156,7 +152,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ExpirationTimeExceedsMaxTimeAllowed extends GenericError {
+    class AuthorizationError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -169,11 +165,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-}
-
-// @public
-namespace AuthorizationErrors {
-    class AuthorizationError extends GenericError {
+    class ExpirationTimeExceedsMaxTimeAllowed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -186,7 +178,7 @@ namespace AuthorizationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class RateExceededError extends GenericError {
+    class RateExceededError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -214,13 +206,13 @@ export interface Call {
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
     // @internal (undocumented)
-    emit(connectFailureEvent: Call.Event.ConnectFailure, error: GenericError): boolean;
+    emit(connectFailureEvent: Call.Event.ConnectFailure, error: TwilioError): boolean;
     // @internal (undocumented)
-    emit(reconnectingEvent: Call.Event.Reconnecting, error: GenericError): boolean;
+    emit(reconnectingEvent: Call.Event.Reconnecting, error: TwilioError): boolean;
     // @internal (undocumented)
     emit(reconnectedEvent: Call.Event.Reconnected): boolean;
     // @internal (undocumented)
-    emit(disconnectedEvent: Call.Event.Disconnected, error?: GenericError): boolean;
+    emit(disconnectedEvent: Call.Event.Disconnected, error?: TwilioError): boolean;
     // @internal (undocumented)
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
@@ -282,12 +274,12 @@ export namespace Call {
     EventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>>;
     export namespace Listener {
         export type Connected = () => void;
-        export type ConnectFailure = (error: GenericError) => void;
-        export type Disconnected = (error?: GenericError) => void;
+        export type ConnectFailure = (error: TwilioError) => void;
+        export type Disconnected = (error?: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
         export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
         export type Reconnected = () => void;
-        export type Reconnecting = (error: GenericError) => void;
+        export type Reconnecting = (error: TwilioError) => void;
         export type Ringing = () => void;
     }
     export enum QualityWarning {
@@ -358,7 +350,7 @@ export class CancelledCallInvite {
 
 // @public
 namespace ClientErrors {
-    class AddressIncomplete extends GenericError {
+    class AddressIncomplete extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -371,7 +363,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class BadRequest extends GenericError {
+    class BadRequest extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -384,7 +376,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class BusyHere extends GenericError {
+    class BusyHere extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -397,7 +389,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class CallTransactionDoesNotExist extends GenericError {
+    class CallTransactionDoesNotExist extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -410,7 +402,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class Conflict extends GenericError {
+    class Conflict extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -423,7 +415,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class Forbidden extends GenericError {
+    class Forbidden extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -436,7 +428,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class NotFound extends GenericError {
+    class NotFound extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -449,7 +441,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class RequestTerminated extends GenericError {
+    class RequestTerminated extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -462,7 +454,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class RequestTimeout extends GenericError {
+    class RequestTimeout extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -475,7 +467,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class TemporarilyUnavailable extends GenericError {
+    class TemporarilyUnavailable extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -488,7 +480,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class TooManyRequests extends GenericError {
+    class TooManyRequests extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -501,7 +493,7 @@ namespace ClientErrors {
         // (undocumented)
         solutions: string[];
     }
-    class UpgradeRequired extends GenericError {
+    class UpgradeRequired extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -524,7 +516,7 @@ const errorsByCode: ReadonlyMap<number, any>;
 
 // @public
 namespace ForbiddenErrors {
-    class Forbidden extends GenericError {
+    class Forbidden extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -541,7 +533,7 @@ namespace ForbiddenErrors {
 
 // @public
 namespace GeneralErrors {
-    class CallCancelledError extends GenericError {
+    class CallCancelledError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -554,7 +546,7 @@ namespace GeneralErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ConnectionError extends GenericError {
+    class ConnectionError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -567,7 +559,7 @@ namespace GeneralErrors {
         // (undocumented)
         solutions: string[];
     }
-    class TransportError extends GenericError {
+    class TransportError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -579,41 +571,17 @@ namespace GeneralErrors {
         name: string;
         // (undocumented)
         solutions: string[];
-    }
-}
-
-declare namespace GeneratedErrors {
-    export {
-        AuthorizationErrors,
-        ForbiddenErrors,
-        ClientErrors,
-        ServerErrors,
-        SIPServerErrors,
-        TwiMLErrors,
-        GeneralErrors,
-        MalformedRequestErrors,
-        RegistrationErrors,
-        SignalingErrors,
-        MediaErrors,
-        errorsByCode
     }
 }
 
 // @public
-class GenericError extends Error {
-    constructor(message: string, code?: number);
-    // (undocumented)
-    code: number | undefined;
-}
-
-// @public
-class InvalidStateError extends GenericError {
+class InvalidStateError extends TwilioError {
     constructor(message: string);
 }
 
 // @public
 namespace MalformedRequestErrors {
-    class MalformedRequestError extends GenericError {
+    class MalformedRequestError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -630,7 +598,7 @@ namespace MalformedRequestErrors {
 
 // @public
 namespace MediaErrors {
-    class ClientLocalDescFailed extends GenericError {
+    class ClientLocalDescFailed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -643,7 +611,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ClientRemoteDescFailed extends GenericError {
+    class ClientRemoteDescFailed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -656,7 +624,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ConnectionError extends GenericError {
+    class ConnectionError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -669,7 +637,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class MediaDtlsTransportFailedError extends GenericError {
+    class MediaDtlsTransportFailedError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -682,7 +650,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class NoSupportedCodec extends GenericError {
+    class NoSupportedCodec extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -695,7 +663,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ServerLocalDescFailed extends GenericError {
+    class ServerLocalDescFailed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -708,7 +676,7 @@ namespace MediaErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ServerRemoteDescFailed extends GenericError {
+    class ServerRemoteDescFailed extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -725,7 +693,7 @@ namespace MediaErrors {
 
 // @public
 namespace RegistrationErrors {
-    class RegistrationError extends GenericError {
+    class RegistrationError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -738,7 +706,7 @@ namespace RegistrationErrors {
         // (undocumented)
         solutions: string[];
     }
-    class UnsupportedCancelMessageError extends GenericError {
+    class UnsupportedCancelMessageError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -909,7 +877,7 @@ export namespace RTCStats {
 
 // @public
 namespace ServerErrors {
-    class BadGateway extends GenericError {
+    class BadGateway extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -922,7 +890,7 @@ namespace ServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class DNSResolutionError extends GenericError {
+    class DNSResolutionError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -935,7 +903,7 @@ namespace ServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class GatewayTimeout extends GenericError {
+    class GatewayTimeout extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -948,7 +916,7 @@ namespace ServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class InternalServerError extends GenericError {
+    class InternalServerError extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -961,7 +929,7 @@ namespace ServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class ServiceUnavailable extends GenericError {
+    class ServiceUnavailable extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -978,7 +946,7 @@ namespace ServerErrors {
 
 // @public
 namespace SignalingErrors {
-    class ConnectionDisconnected extends GenericError {
+    class ConnectionDisconnected extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -994,8 +962,12 @@ namespace SignalingErrors {
 }
 
 // @public
+namespace SignatureValidationErrors {
+}
+
+// @public
 namespace SIPServerErrors {
-    class BusyEverywhere extends GenericError {
+    class BusyEverywhere extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -1008,7 +980,7 @@ namespace SIPServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class Decline extends GenericError {
+    class Decline extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -1021,7 +993,7 @@ namespace SIPServerErrors {
         // (undocumented)
         solutions: string[];
     }
-    class DoesNotExistAnywhere extends GenericError {
+    class DoesNotExistAnywhere extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -1036,18 +1008,38 @@ namespace SIPServerErrors {
     }
 }
 
+// @public
+class TwilioError extends Error {
+    constructor(message: string, code?: number);
+    // (undocumented)
+    code: number | undefined;
+}
+
 declare namespace TwilioErrors {
     export {
         InvalidStateError,
-        GenericError,
-        GeneratedErrors
+        TwilioError,
+        AuthorizationErrors,
+        ClientErrors,
+        ForbiddenErrors,
+        GeneralErrors,
+        MalformedRequestErrors,
+        MediaErrors,
+        RegistrationErrors,
+        ServerErrors,
+        SignalingErrors,
+        SignatureValidationErrors,
+        SIPServerErrors,
+        TwiMLErrors,
+        UserMediaErrors,
+        errorsByCode
     }
 }
 export { TwilioErrors }
 
 // @public
 namespace TwiMLErrors {
-    class InvalidApplicationSid extends GenericError {
+    class InvalidApplicationSid extends TwilioError {
         constructor(message: string);
         // (undocumented)
         causes: string[];
@@ -1060,6 +1052,10 @@ namespace TwiMLErrors {
         // (undocumented)
         solutions: string[];
     }
+}
+
+// @public
+namespace UserMediaErrors {
 }
 
 // @public
@@ -1084,9 +1080,9 @@ export interface Voice {
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteRejected, callInvite: CallInvite): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: GenericError): boolean;
+    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: TwilioError): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.Error, error: GenericError): boolean;
+    emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Registered): boolean;
     // @internal (undocumented)
@@ -1136,8 +1132,8 @@ export namespace Voice {
         export type CallInvite = (callInvite: CallInvite) => void;
         export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
         export type CallInviteRejected = (callInvite: CallInvite) => void;
-        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: GenericError) => void;
-        export type Error = (error: GenericError) => void;
+        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void;
+        export type Error = (error: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
         export type Registered = () => void;
         export type Unregistered = () => void;

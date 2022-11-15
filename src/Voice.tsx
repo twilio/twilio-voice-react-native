@@ -12,7 +12,7 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
-import { GenericError } from './error/GenericError';
+import { TwilioError } from './error/TwilioError';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
@@ -69,11 +69,11 @@ export declare interface Voice {
   emit(
     voiceEvent: Voice.Event.CancelledCallInvite,
     cancelledCallInvite: CancelledCallInvite,
-    error?: GenericError
+    error?: TwilioError
   ): boolean;
 
   /** @internal */
-  emit(voiceEvent: Voice.Event.Error, error: GenericError): boolean;
+  emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
 
   /** @internal */
   emit(voiceEvent: Voice.Event.Registered): boolean;
@@ -502,7 +502,7 @@ export class Voice extends EventEmitter {
     const { cancelledCallInvite: cancelledCallInviteInfo, error: errorInfo } =
       nativeVoiceEvent;
 
-    const error = new GenericError(errorInfo.message, errorInfo.code);
+    const error = new TwilioError(errorInfo.message, errorInfo.code);
 
     const cancelledCallInvite = new CancelledCallInvite(
       cancelledCallInviteInfo
@@ -528,7 +528,7 @@ export class Voice extends EventEmitter {
       error: { code, message },
     } = nativeVoiceEvent;
 
-    const error = new GenericError(message, code);
+    const error = new TwilioError(message, code);
 
     this.emit(Voice.Event.Error, error);
   };
@@ -883,7 +883,7 @@ export namespace Voice {
      */
     export type CancelledCallInvite = (
       cancelledCallInvite: CancelledCallInvite,
-      error?: GenericError
+      error?: TwilioError
     ) => void;
 
     /**
@@ -894,7 +894,7 @@ export namespace Voice {
      * @remarks
      * See {@link (Voice:interface).(addListener:7)}.
      */
-    export type Error = (error: GenericError) => void;
+    export type Error = (error: TwilioError) => void;
 
     /**
      * Registered event listener. This should be the function signature of an

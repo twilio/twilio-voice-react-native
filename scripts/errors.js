@@ -113,7 +113,7 @@ let output = `/**
  * This is a generated file. Any modifications here will be overwritten.
  * See scripts/errors.js.
  */
-import { GenericError } from './GenericError';
+import { TwilioError } from './TwilioError';
 \n`;
 
 const escapeQuotes = (str) => str.replace("'", "\\'");
@@ -124,13 +124,13 @@ const generateStringArray = (arr) =>
     ]`
     : '[]';
 
-const generateDefinition = (code, subclassName, errorName, error) => `\
+const generateDefinition = ([code, subclassName, errorName, error]) => `\
   /**
    * @public
-   * ${errorName} error.
+   * ${subclassName}Errors.${errorName} error.
    * Error code \`${code}\`.
    */
-  export class ${errorName} extends GenericError {
+  export class ${errorName} extends TwilioError {
     causes: string[] = ${generateStringArray(error.causes)};
     description: string = '${escapeQuotes(error.description)}';
     explanation: string = '${escapeQuotes(error.explanation)}';
@@ -157,11 +157,22 @@ export namespace ${name}Errors {
 ${contents}
 }\n\n`;
 
+const generateMapEntry = ([code, fullName]) => `[${code}, ${fullName}]`;
+
+const sorter = ([codeA], [codeB]) => codeA - codeB;
+
 const mapEntries = [];
+const namespaceDefinitions = new Map();
+
 for (const topClass of VoiceErrors) {
   for (const subclass of topClass.subclasses) {
     const subclassName = subclass.class.replace(' ', '');
-    const definitions = [];
+
+    if (!namespaceDefinitions.has(subclassName)) {
+      namespaceDefinitions.set(subclassName, []);
+    }
+
+    const definitions = namespaceDefinitions.get(subclassName);
     for (const error of subclass.errors) {
       const code =
         topClass.code * 1000 + (subclass.code || 0) * 100 + error.code;
@@ -169,30 +180,25 @@ for (const topClass of VoiceErrors) {
 
       const fullName = `${subclassName}Errors.${errorName}`;
       if (USED_ERRORS.includes(fullName)) {
-        const definition = generateDefinition(
-          code,
-          subclassName,
-          errorName,
-          error
-        );
-        definitions.push(definition);
-        mapEntries.push([code, `[${code}, ${fullName}]`]);
+        definitions.push([code, subclassName, errorName, error]);
+        mapEntries.push([code, fullName]);
       }
     }
-    if (mapEntries.length && definitions.length) {
-      output += generateNamespace(subclassName, definitions.join('\n\n'));
-    }
   }
+}
+
+for (const [subclassName, definitions] of namespaceDefinitions.entries()) {
+  output += generateNamespace(
+    subclassName,
+    definitions.sort(sorter).map(generateDefinition).join('\n\n')
+  );
 }
 
 output += `/**
  * @internal
  */
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
-  ${mapEntries
-    .sort(([a], [b]) => a - b)
-    .map(([_, v]) => v)
-    .join(',\n  ')},
+  ${mapEntries.sort(sorter).map(generateMapEntry).join(',\n  ')},
 ]);
 
 Object.freeze(errorsByCode);\n`;

@@ -91,7 +91,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn run check && yarn run build:docs"
+      "pre-commit": "yarn run check && yarn run build:errors && yarn run build:docs && git diff --exit-code src/error/generated.ts api/"
     }
   },
   "commitlint": {
