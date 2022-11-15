@@ -4,12 +4,12 @@ import { createNativeCancelledCallInviteInfo } from '../__mocks__/CancelledCallI
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createNativeErrorInfo } from '../__mocks__/Error';
 import { mockVoiceNativeEvents } from '../__mocks__/Voice';
-import type { AudioDevice } from '../AudioDevice';
-import type { CallInvite } from '../CallInvite';
-import { NativeEventEmitter, NativeModule } from '../common';
-import { Constants } from '../constants';
-import type { NativeVoiceEventType } from '../type/Voice';
-import { Voice } from '../Voice';
+import type { AudioDevice } from '../../../src/AudioDevice';
+import type { CallInvite } from '../../../src/CallInvite';
+import { NativeEventEmitter, NativeModule } from '../../../src/common';
+import { Constants } from '../../../src/constants';
+import type { NativeVoiceEventType } from '../../../src/type/Voice';
+import { Voice } from '../../../src/Voice';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -20,14 +20,14 @@ let MockCallInvite: jest.Mock & { State: typeof CallInvite.State };
 let MockCancelledCallInvite: jest.Mock;
 let MockGenericError: jest.Mock;
 
-jest.mock('../common');
-jest.mock('../AudioDevice', () => ({
+jest.mock('../../../src/common');
+jest.mock('../../../src/AudioDevice', () => ({
   AudioDevice: (MockAudioDevice = jest.fn()),
 }));
-jest.mock('../Call', () => ({
+jest.mock('../../../src/Call', () => ({
   Call: (MockCall = jest.fn()),
 }));
-jest.mock('../CallInvite', () => ({
+jest.mock('../../../src/CallInvite', () => ({
   CallInvite: (MockCallInvite = Object.assign(jest.fn(), {
     State: {
       Pending: 'pending' as CallInvite.State.Pending,
@@ -36,10 +36,10 @@ jest.mock('../CallInvite', () => ({
     },
   })),
 }));
-jest.mock('../CancelledCallInvite', () => ({
+jest.mock('../../../src/CancelledCallInvite', () => ({
   CancelledCallInvite: (MockCancelledCallInvite = jest.fn()),
 }));
-jest.mock('../error/GenericError', () => ({
+jest.mock('../../../src/error/GenericError', () => ({
   GenericError: (MockGenericError = jest.fn()),
 }));
 

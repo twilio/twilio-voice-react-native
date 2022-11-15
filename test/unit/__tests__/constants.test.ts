@@ -1,4 +1,4 @@
-import { Constants } from '../constants';
+import { Constants } from '../../../src/constants';
 
 describe('Constants', () => {
   it('is exported as an enumeration', () => {

@@ -1,4 +1,4 @@
-import { RTCStats } from '../type/RTCStats';
+import { RTCStats } from '../../../src/type/RTCStats';
 
 export function createIceCandidatePairStats(): RTCStats.IceCandidatePairStats {
   return {

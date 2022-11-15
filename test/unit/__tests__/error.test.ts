@@ -1,5 +1,5 @@
-import { GenericError } from '../error/GenericError';
-import { InvalidStateError } from '../error/InvalidStateError';
+import { GenericError } from '../../../src/error/GenericError';
+import { InvalidStateError } from '../../../src/error/InvalidStateError';
 
 describe('GenericError', () => {
   it('sets an error name', () => {

@@ -1,5 +1,5 @@
-import type { NativeCallInfo } from '../type/Call';
-import { Constants } from '../constants';
+import type { NativeCallInfo } from '../../../src/type/Call';
+import { Constants } from '../../../src/constants';
 import { createNativeErrorInfo } from './Error';
 
 export function createNativeCallInfo(): NativeCallInfo {

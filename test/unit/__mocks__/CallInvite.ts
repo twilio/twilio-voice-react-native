@@ -1,4 +1,4 @@
-import type { NativeCallInviteInfo } from '../type/CallInvite';
+import type { NativeCallInviteInfo } from '../../../src/type/CallInvite';
 
 export function createNativeCallInviteInfo(): NativeCallInviteInfo {
   return {

@@ -1,17 +1,17 @@
 import { createNativeCallInfo } from '../__mocks__/Call';
 import { createNativeCallInviteInfo } from '../__mocks__/CallInvite';
-import { CallInvite } from '../CallInvite';
-import { NativeModule } from '../common';
+import { CallInvite } from '../../../src/CallInvite';
+import { NativeModule } from '../../../src/common';
 
 const MockNativeModule = jest.mocked(NativeModule);
 let MockInvalidStateError: jest.Mock;
 let MockCall: jest.Mock;
 
-jest.mock('../common');
-jest.mock('../Call', () => ({
+jest.mock('../../../src/common');
+jest.mock('../../../src/Call', () => ({
   Call: (MockCall = jest.fn()),
 }));
-jest.mock('../error/InvalidStateError', () => ({
+jest.mock('../../../src/error/InvalidStateError', () => ({
   InvalidStateError: (MockInvalidStateError = jest.fn()),
 }));
 

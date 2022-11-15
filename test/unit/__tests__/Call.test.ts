@@ -1,18 +1,18 @@
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createStatsReport } from '../__mocks__/RTCStats';
-import { Call } from '../Call';
-import { NativeEventEmitter, NativeModule } from '../common';
-import { Constants } from '../constants';
-import type { NativeCallEventType } from '../type/Call';
+import { Call } from '../../../src/Call';
+import { NativeEventEmitter, NativeModule } from '../../../src/common';
+import { Constants } from '../../../src/constants';
+import type { NativeCallEventType } from '../../../src/type/Call';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
 const MockNativeModule = jest.mocked(NativeModule);
 let MockGenericError: jest.Mock;
 
-jest.mock('../common');
-jest.mock('../error/GenericError', () => ({
+jest.mock('../../../src/common');
+jest.mock('../../../src/error/GenericError', () => ({
   GenericError: (MockGenericError = jest.fn()),
 }));
 
