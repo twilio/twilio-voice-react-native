@@ -34,6 +34,174 @@ export namespace AudioDevice {
 }
 
 // @public
+namespace AuthorizationErrors {
+    class AccessTokenRejected extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace AuthorizationErrors {
+    class AccessTokenExpired extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenGrantsInvalid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenHeaderInvalid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenInvalid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenIssuerInvalid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenNotYetValid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AccessTokenSignatureInvalid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class AuthenticationFailed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ExpirationTimeExceedsMaxTimeAllowed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace AuthorizationErrors {
+    class AuthorizationError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class RateExceededError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
 export interface Call {
     addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     addListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
@@ -189,7 +357,247 @@ export class CancelledCallInvite {
 }
 
 // @public
+namespace ClientErrors {
+    class AddressIncomplete extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class BadRequest extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class BusyHere extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class CallTransactionDoesNotExist extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class Conflict extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class Forbidden extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class NotFound extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class RequestTerminated extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class RequestTimeout extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class TemporarilyUnavailable extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class TooManyRequests extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class UpgradeRequired extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
 export type CustomParameters = Record<string, any>;
+
+// @internal (undocumented)
+const errorsByCode: ReadonlyMap<number, any>;
+
+// @public
+namespace ForbiddenErrors {
+    class Forbidden extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace GeneralErrors {
+    class CallCancelledError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ConnectionError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class TransportError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+declare namespace GeneratedErrors {
+    export {
+        AuthorizationErrors,
+        ForbiddenErrors,
+        ClientErrors,
+        ServerErrors,
+        SIPServerErrors,
+        TwiMLErrors,
+        GeneralErrors,
+        MalformedRequestErrors,
+        RegistrationErrors,
+        SignalingErrors,
+        MediaErrors,
+        errorsByCode
+    }
+}
 
 // @public
 class GenericError extends Error {
@@ -201,6 +609,148 @@ class GenericError extends Error {
 // @public
 class InvalidStateError extends GenericError {
     constructor(message: string);
+}
+
+// @public
+namespace MalformedRequestErrors {
+    class MalformedRequestError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace MediaErrors {
+    class ClientLocalDescFailed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ClientRemoteDescFailed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ConnectionError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class MediaDtlsTransportFailedError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class NoSupportedCodec extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ServerLocalDescFailed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ServerRemoteDescFailed extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace RegistrationErrors {
+    class RegistrationError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class UnsupportedCancelMessageError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
 }
 
 // @public
@@ -357,13 +907,160 @@ export namespace RTCStats {
     }
 }
 
+// @public
+namespace ServerErrors {
+    class BadGateway extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class DNSResolutionError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class GatewayTimeout extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class InternalServerError extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class ServiceUnavailable extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace SignalingErrors {
+    class ConnectionDisconnected extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
+// @public
+namespace SIPServerErrors {
+    class BusyEverywhere extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class Decline extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+    class DoesNotExistAnywhere extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
+
 declare namespace TwilioErrors {
     export {
         InvalidStateError,
-        GenericError
+        GenericError,
+        GeneratedErrors
     }
 }
 export { TwilioErrors }
+
+// @public
+namespace TwiMLErrors {
+    class InvalidApplicationSid extends GenericError {
+        constructor(message: string);
+        // (undocumented)
+        causes: string[];
+        // (undocumented)
+        description: string;
+        // (undocumented)
+        explanation: string;
+        // (undocumented)
+        name: string;
+        // (undocumented)
+        solutions: string[];
+    }
+}
 
 // @public
 export interface Voice {

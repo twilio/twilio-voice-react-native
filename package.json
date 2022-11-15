@@ -23,11 +23,12 @@
   ],
   "scripts": {
     "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
-    "build:constants": "node ./scripts/constants.js",
-    "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
+    "build:constants": "node ./scripts/constants.js",
+    "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
+    "build:errors": "node ./scripts/errors.js",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
@@ -121,7 +122,7 @@
     "node_modules/",
     "lib/",
     "test/app/e2e/",
-    "coverage/"
+    "src/error/generated.ts"
   ],
   "prettier": {
     "quoteProps": "consistent",

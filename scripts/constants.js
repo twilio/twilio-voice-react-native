@@ -1,3 +1,5 @@
+'use strict';
+
 const { readFile, writeFile } = require('fs').promises;
 
 function parseConstants(constantsSource) {

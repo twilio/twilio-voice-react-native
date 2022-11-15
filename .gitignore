@@ -70,6 +70,9 @@ src/constants.ts
 android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
 ios/TwilioVoiceReactNativeConstants.h
 
+# errors
+src/error/generated.ts
+
 # docs
 docs/
 temp/
