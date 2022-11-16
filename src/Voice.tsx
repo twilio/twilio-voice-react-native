@@ -12,6 +12,7 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
+import { errorsByCode } from './error';
 import { TwilioError } from './error/TwilioError';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
@@ -528,9 +529,13 @@ export class Voice extends EventEmitter {
       error: { code, message },
     } = nativeVoiceEvent;
 
-    const error = new TwilioError(message, code);
+    const ErrorClass = errorsByCode.get(code);
 
-    this.emit(Voice.Event.Error, error);
+    const twilioError = ErrorClass
+      ? new ErrorClass(message)
+      : new TwilioError(message, code);
+
+    this.emit(Voice.Event.Error, twilioError);
   };
 
   /**

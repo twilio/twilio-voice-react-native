@@ -512,7 +512,7 @@ namespace ClientErrors {
 export type CustomParameters = Record<string, any>;
 
 // @internal (undocumented)
-const errorsByCode: ReadonlyMap<number, any>;
+const errorsByCode: ReadonlyMap<number, typeof TwilioError>;
 
 // @public
 namespace ForbiddenErrors {

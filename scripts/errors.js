@@ -197,7 +197,7 @@ for (const [subclassName, definitions] of namespaceDefinitions.entries()) {
 output += `/**
  * @internal
  */
-export const errorsByCode: ReadonlyMap<number, any> = new Map([
+export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   ${mapEntries.sort(sorter).map(generateMapEntry).join(',\n  ')},
 ]);
 

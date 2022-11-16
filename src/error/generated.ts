@@ -1321,7 +1321,7 @@ export namespace MediaErrors {
 /**
  * @internal
  */
-export const errorsByCode: ReadonlyMap<number, any> = new Map([
+export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [20101, AuthorizationErrors.AccessTokenInvalid],
   [20102, AuthorizationErrors.AccessTokenHeaderInvalid],
   [20103, AuthorizationErrors.AccessTokenIssuerInvalid],
