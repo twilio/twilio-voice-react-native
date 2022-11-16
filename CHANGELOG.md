@@ -4,6 +4,26 @@
 ## Changes
 - The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
 
+## Features
+
+- The SDK now exports error classes and emits error objects specific to an error code. See the below code snippet for usage.
+  ```ts
+  import { TwilioErrors } from '@twilio/voice-react-native-sdk';
+  // ...
+  voice.on(Voice.Event.Error, (error: TwilioErrors.TwilioError) => {
+    if (error instanceof TwilioErrors.AuthorizationErrors.AccessTokenInvalid) {
+      // Update your UI to reflect an invalid access token.
+    }
+
+    // Alternatively, your application logic can use the error code.
+
+    if (error.code === 20101) {
+      // Update your UI to reflect an invalid access token.
+    }
+  });
+  ```
+  See (TODO LINK TO DOCS) for all error classes.
+
 ## Fixes
 
 - Fixed an issue where some types on the `Call` and `Voice` classes were being incorrectly exported. Types and references to `addEventListener` are instead now correctly exported as `addListener`.
