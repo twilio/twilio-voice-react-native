@@ -1012,7 +1012,15 @@ namespace SIPServerErrors {
 class TwilioError extends Error {
     constructor(message: string, code?: number);
     // (undocumented)
+    causes: string[];
+    // (undocumented)
     code: number | undefined;
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
+    // (undocumented)
+    solutions: string[];
 }
 
 declare namespace TwilioErrors {

@@ -5,7 +5,11 @@
  * @public
  */
 export class TwilioError extends Error {
+  causes: string[] = [];
   code: number | undefined;
+  description: string = 'Generic Twilio error.';
+  explanation: string = 'The SDK has encountered an unexpected error.';
+  solutions: string[] = [];
 
   constructor(message: string, code?: number) {
     super(message);

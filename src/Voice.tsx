@@ -12,7 +12,7 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
-import { errorsByCode } from './error';
+import { errorsByCode } from './error/generated';
 import { TwilioError } from './error/TwilioError';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
@@ -503,7 +503,11 @@ export class Voice extends EventEmitter {
     const { cancelledCallInvite: cancelledCallInviteInfo, error: errorInfo } =
       nativeVoiceEvent;
 
-    const error = new TwilioError(errorInfo.message, errorInfo.code);
+    const ErrorClass = errorsByCode.get(errorInfo.code);
+
+    const error = ErrorClass
+      ? new ErrorClass(errorInfo.message)
+      : new TwilioError(errorInfo.message, errorInfo.code);
 
     const cancelledCallInvite = new CancelledCallInvite(
       cancelledCallInviteInfo
@@ -513,8 +517,8 @@ export class Voice extends EventEmitter {
   };
 
   /**
-   * Error event handler. Creates a {@link TwilioErrors.GenericError} from the
-   * info raised by the native layer and emits it.
+   * Error event handler. Creates an error from the namespace
+   * {@link TwilioErrors} from the info raised by the native layer and emits it.
    * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
    */
   private _handleError = (nativeVoiceEvent: NativeVoiceEvent) => {
@@ -531,11 +535,11 @@ export class Voice extends EventEmitter {
 
     const ErrorClass = errorsByCode.get(code);
 
-    const twilioError = ErrorClass
+    const error = ErrorClass
       ? new ErrorClass(message)
       : new TwilioError(message, code);
 
-    this.emit(Voice.Event.Error, twilioError);
+    this.emit(Voice.Event.Error, error);
   };
 
   /**

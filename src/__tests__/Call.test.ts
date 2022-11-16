@@ -9,15 +9,20 @@ import type { NativeCallEventType } from '../type/Call';
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
 const MockNativeModule = jest.mocked(NativeModule);
-let MockGenericError: jest.Mock;
+let MockTwilioError: jest.Mock;
+let mockErrorsByCode: { get: jest.Mock };
 
 jest.mock('../common');
-jest.mock('../error/GenericError', () => ({
-  GenericError: (MockGenericError = jest.fn()),
+jest.mock('../error/TwilioError', () => ({
+  TwilioError: (MockTwilioError = jest.fn()),
+}));
+jest.mock('../error/generated', () => ({
+  errorsByCode: (mockErrorsByCode = { get: jest.fn() }),
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockErrorsByCode.get.mockReset();
   MockNativeEventEmitter.reset();
 });
 
@@ -141,7 +146,7 @@ describe('Call class', () => {
       expect(args).toHaveLength(1);
 
       const [error] = args;
-      expect(error).toBeInstanceOf(MockGenericError);
+      expect(error).toBeInstanceOf(MockTwilioError);
     };
 
     const listenerCalledWithQualityWarnings = (listenerMock: jest.Mock) => {
@@ -287,6 +292,107 @@ describe('Call class', () => {
     });
   });
 
+  describe(Constants.CallEventConnectFailure, () => {
+    describe('constructs an error', () => {
+      it('when there is no error mapping', () => {
+        new Call(createNativeCallInfo()); // eslint-disable-line no-new
+
+        mockErrorsByCode.get.mockImplementation(() => undefined);
+
+        const errorEvent = {
+          type: Constants.CallEventConnectFailure,
+          call: createNativeCallInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCall, errorEvent);
+
+        expect(MockTwilioError.mock.calls).toEqual([
+          ['foobar', 99999],
+          // this should fail if no code is passed with this message
+          // i.e. this is invalid: ['foobar']
+        ]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
+      });
+
+      it('when there is an error mapping', () => {
+        new Call(createNativeCallInfo()); // eslint-disable-line no-new
+
+        const MockError = jest.fn();
+        mockErrorsByCode.get.mockImplementation(() => MockError);
+
+        const errorEvent = {
+          type: Constants.CallEventConnectFailure,
+          call: createNativeCallInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCall, errorEvent);
+
+        expect(MockError.mock.calls).toEqual([
+          ['foobar'],
+          // this should fail if a code is passed with this message
+          // i.e. this is invalid: ['foobar', 99999]
+        ]);
+        expect(MockError.mock.calls).toHaveLength(
+          MockError.mock.instances.length
+        );
+      });
+    });
+  });
+
+  describe(Constants.CallEventDisconnected, () => {
+    describe('constructs an error', () => {
+      it('when there is no error mapping', () => {
+        new Call(createNativeCallInfo()); // eslint-disable-line no-new
+
+        mockErrorsByCode.get.mockImplementation(() => undefined);
+
+        const errorEvent = {
+          type: Constants.CallEventDisconnected,
+          call: createNativeCallInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCall, errorEvent);
+
+        expect(MockTwilioError.mock.calls).toEqual([
+          ['foobar', 99999],
+          // this should fail if no code is passed with this message
+          // i.e. this is invalid: ['foobar']
+        ]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
+      });
+
+      it('when there is an error mapping', () => {
+        new Call(createNativeCallInfo()); // eslint-disable-line no-new
+
+        const MockError = jest.fn();
+        mockErrorsByCode.get.mockImplementation(() => MockError);
+
+        const errorEvent = {
+          type: Constants.CallEventDisconnected,
+          call: createNativeCallInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCall, errorEvent);
+
+        expect(MockError.mock.calls).toEqual([
+          ['foobar'],
+          // this should fail if a code is passed with this message
+          // i.e. this is invalid: ['foobar', 99999]
+        ]);
+        expect(MockError.mock.calls).toHaveLength(
+          MockError.mock.instances.length
+        );
+      });
+    });
+  });
+
+  /**
+   * Generic call object tests.
+   */
   describe('on receiving an invalid native event', () => {
     it('throws an error', () => {
       new Call(createNativeCallInfo()); // eslint-disable-line no-new

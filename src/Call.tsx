@@ -15,6 +15,7 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
+import { errorsByCode } from './error/generated';
 import { TwilioError } from './error/TwilioError';
 
 /**
@@ -492,10 +493,14 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new TwilioError(
-      nativeCallEvent.error.message,
-      nativeCallEvent.error.code
-    );
+    const { message, code } = nativeCallEvent.error;
+
+    const ErrorClass = errorsByCode.get(code);
+
+    const error = ErrorClass
+      ? new ErrorClass(message)
+      : new TwilioError(message, code);
+
     this.emit(Call.Event.ConnectFailure, error);
   };
 
@@ -514,10 +519,14 @@ export class Call extends EventEmitter {
     this._update(nativeCallEvent);
 
     if (nativeCallEvent.error) {
-      const error = new TwilioError(
-        nativeCallEvent.error.message,
-        nativeCallEvent.error.code
-      );
+      const { message, code } = nativeCallEvent.error;
+
+      const ErrorClass = errorsByCode.get(code);
+
+      const error = ErrorClass
+        ? new ErrorClass(message)
+        : new TwilioError(message, code);
+
       this.emit(Call.Event.Disconnected, error);
     } else {
       this.emit(Call.Event.Disconnected);
