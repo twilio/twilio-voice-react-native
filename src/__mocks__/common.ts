@@ -1,10 +1,10 @@
 /**
  * This file is used by Jest manual mocking and meant to be utilized by
- * perfomring `jest.mock('../../../src/common')` in test files.
+ * perfomring `jest.mock('../common')` in test files.
  */
 
 import { EventEmitter } from 'eventemitter3';
-import type { Uuid } from '../../../src/type/common';
+import type { Uuid } from '../type/common';
 import { createNativeAudioDevicesInfo } from './AudioDevice';
 import { createNativeCallInfo } from './Call';
 import { createNativeCallInviteInfo } from './CallInvite';

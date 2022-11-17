@@ -1,8 +1,8 @@
-import type { AudioDevice } from '../../../src/AudioDevice';
+import type { AudioDevice } from '../AudioDevice';
 import type {
   NativeAudioDeviceInfo,
   NativeAudioDevicesInfo,
-} from '../../../src/type/AudioDevice';
+} from '../type/AudioDevice';
 
 export function createNativeAudioDeviceInfo(): NativeAudioDeviceInfo {
   return {

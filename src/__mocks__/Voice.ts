@@ -1,4 +1,4 @@
-import { Constants } from '../../../src/constants';
+import { Constants } from '../constants';
 import { createNativeAudioDevicesInfo } from './AudioDevice';
 import { createNativeCallInviteInfo } from './CallInvite';
 import { createNativeCancelledCallInviteInfo } from './CancelledCallInvite';

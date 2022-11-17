@@ -1,4 +1,4 @@
-import { RTCStats } from '../../../src/type/RTCStats';
+import { RTCStats } from '../type/RTCStats';
 
 describe('RTCStats', () => {
   describe('IceCandidatePairState', () => {

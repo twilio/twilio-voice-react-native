@@ -1,10 +1,10 @@
 import { createNativeAudioDeviceInfo } from '../__mocks__/AudioDevice';
-import { AudioDevice } from '../../../src/AudioDevice';
-import { NativeModule } from '../../../src/common';
+import { AudioDevice } from '../AudioDevice';
+import { NativeModule } from '../common';
 
 const MockNativeModule = jest.mocked(NativeModule);
 
-jest.mock('../../../src/common');
+jest.mock('../common');
 
 let audioDevice: AudioDevice;
 

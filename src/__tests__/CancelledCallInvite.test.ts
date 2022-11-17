@@ -1,5 +1,5 @@
 import { createNativeCancelledCallInviteInfo } from '../__mocks__/CancelledCallInvite';
-import { CancelledCallInvite } from '../../../src/CancelledCallInvite';
+import { CancelledCallInvite } from '../CancelledCallInvite';
 
 describe('CancelledCallInvite class', () => {
   describe('constructor', () => {
