@@ -33,6 +33,7 @@ commands:
             yarn run build:constants
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
+            yarn run build:errors
   setup-detox-dependencies:
     description: Setup environment for running test on detox
     steps:
