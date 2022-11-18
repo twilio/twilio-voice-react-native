@@ -4,7 +4,7 @@
 
 - [React Native CLI](https://reactnative.dev/docs/environment-setup)
 - [Yarn](https://yarnpkg.com/getting-started)
-- Token - Create a file, `e2e-tests-token.ts` under `test-application/src` directory with the following content.
+- Token - Create a file, `e2e-tests-token.ts` under `test/app/src` directory with the following content.
   ```ts
   export const token = 'my-token-goes-here';
   ```
@@ -27,9 +27,9 @@
   ```sh
   yarn run build:constants
   ```
-5. Switch to the test-application directory
+5. Switch to the app directory
   ```sh
-  cd test-application
+  cd test/app
   ```
 6. Install app dependencies
   ```sh
@@ -43,9 +43,9 @@
 
 ## Running the app
 
-Switch to the test-application directory
+Switch to the app directory
 ```sh
-cd test-application
+cd test/app
 ```
 
 Start metro bundler:
