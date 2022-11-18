@@ -279,7 +279,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - twilio-voice-react-native (from `../..`)
+  - twilio-voice-react-native (from `../../..`)
   - TwilioVoice (~> 6.4.3)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -340,7 +340,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   twilio-voice-react-native:
-    :path: "../.."
+    :path: "../../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -375,6 +375,6 @@ SPEC CHECKSUMS:
   TwilioVoice: 577a3c58f77032a141a56c4050a8fb802618835c
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: 87aa3d0034e6c342eba8678e7fb81a16dc76f856
+PODFILE CHECKSUM: 796854ba36ccc47f30ff91f1fabab303a892acd9
 
 COCOAPODS: 1.11.2
