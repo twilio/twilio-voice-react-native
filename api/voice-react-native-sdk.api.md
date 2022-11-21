@@ -37,158 +37,98 @@ export namespace AudioDevice {
 namespace AuthorizationErrors {
     class AccessTokenExpired extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenGrantsInvalid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenHeaderInvalid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenInvalid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenIssuerInvalid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenNotYetValid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenRejected extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AccessTokenSignatureInvalid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AuthenticationFailed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class AuthorizationError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ExpirationTimeExceedsMaxTimeAllowed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class RateExceededError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -352,158 +292,98 @@ export class CancelledCallInvite {
 namespace ClientErrors {
     class AddressIncomplete extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class BadRequest extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class BusyHere extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class CallTransactionDoesNotExist extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class Conflict extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class Forbidden extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class NotFound extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class RequestTerminated extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class RequestTimeout extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class TemporarilyUnavailable extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class TooManyRequests extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class UpgradeRequired extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -518,15 +398,10 @@ const errorsByCode: ReadonlyMap<number, typeof TwilioError>;
 namespace ForbiddenErrors {
     class Forbidden extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -535,63 +410,56 @@ namespace ForbiddenErrors {
 namespace GeneralErrors {
     class CallCancelledError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ConnectionError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class TransportError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
 
 // @public
+class InvalidArgumentError extends TwilioError {
+    constructor(message: string);
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
+}
+
+// @public
 class InvalidStateError extends TwilioError {
     constructor(message: string);
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
 }
 
 // @public
 namespace MalformedRequestErrors {
     class MalformedRequestError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -600,93 +468,58 @@ namespace MalformedRequestErrors {
 namespace MediaErrors {
     class ClientLocalDescFailed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ClientRemoteDescFailed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ConnectionError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class MediaDtlsTransportFailedError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class NoSupportedCodec extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ServerLocalDescFailed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ServerRemoteDescFailed extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -695,28 +528,19 @@ namespace MediaErrors {
 namespace RegistrationErrors {
     class RegistrationError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
         // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class UnsupportedCancelMessageError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -879,67 +703,42 @@ export namespace RTCStats {
 namespace ServerErrors {
     class BadGateway extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class DNSResolutionError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class GatewayTimeout extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class InternalServerError extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class ServiceUnavailable extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -948,62 +747,38 @@ namespace ServerErrors {
 namespace SignalingErrors {
     class ConnectionDisconnected extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
-}
-
-// @public
-namespace SignatureValidationErrors {
 }
 
 // @public
 namespace SIPServerErrors {
     class BusyEverywhere extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class Decline extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
     class DoesNotExistAnywhere extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
 }
@@ -1025,6 +800,7 @@ class TwilioError extends Error {
 
 declare namespace TwilioErrors {
     export {
+        InvalidArgumentError,
         InvalidStateError,
         TwilioError,
         AuthorizationErrors,
@@ -1036,10 +812,8 @@ declare namespace TwilioErrors {
         RegistrationErrors,
         ServerErrors,
         SignalingErrors,
-        SignatureValidationErrors,
         SIPServerErrors,
         TwiMLErrors,
-        UserMediaErrors,
         errorsByCode
     }
 }
@@ -1049,21 +823,12 @@ export { TwilioErrors }
 namespace TwiMLErrors {
     class InvalidApplicationSid extends TwilioError {
         constructor(message: string);
-        // (undocumented)
         causes: string[];
-        // (undocumented)
         description: string;
-        // (undocumented)
         explanation: string;
-        // (undocumented)
         name: string;
-        // (undocumented)
         solutions: string[];
     }
-}
-
-// @public
-namespace UserMediaErrors {
 }
 
 // @public

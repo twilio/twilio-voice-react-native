@@ -124,6 +124,12 @@ const generateStringArray = (arr) =>
     ]`
     : '[]';
 
+const generateDocstring = (content) => [
+  '/**',
+  ...content.map((c) => ` * ${c}`),
+  ' */',
+];
+
 const generateDefinition = ([code, subclassName, errorName, error]) => `\
   /**
    * @public
@@ -131,10 +137,15 @@ const generateDefinition = ([code, subclassName, errorName, error]) => `\
    * Error code \`${code}\`.
    */
   export class ${errorName} extends TwilioError {
+    ${generateDocstring(error.causes ?? ['Not applicable.']).join('\n    ')}
     causes: string[] = ${generateStringArray(error.causes)};
+    ${generateDocstring([error.description]).join('\n    ')}
     description: string = '${escapeQuotes(error.description)}';
+    ${generateDocstring([error.explanation]).join('\n    ')}
     explanation: string = '${escapeQuotes(error.explanation)}';
+    ${generateDocstring([error.name]).join('\n    ')}
     name: string = '${escapeQuotes(errorName)}';
+    ${generateDocstring(error.solutions ?? ['Not applicable.']).join('\n    ')}
     solutions: string[] = ${generateStringArray(error.solutions)};
 
     constructor(message: string) {
@@ -151,7 +162,7 @@ const generateDefinition = ([code, subclassName, errorName, error]) => `\
 
 const generateNamespace = (name, contents) => `/**
  * @public
- * ${name} related errors.
+ * ${name} errors.
  */
 export namespace ${name}Errors {
 ${contents}
@@ -188,10 +199,12 @@ for (const topClass of VoiceErrors) {
 }
 
 for (const [subclassName, definitions] of namespaceDefinitions.entries()) {
-  output += generateNamespace(
-    subclassName,
-    definitions.sort(sorter).map(generateDefinition).join('\n\n')
-  );
+  if (definitions.length) {
+    output += generateNamespace(
+      subclassName,
+      definitions.sort(sorter).map(generateDefinition).join('\n\n')
+    );
+  }
 }
 
 output += `/**
