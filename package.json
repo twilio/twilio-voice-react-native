@@ -22,6 +22,7 @@
     "!**/__mocks__"
   ],
   "scripts": {
+    "app": "yarn run check && yarn --cwd test/app",
     "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
@@ -32,8 +33,7 @@
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
-    "check": "yarn run build:constants && tsc --noEmit && yarn run check:lint",
-    "app": "yarn run check && yarn --cwd test/app",
+    "check": "yarn run build:constants yarn run build:errors && tsc --noEmit && yarn run check:lint",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
