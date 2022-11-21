@@ -1,3 +1,4 @@
+export { InvalidArgumentError } from './InvalidArgumentError';
 export { InvalidStateError } from './InvalidStateError';
 export { TwilioError } from './TwilioError';
 export {
@@ -10,9 +11,7 @@ export {
   RegistrationErrors,
   ServerErrors,
   SignalingErrors,
-  SignatureValidationErrors,
   SIPServerErrors,
   TwiMLErrors,
-  UserMediaErrors,
   errorsByCode,
 } from './generated';

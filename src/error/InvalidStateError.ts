@@ -7,6 +7,9 @@ import { TwilioError } from './TwilioError';
  * @public
  */
 export class InvalidStateError extends TwilioError {
+  description: string = 'Invalid state error.';
+  explanation: string = 'The SDK has entered an invalid state.';
+
   constructor(message: string) {
     super(message);
 

@@ -15,8 +15,8 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import { errorsByCode } from './error/generated';
-import { TwilioError } from './error/TwilioError';
+import type { TwilioError } from './error/TwilioError';
+import { constructTwilioError } from './error/utility';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -494,13 +494,7 @@ export class Call extends EventEmitter {
     this._update(nativeCallEvent);
 
     const { message, code } = nativeCallEvent.error;
-
-    const ErrorClass = errorsByCode.get(code);
-
-    const error = ErrorClass
-      ? new ErrorClass(message)
-      : new TwilioError(message, code);
-
+    const error = constructTwilioError(message, code);
     this.emit(Call.Event.ConnectFailure, error);
   };
 
@@ -520,13 +514,7 @@ export class Call extends EventEmitter {
 
     if (nativeCallEvent.error) {
       const { message, code } = nativeCallEvent.error;
-
-      const ErrorClass = errorsByCode.get(code);
-
-      const error = ErrorClass
-        ? new ErrorClass(message)
-        : new TwilioError(message, code);
-
+      const error = constructTwilioError(message, code);
       this.emit(Call.Event.Disconnected, error);
     } else {
       this.emit(Call.Event.Disconnected);
@@ -547,10 +535,8 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new TwilioError(
-      nativeCallEvent.error.message,
-      nativeCallEvent.error.code
-    );
+    const { message, code } = nativeCallEvent.error;
+    const error = constructTwilioError(message, code);
     this.emit(Call.Event.Reconnecting, error);
   };
 
@@ -1066,6 +1052,8 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:3)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
     export type ConnectFailure = (error: TwilioError) => void;
 
@@ -1076,6 +1064,8 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:4)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
     export type Reconnecting = (error: TwilioError) => void;
 
@@ -1096,6 +1086,8 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:6)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
     export type Disconnected = (error?: TwilioError) => void;
 

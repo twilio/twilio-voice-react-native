@@ -12,8 +12,8 @@ import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
-import { errorsByCode } from './error/generated';
-import { TwilioError } from './error/TwilioError';
+import type { TwilioError } from './error/TwilioError';
+import { constructTwilioError } from './error/utility';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
@@ -500,18 +500,14 @@ export class Voice extends EventEmitter {
       );
     }
 
-    const { cancelledCallInvite: cancelledCallInviteInfo, error: errorInfo } =
-      nativeVoiceEvent;
-
-    const ErrorClass = errorsByCode.get(errorInfo.code);
-
-    const error = ErrorClass
-      ? new ErrorClass(errorInfo.message)
-      : new TwilioError(errorInfo.message, errorInfo.code);
-
+    const {
+      cancelledCallInvite: cancelledCallInviteInfo,
+      error: { code, message },
+    } = nativeVoiceEvent;
     const cancelledCallInvite = new CancelledCallInvite(
       cancelledCallInviteInfo
     );
+    const error = constructTwilioError(message, code);
 
     this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, error);
   };
@@ -532,13 +528,7 @@ export class Voice extends EventEmitter {
     const {
       error: { code, message },
     } = nativeVoiceEvent;
-
-    const ErrorClass = errorsByCode.get(code);
-
-    const error = ErrorClass
-      ? new ErrorClass(message)
-      : new TwilioError(message, code);
-
+    const error = constructTwilioError(message, code);
     this.emit(Voice.Event.Error, error);
   };
 
@@ -889,6 +879,8 @@ export namespace Voice {
      *
      * @remarks
      * See {@link (Voice:interface).(addListener:6)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
     export type CancelledCallInvite = (
       cancelledCallInvite: CancelledCallInvite,
@@ -902,6 +894,8 @@ export namespace Voice {
      *
      * @remarks
      * See {@link (Voice:interface).(addListener:7)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
     export type Error = (error: TwilioError) => void;
 
