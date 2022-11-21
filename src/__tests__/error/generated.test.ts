@@ -1,5 +1,3 @@
-import { TwilioError } from '../error/TwilioError';
-import { InvalidStateError } from '../error/InvalidStateError';
 import {
   AuthorizationErrors,
   ForbiddenErrors,
@@ -13,7 +11,7 @@ import {
   SignalingErrors,
   MediaErrors,
   errorsByCode,
-} from '../error/generated';
+} from '../../error/generated';
 
 describe('TwilioError subclass', () => {
   for (const [code, ErrorClass] of errorsByCode.entries()) {
@@ -101,34 +99,5 @@ describe('errorsByCode', () => {
 
   it('contains "undefined" for an error code that does not exist', () => {
     expect(errorsByCode.get(999999)).toBeUndefined();
-  });
-});
-
-describe('TwilioError', () => {
-  it('sets an error name', () => {
-    const error = new TwilioError('mock-error-message');
-    expect(error.name).toBe('TwilioError');
-  });
-
-  it.each([[undefined], [0]])('sets a code "%o"', (code) => {
-    const error = new TwilioError('mock-error-message', code);
-    expect(error.code).toBe(code);
-  });
-
-  it('properly sets the prototype', () => {
-    const error = new TwilioError('mock-error-message');
-    expect(error).toBeInstanceOf(TwilioError);
-  });
-});
-
-describe('InvalidStateError', () => {
-  it('sets an error name', () => {
-    const error = new InvalidStateError('mock-error-message');
-    expect(error.name).toBe('InvalidStateError');
-  });
-
-  it('properly sets the prototype', () => {
-    const error = new InvalidStateError('mock-error-message');
-    expect(error).toBeInstanceOf(InvalidStateError);
   });
 });

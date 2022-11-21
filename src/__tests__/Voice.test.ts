@@ -19,7 +19,7 @@ let MockCall: jest.Mock;
 let MockCallInvite: jest.Mock & { State: typeof CallInvite.State };
 let MockCancelledCallInvite: jest.Mock;
 let MockTwilioError: jest.Mock;
-let mockErrorsByCode: { get: jest.Mock };
+let mockConstructTwilioError: jest.Mock;
 
 jest.mock('../common');
 jest.mock('../AudioDevice', () => ({
@@ -40,16 +40,18 @@ jest.mock('../CallInvite', () => ({
 jest.mock('../CancelledCallInvite', () => ({
   CancelledCallInvite: (MockCancelledCallInvite = jest.fn()),
 }));
-jest.mock('../error/TwilioError', () => ({
-  TwilioError: (MockTwilioError = jest.fn()),
-}));
-jest.mock('../error/generated', () => ({
-  errorsByCode: (mockErrorsByCode = { get: jest.fn() }),
-}));
+jest.mock('../error/utility', () => {
+  MockTwilioError = jest.fn();
+  mockConstructTwilioError = jest.fn((mesage, code) => {
+    return new MockTwilioError(mesage, code);
+  });
+  return {
+    constructTwilioError: mockConstructTwilioError,
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockErrorsByCode.get.mockReset();
   MockNativeEventEmitter.reset();
 });
 
@@ -251,51 +253,19 @@ describe('Voice class', () => {
         ]);
       });
 
-      describe('constructs an error', () => {
-        it('when there is no error mapping', () => {
-          new Voice(); // eslint-disable-line no-new
+      it('constructs an error', () => {
+        new Voice(); // eslint-disable-line no-new
+        const errorEvent = {
+          type: Constants.VoiceEventCallInviteCancelled,
+          cancelledCallInvite: createNativeCancelledCallInviteInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
 
-          mockErrorsByCode.get.mockImplementation(() => undefined);
-
-          const errorEvent = {
-            type: Constants.VoiceEventCallInviteCancelled,
-            cancelledCallInvite: createNativeCancelledCallInviteInfo(),
-            error: { code: 99999, message: 'foobar' },
-          };
-          MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
-
-          expect(MockTwilioError.mock.calls).toEqual([
-            ['foobar', 99999],
-            // this should fail if no code is passed with this message
-            // i.e. this is invalid: ['foobar']
-          ]);
-          expect(MockTwilioError.mock.calls).toHaveLength(
-            MockTwilioError.mock.instances.length
-          );
-        });
-
-        it('when there is an error mapping', () => {
-          new Voice(); // eslint-disable-line no-new
-
-          const MockError = jest.fn();
-          mockErrorsByCode.get.mockImplementation(() => MockError);
-
-          const errorEvent = {
-            type: Constants.VoiceEventCallInviteCancelled,
-            cancelledCallInvite: createNativeCancelledCallInviteInfo(),
-            error: { code: 99999, message: 'foobar' },
-          };
-          MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
-
-          expect(MockError.mock.calls).toEqual([
-            ['foobar'],
-            // this should fail if a code is passed with this message
-            // i.e. this is invalid: ['foobar', 99999]
-          ]);
-          expect(MockError.mock.calls).toHaveLength(
-            MockError.mock.instances.length
-          );
-        });
+        expect(MockTwilioError.mock.calls).toEqual([['foobar', 99999]]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
       });
 
       it('emits a CancelledCallInvite and an error', () => {
@@ -367,48 +337,18 @@ describe('Voice class', () => {
       });
 
       describe('constructs an error', () => {
-        it('when there is no error mapping', () => {
-          new Voice(); // eslint-disable-line no-new
+        new Voice(); // eslint-disable-line no-new
 
-          mockErrorsByCode.get.mockImplementation(() => undefined);
+        const errorEvent = {
+          type: Constants.VoiceEventError,
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
 
-          const errorEvent = {
-            type: Constants.VoiceEventError,
-            error: { code: 99999, message: 'foobar' },
-          };
-          MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
-
-          expect(MockTwilioError.mock.calls).toEqual([
-            ['foobar', 99999],
-            // this should fail if no code is passed with this message
-            // i.e. this is invalid ['foobar']
-          ]);
-          expect(MockTwilioError.mock.calls).toHaveLength(
-            MockTwilioError.mock.instances.length
-          );
-        });
-
-        it('when there is an error mapping', () => {
-          new Voice(); // eslint-disable-line no-new
-
-          const MockError = jest.fn();
-          mockErrorsByCode.get.mockImplementation(() => MockError);
-
-          const errorEvent = {
-            type: Constants.VoiceEventError,
-            error: { code: 99999, message: 'foobar' },
-          };
-          MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
-
-          expect(MockError.mock.calls).toEqual([
-            ['foobar'],
-            // this should fail if a code is passed with this message
-            // i.e. this is invalid ['foobar', 99999]
-          ]);
-          expect(MockError.mock.calls).toHaveLength(
-            MockError.mock.instances.length
-          );
-        });
+        expect(MockTwilioError.mock.calls).toEqual([['foobar', 99999]]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
       });
     });
 
