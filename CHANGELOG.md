@@ -2,7 +2,7 @@
 ==========================
 
 ## Changes
-- The integration testing app has been renamed/moved to `test/app` to avoid confusion as to the purpose of the app.
+- The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
 
 ## Fixes
 
