@@ -257,10 +257,15 @@ export function useVoice(token: string) {
   );
 
   const registerHandler = React.useCallback(() => {
-    voice.register(token).then(() => {
-      setRegistered(true);
-    });
-  }, [token, voice]);
+    voice
+      .register(token)
+      .then(() => {
+        setRegistered(true);
+      })
+      .catch((error) => {
+        logEvent(error);
+      });
+  }, [logEvent, token, voice]);
 
   const unregisterHandler = React.useCallback(() => {
     voice.unregister(token).then(() => {

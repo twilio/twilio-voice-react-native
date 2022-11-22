@@ -34,8 +34,9 @@ project.xcworkspace
 .idea
 .gradle
 local.properties
-android.iml
+*.iml
 test/app/android/app/google-services.json
+*.hprof
 
 # Cocoapods
 #
