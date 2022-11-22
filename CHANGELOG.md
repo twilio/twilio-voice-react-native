@@ -3,6 +3,7 @@
 
 ## Changes
 - The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
+- The React Native dependency within the integration testing app has been updated from `0.63.4` to `0.66.5`.
 
 ## Fixes
 
