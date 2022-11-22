@@ -18,7 +18,8 @@ let MockAudioDevice: jest.Mock;
 let MockCall: jest.Mock;
 let MockCallInvite: jest.Mock & { State: typeof CallInvite.State };
 let MockCancelledCallInvite: jest.Mock;
-let MockGenericError: jest.Mock;
+let MockTwilioError: jest.Mock;
+let mockConstructTwilioError: jest.Mock;
 
 jest.mock('../common');
 jest.mock('../AudioDevice', () => ({
@@ -39,9 +40,15 @@ jest.mock('../CallInvite', () => ({
 jest.mock('../CancelledCallInvite', () => ({
   CancelledCallInvite: (MockCancelledCallInvite = jest.fn()),
 }));
-jest.mock('../error/GenericError', () => ({
-  GenericError: (MockGenericError = jest.fn()),
-}));
+jest.mock('../error/utility', () => {
+  MockTwilioError = jest.fn();
+  mockConstructTwilioError = jest.fn((mesage, code) => {
+    return new MockTwilioError(mesage, code);
+  });
+  return {
+    constructTwilioError: mockConstructTwilioError,
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -227,7 +234,7 @@ describe('Voice class', () => {
     });
 
     describe(Constants.VoiceEventCallInviteCancelled, () => {
-      it('constructs a CancelledCallInvite and an error', () => {
+      it('constructs a CancelledCallInvite', () => {
         new Voice(); // eslint-disable-line no-new
 
         MockNativeEventEmitter.emit(
@@ -240,10 +247,25 @@ describe('Voice class', () => {
           [createNativeCancelledCallInviteInfo()],
         ]);
 
-        expect(MockGenericError.mock.instances).toHaveLength(1);
-        expect(MockGenericError.mock.calls).toEqual([
+        expect(MockTwilioError.mock.instances).toHaveLength(1);
+        expect(MockTwilioError.mock.calls).toEqual([
           [createNativeErrorInfo().message, createNativeErrorInfo().code],
         ]);
+      });
+
+      it('constructs an error', () => {
+        new Voice(); // eslint-disable-line no-new
+        const errorEvent = {
+          type: Constants.VoiceEventCallInviteCancelled,
+          cancelledCallInvite: createNativeCancelledCallInviteInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
+
+        expect(MockTwilioError.mock.calls).toEqual([['foobar', 99999]]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
       });
 
       it('emits a CancelledCallInvite and an error', () => {
@@ -260,7 +282,7 @@ describe('Voice class', () => {
         expect(listenerMock.mock.calls[0]).toHaveLength(2);
         const [cancelledCallInvite, error] = listenerMock.mock.calls[0];
         expect(cancelledCallInvite).toBeInstanceOf(MockCancelledCallInvite);
-        expect(error).toBeInstanceOf(MockGenericError);
+        expect(error).toBeInstanceOf(MockTwilioError);
       });
     });
 
@@ -297,18 +319,36 @@ describe('Voice class', () => {
     });
 
     describe(Constants.VoiceEventError, () => {
-      it('constructs an error', () => {
-        new Voice(); // eslint-disable-line no-new
+      it('emits an error', async () => {
+        const voice = new Voice();
+
+        const errorPromise = new Promise((resolve) => {
+          voice.on(Voice.Event.Error, resolve);
+        });
 
         MockNativeEventEmitter.emit(
           Constants.ScopeVoice,
           mockVoiceNativeEvents.error.nativeEvent
         );
 
-        expect(MockGenericError.mock.instances).toHaveLength(1);
-        expect(MockGenericError.mock.calls).toEqual([
-          [createNativeErrorInfo().message, createNativeErrorInfo().code],
-        ]);
+        const error = await errorPromise;
+
+        expect(typeof error).toBe('object');
+      });
+
+      describe('constructs an error', () => {
+        new Voice(); // eslint-disable-line no-new
+
+        const errorEvent = {
+          type: Constants.VoiceEventError,
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
+
+        expect(MockTwilioError.mock.calls).toEqual([['foobar', 99999]]);
+        expect(MockTwilioError.mock.calls).toHaveLength(
+          MockTwilioError.mock.instances.length
+        );
       });
     });
 

@@ -15,7 +15,8 @@ import type {
   NativeCallInfo,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
-import { GenericError } from './error/GenericError';
+import type { TwilioError } from './error/TwilioError';
+import { constructTwilioError } from './error/utility';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -43,14 +44,11 @@ export declare interface Call {
   /** @internal */
   emit(
     connectFailureEvent: Call.Event.ConnectFailure,
-    error: GenericError
+    error: TwilioError
   ): boolean;
 
   /** @internal */
-  emit(
-    reconnectingEvent: Call.Event.Reconnecting,
-    error: GenericError
-  ): boolean;
+  emit(reconnectingEvent: Call.Event.Reconnecting, error: TwilioError): boolean;
 
   /** @internal */
   emit(reconnectedEvent: Call.Event.Reconnected): boolean;
@@ -58,7 +56,7 @@ export declare interface Call {
   /** @internal */
   emit(
     disconnectedEvent: Call.Event.Disconnected,
-    error?: GenericError
+    error?: TwilioError
   ): boolean;
 
   /** @internal */
@@ -495,10 +493,8 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new GenericError(
-      nativeCallEvent.error.message,
-      nativeCallEvent.error.code
-    );
+    const { message, code } = nativeCallEvent.error;
+    const error = constructTwilioError(message, code);
     this.emit(Call.Event.ConnectFailure, error);
   };
 
@@ -517,10 +513,8 @@ export class Call extends EventEmitter {
     this._update(nativeCallEvent);
 
     if (nativeCallEvent.error) {
-      const error = new GenericError(
-        nativeCallEvent.error.message,
-        nativeCallEvent.error.code
-      );
+      const { message, code } = nativeCallEvent.error;
+      const error = constructTwilioError(message, code);
       this.emit(Call.Event.Disconnected, error);
     } else {
       this.emit(Call.Event.Disconnected);
@@ -541,10 +535,8 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const error = new GenericError(
-      nativeCallEvent.error.message,
-      nativeCallEvent.error.code
-    );
+    const { message, code } = nativeCallEvent.error;
+    const error = constructTwilioError(message, code);
     this.emit(Call.Event.Reconnecting, error);
   };
 
@@ -1060,8 +1052,10 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:3)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
-    export type ConnectFailure = (error: GenericError) => void;
+    export type ConnectFailure = (error: TwilioError) => void;
 
     /**
      * Reconnecting event listener. This should be the function signature of any
@@ -1070,8 +1064,10 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:4)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
-    export type Reconnecting = (error: GenericError) => void;
+    export type Reconnecting = (error: TwilioError) => void;
 
     /**
      * Reconnected event listener. This should be the function signature of any
@@ -1090,8 +1086,10 @@ export namespace Call {
      *
      * @remarks
      * See {@link (Call:interface).(addListener:6)}.
+     *
+     * See {@link TwilioErrors} for all error classes.
      */
-    export type Disconnected = (error?: GenericError) => void;
+    export type Disconnected = (error?: TwilioError) => void;
 
     /**
      * Ringing event listener. This should be the function signature of any

@@ -1,4 +1,4 @@
-import { GenericError } from './GenericError';
+import { TwilioError } from './TwilioError';
 
 /**
  * Error describing that the SDK has entered or is attempting to enter an
@@ -6,7 +6,10 @@ import { GenericError } from './GenericError';
  *
  * @public
  */
-export class InvalidStateError extends GenericError {
+export class InvalidStateError extends TwilioError {
+  description: string = 'Invalid state error.';
+  explanation: string = 'The SDK has entered an invalid state.';
+
   constructor(message: string) {
     super(message);
 

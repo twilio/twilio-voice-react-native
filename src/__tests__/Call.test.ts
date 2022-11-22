@@ -9,12 +9,19 @@ import type { NativeCallEventType } from '../type/Call';
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
 const MockNativeModule = jest.mocked(NativeModule);
-let MockGenericError: jest.Mock;
+let MockTwilioError: jest.Mock;
+let mockConstructTwilioError: jest.Mock;
 
 jest.mock('../common');
-jest.mock('../error/GenericError', () => ({
-  GenericError: (MockGenericError = jest.fn()),
-}));
+jest.mock('../error/utility', () => {
+  MockTwilioError = jest.fn();
+  mockConstructTwilioError = jest.fn((mesage, code) => {
+    return new MockTwilioError(mesage, code);
+  });
+  return {
+    constructTwilioError: mockConstructTwilioError,
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -141,7 +148,7 @@ describe('Call class', () => {
       expect(args).toHaveLength(1);
 
       const [error] = args;
-      expect(error).toBeInstanceOf(MockGenericError);
+      expect(error).toBeInstanceOf(MockTwilioError);
     };
 
     const listenerCalledWithQualityWarnings = (listenerMock: jest.Mock) => {
@@ -287,6 +294,34 @@ describe('Call class', () => {
     });
   });
 
+  describe('uses the error constructor', () => {
+    [
+      Constants.CallEventConnectFailure,
+      Constants.CallEventDisconnected,
+      Constants.CallEventReconnecting,
+    ].forEach((ev) => {
+      it(ev, () => {
+        new Call(createNativeCallInfo()); // eslint-disable-line no-new
+        const errorEvent = {
+          type: Constants.CallEventConnectFailure,
+          call: createNativeCallInfo(),
+          error: { code: 99999, message: 'foobar' },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCall, errorEvent);
+
+        expect(mockConstructTwilioError.mock.calls).toEqual([
+          ['foobar', 99999],
+        ]);
+        expect(mockConstructTwilioError.mock.calls).toHaveLength(
+          mockConstructTwilioError.mock.instances.length
+        );
+      });
+    });
+  });
+
+  /**
+   * Generic call object tests.
+   */
   describe('on receiving an invalid native event', () => {
     it('throws an error', () => {
       new Call(createNativeCallInfo()); // eslint-disable-line no-new
