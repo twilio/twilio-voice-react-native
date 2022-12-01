@@ -20,11 +20,15 @@ executors:
       - image: cimg/node:lts
     working_directory: ~/project
 
+orbs:
+  android: circleci/android@2.1.2
+
 commands:
   attach_project:
     steps:
       - attach_workspace:
           at: ~/project
+
   install-dependencies:
     steps:
       - run:
@@ -34,11 +38,13 @@ commands:
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
+
   setup-detox-dependencies:
     description: Setup environment for running test on detox
     steps:
       - run: npm install -g detox-cli && npm link detox
       - run: npm install -g jest && npm link jest
+
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -59,6 +65,7 @@ commands:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
+  
   setup-e2e-creds:
     description: "Decode account credentials for e2e tests"
     steps:
@@ -66,6 +73,15 @@ commands:
           name: "Decode creds"
           command: |
             echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test/app/src/e2e-tests-token.ts
+
+  setup-e2e-google-services:
+    description: Decode "google-services.json" for e2e tests
+    steps:
+      - run:
+          name: Decode "google-services.json"
+          command: |
+            yarn run test:e2e:google-services
+  
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
@@ -77,6 +93,7 @@ commands:
             detox clean-framework-cache
             detox build-framework-cache
             cd ../..
+
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -91,6 +108,7 @@ commands:
             detox build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
+
   detox-test:
     description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -213,9 +231,9 @@ jobs:
         type: string
     steps:
       - checkout
+      - install-dependencies
       - setup-e2e-creds
       - setup-detox-dependencies
-      - install-dependencies
       - setup-pods
       - simulator-dependencies
       # run E2E tests
@@ -226,6 +244,40 @@ jobs:
           artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
           path: ./test/app/test-report.html
+
+  e2e-android:
+    machine:
+      image: android:2022.07.1
+    resource_class: large
+    working_directory: ~/project
+    parameters:
+      detox_configuration:
+        type: string
+      artifacts_location:
+        default: /tmp/artifacts
+        type: string
+    steps:
+      - checkout
+      - install-dependencies
+      - setup-e2e-google-services
+      - setup-detox-dependencies
+      - android/create-avd:
+          avd-name: rn-sdk-integration-tests-avd
+          install: true
+          system-image: system-images;android-30;default;x86_64
+      - android/start-emulator:
+          avd-name: rn-sdk-integration-tests-avd
+          post-emulator-launch-assemble-command: ""
+          restore-gradle-cache-post-emulator-launch: false
+      # run E2E tests
+      - detox-build:
+         configuration: <<parameters.detox_configuration>>
+      - detox-test:
+         configuration: <<parameters.detox_configuration>>
+         artifacts: <<parameters.artifacts_location>>
+      - android/kill-emulators
+      - store_artifacts:
+         path: ./example/test-report.html
 
 ###
 # Workflows
@@ -255,6 +307,10 @@ workflows:
             - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
+          requires:
+            - cache-install-dependencies
+      - e2e-android:
+          detox_configuration: android.emulator
           requires:
             - cache-install-dependencies
 

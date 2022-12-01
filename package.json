@@ -37,7 +37,8 @@
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e:google-services": "node ./example/e2e/scripts/generateGoogleServices.js"
   },
   "keywords": [
     "react-native",

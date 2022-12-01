@@ -133,6 +133,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        testBuildType System.getProperty('testBuildType', 'debug')
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        missingDimensionStrategy 'detox', 'full'
     }
     splits {
         abi {
@@ -207,8 +210,10 @@ dependencies {
     implementation "com.android.support:design:30.0.0"
     implementation "com.android.support:support-media-compat:30.0.0}"
     implementation "com.android.support:animated-vector-drawable:30.0.0"
-    implementation "com.android.support:appcompat-v7:30.0.0"
+    implementation "androidx.appcompat:appcompat:1.4.2"
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+
+    androidTestImplementation(project(path: ":detox"))
 }
 
 // Run this once to be able to run the application with BUCK
