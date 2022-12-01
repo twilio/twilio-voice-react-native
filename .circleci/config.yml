@@ -134,7 +134,7 @@ commands:
           name: Detox Test
           command: |
             cd test/app
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            detox test --configuration <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 jobs:
@@ -277,7 +277,7 @@ jobs:
          artifacts: <<parameters.artifacts_location>>
       - android/kill-emulators
       - store_artifacts:
-         path: ./example/test-report.html
+         path: ./test/app/test-report.html
 
 ###
 # Workflows
@@ -310,7 +310,7 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-android:
-          detox_configuration: android.emulator
+          detox_configuration: android.release
           requires:
             - cache-install-dependencies
 

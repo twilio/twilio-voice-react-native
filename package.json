@@ -38,7 +38,7 @@
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
     "test": "jest",
-    "test:e2e:google-services": "node ./example/e2e/scripts/generateGoogleServices.js"
+    "test:e2e:google-services": "node ./test/app/e2e/scripts/generateGoogleServices.js"
   },
   "keywords": [
     "react-native",
