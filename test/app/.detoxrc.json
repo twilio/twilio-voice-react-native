@@ -8,7 +8,7 @@
             "build": "ENVFILE=.env.testing xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build -quiet -arch x86_64"
         },
         "TwilioVoiceReactNativeExample.android": {
-            "type": "android.app",
+            "type": "android.apk",
             "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
             "build": "cd android && ENVFILE=.env.testing ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd .."
         }
@@ -28,10 +28,6 @@
         }
     },
     "configurations": {
-        "ios.release": {
-            "app": "TwilioVoiceReactNativeExample.ios",
-            "device": "ios-simulator"
-        },
         "android.release": {
             "app": "TwilioVoiceReactNativeExample.android",
             "device": "android-emulator"
