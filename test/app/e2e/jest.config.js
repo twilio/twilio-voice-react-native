@@ -1,20 +1,12 @@
-const { defaults } = require('jest-config');
-require('dotenv').config();
-
+/** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
-  testEnvironment: './environment',
+  rootDir: '..',
+  testMatch: ['<rootDir>/e2e/**/*.test.js'],
   testTimeout: 120000,
-  reporters: [
-    'detox/runners/jest/streamlineReporter',
-    [
-      'jest-html-reporter',
-      {
-        pageTitle: 'Test Report',
-        includeFailureMsg: true,
-      },
-    ],
-  ],
+  maxWorkers: 1,
+  globalSetup: 'detox/runners/jest/globalSetup',
+  globalTeardown: 'detox/runners/jest/globalTeardown',
+  reporters: ['detox/runners/jest/reporter'],
+  testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
-  preset: 'ts-jest',
-  setupFilesAfterEnv: ['./init.ts'],
 };
