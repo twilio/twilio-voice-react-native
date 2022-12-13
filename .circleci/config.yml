@@ -306,11 +306,11 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
-          detox_configuration: ios.release
+          detox_configuration: ios.sim.release
           requires:
             - cache-install-dependencies
       - e2e-android:
-          detox_configuration: android.release
+          detox_configuration: android.emu.release
           requires:
             - cache-install-dependencies
 
