@@ -259,6 +259,7 @@ jobs:
     steps:
       - checkout
       - install-dependencies
+      - setup-e2e-creds
       - setup-e2e-google-services
       - setup-detox-dependencies
       - android/create-avd:
