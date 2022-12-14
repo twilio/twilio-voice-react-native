@@ -1,5 +1,9 @@
+const { defaults } = require('jest-config');
+require('dotenv').config();
+
 /** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
+  testEnvironment: './environment',
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/**/*.spec.ts'],
   testTimeout: 120000,
@@ -9,4 +13,5 @@ module.exports = {
   reporters: ['detox/runners/jest/reporter'],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
+  setupFilesAfterEnv: ['./init.ts'],
 };
