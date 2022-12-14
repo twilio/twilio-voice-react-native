@@ -13,5 +13,5 @@ module.exports = {
   reporters: ['detox/runners/jest/reporter'],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
-  setupFilesAfterEnv: ['./init.ts'],
+  setupFilesAfterEnv: ['<rootDir>/e2e/init.ts'],
 };
