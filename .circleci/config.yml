@@ -116,9 +116,9 @@ commands:
         description: The Detox configuration to test
         type: string
       loglevel:
-        default: "info"
+        default: "trace"
         description: The Detox logging level to use. Default value - "info".
-        enum: [ "fatal", "error", "warn", "info", "verbose", "trace" ]
+        enum: [ "fatal", "error", "warn", "info", "debug", "trace" ]
         type: enum
       screenshots:
         default: "failing"
