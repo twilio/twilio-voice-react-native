@@ -6,7 +6,9 @@ module.exports = {
       config: 'e2e/jest.config.js'
     },
     jest: {
-      setupTimeout: 120000
+      setupTimeout: 120000,
+      reportSpecs: false,
+      reportWorkerAssign: false,
     }
   },
   apps: {
