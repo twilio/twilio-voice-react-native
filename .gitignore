@@ -78,3 +78,4 @@ temp/
 # e2e tests
 test/app/src/e2e-tests-token.ts
 coverage/
+.git/
