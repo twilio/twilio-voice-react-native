@@ -43,7 +43,7 @@ commands:
     description: Setup environment for running test on detox
     steps:
       - run: npm install -g detox-cli && npm link detox
-      - run: npm install -g jest && npm link jest
+      #- run: npm install -g jest && npm link jest
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -90,8 +90,8 @@ commands:
           name: Clear detox cache
           command: |
             cd test/app
-            detox clean-framework-cache
-            detox build-framework-cache
+            node ./node_modules/detox/local-cli/cli.js clean-framework-cache
+            node ./node_modules/detox/local-cli/cli.js build-framework-cache
             cd ../..
 
   detox-build:
@@ -105,7 +105,7 @@ commands:
           name: Detox Build
           command: |
             cd test/app
-            detox build -c <<parameters.configuration>>
+            node ./node_modules/detox/local-cli/cli.js build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
 
@@ -134,7 +134,7 @@ commands:
           name: Detox Test
           command: |
             cd test/app
-            detox test --configuration <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            node ./node_modules/detox/local-cli/cli.js test --configuration <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 jobs:

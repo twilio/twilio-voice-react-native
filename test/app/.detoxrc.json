@@ -28,6 +28,10 @@
         }
     },
     "configurations": {
+        "ios.release": {
+            "app": "TwilioVoiceReactNativeExample.ios",
+            "device": "ios-simulator"
+        },
         "android.release": {
             "app": "TwilioVoiceReactNativeExample.android",
             "device": "android-emulator"
