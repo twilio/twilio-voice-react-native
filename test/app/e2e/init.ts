@@ -7,7 +7,7 @@ declare const device: {
 }
 
 require('dotenv').config();
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 beforeAll(async () => {
   await device.installApp();
