@@ -137,6 +137,10 @@ commands:
             node ./node_modules/detox/local-cli/cli.js test --configuration <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
+  save-emulator-log:
+    steps:
+      - run: adb logcat > emulator-log.txt
+
 jobs:
   cache-install-dependencies:
     executor: default
@@ -276,9 +280,10 @@ jobs:
       - detox-test:
          configuration: <<parameters.detox_configuration>>
          artifacts: <<parameters.artifacts_location>>
+      - save-emulator-log
       - android/kill-emulators
       - store_artifacts:
-         path: ./test/app/test-report.html
+         path: ./test/app/test-report.html ./emulator-log.txt
 
 ###
 # Workflows
