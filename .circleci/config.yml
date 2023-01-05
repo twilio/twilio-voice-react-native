@@ -87,6 +87,7 @@ commands:
       - run:
           command: |
             cd test/app
+            mkdir android/app/src/main/assets
             node ./node_modules/react-native/cli.js bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
             cd ..
   
