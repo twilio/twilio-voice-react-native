@@ -81,6 +81,14 @@ commands:
           name: Decode "google-services.json"
           command: |
             yarn run test:e2e:google-services
+
+  update-android-bundle:
+    steps:
+      - run:
+          command: |
+            cd test/app
+            react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+            cd ..
   
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -274,6 +282,7 @@ jobs:
           avd-name: rn-sdk-integration-tests-avd
           post-emulator-launch-assemble-command: ""
           restore-gradle-cache-post-emulator-launch: false
+      - update-android-bundle
       # run E2E tests
       - detox-build:
          configuration: <<parameters.detox_configuration>>
