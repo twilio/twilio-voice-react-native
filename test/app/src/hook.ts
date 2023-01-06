@@ -257,6 +257,7 @@ export function useVoice(token: string) {
   );
 
   const registerHandler = React.useCallback(() => {
+    logEvent('debug checkpoint: registerHandler')
     voice
       .register(token)
       .then(() => {
