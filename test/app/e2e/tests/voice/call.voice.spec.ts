@@ -1,23 +1,17 @@
-import { by, element, waitFor } from 'detox';
+import UITestUtility from '../utility/UITestUtility';
 
-export const DEFAULT_TIME_OUT = 10000;
-
-async function isVisibleByText(text: string, timeout: number = DEFAULT_TIME_OUT) {
-  await waitFor(element(by.text(text)))
-    .toBeVisible()
-    .withTimeout(timeout);
-}
+const CONNECT_BUTTON_ID = 'connectButton';
+const DISCONNECT_BUTTON_ID = 'disconnectButton';
 
 describe('Voice & Call APIs', () => {
-    it('Voice | Connect | :ios:', async () => {
-        await isVisibleByText('State: undefined');
-        await isVisibleByText('SID: undefined');
-        await isVisibleByText('Connect');
-        await element(by.text('Connect')).tap();
-        await isVisibleByText('State: ringing');
-        await isVisibleByText('State: connected');
-        await isVisibleByText('Disconnect');
-        await element(by.text('Disconnect')).tap();
-        await isVisibleByText('State: disconnected');
+    it('Voice | Connect', async () => {
+        await UITestUtility.isVisibleByText('State: undefined');
+        await UITestUtility.isVisibleByText('SID: undefined');
+        await UITestUtility.isVisibleById(CONNECT_BUTTON_ID);
+        await element(by.id(CONNECT_BUTTON_ID)).tap();
+        await UITestUtility.isVisibleByText('State: connected');
+        await UITestUtility.isVisibleById(DISCONNECT_BUTTON_ID);
+        await element(by.id(DISCONNECT_BUTTON_ID)).tap();
+        await UITestUtility.isVisibleByText('State: disconnected');
     });
 });

@@ -85,6 +85,7 @@ commands:
   update-android-bundle:
     steps:
       - run:
+          name: "Generate index.android.bundle"
           command: |
             cd test/app
             mkdir android/app/src/main/assets

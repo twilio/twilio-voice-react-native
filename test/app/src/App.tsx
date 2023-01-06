@@ -99,8 +99,8 @@ export default function App() {
 
   const registrationButtons = React.useMemo(
     () => [
-      <Button title={'Register'} onPress={registerHandler} />,
-      <Button title={'Unregister'} onPress={unregisterHandler} />,
+      <Button title={'Register'} testID='registerButton' onPress={registerHandler} />,
+      <Button title={'Unregister'} testID='unregisterButton' onPress={unregisterHandler} />,
     ],
     [registerHandler, unregisterHandler]
   );
