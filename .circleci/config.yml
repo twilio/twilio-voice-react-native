@@ -294,7 +294,9 @@ jobs:
       - save-emulator-log
       - android/kill-emulators
       - store_artifacts:
-         path: ./test/app/test-report.html ./emulator-log.txt
+         path: ./emulator-log.txt
+      - store_artifacts:
+         path: ./test/app/test-report.html
 
 ###
 # Workflows
