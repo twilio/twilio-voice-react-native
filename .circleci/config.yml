@@ -149,7 +149,7 @@ commands:
 
   save-emulator-log:
     steps:
-      - run: adb logcat > ./emulator-log.txt
+      - run: adb logcat -d > emulator-log.txt
 
 jobs:
   cache-install-dependencies:
