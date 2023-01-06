@@ -71,7 +71,7 @@ export default function Dialer({
       [
         <Button
           title="Disconnect"
-          testID='disconnectButton'
+          testID="disconnectButton"
           onPress={callMethod?.disconnect || disconnectNoOp}
         />,
         <Button
@@ -146,7 +146,11 @@ export default function Dialer({
         onChangeText={setOutgoingTo}
       />
       <View style={styles.padded}>
-        <Button title="Connect" testID='connectButton' onPress={connectHandler} />
+        <Button
+          title="Connect"
+          testID="connectButton"
+          onPress={connectHandler}
+        />
       </View>
     </View>
   );

@@ -9,7 +9,16 @@ module.exports = {
   maxWorkers: 1,
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
-  reporters: ['detox/runners/jest/reporter'],
+  reporters: [
+    'detox/runners/jest/reporter',
+    [
+      'jest-html-reporter',
+      {
+        pageTitle: 'Test Report',
+        includeFailureMsg: true,
+      },
+    ],
+  ],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.ts'],
