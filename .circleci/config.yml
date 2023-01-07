@@ -146,13 +146,16 @@ commands:
             cd test/app
             node ./node_modules/detox/local-cli/cli.js test --configuration <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
-
-  save-emulator-log:
-    steps:
-      - run: 
+      - run:
           name: Saving ADB log
           command: |
             adb logcat -d > emulator-log.txt
+          when: on_success
+      - run:
+          name: Saving ADB log
+          command: |
+            adb logcat -d > emulator-log.txt
+          when: on_fail
 
 jobs:
   cache-install-dependencies:
@@ -295,7 +298,6 @@ jobs:
       - detox-test:
          configuration: <<parameters.detox_configuration>>
          artifacts: <<parameters.artifacts_location>>
-      - save-emulator-log
       - android/kill-emulators
       - store_artifacts:
          path: ./emulator-log.txt
