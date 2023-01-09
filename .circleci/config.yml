@@ -148,14 +148,12 @@ commands:
             cd ../..
       - run:
           name: Saving ADB log
+          environment:
+            CONFIGURATION: <<parameters.configuration>>
           command: |
-            adb logcat -d > emulator-log.txt
-          when: on_success
-      - run:
-          name: Saving ADB log
-          command: |
-            adb logcat -d > emulator-log.txt
-          when: on_fail
+            if [ $CONFIGURATION = android.emu.release]; then
+              adb logcat -d > emulator-log.txt
+            fi
 
 jobs:
   cache-install-dependencies:
