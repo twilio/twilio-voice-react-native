@@ -284,7 +284,7 @@ jobs:
           avd-name: rn-sdk-integration-tests-avd
           install: true
           additional-args: --device pixel
-          system-image: system-images;android-30;default;x86_64
+          system-image: system-images;android-30;google_apis_playstore;x86_64
       - android/start-emulator:
           avd-name: rn-sdk-integration-tests-avd
           post-emulator-launch-assemble-command: ""
