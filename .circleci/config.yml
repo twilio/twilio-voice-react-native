@@ -39,12 +39,6 @@ commands:
             yarn install --frozen-lockfile
             yarn run build:errors
 
-  setup-detox-dependencies:
-    description: Setup environment for running test on detox
-    steps:
-      - run: npm install -g detox-cli && npm link detox
-      #- run: npm install -g jest && npm link jest
-
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -251,7 +245,6 @@ jobs:
       - checkout
       - install-dependencies
       - setup-e2e-creds
-      - setup-detox-dependencies
       - setup-pods
       - simulator-dependencies
       # run E2E tests
@@ -279,7 +272,6 @@ jobs:
       - install-dependencies
       - setup-e2e-creds
       - setup-e2e-google-services
-      - setup-detox-dependencies
       - android/create-avd:
           avd-name: rn-sdk-integration-tests-avd
           install: true
