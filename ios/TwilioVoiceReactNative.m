@@ -12,6 +12,8 @@
 #import "TwilioVoiceReactNativeConstants.h"
 #import "TwilioVoiceStatsReport.h"
 
+NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
+
 // Call & call invite
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
 NSString * const kTwilioVoiceReactNativeEventKeyCallInvite = @"callInvite";
@@ -439,6 +441,12 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
+    
+    if (!self.deviceTokenData) {
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"iOS PushKit device token not found. Please make sure \
+                                                   the `TwilioVoicePushRegistry` object is initialized"], nil);
+        return;
+    }
 
     [TwilioVoiceSDK registerWithAccessToken:accessToken
                                 deviceToken:self.deviceTokenData
@@ -533,7 +541,7 @@ RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
     if ([self selectAudioDevice:uuid]) {
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Failed to select audio device %@", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Failed to select audio device %@", uuid], nil);
     }
 }
 
@@ -569,7 +577,7 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
         [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -626,7 +634,7 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
         [call setOnHold:onHold];
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -652,7 +660,7 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
         [call setMuted:muted];
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -678,7 +686,7 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
         [call sendDigits:digits];
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -693,7 +701,7 @@ RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
         [call postFeedback:(TVOCallFeedbackScore)score issue:[self issueFromString:issue]];
         resolve(nil);
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -709,7 +717,7 @@ RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
             resolve(statsReportJson);
         }];
     } else {
-        reject(@"Voice error", [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
 }
 
@@ -733,10 +741,10 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
             }
 
             if (!found) {
-                reject(@"Voice error", @"No matching call", nil);
+                reject(kTwilioVoiceReactNativeVoiceError, @"No matching call", nil);
             }
         } else {
-            reject(@"Voice error", @"Failed to answer the call invite", nil);
+            reject(kTwilioVoiceReactNativeVoiceError, @"Failed to answer the call invite", nil);
         }
     }];
 }
@@ -764,7 +772,7 @@ RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
         resolve(callInvite.callSid);
     } else {
-        reject(@"Voice error", @"No matching call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
@@ -776,7 +784,7 @@ RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
         resolve(callInvite.from);
     } else {
-        reject(@"Voice error", @"No matching call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
@@ -788,7 +796,7 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
         resolve(callInvite.to);
     } else {
-        reject(@"Voice error", @"No matching call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
@@ -800,7 +808,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInvite
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
         resolve(cancelledCallInvite.callSid);
     } else {
-        reject(@"Voice error", @"No matching cancelled call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);
     }
 }
 
@@ -812,7 +820,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUui
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
         resolve(cancelledCallInvite.from);
     } else {
-        reject(@"Voice error", @"No matching cancelled call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);
     }
 }
 
@@ -824,7 +832,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
         resolve(cancelledCallInvite.to);
     } else {
-        reject(@"Voice error", @"No matching cancelled call invite", nil);
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);
     }
 }
 
