@@ -11,6 +11,7 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 
+NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native";
 NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 @interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate, AVAudioPlayerDelegate>
@@ -22,7 +23,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - CallKit helper methods
 
 - (void)initializeCallKit {
-    CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:@"Twilio Frontline"];
+    CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:kDefaultCallKitConfigurationName];
     configuration.maximumCallGroups = 1;
     configuration.maximumCallsPerCallGroup = 1;
     UIImage *callkitIcon = [UIImage imageNamed:@"iconMask80"];
@@ -94,12 +95,15 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)makeCallWithAccessToken:(NSString *)accessToken
-                         params:(NSDictionary *)params {
+                         params:(NSDictionary *)params
+                  contactHandle:(NSString *)contactHandle {
     self.accessToken = accessToken;
     self.twimlParams = params;
     
-    /* Replace the handle value of your choice */
-    NSString *handle = @"Twilio Frontline";
+    NSString *handle = @"Default Contact";
+    if ([contactHandle length] > 0) {
+        handle = contactHandle;
+    }
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     NSUUID *uuid = [NSUUID UUID];

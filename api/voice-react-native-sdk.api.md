@@ -874,7 +874,7 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    connect(token: string, params?: Record<string, any>): Promise<Call>;
+    connect(token: string, params?: Record<string, any>, contactHandle?: string): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
         selectedDevice: AudioDevice | null;

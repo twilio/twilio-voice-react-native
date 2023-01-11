@@ -600,6 +600,8 @@ export class Voice extends EventEmitter {
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
    * @param params - Custom parameters to send to the TwiML Application.
+   * @param contactHandle - (iOS only) a CallKit display name that will show in
+   * the call history as the contact handle. Optional.
    *
    * @returns
    * A `Promise` that
@@ -607,9 +609,14 @@ export class Voice extends EventEmitter {
    */
   async connect(
     token: string,
-    params: Record<string, any> = {}
+    params: Record<string, any> = {},
+    contactHandle?: string
   ): Promise<Call> {
-    const callInfo = await NativeModule.voice_connect(token, params);
+    const callInfo = await NativeModule.voice_connect(
+      token,
+      params,
+      contactHandle
+    );
 
     const call = new Call(callInfo);
 
