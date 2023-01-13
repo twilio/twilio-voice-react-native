@@ -13,6 +13,8 @@
 #import "TwilioVoiceStatsReport.h"
 
 NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
+dispatch_time_t const kPushRegistryDeviceTokenRetryTimeout = 3;
+dispatch_time_t const kExponentialBackoff = 2;
 
 // Call & call invite
 NSString * const kTwilioVoiceReactNativeEventKeyCall = @"call";
@@ -67,6 +69,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 @property(nonatomic, strong) NSData *deviceTokenData;
 @property(nonatomic, strong) NSMutableDictionary *audioDevices;
 @property(nonatomic, strong) NSDictionary *selectedAudioDevice;
+@property(nonatomic, assign) BOOL registrationInProgress;
 
 @end
 
@@ -442,26 +445,57 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
     }
 #endif
     
-    if (!self.deviceTokenData) {
-        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"iOS PushKit device token not found. Please make sure \
-                                                   the `TwilioVoicePushRegistry` object is initialized"], nil);
+    if (self.registrationInProgress) {
+        reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
         return;
     }
 
-    [TwilioVoiceSDK registerWithAccessToken:accessToken
-                                deviceToken:self.deviceTokenData
-                                 completion:^(NSError *error) {
-        if (error) {
-            NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
-            NSLog(@"%@", errorMessage);
-            [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                               body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
-                                      kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                                                                                   kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+    self.registrationInProgress = YES;
+    
+    [self asyncPushRegistryInitialization:kPushRegistryDeviceTokenRetryTimeout
+                               completion:^(NSData *deviceTokenData) {
+        if (deviceTokenData) {
+            [TwilioVoiceSDK registerWithAccessToken:accessToken
+                                        deviceToken:deviceTokenData
+                                         completion:^(NSError *error) {
+                if (error) {
+                    NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
+                    NSLog(@"%@", errorMessage);
+                    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
+                                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
+                                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+                    reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
+                } else {
+                    resolve(nil);
+                }
+                self.registrationInProgress = NO;
+            }];
         } else {
-            resolve(nil);
+            self.registrationInProgress = NO;
+            reject(kTwilioVoiceReactNativeVoiceError, @"Failed to initialize PushKit device token", nil);
         }
     }];
+}
+
+- (void)asyncPushRegistryInitialization:(dispatch_time_t)timeout
+                             completion:(void(^)(NSData *deviceTokenData))completion {
+    if (self.deviceTokenData) {
+        completion(self.deviceTokenData);
+        return;
+    }
+
+    if (timeout > 0) {
+        __block dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC));
+        __weak typeof(self) weakSelf = self;
+        dispatch_after(delay, dispatch_get_main_queue(), ^{
+            dispatch_time_t backoffTimeout = (timeout > kExponentialBackoff)? timeout - kExponentialBackoff : 0;
+            [weakSelf asyncPushRegistryInitialization:backoffTimeout completion:completion];
+        });
+    } else {
+        // Device token could be nil. The voice_register() method will handle the promise.
+        completion(self.deviceTokenData);
+    }
 }
 
 RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
@@ -475,19 +509,36 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
+    
+    if (self.registrationInProgress) {
+        reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
+        return;
+    }
 
-    [TwilioVoiceSDK unregisterWithAccessToken:accessToken
-                                  deviceToken:self.deviceTokenData
-                                   completion:^(NSError *error) {
-        if (error) {
-            NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
-            NSLog(@"%@", errorMessage);
-            [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                               body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
-                                      kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                                                                                   kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+    self.registrationInProgress = YES;
+    
+    [self asyncPushRegistryInitialization:kPushRegistryDeviceTokenRetryTimeout
+                               completion:^(NSData *deviceTokenData) {
+        if (deviceTokenData) {
+            [TwilioVoiceSDK unregisterWithAccessToken:accessToken
+                                          deviceToken:deviceTokenData
+                                           completion:^(NSError *error) {
+                if (error) {
+                    NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
+                    NSLog(@"%@", errorMessage);
+                    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
+                                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
+                                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+                    reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
+                } else {
+                    resolve(nil);
+                }
+                self.registrationInProgress = NO;
+            }];
         } else {
-            resolve(nil);
+            self.registrationInProgress = NO;
+            reject(kTwilioVoiceReactNativeVoiceError, @"Failed to initialize PushKit device token", nil);
         }
     }];
 }
