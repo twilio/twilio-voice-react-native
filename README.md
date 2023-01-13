@@ -44,6 +44,32 @@ yarn add @twilio/voice-react-native-sdk
 The following simple example demonstrates how to make and receive calls. You will need to implement your own `getAccessToken()` method for it to work properly. Please see [Access Tokens](#access-tokens) section for more details or check out the [iOS](https://github.com/twilio/voice-quickstart-ios) and [Android](https://github.com/twilio/voice-quickstart-android) quickstart for examples on how to generate the tokens.
 For more information on the Voice React Native SDK API, refer to the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-preview.1/docs/voice-react-native-sdk.md) or try running the [example app](example).
 
+## iOS PushKit
+
+The Voice iOS SDK uses the PushKit framework for receiving incoming call push notifications. In order for the app to handle and report the VoIP notifications to CallKit as incoming calls in a timely manner, especially when the app was terminated and launched by the push notification, add the `TwilioVoicePushRegistry` object and initialization to the `AppDelegate.m` (file name may differ) so the app can always respond to the PushKit callbacks and present the incoming call to the users.
+
+
+```.objc
+@interface AppDelegate ()
+
+@property (nonatomic, strong) TwilioVoicePushRegistry *twilioVoicePushRegistry;
+
+@end
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    // ...
+
+    // Initialize PKPushRegistry at launch
+    self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
+    [self.twilioVoicePushRegistry updatePushRegistry];
+
+    return YES;
+}
+```
+
+Failing to follow [the PushKit & CallKit policy](https://developer.apple.com/documentation/pushkit/responding_to_voip_notifications_from_pushkit?language=objc) will result in app not able to receive push notifications from the system and present incoming calls.
+
+
 ```ts
 import { Voice } from '@twilio/voice-react-native-sdk';
 

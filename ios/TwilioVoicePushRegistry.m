@@ -49,30 +49,15 @@ didUpdatePushCredentials:(PKPushCredentials *)credentials
     }
 }
 
-// iOS 10 and earlier
-- (void)pushRegistry:(PKPushRegistry *)registry
-didReceiveIncomingPushWithPayload:(PKPushPayload *)payload
-             forType:(NSString *)type {
-    if ([type isEqualToString:PKPushTypeVoIP]) {
-        // TODO: notify view-controller to emit event that incoming push received
-    }
-}
-
-// iOS 11 and later
 - (void)pushRegistry:(PKPushRegistry *)registry
 didReceiveIncomingPushWithPayload:(PKPushPayload *)payload
              forType:(PKPushType)type
 withCompletionHandler:(void (^)(void))completion {
     if ([type isEqualToString:PKPushTypeVoIP]) {
-        // TODO: notify view-controller to emit event that incoming push received
         [TwilioVoiceSDK handleNotification:payload.dictionaryPayload delegate:self delegateQueue:nil];
     }
 
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 13.0) {
-        // TODO: save the completion handler for later fulfillment
-    } else {
-        completion();
-    }
+    completion();
 }
 
 - (void)pushRegistry:(PKPushRegistry *)registry

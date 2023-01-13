@@ -152,8 +152,6 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 }
 
 - (void)handleRouteChange:(NSNotification *)notification {
-    NSLog(@"AVAudioSessionRouteChangeNotification");
-
     [self availableAudioDevices];
 
     NSMutableArray *nativeAudioDeviceInfos = [NSMutableArray array];
