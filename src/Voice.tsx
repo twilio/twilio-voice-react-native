@@ -596,7 +596,7 @@ export class Voice extends EventEmitter {
    * @remarks
    * Note that the resolution of the returned `Promise` does not imply any call
    * event occurring, such as answered or rejected.
-   * The `contactHandle` parameter is only required for iOS apps. Currently the 
+   * The `contactHandle` parameter is only required for iOS apps. Currently the
    * parameter does have any effect on Android apps and can be ignored.
    * `Default Contact` will appear in the iOS call history if the value is empty
    * or not provided.
@@ -624,10 +624,7 @@ export class Voice extends EventEmitter {
         contactHandle
       );
     } else {
-      callInfo = await NativeModule.voice_connect(
-        token,
-        params
-      );
+      callInfo = await NativeModule.voice_connect(token, params);
     }
 
     const call = new Call(callInfo);
