@@ -591,17 +591,21 @@ export class Voice extends EventEmitter {
   };
 
   /**
-   * Create an outgoing call.
+   * Create an outgoing call. (For iOS apps)
    *
    * @remarks
    * Note that the resolution of the returned `Promise` does not imply any call
    * event occurring, such as answered or rejected.
+   * The `contactHandle` parameter is only required for iOS apps. Currently the 
+   * parameter does have any effect on Android apps and can be ignored.
+   * `Default Contact` will appear in the iOS call history if the value is empty
+   * or not provided.
    *
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
    * @param params - Custom parameters to send to the TwiML Application.
-   * @param contactHandle - (iOS only) a CallKit display name that will show in
-   * the call history as the contact handle. Optional.
+   * @param contactHandle - An iOS CallKit display name that will show in the call
+   * history as the contact handle. Optional and only applies for iOS.
    *
    * @returns
    * A `Promise` that
@@ -612,11 +616,19 @@ export class Voice extends EventEmitter {
     params: Record<string, any> = {},
     contactHandle?: string
   ): Promise<Call> {
-    const callInfo = await NativeModule.voice_connect(
-      token,
-      params,
-      contactHandle
-    );
+    var callInfo: NativeCallInfo;
+    if (contactHandle !== undefined && contactHandle.length > 0) {
+      callInfo = await NativeModule.voice_connect_ios(
+        token,
+        params,
+        contactHandle
+      );
+    } else {
+      callInfo = await NativeModule.voice_connect(
+        token,
+        params
+      );
+    }
 
     const call = new Call(callInfo);
 

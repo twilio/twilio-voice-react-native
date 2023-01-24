@@ -275,7 +275,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
-  public void voice_connect(String accessToken, ReadableMap twimlParams, String contactHandle, Promise promise) {
+  public void voice_connect(String accessToken, ReadableMap twimlParams, Promise promise) {
     Log.e(TAG, String.format("Calling voice_connect"));
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
@@ -313,6 +313,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     WritableMap callInfo = getCallInfo(uuid, call);
 
     promise.resolve(callInfo);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.N)
+  @ReactMethod
+  public void voice_connect_ios(String accessToken, ReadableMap twimlParams, String contactHandle, Promise promise) {
+    Log.e(TAG, String.format("Calling voice_connect_ios"));
+    voice_connect(accessToken, twimlParams, promise);
   }
 
   @ReactMethod
