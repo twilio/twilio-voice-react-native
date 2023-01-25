@@ -36,7 +36,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
     
-    // Frontline specific logic
+    // Twilio Frontline specific logic
     NSString *handleName = callInvite.from;
     NSDictionary *customParams = callInvite.customParameters;
     if (customParams[kCustomParametersKeyDisplayName]) {
