@@ -37,7 +37,7 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
    * Voice bindings.
    */
-  voice_connect(
+  voice_connect_android(
     token: string,
     twimlParams: Record<string, any>
   ): Promise<NativeCallInfo>;

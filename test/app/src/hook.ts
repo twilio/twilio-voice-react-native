@@ -248,8 +248,10 @@ export function useVoice(token: string) {
   const connectHandler = React.useCallback(
     async (to: string) => {
       const call = await voice.connect(token, {
-        recipientType: 'client',
-        To: to,
+        params: {
+          recipientType: 'client',
+          To: to,
+        },
       });
       callHandler(call);
     },

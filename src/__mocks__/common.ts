@@ -33,7 +33,8 @@ export const NativeModule = {
   /**
    * Voice Mocks
    */
-  voice_connect: jest.fn().mockResolvedValue(createNativeCallInfo()),
+  voice_connect_android: jest.fn().mockResolvedValue(createNativeCallInfo()),
+  voice_connect_ios: jest.fn().mockResolvedValue(createNativeCallInfo()),
   voice_getAudioDevices: jest
     .fn()
     .mockResolvedValue(createNativeAudioDevicesInfo()),

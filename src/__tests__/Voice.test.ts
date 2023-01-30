@@ -394,11 +394,11 @@ describe('Voice class', () => {
   });
 
   describe('public methods', () => {
-    describe('.connect', () => {
+    describe('.connect (Android)', () => {
       it.each([
         [
           'mock-voice-token-foo',
-          { foo: 'bar' },
+          { foo: 'bar' } as any,
           ['mock-voice-token-foo', { foo: 'bar' }],
         ],
         ['mock-voice-token-bar', undefined, ['mock-voice-token-bar', {}]],
@@ -406,7 +406,33 @@ describe('Voice class', () => {
         'invokes the native module with params ("%s", %o)',
         (token, params, expectation) => {
           new Voice().connect(token, params);
-          expect(MockNativeModule.voice_connect.mock.calls).toEqual([
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([
+            expectation,
+          ]);
+        }
+      );
+
+      it('returns a Promise<Call>', async () => {
+        const token = 'mock-voice-token';
+        const voice = new Voice();
+        const connectPromise = voice.connect(token);
+        await expect(connectPromise).resolves.toBeInstanceOf(MockCall);
+      });
+    });
+
+    describe('.connect (iOS)', () => {
+      it.each([
+        [
+          'mock-voice-token-foo',
+          { foo: 'bar' } as any,
+          ['mock-voice-token-foo', { foo: 'bar' }],
+        ],
+        ['mock-voice-token-bar', undefined, ['mock-voice-token-bar', {}]],
+      ])(
+        'invokes the native module with params ("%s", %o)',
+        (token, params, expectation) => {
+          new Voice().connect(token, params);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
             expectation,
           ]);
         }

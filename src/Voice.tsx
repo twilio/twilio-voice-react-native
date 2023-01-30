@@ -5,6 +5,7 @@
  * See LICENSE in the project root for license information.
  */
 
+import { Platform } from 'react-native';
 import { EventEmitter } from 'eventemitter3';
 import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
@@ -13,6 +14,7 @@ import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
 import type { TwilioError } from './error/TwilioError';
+import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
@@ -591,7 +593,7 @@ export class Voice extends EventEmitter {
   };
 
   /**
-   * Create an outgoing call. (For iOS apps)
+   * Create an outgoing call.
    *
    * @remarks
    * Note that the resolution of the returned `Promise` does not imply any call
@@ -613,18 +615,25 @@ export class Voice extends EventEmitter {
    */
   async connect(
     token: string,
-    params: Record<string, any> = {},
-    contactHandle?: string
+    { params = {}, contactHandle }: Voice.ConnectOptions = {}
   ): Promise<Call> {
-    var callInfo: NativeCallInfo;
-    if (contactHandle !== undefined && contactHandle.length > 0) {
+    let callInfo: NativeCallInfo;
+    if (Platform.OS === 'ios') {
+      const parsedContactHandle =
+        typeof contactHandle !== 'string' || contactHandle === ''
+          ? 'Default Contact'
+          : contactHandle;
       callInfo = await NativeModule.voice_connect_ios(
         token,
         params,
-        contactHandle
+        parsedContactHandle
       );
+    } else if (Platform.OS === 'android') {
+      callInfo = await NativeModule.voice_connect_android(token, params);
     } else {
-      callInfo = await NativeModule.voice_connect(token, params);
+      throw new UnsupportedPlatformError(
+        `Unsupported platform "${Platform.OS}" (expecting Android or iOS).`
+      );
     }
 
     const call = new Call(callInfo);
@@ -769,6 +778,14 @@ export class Voice extends EventEmitter {
  * @public
  */
 export namespace Voice {
+  /**
+   * Options to pass to the {@link Voice.connect} method.
+   */
+  export type ConnectOptions = {
+    params?: Record<string, any>;
+    contactHandle?: string;
+  };
+
   /**
    * Enumeration of all event strings emitted by {@link (Voice:class)} objects.
    */
