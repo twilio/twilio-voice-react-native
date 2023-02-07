@@ -13,3 +13,4 @@ export const NativeModule = ReactNative.NativeModules
 export const NativeEventEmitter = new ReactNative.NativeEventEmitter(
   NativeModule
 );
+export const Platform = ReactNative.Platform;

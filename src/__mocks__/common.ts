@@ -86,3 +86,11 @@ export class MockNativeEventEmitter extends EventEmitter {
 }
 
 export const NativeEventEmitter = new MockNativeEventEmitter();
+
+class MockPlatform {
+  get OS() {
+    return 'uninitialized';
+  }
+}
+
+export const Platform = new MockPlatform();
