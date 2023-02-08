@@ -10,9 +10,11 @@ import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import { CancelledCallInvite } from './CancelledCallInvite';
-import { NativeEventEmitter, NativeModule } from './common';
+import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 import type { TwilioError } from './error/TwilioError';
+import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
@@ -393,6 +395,32 @@ export class Voice extends EventEmitter {
   }
 
   /**
+   * Connect for devices on Android platforms.
+   */
+  private async _connect_android(token: string, params: Record<string, any>) {
+    const callInfo = await NativeModule.voice_connect_android(token, params);
+    return new Call(callInfo);
+  }
+
+  /**
+   * Connect for devices on iOS platforms.
+   */
+  private async _connect_ios(
+    token: string,
+    params: Record<string, any>,
+    contactHandle: string
+  ) {
+    const parsedContactHandle =
+      contactHandle === '' ? 'Default Contact' : contactHandle;
+    const callInfo = await NativeModule.voice_connect_ios(
+      token,
+      params,
+      parsedContactHandle
+    );
+    return new Call(callInfo);
+  }
+
+  /**
    * Intermediary event handler for `Voice`-level events. Ensures that the type
    * of the incoming event is expected and invokes the proper event listener.
    * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
@@ -596,24 +624,60 @@ export class Voice extends EventEmitter {
    * @remarks
    * Note that the resolution of the returned `Promise` does not imply any call
    * event occurring, such as answered or rejected.
+   * The `contactHandle` parameter is only required for iOS apps. Currently the
+   * parameter does have any effect on Android apps and can be ignored.
+   * `Default Contact` will appear in the iOS call history if the value is empty
+   * or not provided.
    *
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
-   * @param params - Custom parameters to send to the TwiML Application.
+   * @param options - Connect options.
+   *  See {@link (Voice:namespace).ConnectOptions}.
    *
    * @returns
    * A `Promise` that
    *  - Resolves with a call when the call is created.
+   *  - Rejects:
+   *    * When a call is not able to be created on the native layer.
+   *    * With an {@link TwilioErrors.InvalidArgumentError} when invalid
+   *      arguments are passed.
    */
   async connect(
     token: string,
-    params: Record<string, any> = {}
+    {
+      contactHandle = 'Default Contact',
+      params = {},
+    }: Voice.ConnectOptions = {}
   ): Promise<Call> {
-    const callInfo = await NativeModule.voice_connect(token, params);
+    if (typeof token !== 'string') {
+      throw new InvalidArgumentError(
+        'Argument "token" must be of type "string".'
+      );
+    }
 
-    const call = new Call(callInfo);
+    if (typeof contactHandle !== 'string') {
+      throw new InvalidArgumentError(
+        'Optional argument "contactHandle" must be undefined or of type' +
+          ' "string".'
+      );
+    }
 
-    return call;
+    if (typeof params !== 'object') {
+      throw new InvalidArgumentError(
+        'Optional argument "params" must be undefined or of type "object".'
+      );
+    }
+
+    switch (Platform.OS) {
+      case 'ios':
+        return this._connect_ios(token, params, contactHandle);
+      case 'android':
+        return this._connect_android(token, params);
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". Expected "android" or "ios".`
+        );
+    }
   }
 
   /**
@@ -753,6 +817,26 @@ export class Voice extends EventEmitter {
  * @public
  */
 export namespace Voice {
+  /**
+   * Options to pass to the {@link (Voice:class).connect} method.
+   */
+  export type ConnectOptions = {
+    /**
+     * Custom parameters to send to the TwiML Application.
+     */
+    params?: Record<string, any>;
+    /**
+     * A CallKit display name that will show in the call history as the contact
+     * handle.
+     *
+     * @remarks
+     * Applies to the following platforms:
+     *  iOS
+     * Ignored on other platforms.
+     */
+    contactHandle?: string;
+  };
+
   /**
    * Enumeration of all event strings emitted by {@link (Voice:class)} objects.
    */

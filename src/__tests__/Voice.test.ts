@@ -6,7 +6,7 @@ import { createNativeErrorInfo } from '../__mocks__/Error';
 import { mockVoiceNativeEvents } from '../__mocks__/Voice';
 import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
-import { NativeEventEmitter, NativeModule } from '../common';
+import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
 import type { NativeVoiceEventType } from '../type/Voice';
 import { Voice } from '../Voice';
@@ -395,28 +395,242 @@ describe('Voice class', () => {
 
   describe('public methods', () => {
     describe('.connect', () => {
-      it.each([
-        [
-          'mock-voice-token-foo',
-          { foo: 'bar' },
-          ['mock-voice-token-foo', { foo: 'bar' }],
-        ],
-        ['mock-voice-token-bar', undefined, ['mock-voice-token-bar', {}]],
-      ])(
-        'invokes the native module with params ("%s", %o)',
-        (token, params, expectation) => {
-          new Voice().connect(token, params);
-          expect(MockNativeModule.voice_connect.mock.calls).toEqual([
-            expectation,
-          ]);
+      let token: string;
+      let options: { params?: Record<string, any>; contactHandle?: string };
+
+      beforeEach(() => {
+        token = 'mock-voice-token-foo';
+        options = {
+          params: {
+            'mock-param-key-foo': 'mock-param-value-foo',
+            'mock-param-key-bar': 'mock-param-value-bar',
+          },
+          contactHandle: 'mock-contact-handle',
+        };
+      });
+
+      const performPlatformAgnosticTest = (
+        testTitle: string,
+        testFn: () => Promise<void>
+      ) => {
+        (['android', 'ios'] as const).forEach((os) => {
+          describe(`${os} platform`, () => {
+            beforeEach(() => {
+              jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os);
+            });
+            it(testTitle, testFn);
+          });
+        });
+      };
+
+      performPlatformAgnosticTest(
+        'throws when token is not a string',
+        async () => {
+          for (const invalidToken of [undefined, null, {}, 101, false]) {
+            await expect(
+              new Voice().connect(invalidToken as unknown as string, options)
+            ).rejects.toThrowError(
+              'Argument "token" must be of type "string".'
+            );
+          }
         }
       );
 
-      it('returns a Promise<Call>', async () => {
-        const token = 'mock-voice-token';
-        const voice = new Voice();
-        const connectPromise = voice.connect(token);
-        await expect(connectPromise).resolves.toBeInstanceOf(MockCall);
+      performPlatformAgnosticTest(
+        'throws when params is defined and not an object',
+        async () => {
+          for (const invalidParams of ['string', 101, false]) {
+            options.params = invalidParams as unknown as Record<string, any>;
+            await expect(
+              new Voice().connect(token, options)
+            ).rejects.toThrowError(
+              'Optional argument "params" must be undefined or of type ' +
+                '"object".'
+            );
+          }
+        }
+      );
+
+      performPlatformAgnosticTest(
+        'throws when contactHandle is defined and not a string',
+        async () => {
+          for (const invalidContactHandle of [null, {}, 101, false]) {
+            options.contactHandle = invalidContactHandle as unknown as string;
+            await expect(
+              new Voice().connect(token, options)
+            ).rejects.toThrowError(
+              'Optional argument "contactHandle" must be undefined or of type' +
+                ' "string".'
+            );
+          }
+        }
+      );
+
+      performPlatformAgnosticTest(
+        'succeeds when params is explicitly undefined',
+        async () => {
+          options.params = undefined;
+          await expect(
+            new Voice().connect(token, options)
+          ).resolves.toBeTruthy();
+        }
+      );
+
+      performPlatformAgnosticTest(
+        'succeeds when contactHandle is explicitly undefined',
+        async () => {
+          options.contactHandle = undefined;
+          await expect(
+            new Voice().connect(token, options)
+          ).resolves.toBeTruthy();
+        }
+      );
+
+      performPlatformAgnosticTest(
+        'succeeds when options are not passed',
+        async () => {
+          await expect(new Voice().connect(token)).resolves.toBeTruthy();
+        }
+      );
+
+      performPlatformAgnosticTest('returns a Promise<Call>', async () => {
+        await expect(
+          new Voice().connect(token, options)
+        ).resolves.toBeInstanceOf(MockCall);
+      });
+
+      describe('android platform', () => {
+        beforeEach(() => {
+          jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android');
+        });
+
+        it('invokes the proper native function', async () => {
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([
+            [token, options.params],
+          ]);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([]);
+        });
+
+        it('rejects when the native layer rejects', () => {
+          const someMockErrorMessage = 'some mock error message';
+          const someMockError = new Error(someMockErrorMessage);
+          MockNativeModule.voice_connect_android.mockRejectedValueOnce(
+            someMockError
+          );
+          expect(() => new Voice().connect(token)).rejects.toThrow(
+            someMockErrorMessage
+          );
+        });
+
+        it('defaults params to "{}" when not passed', async () => {
+          delete options.params;
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([
+            [token, {}],
+          ]);
+        });
+
+        it('defaults params to "{}" when params is explicitly undefined', async () => {
+          options.params = undefined;
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([
+            [token, {}],
+          ]);
+        });
+      });
+
+      describe('ios platform', () => {
+        beforeEach(() => {
+          jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        });
+
+        it('invokes the proper native function', async () => {
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+            [token, options.params, options.contactHandle],
+          ]);
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([]);
+        });
+
+        it(
+          'defaults to "Default Contact" if contactHandle is an empty ' +
+            'string',
+          async () => {
+            options.contactHandle = '';
+            await new Voice().connect(token, options);
+            expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+              [token, options.params, 'Default Contact'],
+            ]);
+          }
+        );
+
+        it(
+          'defaults to "Default Contact" if contactHandle is ' + 'not defined',
+          async () => {
+            delete options.contactHandle;
+            await new Voice().connect(token, options);
+            expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+              [token, options.params, 'Default Contact'],
+            ]);
+          }
+        );
+
+        it(
+          'defaults to "Default Contact" if contactHandle is ' +
+            'explicitly undefined',
+          async () => {
+            options.contactHandle = undefined;
+            await new Voice().connect(token, options);
+            expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+              [token, options.params, 'Default Contact'],
+            ]);
+          }
+        );
+
+        it('rejects when the native layer rejects', () => {
+          const someMockErrorMessage = 'some mock error message';
+          const someMockError = new Error(someMockErrorMessage);
+          MockNativeModule.voice_connect_ios.mockRejectedValueOnce(
+            someMockError
+          );
+          expect(() => new Voice().connect(token)).rejects.toThrow(
+            someMockErrorMessage
+          );
+        });
+
+        it('defaults params to "{}" when not passed', async () => {
+          delete options.params;
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+            [token, {}, options.contactHandle],
+          ]);
+        });
+
+        it('defaults params to "{}" when params is explicitly undefined', async () => {
+          options.params = undefined;
+          await new Voice().connect(token, options);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([
+            [token, {}, options.contactHandle],
+          ]);
+        });
+      });
+
+      describe('unsupported platforms', () => {
+        const platform = 'some unsupported platform';
+        beforeEach(() => {
+          jest.spyOn(Platform, 'OS', 'get').mockReturnValue(platform as any);
+        });
+
+        it('rejects', async () => {
+          await expect(() =>
+            new Voice().connect(token, options)
+          ).rejects.toThrowError(
+            `Unsupported platform "${platform}". Expected "android" or "ios".`
+          );
+          expect(MockNativeModule.voice_connect_android.mock.calls).toEqual([]);
+          expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([]);
+        });
       });
     });
 

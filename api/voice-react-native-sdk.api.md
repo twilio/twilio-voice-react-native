@@ -874,7 +874,7 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    connect(token: string, params?: Record<string, any>): Promise<Call>;
+    connect(token: string, { contactHandle, params, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
         selectedDevice: AudioDevice | null;
@@ -890,6 +890,10 @@ export class Voice extends EventEmitter {
 
 // @public
 export namespace Voice {
+    export type ConnectOptions = {
+        params?: Record<string, any>;
+        contactHandle?: string;
+    };
     export enum Event {
         'AudioDevicesUpdated' = "audioDevicesUpdated",
         'CallInvite' = "callInvite",

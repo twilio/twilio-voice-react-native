@@ -482,12 +482,13 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
     }];
 }
 
-RCT_EXPORT_METHOD(voice_connect:(NSString *)accessToken
+RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   params:(NSDictionary *)params
+                  contactHandle:(NSString *)contactHandle
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self makeCallWithAccessToken:accessToken params:params];
+    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle];
     self.callPromiseResolver = resolve;
 }
 

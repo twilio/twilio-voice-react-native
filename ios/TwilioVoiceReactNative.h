@@ -55,7 +55,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 - (void)initializeCallKit;
 - (void)makeCallWithAccessToken:(NSString *)accessToken
-                         params:(NSDictionary *)params;
+                         params:(NSDictionary *)params
+                  contactHandle:(NSString *)contactHandle;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */
