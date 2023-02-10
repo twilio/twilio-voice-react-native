@@ -37,7 +37,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
     
-    // If "displayName" is passed as a custom parameters in the TwiML application, it will be used as the caller name
+    // If "displayName" is passed as a custom parameters in the TwiML application, 
+    // it will be used as the caller name.
     NSString *handleName = callInvite.from;
     NSDictionary *customParams = callInvite.customParameters;
     if (customParams[kCustomParametersKeyDisplayName]) {
