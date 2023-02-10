@@ -336,6 +336,8 @@ public class NotificationUtility {
   private static String getDisplayName(CallInvite callInvite) {
     String title = callInvite.getFrom();
     Map<String, String> customParameters = callInvite.getCustomParameters();
+    // If "displayName" is passed as a custom parameter in the TwiML application, 
+    // it will be used as the caller name.
     if (customParameters.get(Constants.DISPLAY_NAME) != null) {
       title = URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
     }
