@@ -152,8 +152,10 @@ public class ReactNativeArgumentsSerializer {
     WritableMap audioDevicesInfo = Arguments.createMap();
 
     audioDevicesInfo.putArray(AudioDeviceKeyAudioDevices, serializeAudioDeviceMapIntoArray(audioDevices));
-    audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice));
-
+    if (selectedAudioDevice != null) {
+      audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice));
+    }
+    
     return audioDevicesInfo;
   }
 }

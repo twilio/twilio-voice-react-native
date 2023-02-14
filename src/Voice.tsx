@@ -49,7 +49,7 @@ export declare interface Voice {
   emit(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
     audioDevices: AudioDevice[],
-    selectedDevice: AudioDevice
+    selectedDevice: AudioDevice | null
   ): boolean;
 
   /** @internal */
@@ -613,7 +613,10 @@ export class Voice extends EventEmitter {
         new AudioDevice(audioDeviceInfo)
     );
 
-    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+    const selectedDevice =
+      typeof selectedDeviceInfo !== 'undefined'
+        ? new AudioDevice(selectedDeviceInfo)
+        : null;
 
     this.emit(Voice.Event.AudioDevicesUpdated, audioDevices, selectedDevice);
   };
@@ -784,7 +787,10 @@ export class Voice extends EventEmitter {
         new AudioDevice(audioDeviceInfo)
     );
 
-    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+    const selectedDevice =
+      typeof selectedDeviceInfo !== 'undefined'
+        ? new AudioDevice(selectedDeviceInfo)
+        : null;
 
     return { audioDevices, selectedDevice };
   }

@@ -154,6 +154,27 @@ describe('Voice class', () => {
         });
         expect(selectedDevice).toBeInstanceOf(MockAudioDevice);
       });
+
+      it('emits null when the native selected audio device info is undefined', () => {
+        const voice = new Voice();
+        const listenerMock = jest.fn();
+        voice.on(Voice.Event.AudioDevicesUpdated, listenerMock);
+
+        const nativeEvent = {
+          ...mockVoiceNativeEvents.audioDevicesUpdated.nativeEvent,
+          selectedDevice: undefined,
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeVoice, nativeEvent);
+
+        expect(listenerMock).toHaveBeenCalledTimes(1);
+        expect(listenerMock.mock.calls[0]).toHaveLength(2);
+        const [audioDevices, selectedDevice]: [AudioDevice[], AudioDevice] =
+          listenerMock.mock.calls[0];
+        audioDevices.forEach((audioDevice) => {
+          expect(audioDevice).toBeInstanceOf(MockAudioDevice);
+        });
+        expect(selectedDevice).toBe(null);
+      });
     });
 
     describe(Constants.VoiceEventCallInvite, () => {

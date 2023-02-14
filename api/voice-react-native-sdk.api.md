@@ -845,7 +845,7 @@ export interface Voice {
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice: AudioDevice): boolean;
+    emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice: AudioDevice | null): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
     // @internal (undocumented)
