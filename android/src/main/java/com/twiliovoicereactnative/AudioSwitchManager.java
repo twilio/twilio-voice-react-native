@@ -13,14 +13,14 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * AudioManager singleton class. Maintains a persistent AudioSwitch object and listens for audio
+ * AudioSwitchManager singleton class. Maintains a persistent AudioSwitch object and listens for audio
  * device changes. Generates UUIDs per audio device when the AudioSwitch library updates available
  * audio devices.
  */
 @RequiresApi(api = Build.VERSION_CODES.N)
-public class AudioManager {
+public class AudioSwitchManager {
   /**
-   * The functional interface of a listener to be bound to the AudioManager.
+   * The functional interface of a listener to be bound to the AudioSwitchManager.
    */
   @FunctionalInterface
   interface AudioManagerListener {
@@ -39,7 +39,7 @@ public class AudioManager {
   /**
    * Singleton instance of this class.
    */
-  private static AudioManager instance;
+  private static AudioSwitchManager instance;
 
   /**
    * Map of UUIDs to all available AudioDevices. Kept up-to-date by the AudioSwitch.
@@ -59,10 +59,10 @@ public class AudioManager {
   private String selectedAudioDeviceUuid = null;
 
   /**
-   * Constructor for the AudioManager class. Intended to be a singleton.
+   * Constructor for the AudioSwitchManager class. Intended to be a singleton.
    * @param context The Android application context
    */
-  private AudioManager(Context context) {
+  private AudioSwitchManager(Context context) {
     if (AUDIO_DEVICE_TYPE.isEmpty()) {
       AUDIO_DEVICE_TYPE.put("Speakerphone", "speaker");
       AUDIO_DEVICE_TYPE.put("BluetoothHeadset", "bluetooth");
@@ -95,25 +95,25 @@ public class AudioManager {
   }
 
   /**
-   * Get the singleton AudioManager instance. Instantiates the AudioManager singleton if it does
+   * Get the singleton AudioSwitchManager instance. Instantiates the AudioSwitchManager singleton if it does
    * not exist.
    * @param context The Android application context
-   * @return The singleton AudioManager instance.
+   * @return The singleton AudioSwitchManager instance.
    */
-  public static AudioManager getInstance(Context context) {
+  public static AudioSwitchManager getInstance(Context context) {
     if (instance == null) {
-      instance = new AudioManager(context);
+      instance = new AudioSwitchManager(context);
     }
     return instance;
   }
 
   /**
-   * Set a listener for the AudioManager. The listener function is invoked every time the
+   * Set a listener for the AudioSwitchManager. The listener function is invoked every time the
    * AudioSwitch updates. Also invoked at the point the listener is set.
    * @param listener A listener function.
-   * @return The singleton AudioManager.
+   * @return The singleton AudioSwitchManager.
    */
-  public AudioManager setListener(AudioManagerListener listener) {
+  public AudioSwitchManager setListener(AudioManagerListener listener) {
     this.listener = listener;
 
     this.listener.apply(audioDevices, selectedAudioDeviceUuid, getSelectedAudioDevice());
@@ -122,8 +122,8 @@ public class AudioManager {
   }
 
   /**
-   * Get the AudioSwitch. Note that the AudioManager is a singleton, and only instantiates an
-   * AudioSwitch once in the construction of the AudioManager. Therefore, there should only be one
+   * Get the AudioSwitch. Note that the AudioSwitchManager is a singleton, and only instantiates an
+   * AudioSwitch once in the construction of the AudioSwitchManager. Therefore, there should only be one
    * AudioSwitch object and it is effectively a singleton.
    * @return The AudioSwitch singleton
    */

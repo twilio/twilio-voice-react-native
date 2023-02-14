@@ -42,8 +42,6 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyAudioDevices;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesUpdated;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
@@ -59,7 +57,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   private static final String GLOBAL_ENV = "com.twilio.voice.env";
 
   private final ReactApplicationContext reactContext;
-  private final AudioManager audioManager;
+  private final AudioSwitchManager audioSwitchManager;
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
@@ -78,7 +76,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     AndroidEventEmitter.getInstance().setContext(reactContext);
     VoiceBroadcastReceiver.getInstance().setContext(reactContext);
-    audioManager = AudioManager
+    audioSwitchManager = AudioSwitchManager
       .getInstance(reactContext)
       .setListener((audioDevices, selectedDeviceUuid, selectedDevice) -> {
         WritableMap audioDeviceInfo = serializeAudioDeviceInfo(
@@ -263,9 +261,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getAudioDevices(Promise promise) {
-    Map<String, AudioDevice> audioDevices = audioManager.getAudioDevices();
-    String selectedAudioDeviceUuid = audioManager.getSelectedAudioDeviceUuid();
-    AudioDevice selectedAudioDevice = audioManager.getSelectedAudioDevice();
+    Map<String, AudioDevice> audioDevices = audioSwitchManager.getAudioDevices();
+    String selectedAudioDeviceUuid = audioSwitchManager.getSelectedAudioDeviceUuid();
+    AudioDevice selectedAudioDevice = audioSwitchManager.getSelectedAudioDevice();
 
     WritableMap audioDeviceInfo = serializeAudioDeviceInfo(
       audioDevices,
@@ -279,13 +277,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_selectAudioDevice(String uuid, Promise promise) {
-    AudioDevice audioDevice = audioManager.getAudioDevices().get(uuid);
+    AudioDevice audioDevice = audioSwitchManager.getAudioDevices().get(uuid);
     if (audioDevice == null) {
       promise.reject("No such \"audioDevice\" object exists with UUID " + uuid);
       return;
     }
 
-    audioManager.getSwitch().selectDevice(audioDevice);
+    audioSwitchManager.getSwitch().selectDevice(audioDevice);
 
     voice_getAudioDevices(promise);
   }

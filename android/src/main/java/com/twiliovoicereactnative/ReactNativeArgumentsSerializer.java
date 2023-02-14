@@ -116,7 +116,7 @@ public class ReactNativeArgumentsSerializer {
     audioDeviceInfo.putString(AudioDeviceKeyName, audioDevice.getName());
 
     String type = audioDevice.getClass().getSimpleName();
-    audioDeviceInfo.putString(AudioDeviceKeyType, AudioManager.AUDIO_DEVICE_TYPE.get(type));
+    audioDeviceInfo.putString(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.get(type));
 
     return audioDeviceInfo;
   }
@@ -155,7 +155,7 @@ public class ReactNativeArgumentsSerializer {
     if (selectedAudioDevice != null) {
       audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice));
     }
-    
+
     return audioDevicesInfo;
   }
 }
