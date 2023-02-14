@@ -22,11 +22,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
-import com.twilio.audioswitch.AudioSwitch;
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
-import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.LogLevel;
 import com.twilio.voice.RegistrationException;
@@ -44,44 +42,24 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
-import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
-import static com.twiliovoicereactnative.CommonConstants.CallInfoSid;
-import static com.twiliovoicereactnative.CommonConstants.CallInfoFrom;
-import static com.twiliovoicereactnative.CommonConstants.CallInfoTo;
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoUuid;
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCallSid;
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoFrom;
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoTo;
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCustomParameters;
-import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCallSid;
-import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
-import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
-import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCustomParameters;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUuid;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyName;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyType;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyAudioDevices;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
-import static com.twiliovoicereactnative.CommonConstants.Issue;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
-import static com.twiliovoicereactnative.CommonConstants.Score;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesUpdated;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
+import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
-
   static final String TAG = "TwilioVoiceReactNative";
-  private final ReactApplicationContext reactContext;
-  private final AudioSwitch audioSwitch;
-  private final Map<String, AudioDevice> audioDeviceMap;
-  private String selectedDeviceUuid;
-  private Map<String, String> audioDeviceTypeMap = new HashMap();
 
-  private static String GLOBAL_ENV = "com.twilio.voice.env";
+  private static final String GLOBAL_ENV = "com.twilio.voice.env";
+
+  private final ReactApplicationContext reactContext;
+  private final AudioManager audioManager;
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
@@ -100,116 +78,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     AndroidEventEmitter.getInstance().setContext(reactContext);
     VoiceBroadcastReceiver.getInstance().setContext(reactContext);
-
-    audioDeviceTypeMap.put("Speakerphone", "speaker");
-    audioDeviceTypeMap.put("BluetoothHeadset", "bluetooth");
-    audioDeviceTypeMap.put("WiredHeadset", "earpiece");
-    audioDeviceTypeMap.put("Earpiece", "earpiece");
-
-    audioDeviceMap = new HashMap();
-    audioSwitch = AudioSwitchManager.getInstance(reactContext).getAudioSwitch();
-
-    audioSwitch.start((audioDevices, selectedDevice) -> {
-      audioDeviceMap.clear();
-
-      audioDevices.forEach((audioDevice) -> {
-        String uuid = UUID.randomUUID().toString();
-        audioDeviceMap.put(uuid, audioDevice);
-
-        if (audioDevice.equals(selectedDevice)) {
-          selectedDeviceUuid = uuid;
-        }
+    audioManager = AudioManager
+      .getInstance(reactContext)
+      .setListener((audioDevices, selectedDeviceUuid, selectedDevice) -> {
+        WritableMap audioDeviceInfo = serializeAudioDeviceInfo(
+          audioDevices,
+          selectedDeviceUuid,
+          selectedDevice
+        );
+        audioDeviceInfo.putString(VoiceEventType, VoiceEventAudioDevicesUpdated);
+        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, audioDeviceInfo);
       });
-
-      WritableMap params = Arguments.createMap();
-      params.putString(VoiceEventType, VoiceEventAudioDevicesUpdated);
-      params.putArray(AudioDeviceKeyAudioDevices, getAudioDeviceInfoArray(audioDeviceMap));
-      params.putMap(AudioDeviceKeySelectedDevice, getAudioDeviceInfoMap(selectedDeviceUuid, selectedDevice));
-
-      AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
-
-      return null;
-    });
 
     //Preload the audio files
     MediaPlayerManager.getInstance(reactContext);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  public static WritableMap getCallInviteCustomParameters(CallInvite callInvite) {
-    WritableMap customParameters = Arguments.createMap();
-
-    callInvite.getCustomParameters().forEach((customParamKey, customParamVal) -> {
-      customParameters.putString(customParamKey, customParamVal);
-    });
-
-    return customParameters;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  public static WritableMap getCallInviteInfo(String uuid, CallInvite callInvite) {
-    WritableMap callInviteInfo = Arguments.createMap();
-    callInviteInfo.putString(CallInviteInfoUuid, uuid);
-    callInviteInfo.putString(CallInviteInfoCallSid, callInvite.getCallSid());
-    callInviteInfo.putString(CallInviteInfoFrom, callInvite.getFrom());
-    callInviteInfo.putString(CallInviteInfoTo, callInvite.getTo());
-
-    WritableMap customParameters = getCallInviteCustomParameters(callInvite);
-    callInviteInfo.putMap(CallInviteInfoCustomParameters, customParameters);
-
-    return callInviteInfo;
-  }
-
-  public static WritableMap getCancelledCallInviteInfo(CancelledCallInvite cancelledCallInvite) {
-    WritableMap cancelledCallInviteInfo = Arguments.createMap();
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoCallSid, cancelledCallInvite.getCallSid());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoFrom, cancelledCallInvite.getFrom());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoTo, cancelledCallInvite.getTo());
-    return cancelledCallInviteInfo;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  public static WritableMap getCallInfo(String uuid, Call call) {
-    WritableMap callInfo = Arguments.createMap();
-    callInfo.putString(CallInfoUuid, uuid);
-    callInfo.putString(CallInfoSid, call.getSid());
-    callInfo.putString(CallInfoFrom, call.getFrom());
-    callInfo.putString(CallInfoTo, call.getTo());
-
-    CallInvite callInvite = Storage.callInviteMap.get(uuid);
-    if (callInvite != null) {
-      WritableMap customParams = getCallInviteCustomParameters(callInvite);
-      callInfo.putMap(CallInviteInfoCustomParameters, customParams);
-    }
-
-    return callInfo;
-  }
-
-  private WritableMap getAudioDeviceInfoMap(String uuid, AudioDevice audioDevice) {
-    WritableMap audioDeviceInfo = Arguments.createMap();
-    audioDeviceInfo.putString(AudioDeviceKeyUuid, uuid);
-    audioDeviceInfo.putString(AudioDeviceKeyName, audioDevice.getName());
-    String type = audioDevice.getClass().getSimpleName();
-    audioDeviceInfo.putString(AudioDeviceKeyType, audioDeviceTypeMap.get(type));
-    return audioDeviceInfo;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  private WritableArray getAudioDeviceInfoArray(Map<String, AudioDevice> audioDevices) {
-    WritableArray audioDeviceInfoArray = Arguments.createArray();
-    audioDevices.forEach((uuid, audioDevice) -> {
-      WritableMap audioDeviceInfoMap = getAudioDeviceInfoMap(uuid, audioDevice);
-      audioDeviceInfoArray.pushMap(audioDeviceInfoMap);
-    });
-    return audioDeviceInfoArray;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.N)
-  private WritableMap getAudioDeviceInfo() {
-    WritableMap audioDevicesInfo = Arguments.createMap();
-    audioDevicesInfo.putArray(AudioDeviceKeyAudioDevices, getAudioDeviceInfoArray(audioDeviceMap));
-    audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, getAudioDeviceInfoMap(selectedDeviceUuid, audioSwitch.getSelectedAudioDevice()));
-    return audioDevicesInfo;
   }
 
   @Override
@@ -310,7 +192,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Call call = Voice.connect(getReactApplicationContext(), connectOptions, new CallListenerProxy(uuid, reactContext));
     Storage.callMap.put(uuid, call);
 
-    WritableMap callInfo = getCallInfo(uuid, call);
+    WritableMap callInfo = serializeCall(uuid, call);
 
     promise.resolve(callInfo);
   }
@@ -358,7 +240,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     WritableArray callInfos = Arguments.createArray();
 
     Storage.callMap.forEach((uuid, call) -> {
-      WritableMap callInfo = getCallInfo(uuid, call);
+      WritableMap callInfo = serializeCall(uuid, call);
       callInfos.pushMap(callInfo);
     });
 
@@ -371,7 +253,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     WritableArray callInviteInfos = Arguments.createArray();
 
     Storage.callInviteMap.forEach((uuid, callInvite) -> {
-      WritableMap callInviteInfo = getCallInviteInfo(uuid, callInvite);
+      WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
       callInviteInfos.pushMap(callInviteInfo);
     });
 
@@ -381,22 +263,31 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getAudioDevices(Promise promise) {
-    promise.resolve(getAudioDeviceInfo());
+    Map<String, AudioDevice> audioDevices = audioManager.getAudioDevices();
+    String selectedAudioDeviceUuid = audioManager.getSelectedAudioDeviceUuid();
+    AudioDevice selectedAudioDevice = audioManager.getSelectedAudioDevice();
+
+    WritableMap audioDeviceInfo = serializeAudioDeviceInfo(
+      audioDevices,
+      selectedAudioDeviceUuid,
+      selectedAudioDevice
+    );
+
+    promise.resolve(audioDeviceInfo);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_selectAudioDevice(String uuid, Promise promise) {
-    AudioDevice audioDevice = audioDeviceMap.get(uuid);
-
+    AudioDevice audioDevice = audioManager.getAudioDevices().get(uuid);
     if (audioDevice == null) {
       promise.reject("No such \"audioDevice\" object exists with UUID " + uuid);
       return;
     }
 
-    audioSwitch.selectDevice(audioDevice);
+    audioManager.getSwitch().selectDevice(audioDevice);
 
-    promise.resolve(getAudioDeviceInfo());
+    voice_getAudioDevices(promise);
   }
 
   /**
@@ -611,7 +502,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     // Send Event to upstream
     WritableMap params = Arguments.createMap();
-    WritableMap callInviteInfo = getCallInviteInfo(callInviteUuid, activeCallInvite);
+    WritableMap callInviteInfo = serializeCallInvite(callInviteUuid, activeCallInvite);
     params.putString(VoiceEventType, VoiceEventCallInviteAccepted);
     params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
     AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
@@ -624,7 +515,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     getReactApplicationContext().startService(acceptIntent);
 
-    WritableMap callInfo = getCallInfo(callInviteUuid, call);
+    WritableMap callInfo = serializeCall(callInviteUuid, call);
 
     Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
 
