@@ -28,6 +28,7 @@
 ## Fixes
 
 - Fixed an issue where some types on the `Call` and `Voice` classes were being incorrectly exported. Types and references to `addEventListener` are instead now correctly exported as `addListener`.
+- Fixed an issue where available audio devices were incorrectly emitted and returned by the SDK.
 
 1.0.0-preview.1 (September 1, 2022)
 ===================================
