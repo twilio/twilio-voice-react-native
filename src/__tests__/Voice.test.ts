@@ -763,6 +763,17 @@ describe('Voice class', () => {
           expect(audioDevice).toBeInstanceOf(MockAudioDevice);
         }
       });
+
+      it('returns null when the native selected audio device info is undefined', async () => {
+        MockNativeModule.voice_getAudioDevices.mockResolvedValueOnce({
+          ...createNativeAudioDevicesInfo(),
+          selectedDevice: undefined,
+        });
+
+        const { selectedDevice } = await new Voice().getAudioDevices();
+
+        expect(selectedDevice).toBe(null);
+      });
     });
 
     describe('.showAvRoutePickerView', () => {
