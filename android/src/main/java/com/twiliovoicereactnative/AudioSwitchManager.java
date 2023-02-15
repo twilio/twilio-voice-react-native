@@ -127,7 +127,7 @@ public class AudioSwitchManager {
    * AudioSwitch object and it is effectively a singleton.
    * @return The AudioSwitch singleton
    */
-  public AudioSwitch getSwitch() {
+  public AudioSwitch getAudioSwitch() {
     return audioSwitch;
   }
 

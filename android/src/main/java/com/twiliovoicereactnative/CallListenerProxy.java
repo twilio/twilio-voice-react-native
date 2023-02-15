@@ -86,7 +86,7 @@ class CallListenerProxy implements Call.Listener {
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
 
-    AudioSwitchManager.getInstance(context).getSwitch().activate();
+    AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
     MediaPlayerManager.getInstance(this.context).stopRinging();
 
     WritableMap params = Arguments.createMap();
@@ -123,7 +123,7 @@ class CallListenerProxy implements Call.Listener {
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
 
-    AudioSwitchManager.getInstance(context).getSwitch().deactivate();
+    AudioSwitchManager.getInstance(context).getAudioSwitch().deactivate();
     MediaPlayerManager.getInstance(this.context).stopRinging();
     MediaPlayerManager.getInstance(this.context).playDisconnect();
 
