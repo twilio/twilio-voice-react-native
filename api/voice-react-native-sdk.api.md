@@ -845,7 +845,7 @@ export interface Voice {
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
     // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice: AudioDevice | null): boolean;
+    emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice?: AudioDevice): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
     // @internal (undocumented)
@@ -877,7 +877,7 @@ export class Voice extends EventEmitter {
     connect(token: string, { contactHandle, params, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
-        selectedDevice: AudioDevice | null;
+        selectedDevice?: AudioDevice;
     }>;
     getCallInvites(): Promise<ReadonlyMap<Uuid, CallInvite>>;
     getCalls(): Promise<ReadonlyMap<Uuid, Call>>;
