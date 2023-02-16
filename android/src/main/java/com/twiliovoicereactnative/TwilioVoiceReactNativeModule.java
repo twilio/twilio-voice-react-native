@@ -285,7 +285,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     audioSwitchManager.getAudioSwitch().selectDevice(audioDevice);
 
-    voice_getAudioDevices(promise);
+    promise.resolve(null);
   }
 
   /**
