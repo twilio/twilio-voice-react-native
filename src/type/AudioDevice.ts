@@ -10,7 +10,7 @@ export interface NativeAudioDeviceInfo {
 
 export interface NativeAudioDevicesInfo {
   audioDevices: NativeAudioDeviceInfo[];
-  selectedDevice: NativeAudioDeviceInfo;
+  selectedDevice?: NativeAudioDeviceInfo;
 }
 
 export interface NativeAudioDevicesUpdatedEvent extends NativeAudioDevicesInfo {

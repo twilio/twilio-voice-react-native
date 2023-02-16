@@ -278,22 +278,31 @@ export function useVoice(token: string) {
   const logAudioDevicesHandler = React.useCallback(() => {
     voice
       .getAudioDevices()
-      .then((audioDevices) => logEvent(JSON.stringify(audioDevices, null, 2)));
+      .then((audioDevices) =>
+        logEvent('get audio devices ' + JSON.stringify(audioDevices, null, 2))
+      );
   }, [voice, logEvent]);
 
   const selectAudioDeviceHandler = React.useCallback(() => {
     const idx = audioDeviceIdx + 1;
     logEvent(`setting audio device idx ${idx}`);
     voice.getAudioDevices().then(({ audioDevices }) => {
-      audioDevices[idx % audioDevices.length].select();
+      const dev = audioDevices[idx % audioDevices.length];
+      const { name, type, uuid } = dev;
+      logEvent(
+        'device to select ' + JSON.stringify({ name, type, uuid }, null, 2)
+      );
+      return dev.select();
     });
     setAudioDeviceIdx(idx);
   }, [voice, audioDeviceIdx, setAudioDeviceIdx, logEvent]);
 
   const audioDevicesUpdateHandler = React.useCallback(
-    (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => {
-      logEvent(JSON.stringify(audioDevices, null, 2));
-      logEvent(JSON.stringify(selectedDevice, null, 2));
+    (audioDevices: AudioDevice[], selectedDevice?: AudioDevice) => {
+      logEvent(
+        'AudioDevicesUpdated event\n' +
+          JSON.stringify({ audioDevices, selectedDevice }, null, 2)
+      );
     },
     [logEvent]
   );

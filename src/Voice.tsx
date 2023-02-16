@@ -49,7 +49,7 @@ export declare interface Voice {
   emit(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
     audioDevices: AudioDevice[],
-    selectedDevice: AudioDevice
+    selectedDevice?: AudioDevice
   ): boolean;
 
   /** @internal */
@@ -613,7 +613,10 @@ export class Voice extends EventEmitter {
         new AudioDevice(audioDeviceInfo)
     );
 
-    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+    const selectedDevice =
+      typeof selectedDeviceInfo !== 'undefined'
+        ? new AudioDevice(selectedDeviceInfo)
+        : undefined;
 
     this.emit(Voice.Event.AudioDevicesUpdated, audioDevices, selectedDevice);
   };
@@ -772,7 +775,7 @@ export class Voice extends EventEmitter {
    */
   async getAudioDevices(): Promise<{
     audioDevices: AudioDevice[];
-    selectedDevice: AudioDevice | null;
+    selectedDevice?: AudioDevice;
   }> {
     const {
       audioDevices: audioDeviceInfos,
@@ -784,9 +787,12 @@ export class Voice extends EventEmitter {
         new AudioDevice(audioDeviceInfo)
     );
 
-    const selectedDevice = new AudioDevice(selectedDeviceInfo);
+    const selectedDevice =
+      typeof selectedDeviceInfo !== 'undefined'
+        ? new AudioDevice(selectedDeviceInfo)
+        : undefined;
 
-    return { audioDevices, selectedDevice };
+    return selectedDevice ? { audioDevices, selectedDevice } : { audioDevices };
   }
 
   /**

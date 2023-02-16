@@ -11,6 +11,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteCancelled;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteRejected;
+import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -109,7 +110,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
 
         String uuid = intent.getStringExtra(Constants.UUID);
         CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-        WritableMap callInviteInfo = TwilioVoiceReactNativeModule.getCallInviteInfo(uuid, callInvite);
+        WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
 
         params.putString(VoiceEventType, VoiceEventCallInvite);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
@@ -122,7 +123,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
 
         String uuid = intent.getStringExtra(Constants.UUID);
         CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-        WritableMap callInviteInfo = TwilioVoiceReactNativeModule.getCallInviteInfo(uuid, callInvite);
+        WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
 
         params.putString(VoiceEventType, VoiceEventCallInviteAccepted);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
@@ -135,7 +136,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
 
         String uuid = intent.getStringExtra(Constants.UUID);
         CallInvite callInvite = intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE);
-        WritableMap callInviteInfo = TwilioVoiceReactNativeModule.getCallInviteInfo(uuid, callInvite);
+        WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
 
         params.putString(VoiceEventType, VoiceEventCallInviteRejected);
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
@@ -148,7 +149,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         CancelledCallInvite cancelledCallInvite = intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE);
         int errorCode = intent.getIntExtra(VoiceErrorKeyCode, 0);
         String errorMessage = intent.getStringExtra(VoiceErrorKeyMessage);
-        WritableMap cancelledCallInviteInfo = TwilioVoiceReactNativeModule.getCancelledCallInviteInfo(cancelledCallInvite);
+        WritableMap cancelledCallInviteInfo = serializeCancelledCallInvite(cancelledCallInvite);
 
         params.putString(VoiceEventType, VoiceEventCallInviteCancelled);
         params.putMap(EVENT_KEY_CANCELLED_CALL_INVITE_INFO, cancelledCallInviteInfo);
