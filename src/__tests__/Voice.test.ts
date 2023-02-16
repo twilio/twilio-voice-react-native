@@ -155,7 +155,7 @@ describe('Voice class', () => {
         expect(selectedDevice).toBeInstanceOf(MockAudioDevice);
       });
 
-      it('emits null when the native selected audio device info is undefined', () => {
+      it('emits undefined when the native selected audio device info is undefined', () => {
         const voice = new Voice();
         const listenerMock = jest.fn();
         voice.on(Voice.Event.AudioDevicesUpdated, listenerMock);
@@ -173,7 +173,7 @@ describe('Voice class', () => {
         audioDevices.forEach((audioDevice) => {
           expect(audioDevice).toBeInstanceOf(MockAudioDevice);
         });
-        expect(selectedDevice).toBe(null);
+        expect(selectedDevice).toBeUndefined();
       });
     });
 
@@ -533,13 +533,13 @@ describe('Voice class', () => {
           expect(MockNativeModule.voice_connect_ios.mock.calls).toEqual([]);
         });
 
-        it('rejects when the native layer rejects', () => {
+        it('rejects when the native layer rejects', async () => {
           const someMockErrorMessage = 'some mock error message';
           const someMockError = new Error(someMockErrorMessage);
           MockNativeModule.voice_connect_android.mockRejectedValueOnce(
             someMockError
           );
-          expect(() => new Voice().connect(token)).rejects.toThrow(
+          await expect(() => new Voice().connect(token)).rejects.toThrow(
             someMockErrorMessage
           );
         });
@@ -609,13 +609,13 @@ describe('Voice class', () => {
           }
         );
 
-        it('rejects when the native layer rejects', () => {
+        it('rejects when the native layer rejects', async () => {
           const someMockErrorMessage = 'some mock error message';
           const someMockError = new Error(someMockErrorMessage);
           MockNativeModule.voice_connect_ios.mockRejectedValueOnce(
             someMockError
           );
-          expect(() => new Voice().connect(token)).rejects.toThrow(
+          await expect(() => new Voice().connect(token)).rejects.toThrow(
             someMockErrorMessage
           );
         });
@@ -764,7 +764,7 @@ describe('Voice class', () => {
         }
       });
 
-      it('returns null when the native selected audio device info is undefined', async () => {
+      it('returns undefined when the native selected audio device info is undefined', async () => {
         MockNativeModule.voice_getAudioDevices.mockResolvedValueOnce({
           ...createNativeAudioDevicesInfo(),
           selectedDevice: undefined,
@@ -772,7 +772,7 @@ describe('Voice class', () => {
 
         const { selectedDevice } = await new Voice().getAudioDevices();
 
-        expect(selectedDevice).toBe(null);
+        expect(selectedDevice).toBeUndefined();
       });
     });
 
