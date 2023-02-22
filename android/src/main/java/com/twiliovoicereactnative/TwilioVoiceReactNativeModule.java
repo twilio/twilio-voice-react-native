@@ -182,7 +182,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
-    Log.e(TAG, String.format("Calling voice_connect"));
+    Log.d(TAG, "Calling voice_connect_android");
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
     ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
