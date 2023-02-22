@@ -804,6 +804,35 @@ export class Voice extends EventEmitter {
   showAvRoutePickerView(): Promise<void> {
     return NativeModule.voice_showNativeAvRoutePicker();
   }
+
+  /**
+   * Custom iOS CallKit configuration.
+   *
+   * @param configuration - iOS CallKit configuration options.
+   *
+   * @remarks
+   * This API is specific to iOS and unavailable in Android. Supported options are:
+   *  - CallKitMaximumCallGroups: maximum number of call groups (2 by default). Number.
+   *  - CallKitMaximumCallsPerCallGroup: maximum number of calls per group (5 by default). Number.
+   *  - CallKitIncludesCallsInRecents: include call history in system recents (`true` by default). Boolean. Note that this is only supported on iOS 11 and newer versions.
+   *  - CallKitSupportedHandleTypes: supported handle types. Array of CallKitConfigurationOptions.CallKitHandleType.
+   *  - CallKitIconTemplateImageData: filename of a 80x80 PNG image that will show in the system call UI as the app icon. String.
+   *  - CallKitRingtoneSound: filename of the incoming call ringing tone. String.
+   *
+   * @returns
+   * A `Promise` that
+   *  - Resolves when the configuration has been applied.
+   */
+  configureCallKit(configuration: Record<string, any>): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.voice_configureCallKit(configuration);
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
+  }
 }
 
 /**

@@ -46,6 +46,7 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     twimlParams: Record<string, any>,
     contactHandle: string
   ): Promise<NativeCallInfo>;
+  voice_configureCallKit(configuration: Record<string, any>): Promise<void>;
   voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
   voice_getCalls(): Promise<NativeCallInfo[]>;
   voice_getCallInvites(): Promise<NativeCallInviteInfo[]>;
