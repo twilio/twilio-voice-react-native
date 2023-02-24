@@ -874,7 +874,6 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    configureCallKit(configuration: Record<string, any>): Promise<void>;
     connect(token: string, { contactHandle, params, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
@@ -885,6 +884,7 @@ export class Voice extends EventEmitter {
     getDeviceToken(): Promise<string>;
     getVersion(): Promise<string>;
     register(token: string): Promise<void>;
+    setCallKitConfiguration(configuration: Record<string, any>): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;
 }

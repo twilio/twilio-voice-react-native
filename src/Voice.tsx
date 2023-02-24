@@ -823,10 +823,10 @@ export class Voice extends EventEmitter {
    * A `Promise` that
    *  - Resolves when the configuration has been applied.
    */
-  configureCallKit(configuration: Record<string, any>): Promise<void> {
+  setCallKitConfiguration(configuration: Record<string, any>): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
-        return NativeModule.voice_configureCallKit(configuration);
+        return NativeModule.voice_setCallKitConfiguration(configuration);
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`

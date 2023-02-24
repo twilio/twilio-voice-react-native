@@ -426,7 +426,7 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
     }
 }
 
-RCT_EXPORT_METHOD(voice_configureCallKit:(NSDictionary *)configuration
+RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
