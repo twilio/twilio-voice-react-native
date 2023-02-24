@@ -458,6 +458,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
             [TwilioVoiceSDK registerWithAccessToken:accessToken
                                         deviceToken:deviceTokenData
                                          completion:^(NSError *error) {
+                self.registrationInProgress = NO;
                 if (error) {
                     NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
                     NSLog(@"%@", errorMessage);
@@ -469,7 +470,6 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                 } else {
                     resolve(nil);
                 }
-                self.registrationInProgress = NO;
             }];
         } else {
             self.registrationInProgress = NO;
@@ -523,6 +523,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
             [TwilioVoiceSDK unregisterWithAccessToken:accessToken
                                           deviceToken:deviceTokenData
                                            completion:^(NSError *error) {
+                self.registrationInProgress = NO;
                 if (error) {
                     NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
                     NSLog(@"%@", errorMessage);
@@ -534,7 +535,6 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                 } else {
                     resolve(nil);
                 }
-                self.registrationInProgress = NO;
             }];
         } else {
             self.registrationInProgress = NO;
