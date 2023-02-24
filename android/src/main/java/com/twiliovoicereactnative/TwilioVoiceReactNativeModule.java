@@ -32,6 +32,7 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
@@ -258,10 +259,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
 
-    Storage.callMap.forEach((uuid, call) -> {
+    for (Entry<String, Call> entry : Storage.callMap.entrySet()) {
+      String uuid = entry.getKey();
+      Call call = entry.getValue();
+
       WritableMap callInfo = serializeCall(uuid, call);
       callInfos.pushMap(callInfo);
-    });
+    }
 
     promise.resolve(callInfos);
   }
@@ -270,10 +274,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
 
-    Storage.callInviteMap.forEach((uuid, callInvite) -> {
+    for (Entry<String, CallInvite> entry : Storage.callInviteMap.entrySet()) {
+      String uuid = entry.getKey();
+      CallInvite callInvite = entry.getValue();
+
       WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
       callInviteInfos.pushMap(callInviteInfo);
-    });
+    }
 
     promise.resolve(callInviteInfos);
   }

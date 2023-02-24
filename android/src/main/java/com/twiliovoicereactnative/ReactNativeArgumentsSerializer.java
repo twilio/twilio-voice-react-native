@@ -27,6 +27,7 @@ import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * This class provides static helper functions that serializes native objects into
@@ -40,7 +41,12 @@ public class ReactNativeArgumentsSerializer {
    */
   public static WritableMap serializeCallInviteCustomParameters(CallInvite callInvite) {
     WritableMap customParameters = Arguments.createMap();
-    callInvite.getCustomParameters().forEach(customParameters::putString);
+    for (Entry<String, String> entry : callInvite.getCustomParameters().entrySet()) {
+      String customParameterKey = entry.getKey();
+      String customParameterValue = entry.getValue();
+
+      customParameters.putString(customParameterKey, customParameterValue);
+    }
     return customParameters;
   }
 
@@ -124,10 +130,13 @@ public class ReactNativeArgumentsSerializer {
   public static WritableArray serializeAudioDeviceMapIntoArray(Map<String, AudioDevice> audioDevices) {
     WritableArray audioDeviceInfoArray = Arguments.createArray();
 
-    audioDevices.forEach((uuid, audioDevice) -> {
+    for (Entry<String, AudioDevice> entry : audioDevices.entrySet()) {
+      String uuid = entry.getKey();
+      AudioDevice audioDevice = entry.getValue();
+
       WritableMap audioDeviceInfoMap = serializeAudioDevice(uuid, audioDevice);
       audioDeviceInfoArray.pushMap(audioDeviceInfoMap);
-    });
+    }
 
     return audioDeviceInfoArray;
   }

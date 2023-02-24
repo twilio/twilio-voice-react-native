@@ -14,6 +14,8 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.util.Map.Entry;
+
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
@@ -96,7 +98,12 @@ public class IncomingCallNotificationService extends Service {
     Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid, this));
     Log.i(TAG, "acceptCall" + uuid + " notificationId" + notificationId);
     Storage.callMap.put(uuid, call);
-    Storage.callMap.forEach((key, value) -> Log.i(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
+    for (Entry<String, Call> entry : Storage.callMap.entrySet()) {
+      String key = entry.getKey();
+      Call value = entry.getValue();
+
+      Log.i(TAG, "CallInvite UUID accept callMap value " + key + ":" + value);
+    }
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "accept");
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

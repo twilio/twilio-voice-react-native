@@ -71,16 +71,17 @@ public class AudioSwitchManager {
     audioSwitch = new AudioSwitch(context);
 
     audioSwitch.start((devices, selectedDevice) -> {
-      devices.forEach((device) -> {
-        audioDevices.clear();
+      audioDevices.clear();
 
+      for (AudioDevice device : devices) {
         String uuid = UUID.randomUUID().toString();
+
         audioDevices.put(uuid, device);
 
         if (device.equals(selectedDevice)) {
           selectedAudioDeviceUuid = uuid;
         }
-      });
+      }
 
       if (this.listener != null) {
         this.listener.apply(audioDevices, selectedAudioDeviceUuid, selectedDevice);
