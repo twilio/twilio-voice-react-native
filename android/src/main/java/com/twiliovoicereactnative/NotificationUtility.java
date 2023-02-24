@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.twilio.voice.CallInvite;
@@ -29,7 +28,6 @@ import static android.content.Context.AUDIO_SERVICE;
 import java.net.URLDecoder;
 import java.util.Map;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 

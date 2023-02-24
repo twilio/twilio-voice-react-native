@@ -18,10 +18,6 @@ import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfo
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -36,7 +32,6 @@ import java.util.Map;
  * This class provides static helper functions that serializes native objects into
  * React Native (RN) bridge objects emit-able to the JS layer.
  */
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class ReactNativeArgumentsSerializer {
   /**
    * Serializes the custom parameters of a CallInvite.

@@ -32,11 +32,10 @@ android {
     compileSdkVersion safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 31)
     buildToolsVersion safeExtGet('TwilioVoiceReactNative_buildToolsVersion', '30.0.2')
     defaultConfig {
-        minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 16)
+        minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 21)
         targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 29)
         versionCode 1
         versionName "1.0"
-
     }
 
     buildTypes {

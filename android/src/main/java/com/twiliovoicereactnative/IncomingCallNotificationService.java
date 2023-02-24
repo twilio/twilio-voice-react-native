@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -24,7 +23,6 @@ public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     String action = intent.getAction();
@@ -84,7 +82,6 @@ public class IncomingCallNotificationService extends Service {
     return null;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   private void acceptCall(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
     endForeground();

@@ -1,9 +1,6 @@
 package com.twiliovoicereactnative;
 
 import android.content.Context;
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.audioswitch.AudioSwitch;
@@ -17,7 +14,6 @@ import java.util.UUID;
  * device changes. Generates UUIDs per audio device when the AudioSwitch library updates available
  * audio devices.
  */
-@RequiresApi(api = Build.VERSION_CODES.N)
 public class AudioSwitchManager {
   /**
    * The functional interface of a listener to be bound to the AudioSwitchManager.
