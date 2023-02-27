@@ -66,6 +66,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @interface TwilioVoiceReactNative ()
 
+@property (nonatomic, strong) TwilioVoicePushRegistry *twilioVoicePushRegistry;
+
 @property(nonatomic, strong) NSData *deviceTokenData;
 @property(nonatomic, strong) NSMutableDictionary *audioDevices;
 @property(nonatomic, strong) NSDictionary *selectedAudioDevice;
@@ -95,6 +97,10 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         [self subscribeToNotifications];
         [self initializeCallKit];
         [self initializeAudioDeviceList];
+        
+        // Initialize PKPushRegistry at launch
+        self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
+        [self.twilioVoicePushRegistry updatePushRegistry];
     }
 
     return self;
