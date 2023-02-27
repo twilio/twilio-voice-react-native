@@ -29,6 +29,7 @@
 
 - Fixed an issue where some types on the `Call` and `Voice` classes were being incorrectly exported. Types and references to `addEventListener` are instead now correctly exported as `addListener`.
 - Fixed an issue where available audio devices were sometimes incorrectly emitted and returned by the SDK on Android platforms. This occurs more frequently in development environments when the JS bundle is reloaded, but could happen in production environments as well.
+- Fixed a warning that occurred on more recent versions of React Native when the SDK constructed a `NativeEventEmitter`.
 
 1.0.0-preview.1 (September 1, 2022)
 ===================================
