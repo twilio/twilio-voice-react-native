@@ -7,8 +7,6 @@
 
 #import "AppDelegate.h"
 
-#import "TwilioVoicePushRegistry.h"
-
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -33,8 +31,6 @@ static void InitializeFlipper(UIApplication *application) {
 
 @interface AppDelegate ()
 
-@property (nonatomic, strong) TwilioVoicePushRegistry *twilioVoicePushRegistry;
-
 @end
 
 @implementation AppDelegate
@@ -56,10 +52,6 @@ static void InitializeFlipper(UIApplication *application) {
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
-  
-  // Initialize PKPushRegistry at launch
-  self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
-  [self.twilioVoicePushRegistry updatePushRegistry];
   
   return YES;
 }
