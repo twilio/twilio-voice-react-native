@@ -92,6 +92,32 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     MediaPlayerManager.getInstance(reactContext);
   }
 
+  /**
+   * Invoked by React Native, necessary when passing this NativeModule to the constructor of a
+   * NativeEventEmitter on the JS layer.
+   *
+   * Invoked when a listener is added to the NativeEventEmitter.
+   *
+   * @param eventName The string representation of the event.
+   */
+  @ReactMethod
+  public void addListener(String eventName) {
+    Log.d(TAG, String.format("Calling addListener: %s", eventName));
+  }
+
+  /**
+   * Invoked by React Native, necessary when passing this NativeModule to the constructor of a
+   * NativeEventEmitter on the JS layer.
+   *
+   * Invoked when listeners are removed from the NativeEventEmitter.
+   *
+   * @param count The string representation of the event.
+   */
+  @ReactMethod
+  public void removeListeners(Integer count) {
+    Log.d(TAG, String.format("Calling removeListeners: %d", count));
+  }
+
   @Override
   @NonNull
   public String getName() {

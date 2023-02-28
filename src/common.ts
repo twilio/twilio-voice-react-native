@@ -10,5 +10,7 @@ import type { TwilioVoiceReactNative as TwilioVoiceReactNativeType } from './typ
 
 export const NativeModule = ReactNative.NativeModules
   .TwilioVoiceReactNative as TwilioVoiceReactNativeType;
-export const NativeEventEmitter = new ReactNative.NativeEventEmitter();
+export const NativeEventEmitter = new ReactNative.NativeEventEmitter(
+  NativeModule
+);
 export const Platform = ReactNative.Platform;
