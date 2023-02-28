@@ -278,6 +278,23 @@ export namespace CallInvite {
 }
 
 // @public
+export namespace CallKit {
+    export type ConfigurationOptions = {
+        [Constants.CallKitIconTemplateImageData]: string;
+        [Constants.CallKitIncludesCallsInRecents]: boolean;
+        [Constants.CallKitMaximumCallGroups]: number;
+        [Constants.CallKitMaximumCallsPerCallGroup]: number;
+        [Constants.CallKitRingtoneSound]: string;
+        [Constants.CallKitSupportedHandleTypes]: HandleType[];
+    };
+    export enum HandleType {
+        EmailAddress = 2,
+        Generic = 0,
+        PhoneNumber = 1
+    }
+}
+
+// @public
 export class CancelledCallInvite {
     // Warning: (ae-forgotten-export) The symbol "NativeCancelledCallInviteInfo" needs to be exported by the entry point index.d.ts
     //
@@ -884,7 +901,7 @@ export class Voice extends EventEmitter {
     getDeviceToken(): Promise<string>;
     getVersion(): Promise<string>;
     register(token: string): Promise<void>;
-    setCallKitConfiguration(configuration: Record<string, any>): Promise<void>;
+    setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;
 }
@@ -917,5 +934,9 @@ export namespace Voice {
         export type Unregistered = () => void;
     }
 }
+
+// Warnings were encountered during analysis:
+//
+// lib/typescript/type/CallKit.d.ts:15:9 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```

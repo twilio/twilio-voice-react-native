@@ -19,6 +19,7 @@ import { constructTwilioError } from './error/utility';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
+import type { CallKit } from './type/CallKit';
 import type { Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
@@ -811,19 +812,16 @@ export class Voice extends EventEmitter {
    * @param configuration - iOS CallKit configuration options.
    *
    * @remarks
-   * This API is specific to iOS and unavailable in Android. Supported options are:
-   *  - CallKitMaximumCallGroups: maximum number of call groups (2 by default). Number.
-   *  - CallKitMaximumCallsPerCallGroup: maximum number of calls per group (5 by default). Number.
-   *  - CallKitIncludesCallsInRecents: include call history in system recents (`true` by default). Boolean. Note that this is only supported on iOS 11 and newer versions.
-   *  - CallKitSupportedHandleTypes: supported handle types. Array of CallKitConfigurationOptions.CallKitHandleType.
-   *  - CallKitIconTemplateImageData: filename of a 80x80 PNG image that will show in the system call UI as the app icon. String.
-   *  - CallKitRingtoneSound: filename of the incoming call ringing tone. String.
+   * See {@link CallKit} for more information.
    *
    * @returns
    * A `Promise` that
    *  - Resolves when the configuration has been applied.
+   *  - Rejects if the configuration is unable to be applied.
    */
-  setCallKitConfiguration(configuration: Record<string, any>): Promise<void> {
+  async setCallKitConfiguration(
+    configuration: CallKit.ConfigurationOptions
+  ): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
         return NativeModule.voice_setCallKitConfiguration(configuration);
