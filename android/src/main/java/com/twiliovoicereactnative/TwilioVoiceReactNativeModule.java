@@ -111,7 +111,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
    *
    * Invoked when listeners are removed from the NativeEventEmitter.
    *
-   * @param count The string representation of the event.
+   * @param count The number of event listeners removed.
    */
   @ReactMethod
   public void removeListeners(Integer count) {
