@@ -1,5 +1,3 @@
-import type { Constants } from '../constants';
-
 /**
  * @public
  * CallKit related types.
@@ -13,33 +11,33 @@ export namespace CallKit {
     /**
      * Filename of a 80x80 PNG image that will show in the system call UI as the app icon.
      */
-    [Constants.CallKitIconTemplateImageData]: string;
+    callKitIconTemplateImageData: string;
     /**
      * Include call history in system recents (`true` by default).
      *
      * @remarks
      * Only supported on iOS 11 and newer versions.
      */
-    [Constants.CallKitIncludesCallsInRecents]: boolean;
+    callKitIncludesCallsInRecents: boolean;
     /**
      * Maximum number of call groups (`2` by default).
      */
-    [Constants.CallKitMaximumCallGroups]: number;
+    callKitMaximumCallGroups: number;
     /**
      * Maximum number of calls per group (`5` by default).
      */
-    [Constants.CallKitMaximumCallsPerCallGroup]: number;
+    callKitMaximumCallsPerCallGroup: number;
     /**
      * Filename of the incoming call ringing tone.
      */
-    [Constants.CallKitRingtoneSound]: string;
+    callKitRingtoneSound: string;
     /**
      * Supported handle types.
      *
      * @remarks
      * See {@link CallKitHandleType}.
      */
-    [Constants.CallKitSupportedHandleTypes]: HandleType[];
+    callKitSupportedHandleTypes: HandleType[];
   };
 
   /**

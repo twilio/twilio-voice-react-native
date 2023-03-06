@@ -280,12 +280,12 @@ export namespace CallInvite {
 // @public
 export namespace CallKit {
     export type ConfigurationOptions = {
-        [Constants.CallKitIconTemplateImageData]: string;
-        [Constants.CallKitIncludesCallsInRecents]: boolean;
-        [Constants.CallKitMaximumCallGroups]: number;
-        [Constants.CallKitMaximumCallsPerCallGroup]: number;
-        [Constants.CallKitRingtoneSound]: string;
-        [Constants.CallKitSupportedHandleTypes]: HandleType[];
+        callKitIconTemplateImageData: string;
+        callKitIncludesCallsInRecents: boolean;
+        callKitMaximumCallGroups: number;
+        callKitMaximumCallsPerCallGroup: number;
+        callKitRingtoneSound: string;
+        callKitSupportedHandleTypes: HandleType[];
     };
     export enum HandleType {
         EmailAddress = 2,
@@ -934,9 +934,5 @@ export namespace Voice {
         export type Unregistered = () => void;
     }
 }
-
-// Warnings were encountered during analysis:
-//
-// lib/typescript/type/CallKit.d.ts:15:9 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```
