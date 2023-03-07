@@ -1,11 +1,9 @@
 package com.twiliovoicereactnative;
 
 import android.content.Intent;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -34,6 +32,7 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
@@ -59,7 +58,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   private final ReactApplicationContext reactContext;
   private final AudioSwitchManager audioSwitchManager;
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   public TwilioVoiceReactNativeModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
@@ -179,10 +177,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     };
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
-    Log.e(TAG, String.format("Calling voice_connect"));
+    Log.d(TAG, "Calling voice_connect_android");
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
     ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
@@ -258,33 +255,36 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(null);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
 
-    Storage.callMap.forEach((uuid, call) -> {
+    for (Entry<String, Call> entry : Storage.callMap.entrySet()) {
+      String uuid = entry.getKey();
+      Call call = entry.getValue();
+
       WritableMap callInfo = serializeCall(uuid, call);
       callInfos.pushMap(callInfo);
-    });
+    }
 
     promise.resolve(callInfos);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
 
-    Storage.callInviteMap.forEach((uuid, callInvite) -> {
+    for (Entry<String, CallInvite> entry : Storage.callInviteMap.entrySet()) {
+      String uuid = entry.getKey();
+      CallInvite callInvite = entry.getValue();
+
       WritableMap callInviteInfo = serializeCallInvite(uuid, callInvite);
       callInviteInfos.pushMap(callInviteInfo);
-    });
+    }
 
     promise.resolve(callInviteInfos);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_getAudioDevices(Promise promise) {
     Map<String, AudioDevice> audioDevices = audioSwitchManager.getAudioDevices();
@@ -300,7 +300,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     promise.resolve(audioDeviceInfo);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void voice_selectAudioDevice(String uuid, Promise promise) {
     AudioDevice audioDevice = audioSwitchManager.getAudioDevices().get(uuid);
@@ -427,7 +426,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void call_getStats(String uuid,  Promise promise) {
     Call activeCall = Storage.callMap.get(uuid);
@@ -506,7 +504,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   // CallInvite
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @ReactMethod
   public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
     Log.d(TAG, "callInvite_accept uuid" + callInviteUuid);

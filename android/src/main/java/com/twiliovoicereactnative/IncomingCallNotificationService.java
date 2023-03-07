@@ -10,10 +10,11 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import java.util.Map.Entry;
 
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
@@ -24,7 +25,6 @@ public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     String action = intent.getAction();
@@ -84,7 +84,6 @@ public class IncomingCallNotificationService extends Service {
     return null;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   private void acceptCall(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
     endForeground();
@@ -99,7 +98,12 @@ public class IncomingCallNotificationService extends Service {
     Call call = callInvite.accept(this, acceptOptions, new CallListenerProxy(uuid, this));
     Log.i(TAG, "acceptCall" + uuid + " notificationId" + notificationId);
     Storage.callMap.put(uuid, call);
-    Storage.callMap.forEach((key, value) -> Log.i(TAG, "CallInvite UUID accept callMap value " + key + ":" + value));
+    for (Entry<String, Call> entry : Storage.callMap.entrySet()) {
+      String key = entry.getKey();
+      Call value = entry.getValue();
+
+      Log.i(TAG, "CallInvite UUID accept callMap value " + key + ":" + value);
+    }
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "accept");
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -193,7 +197,6 @@ public class IncomingCallNotificationService extends Service {
   private void bringAppToForeground(String callSid, int notificationId, String uuid) {
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.cancel(notificationId);
-    sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     Log.i(TAG, "bringAppToForeground " + uuid + " notificationId" + notificationId);
     startForeground(notificationId, NotificationUtility.createWakeupAppNotification(callSid, notificationId, uuid, NotificationManager.IMPORTANCE_LOW, this));
     Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));

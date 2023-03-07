@@ -17,10 +17,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
@@ -91,7 +89,6 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
     return instance;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.N)
   @Override
   public void onReceive(Context context, Intent intent) {
     String action = intent.getAction();

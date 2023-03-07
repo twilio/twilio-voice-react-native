@@ -2,12 +2,10 @@ package com.twiliovoicereactnative;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
@@ -34,7 +32,6 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import java.util.Set;
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 class CallListenerProxy implements Call.Listener {
   static final String TAG = "CallListenerProxy";
   private final String uuid;
