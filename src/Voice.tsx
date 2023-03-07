@@ -19,6 +19,7 @@ import { constructTwilioError } from './error/utility';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
+import type { CallKit } from './type/CallKit';
 import type { Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
@@ -809,6 +810,32 @@ export class Voice extends EventEmitter {
    */
   showAvRoutePickerView(): Promise<void> {
     return NativeModule.voice_showNativeAvRoutePicker();
+  }
+
+  /**
+   * Custom iOS CallKit configuration.
+   *
+   * @param configuration - iOS CallKit configuration options.
+   *
+   * @remarks
+   * See {@link CallKit} for more information.
+   *
+   * @returns
+   * A `Promise` that
+   *  - Resolves when the configuration has been applied.
+   *  - Rejects if the configuration is unable to be applied.
+   */
+  async setCallKitConfiguration(
+    configuration: CallKit.ConfigurationOptions
+  ): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.voice_setCallKitConfiguration(configuration);
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
   }
 }
 

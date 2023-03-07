@@ -23,13 +23,44 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 #pragma mark - CallKit helper methods
 
 - (void)initializeCallKit {
-    CXProviderConfiguration *configuration = [[CXProviderConfiguration alloc] initWithLocalizedName:kDefaultCallKitConfigurationName];
-    configuration.maximumCallGroups = 1;
-    configuration.maximumCallsPerCallGroup = 1;
-    UIImage *callkitIcon = [UIImage imageNamed:@"iconMask80"];
-    configuration.iconTemplateImageData = UIImagePNGRepresentation(callkitIcon);
+    [self initializeCallKitWithConfiguration:nil];
+}
+
+- (void)initializeCallKitWithConfiguration:(NSDictionary *)configuration {
+    CXProviderConfiguration *callKitConfiguration = [CXProviderConfiguration new];
     
-    self.callKitProvider = [[CXProvider alloc] initWithConfiguration:configuration];
+    if (configuration[kTwilioVoiceReactNativeCallKitMaximumCallGroups]) {
+        callKitConfiguration.maximumCallGroups = [configuration[kTwilioVoiceReactNativeCallKitMaximumCallGroups] intValue];
+    } else {
+        callKitConfiguration.maximumCallGroups = 1;
+    }
+
+    if (configuration[kTwilioVoiceReactNativeCallKitMaximumCallsPerCallGroup]) {
+        callKitConfiguration.maximumCallsPerCallGroup = [configuration[kTwilioVoiceReactNativeCallKitMaximumCallsPerCallGroup] intValue];
+    } else {
+        callKitConfiguration.maximumCallsPerCallGroup = 1;
+    }
+
+    float version = [[UIDevice currentDevice].systemVersion floatValue];
+    if (version > 11.0 && configuration[kTwilioVoiceReactNativeCallKitIncludesCallsInRecents]) {
+        callKitConfiguration.includesCallsInRecents = [configuration[kTwilioVoiceReactNativeCallKitIncludesCallsInRecents] boolValue];
+    }
+
+    if (configuration[kTwilioVoiceReactNativeCallKitSupportedHandleTypes]) {
+        NSSet *supportedHandleTypes = [NSSet setWithArray:configuration[kTwilioVoiceReactNativeCallKitSupportedHandleTypes]];
+        callKitConfiguration.supportedHandleTypes = supportedHandleTypes;
+    }
+
+    if (configuration[kTwilioVoiceReactNativeCallKitIconTemplateImageData] && [configuration[kTwilioVoiceReactNativeCallKitIconTemplateImageData] isKindOfClass:[NSString class]]) {
+        UIImage *icon = [UIImage imageNamed:configuration[kTwilioVoiceReactNativeCallKitIconTemplateImageData]];
+        callKitConfiguration.iconTemplateImageData = UIImagePNGRepresentation(icon);
+    }
+
+    if (configuration[kTwilioVoiceReactNativeCallKitRingtoneSound] && [configuration[kTwilioVoiceReactNativeCallKitRingtoneSound] isKindOfClass:[NSString class]]) {
+        callKitConfiguration.ringtoneSound = configuration[kTwilioVoiceReactNativeCallKitRingtoneSound];
+    }
+    
+    self.callKitProvider = [[CXProvider alloc] initWithConfiguration:callKitConfiguration];
     [self.callKitProvider setDelegate:self queue:nil];
     self.callKitCallController = [CXCallController new];
 }

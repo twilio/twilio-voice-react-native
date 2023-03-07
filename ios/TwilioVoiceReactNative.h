@@ -54,6 +54,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 @interface TwilioVoiceReactNative (CallKit)
 
 - (void)initializeCallKit;
+- (void)initializeCallKitWithConfiguration:(NSDictionary *)configuration;
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle;
