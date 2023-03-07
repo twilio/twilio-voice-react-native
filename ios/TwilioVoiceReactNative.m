@@ -431,7 +431,7 @@ RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self initializeCallKitWithConfiguration:configuration];
-    resolve(@"");
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
