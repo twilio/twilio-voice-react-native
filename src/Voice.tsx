@@ -857,7 +857,7 @@ export namespace Voice {
     /**
      * Custom parameters to send to the TwiML Application.
      */
-    params?: Record<string, any>;
+    params?: Record<string, string>;
     /**
      * A CallKit display name that will show in the call history as the contact
      * handle.
