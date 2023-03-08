@@ -5,6 +5,19 @@
 - The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
 - The React Native dependency within the integration testing app has been updated from `0.63.4` to `0.66.5`.
 
+### API Changes
+- The `voice.connect` method now has the following function signature
+  ```ts
+  voice.connect(token: string, options?: Voice.ConnectOptions);
+
+  interface Voice.ConnectOptions {
+    contactHandle?: string;
+    params?: Record<string, string>;
+  }
+  ```
+  Not passing an options object or leaving any member of the options object undefined will result in those options using default values.
+  See the API documentation for descriptions of options.
+
 ## Features
 
 - The SDK now exports error classes and emits error objects specific to an error code. See the below code snippet for usage.
