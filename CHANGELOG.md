@@ -1,5 +1,5 @@
-1.0.0-beta.1 (In Progress)
-==========================
+1.0.0-beta.1 (March 10, 2023)
+=============================
 
 ## Changes
 - The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
