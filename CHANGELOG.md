@@ -36,7 +36,7 @@
     }
   });
   ```
-  See (TODO LINK TO DOCS) for all error classes.
+  See the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/docs/voice-react-native-sdk.twilioerrors_namespace.md) for all error classes.
 
 ## Fixes
 
