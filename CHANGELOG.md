@@ -16,7 +16,7 @@
   }
   ```
   Not passing an options object or leaving any member of the options object undefined will result in those options using default values.
-  See the API documentation for descriptions of options.
+  See the API documentation for descriptions of options [here](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/docs/voice-react-native-sdk.md).
 
 ## Features
 
