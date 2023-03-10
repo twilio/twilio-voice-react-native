@@ -417,7 +417,7 @@ describe('Voice class', () => {
   describe('public methods', () => {
     describe('.connect', () => {
       let token: string;
-      let options: { params?: Record<string, any>; contactHandle?: string };
+      let options: { params?: Record<string, string>; contactHandle?: string };
 
       beforeEach(() => {
         token = 'mock-voice-token-foo';
@@ -461,7 +461,7 @@ describe('Voice class', () => {
         'throws when params is defined and not an object',
         async () => {
           for (const invalidParams of ['string', 101, false]) {
-            options.params = invalidParams as unknown as Record<string, any>;
+            options.params = invalidParams as unknown as Record<string, string>;
             await expect(
               new Voice().connect(token, options)
             ).rejects.toThrowError(

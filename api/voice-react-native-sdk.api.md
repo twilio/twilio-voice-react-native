@@ -909,7 +909,7 @@ export class Voice extends EventEmitter {
 // @public
 export namespace Voice {
     export type ConnectOptions = {
-        params?: Record<string, any>;
+        params?: Record<string, string>;
         contactHandle?: string;
     };
     export enum Event {
