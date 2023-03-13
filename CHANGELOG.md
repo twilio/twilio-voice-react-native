@@ -1,6 +1,9 @@
 1.0.0-beta.1 (March 10, 2023)
 =============================
 
+Twilio Voice React Native SDK is now in beta! Please see the following changes with this new release.
+Additionally, we are also introducing the new Twilio Voice React Native Reference App as an example implementation of the Twilio Voice React Native SDK and serves to inspire developers who want to leverage the power of Twilio Programmable Voice in their React Native applications. Please see this [page](https://github.com/twilio/twilio-voice-react-native-app) for more details.
+
 ## Changes
 - The integration testing app formerly under `example/` has been renamed/moved to `test/app/`.
 - The React Native dependency within the integration testing app has been updated from `0.63.4` to `0.66.5`.
