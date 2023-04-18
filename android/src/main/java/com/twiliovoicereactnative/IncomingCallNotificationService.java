@@ -69,9 +69,8 @@ public class IncomingCallNotificationService extends Service {
           handleOutgoingCall(callSid, notificationId, uuid);
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
-          Log.i(TAG, "ACTION_PUSH_APP_TO_FOREGROUND " + uuid + " notificationId" + notificationId);
-          callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
-          bringAppToForeground(callSid, notificationId, uuid);
+          Log.d(TAG, "Service should never receive FOREGROUND event, there is a bug");
+          break;
         default:
           break;
       }
@@ -191,20 +190,6 @@ public class IncomingCallNotificationService extends Service {
     this.startActivity(intent);
   }
 
-  /*
-   * Send the CallInvite to the main activity. Start the activity if it is not running already.
-   */
-  private void bringAppToForeground(String callSid, int notificationId, String uuid) {
-    NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    notificationManager.cancel(notificationId);
-    Log.i(TAG, "bringAppToForeground " + uuid + " notificationId" + notificationId);
-    startForeground(notificationId, NotificationUtility.createWakeupAppNotification(callSid, notificationId, uuid, NotificationManager.IMPORTANCE_LOW, this));
-    Intent intent = new Intent(this, getMainActivityClass(getApplicationContext()));
-    intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    this.startActivity(intent);
-  }
-
   private boolean isAppVisible() {
     return ProcessLifecycleOwner
       .get()
@@ -213,7 +198,7 @@ public class IncomingCallNotificationService extends Service {
       .isAtLeast(Lifecycle.State.STARTED);
   }
 
-  private static Class getMainActivityClass(Context context) {
+  public static Class getMainActivityClass(Context context) {
     String packageName = context.getPackageName();
     Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
     String className = launchIntent.getComponent().getClassName();

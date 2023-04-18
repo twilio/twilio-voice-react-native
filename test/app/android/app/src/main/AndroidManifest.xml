@@ -45,6 +45,15 @@
         <action android:name="ACTION_REJECT" />
       </intent-filter>
     </service>
+    <activity
+      android:name="com.twiliovoicereactnative.NotificationProxyActivity"
+      android:parentActivityName=".MainActivity"
+      android:noHistory="true"
+      android:excludeFromRecents="true"
+      android:taskAffinity=""
+      android:launchMode="singleTask"
+      android:theme="@android:style/Theme.Translucent.NoTitleBar"
+      android:exported="true" />
   </application>
 
 </manifest>
