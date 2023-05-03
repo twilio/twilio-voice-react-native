@@ -45,7 +45,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     if (self = [super initWithFrame:frame]) {
         self.hidden = YES;
     }
-    
+
     return self;
 }
 
@@ -97,7 +97,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         [self subscribeToNotifications];
         [self initializeCallKit];
         [self initializeAudioDeviceList];
-        
+
         // Initialize PKPushRegistry at launch
         self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
         [self.twilioVoicePushRegistry updatePushRegistry];
@@ -355,7 +355,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
                                        kTwilioVoiceReactNativeCallInfoIsOnHold: @(call.isOnHold),
                                        kTwilioVoiceReactNativeCallInfoSid: call.sid,
                                        kTwilioVoiceReactNativeCallInfoTo: call.to? call.to : @""} mutableCopy];
-    
+
     TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
     if (callInvite && callInvite.customParameters) {
         callInfo[kTwilioVoiceReactNativeCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
@@ -456,14 +456,14 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
-    
+
     if (self.registrationInProgress) {
         reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
         return;
     }
 
     self.registrationInProgress = YES;
-    
+
     [self asyncPushRegistryInitialization:kPushRegistryDeviceTokenRetryTimeout
                                completion:^(NSData *deviceTokenData) {
         if (deviceTokenData) {
@@ -521,14 +521,14 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
-    
+
     if (self.registrationInProgress) {
         reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
         return;
     }
 
     self.registrationInProgress = YES;
-    
+
     [self asyncPushRegistryInitialization:kPushRegistryDeviceTokenRetryTimeout
                                completion:^(NSData *deviceTokenData) {
         if (deviceTokenData) {
@@ -613,7 +613,7 @@ RCT_EXPORT_METHOD(voice_showNativeAvRoutePicker:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     TVRNAVRoutePickerView *routePicker = [[TVRNAVRoutePickerView alloc] initWithFrame:CGRectZero];
-    
+
     UIWindow *window = [UIApplication sharedApplication].windows[0];
     UIViewController *rootViewController = window.rootViewController;
     if (rootViewController) {
@@ -621,13 +621,13 @@ RCT_EXPORT_METHOD(voice_showNativeAvRoutePicker:(RCTPromiseResolveBlock)resolve
         while (topViewController.presentedViewController) {
             topViewController = topViewController.presentedViewController;
         }
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [topViewController.view addSubview:routePicker];
             [routePicker present];
         });
     }
-    
+
     resolve(nil);
 }
 
@@ -696,7 +696,7 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
-        resolve(nil);
+        resolve(@(call.isOnHold));
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
@@ -722,7 +722,7 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
-        resolve(nil);
+        resolve(@(call.isMuted));
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }
