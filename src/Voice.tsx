@@ -813,6 +813,23 @@ export class Voice extends EventEmitter {
   }
 
   /**
+   * TODO: add documentation
+   *  // In case the application decides to let the RN SDK handle PushKit VoIP push notifications
+   *  // This must be done at application launch time
+   *  // This only works for iOS
+   */
+  async initializePushRegistry(): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.voice_initializePushRegistry();
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
+  }
+
+  /**
    * Custom iOS CallKit configuration.
    *
    * @param configuration - iOS CallKit configuration options.

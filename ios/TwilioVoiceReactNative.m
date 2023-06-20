@@ -97,13 +97,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         [self subscribeToNotifications];
         [self initializeCallKit];
         [self initializeAudioDeviceList];
-        
-        // Initialize PKPushRegistry at launch
-        self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
-        [self.twilioVoicePushRegistry updatePushRegistry];
     }
 
     return self;
+}
+
+- (void)initializePushRegistry {
+    self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
+    [self.twilioVoicePushRegistry updatePushRegistry];
 }
 
 - (void)subscribeToNotifications {
@@ -435,6 +436,13 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
     } else {
         resolve(@"");
     }
+}
+
+RCT_EXPORT_METHOD(voice_initializePushRegistry:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self initializePushRegistry];
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration

@@ -900,6 +900,7 @@ export class Voice extends EventEmitter {
     getCalls(): Promise<ReadonlyMap<Uuid, Call>>;
     getDeviceToken(): Promise<string>;
     getVersion(): Promise<string>;
+    initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     showAvRoutePickerView(): Promise<void>;

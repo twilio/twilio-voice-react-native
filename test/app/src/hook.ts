@@ -334,6 +334,7 @@ export function useVoice(token: string) {
     voice.getVersion().then(setSdkVersion);
 
     const bootstrap = async () => {
+      await voice.initializePushRegistry();
       const calls = await voice.getCalls();
 
       for (const call of calls.values()) {
