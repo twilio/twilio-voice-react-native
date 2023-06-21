@@ -768,6 +768,13 @@ export class Voice extends EventEmitter {
   }
 
   /**
+   * TODO:
+   */
+  async handlePushNotification(payload: Record<string, string>): Promise<void> {
+    return NativeModule.voice_handlePushNotification(payload);
+  }
+
+  /**
    * Get audio device information from the native layer.
    * @returns
    * A `Promise` that
