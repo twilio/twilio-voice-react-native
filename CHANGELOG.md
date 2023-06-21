@@ -1,3 +1,13 @@
+1.0.0-beta.2 (In Progress)
+==========================
+
+Twilio Voice React Native SDK has now reached milestone `beta.2`. Included in this version are the following.
+
+## Fixes
+
+- Pinned to a specific version of the Twilio Voice iOS SDK. This fixes issues with some builds failing on iOS platforms.
+- Fixed the Intent flags on Android platforms. This fixes issues with the application crashing on newer versions of Android.
+
 1.0.0-beta.1 (March 10, 2023)
 =============================
 
