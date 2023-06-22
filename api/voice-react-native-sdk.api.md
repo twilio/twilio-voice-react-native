@@ -258,6 +258,7 @@ export class CallInvite {
     getFrom(): string;
     getState(): CallInvite.State;
     getTo(): string;
+    getUuid(): string;
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
@@ -903,6 +904,7 @@ export class Voice extends EventEmitter {
     handlePushNotification(payload: Record<string, string>): Promise<void>;
     initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
+    reportNewIncomingCall(callInviteUuid: Uuid, callerHandle: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;

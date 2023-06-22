@@ -768,10 +768,46 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * TODO:
+   * Provide the push notification payload to the SDK. The SDK will
+   * raise the `CallInvite` event if the payload represents a valid
+   * Twilio Voice incoming call.
+   * @param payload - The data payload of the push notification.
+   * @return
+   * A `Promise` that
+   *  - Resolves when the push notification payload has been examined by the SDK.
    */
   async handlePushNotification(payload: Record<string, string>): Promise<void> {
     return NativeModule.voice_handlePushNotification(payload);
+  }
+
+  /**
+   * Report the call invite as a new incoming call to the iOS CallKit framework.
+   *
+   * @remarks
+   * This API is specific to iOS and unavailable in Android.
+   *
+   * @param callInviteUuid - The `uuid` of the `CallInvite`.
+   * @param callerHandle - The caller name that will show up in the native call app.
+   * @return
+   * A `Promise` that
+   *  - Resolves when the new incoming call is successfully reported to the system.
+   *  - Rejects when the SDK failed to report the incoming call to the system.
+   */
+  async reportNewIncomingCall(
+    callInviteUuid: Uuid,
+    callerHandle: string
+  ): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.voice_reportNewIncomingCall(
+          callInviteUuid,
+          callerHandle
+        );
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
   }
 
   /**
@@ -820,10 +856,20 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * TODO: add documentation
-   *  // In case the application decides to let the RN SDK handle PushKit VoIP push notifications
-   *  // This must be done at application launch time
-   *  // This only works for iOS
+   * Initialize a Push Registry instance inside the SDK for handling
+   * PushKit device token update and receiving push notifications.
+   *
+   * @remarks
+   * This API is specific to iOS and unavailable in Android.
+   * Use this method if the application does not have an iOS PushKit
+   * module and wishes to delegate the event handling to the SDK.
+   * Call this method at app launch time to guarantee incoming call
+   * push notifications to be surfaced to the users, especially when
+   * the app is not running in the foreground.
+   *
+   * @return
+   * A `Promise` that
+   *  - Resolves when the initialization is done.
    */
   async initializePushRegistry(): Promise<void> {
     switch (Platform.OS) {

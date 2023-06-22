@@ -48,6 +48,10 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   ): Promise<NativeCallInfo>;
   voice_initializePushRegistry(): Promise<void>;
   voice_handlePushNotification(payload: Record<string, string>): Promise<void>;
+  voice_reportNewIncomingCall(
+    callInviteUuid: Uuid,
+    callerHandler: string
+  ): Promise<void>;
   voice_setCallKitConfiguration(
     configuration: Record<string, any>
   ): Promise<void>;
