@@ -781,36 +781,6 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * Report the call invite as a new incoming call to the iOS CallKit framework.
-   *
-   * @remarks
-   * This API is specific to iOS and unavailable in Android.
-   *
-   * @param callInviteUuid - The `uuid` of the `CallInvite`.
-   * @param callerHandle - The caller name that will show up in the native call app.
-   * @return
-   * A `Promise` that
-   *  - Resolves when the new incoming call is successfully reported to the system.
-   *  - Rejects when the SDK failed to report the incoming call to the system.
-   */
-  async reportNewIncomingCall(
-    callInviteUuid: Uuid,
-    callerHandle: string
-  ): Promise<void> {
-    switch (Platform.OS) {
-      case 'ios':
-        return NativeModule.voice_reportNewIncomingCall(
-          callInviteUuid,
-          callerHandle
-        );
-      default:
-        throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
-        );
-    }
-  }
-
-  /**
    * Get audio device information from the native layer.
    * @returns
    * A `Promise` that

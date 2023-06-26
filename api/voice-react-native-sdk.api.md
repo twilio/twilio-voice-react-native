@@ -262,6 +262,7 @@ export class CallInvite {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
+    reportNewIncomingCall(callInviteUuid: Uuid, callerHandle: string): Promise<void>;
 }
 
 // @public
@@ -904,7 +905,6 @@ export class Voice extends EventEmitter {
     handlePushNotification(payload: Record<string, string>): Promise<void>;
     initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
-    reportNewIncomingCall(callInviteUuid: Uuid, callerHandle: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;

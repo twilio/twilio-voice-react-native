@@ -445,22 +445,6 @@ RCT_EXPORT_METHOD(voice_handlePushNotification:(NSDictionary *)payload
     resolve(nil);
 }
 
-RCT_EXPORT_METHOD(voice_reportNewIncomingCall:(NSString *)callInviteUuid
-                  callerHandle:(NSString *)callerHandle
-                  resolover:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self reportNewIncomingCall:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
-                   callerHandle:callerHandle
-                     completion:^(NSError *error) {
-        if (error) {
-            NSString *errorMessage = [NSString stringWithFormat:@"Failed to report new incoming call: %@", error];
-            reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
-        } else {
-            resolve(nil);
-        }
-    }];
-}
-
 RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
@@ -886,6 +870,22 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
+}
+
+RCT_EXPORT_METHOD(callInvite_reportNewIncomingCall:(NSString *)callInviteUuid
+                  callerHandle:(NSString *)callerHandle
+                  resolover:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    [self reportNewIncomingCall:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
+                   callerHandle:callerHandle
+                     completion:^(NSError *error) {
+        if (error) {
+            NSString *errorMessage = [NSString stringWithFormat:@"Failed to report new incoming call: %@", error];
+            reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
+        } else {
+            resolve(nil);
+        }
+    }];
 }
 
 RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuiid

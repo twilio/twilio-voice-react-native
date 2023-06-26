@@ -6,10 +6,11 @@
  */
 
 import { Call } from './Call';
-import { NativeModule } from './common';
+import { NativeModule, Platform } from './common';
 import { InvalidStateError } from './error/InvalidStateError';
 import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
+import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 
 /**
  * Provides access to information about a call invite, including the call
@@ -190,6 +191,36 @@ export class CallInvite {
    */
   getUuid(): string {
     return this._uuid;
+  }
+
+  /**
+   * Report the call invite as a new incoming call to the iOS CallKit framework.
+   *
+   * @remarks
+   * This API is specific to iOS and unavailable in Android.
+   *
+   * @param callInviteUuid - The `uuid` of the `CallInvite`.
+   * @param callerHandle - The caller name that will show up in the native call app.
+   * @return
+   * A `Promise` that
+   *  - Resolves when the new incoming call is successfully reported to the system.
+   *  - Rejects when the SDK failed to report the incoming call to the system.
+   */
+  async reportNewIncomingCall(
+    callInviteUuid: Uuid,
+    callerHandle: string
+  ): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.callInvite_reportNewIncomingCall(
+          callInviteUuid,
+          callerHandle
+        );
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
   }
 }
 

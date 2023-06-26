@@ -177,6 +177,11 @@ export function useCallInvites(
           2
         )}`
       );
+
+      callInvite.reportNewIncomingCall(
+        callInvite.getUuid(),
+        callInvite.getTo()
+      );
     },
     [logEvent, removeCallInvite]
   );
