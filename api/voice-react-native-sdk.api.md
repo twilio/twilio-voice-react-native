@@ -262,7 +262,6 @@ export class CallInvite {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    reportNewIncomingCall(callInviteUuid: Uuid, callerHandle: string): Promise<void>;
 }
 
 // @public

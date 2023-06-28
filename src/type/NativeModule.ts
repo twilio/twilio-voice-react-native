@@ -33,10 +33,6 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   ): Promise<NativeCallInfo>;
   callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): Promise<void>;
-  callInvite_reportNewIncomingCall(
-    callInviteUuid: Uuid,
-    callerHandler: string
-  ): Promise<void>;
 
   /**
    * Voice bindings.

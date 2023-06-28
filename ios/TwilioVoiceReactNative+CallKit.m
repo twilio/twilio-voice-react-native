@@ -67,27 +67,34 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     self.callKitCallController = [CXCallController new];
 }
 
-- (void)reportNewIncomingCall:(NSUUID *)uuid
-                 callerHandle:(NSString *)callerHandle
-                   completion:(void(^)(NSError *error))completion {
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypePhoneNumber value:callerHandle];
+- (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
+    // If "displayName" is passed as a custom parameter in the TwiML application,
+    // it will be used as the caller name.
+    NSString *handleName = callInvite.from;
+    NSDictionary *customParams = callInvite.customParameters;
+    if (customParams[kCustomParametersKeyDisplayName]) {
+        NSString *callerDisplayName = customParams[kCustomParametersKeyDisplayName];
+        callerDisplayName = [callerDisplayName stringByReplacingOccurrencesOfString:@"+" withString:@" "];
+        handleName = callerDisplayName;
+    }
+    
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypePhoneNumber value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
-    callUpdate.localizedCallerName = callerHandle;
+    callUpdate.localizedCallerName = handleName;
     callUpdate.supportsDTMF = YES;
     callUpdate.supportsHolding = YES;
     callUpdate.supportsGrouping = NO;
     callUpdate.supportsUngrouping = NO;
     callUpdate.hasVideo = NO;
 
-    [self.callKitProvider reportNewIncomingCallWithUUID:uuid update:callUpdate completion:^(NSError *error) {
+    [self.callKitProvider reportNewIncomingCallWithUUID:callInvite.uuid update:callUpdate completion:^(NSError *error) {
         if (!error) {
             NSLog(@"Incoming call successfully reported.");
         } else {
             NSLog(@"Failed to report incoming call: %@.", error);
         }
-        completion(error);
     }];
 }
 

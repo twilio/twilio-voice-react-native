@@ -872,22 +872,6 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
     }
 }
 
-RCT_EXPORT_METHOD(callInvite_reportNewIncomingCall:(NSString *)callInviteUuid
-                  callerHandle:(NSString *)callerHandle
-                  resolover:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self reportNewIncomingCall:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
-                   callerHandle:callerHandle
-                     completion:^(NSError *error) {
-        if (error) {
-            NSString *errorMessage = [NSString stringWithFormat:@"Failed to report new incoming call: %@", error];
-            reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
-        } else {
-            resolve(nil);
-        }
-    }];
-}
-
 RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuiid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

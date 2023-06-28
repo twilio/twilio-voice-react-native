@@ -18,6 +18,8 @@
 
 - (void)callInviteReceived:(TVOCallInvite *)callInvite {
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
+    
+    [self reportNewIncomingCall:callInvite];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInvite,
