@@ -32,6 +32,32 @@ import java.util.Map;
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
+  public interface NotificationRemoteViewsProvider {
+    RemoteViews provideRemoteViews(final String packageName,
+                                   final String displayName,
+                                   final String contentBanner,
+                                   final PendingIntent acceptNotification,
+                                   final PendingIntent rejectNotification,
+                                   final PendingIntent wakeNotification);
+  }
+
+  public static final NotificationRemoteViewsProvider defaultRemoteViewsProvider =
+    (packageName, displayName, contentBanner, acceptNotification, rejectNotification, wakeNotification) -> {
+      RemoteViews remoteViews = new RemoteViews(packageName, R.layout.custom_notification_incoming);
+      remoteViews.setTextViewText(R.id.notif_title, displayName);
+      remoteViews.setTextViewText(R.id.notif_content, contentBanner);
+      remoteViews.setOnClickPendingIntent(R.id.button_answer, acceptNotification);
+      remoteViews.setOnClickPendingIntent(R.id.button_decline, rejectNotification);
+      remoteViews.setOnClickPendingIntent(R.id.notification, wakeNotification);
+      return remoteViews;
+    };
+
+  private static NotificationRemoteViewsProvider remoteViewsProvider = defaultRemoteViewsProvider;
+
+  public static void setRemoteViewsProvider(NotificationRemoteViewsProvider provider) {
+    remoteViewsProvider = provider;
+  }
+
   public static Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance, Context context) {
 
     Bundle extras = new Bundle();
@@ -55,20 +81,14 @@ public class NotificationUtility {
     acceptIntent.putExtra(Constants.UUID, uuid);
     PendingIntent piAcceptIntent = PendingIntent.getActivity(context.getApplicationContext(), 0, acceptIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_call_end_white_24dp);
-    String title = getDisplayName(callInvite);
-
-    RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
-    remoteViews.setTextViewText(R.id.notif_title, title);
-    remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
-
-    remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
-
     Intent notification_intent = new Intent(context.getApplicationContext(), NotificationProxyActivity.class);
     PendingIntent pendingIntent = PendingIntent.getActivity(context.getApplicationContext(), 0, notification_intent, PendingIntent.FLAG_IMMUTABLE);
 
-    remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
+    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_call_end_white_24dp);
+    String title = getDisplayName(callInvite);
+
+    RemoteViews remoteViews = remoteViewsProvider.provideRemoteViews(
+      context.getPackageName(), title, getContentBanner(context), piAcceptIntent, piRejectIntent, pendingIntent);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       Notification notification = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))
