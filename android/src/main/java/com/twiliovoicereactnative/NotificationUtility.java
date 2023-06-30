@@ -32,6 +32,15 @@ import java.util.Map;
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
+  private static String customContentBanner = null;
+
+  /**
+   * setContentBanner(..) sets the content banner string or null to use default
+   */
+  public static void setContentBanner(final String contentBanner) {
+    customContentBanner = contentBanner;
+  }
+
   public interface NotificationRemoteViewsProvider {
     RemoteViews provideRemoteViews(final String packageName,
                                    final String displayName,
@@ -369,7 +378,9 @@ public class NotificationUtility {
   }
 
   private static String getContentBanner(Context context) {
-    return context.getString(R.string.app_name) + Constants.NOTIFICATION_BANNER;
+    return (null != customContentBanner)
+      ? customContentBanner
+      : context.getString(R.string.app_name) + Constants.NOTIFICATION_BANNER;
   }
 
 }
