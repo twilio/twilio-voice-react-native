@@ -54,6 +54,10 @@ public class NotificationUtility {
 
   private static NotificationRemoteViewsProvider remoteViewsProvider = defaultRemoteViewsProvider;
 
+  /**
+   * setRemoteViewsProvider(...) - Developers wanting to override the default notification design
+   * should call this method with their own implementation of NotificationRemoteViewsProvider.
+   */
   public static void setRemoteViewsProvider(NotificationRemoteViewsProvider provider) {
     remoteViewsProvider = provider;
   }
