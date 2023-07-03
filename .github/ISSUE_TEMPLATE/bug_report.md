@@ -31,7 +31,7 @@ If applicable, add screenshots to help explain your problem.
 **Software and Device Information (please complete the following information):**
  - Device: [e.g. iPhone 12, Pixel 3]
  - OS: [e.g. iOS 16, Android API Level 31]
- - React Version
+ - React version: [e.g. 18.1.0]
  - React Native Version
  - Node Version
  - npm or yarn version
