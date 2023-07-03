@@ -30,7 +30,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Software and Device Information (please complete the following information):**
  - Device: [e.g. iPhone, Pixel3]
- - OS: [e.g. iOS16, Android API Leveln 31]
+ - OS: [e.g. iOS 16, Android API Level 31]
  - React Version
  - React Native Version
  - Node Version
