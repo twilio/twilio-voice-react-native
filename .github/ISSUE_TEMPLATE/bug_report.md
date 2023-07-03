@@ -36,7 +36,7 @@ What percentage of the time does it reproduce?
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Smartphone (please complete the following information):**
+**Software and Device Information (please complete the following information):**
  - Device: [e.g. iPhone, Pixel3]
  - OS: [e.g. iOS16, Android API Leveln 31]
  - Version [e.g. 22]
