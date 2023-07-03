@@ -423,28 +423,6 @@ RCT_EXPORT_METHOD(voice_initializePushRegistry:(RCTPromiseResolveBlock)resolve
     resolve(nil);
 }
 
-RCT_EXPORT_METHOD(voice_handlePushNotification:(NSDictionary *)payload
-                  resolover:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    if (self.twilioVoicePushRegistry) {
-        reject(kTwilioVoiceReactNativeVoiceError, @"The React Native Voice SDK already has a push registry instance to handle push notifications.", nil);
-        return;
-    }
-
-    if (![TVOCallInvite isValid:payload]) {
-        reject(kTwilioVoiceReactNativeVoiceError, @"Invalid Programmable Voice incoming call push notification payload", nil);
-        return;
-    }
-    
-    if (![TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil]) {
-        reject(kTwilioVoiceReactNativeVoiceError, @"Failed to call TwilioVoiceSDK.handleNotification()", nil);
-        return;
-    }
-
-    resolve(nil);
-}
-
 RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

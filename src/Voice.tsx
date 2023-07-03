@@ -768,19 +768,6 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * Provide the push notification payload to the SDK. The SDK will
-   * raise the `CallInvite` event if the payload represents a valid
-   * Twilio Voice incoming call.
-   * @param payload - The data payload of the push notification.
-   * @return
-   * A `Promise` that
-   *  - Resolves when the push notification payload has been examined by the SDK.
-   */
-  async handlePushNotification(payload: Record<string, string>): Promise<void> {
-    return NativeModule.voice_handlePushNotification(payload);
-  }
-
-  /**
    * Get audio device information from the native layer.
    * @returns
    * A `Promise` that
