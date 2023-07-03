@@ -23,7 +23,7 @@ What actually happens.
 
 **Reproduces How Often**
 
-What percentage of the time does it reproduce?
+Is the reproducibility of the issue deterministic? If not, what percentage of the time does the issue occur? In how many attempts was the issue observed?
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
