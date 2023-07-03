@@ -24,7 +24,7 @@ What actually happens.
 
 Is the reproducibility of the issue deterministic? If not, what percentage of the time does the issue occur? In how many attempts was the issue observed?
 
-**Screenshots**
+## Screenshots
 If applicable, add screenshots to help explain your problem.
 
 **Software and Device Information (please complete the following information):**
