@@ -33,7 +33,7 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. iOS 16, Android API Level 31]
  - React version: [e.g. 18.1.0]
  - React Native version: [e.g. 0.70.9]
- - Node Version
+ - Node version: [e.g. 16.18.1]
  - npm or yarn version: [e.g. 8.19.2, 1.22.19]
 
 **Additional context**
