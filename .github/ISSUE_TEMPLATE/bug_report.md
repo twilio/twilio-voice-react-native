@@ -20,7 +20,7 @@ A clear and concise description of what you expected to happen.
 
 What actually happens.
 
-**Reproduces How Often**
+## Reproduction Frequency
 
 Is the reproducibility of the issue deterministic? If not, what percentage of the time does the issue occur? In how many attempts was the issue observed?
 
