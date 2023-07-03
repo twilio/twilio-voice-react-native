@@ -4,8 +4,8 @@
 - [ ] I am not sharing any [Personally Identifiable Information (PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii)
        or sensitive account information (API keys, credentials, etc.) when reporting this issue.
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Describe the Issue**
+A clear and concise description of what the issue is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
