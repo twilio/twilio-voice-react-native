@@ -258,7 +258,6 @@ export class CallInvite {
     getFrom(): string;
     getState(): CallInvite.State;
     getTo(): string;
-    getUuid(): string;
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;

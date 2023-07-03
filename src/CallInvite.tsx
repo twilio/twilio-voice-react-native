@@ -183,14 +183,6 @@ export class CallInvite {
   getTo(): string {
     return this._to;
   }
-
-  /**
-   * Get the `uuid` parameter of `CallInvite` class.
-   * @returns - A `string` representing the `uuid` parameter.
-   */
-  getUuid(): string {
-    return this._uuid;
-  }
 }
 
 /**
