@@ -32,7 +32,7 @@ If applicable, add screenshots to help explain your problem.
  - Device: [e.g. iPhone 12, Pixel 3]
  - OS: [e.g. iOS 16, Android API Level 31]
  - React version: [e.g. 18.1.0]
- - React Native Version
+ - React Native version: [e.g. 0.70.9]
  - Node Version
  - npm or yarn version
 
