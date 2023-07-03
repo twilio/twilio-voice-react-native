@@ -16,7 +16,7 @@ A clear and concise description of what the issue is.
 ## Expected Behavior
 A clear and concise description of what you expected to happen.
 
-**Actual Behavior**
+## Actual Behavior
 
 What actually happens.
 
