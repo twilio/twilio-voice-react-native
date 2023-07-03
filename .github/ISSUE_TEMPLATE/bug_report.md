@@ -17,7 +17,6 @@ A clear and concise description of what the issue is.
 A clear and concise description of what you expected to happen.
 
 ## Actual Behavior
-
 What actually happens.
 
 ## Reproduction Frequency
