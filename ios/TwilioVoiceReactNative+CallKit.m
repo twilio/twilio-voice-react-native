@@ -78,7 +78,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         handleName = callerDisplayName;
     }
     
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypePhoneNumber value:handleName];
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
