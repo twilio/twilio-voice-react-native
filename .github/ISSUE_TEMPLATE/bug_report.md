@@ -34,7 +34,7 @@ If applicable, add screenshots to help explain your problem.
  - React version: [e.g. 18.1.0]
  - React Native version: [e.g. 0.70.9]
  - Node Version
- - npm or yarn version
+ - npm or yarn version: [e.g. 8.19.2, 1.22.19]
 
 **Additional context**
 Add any other context about the problem here.
