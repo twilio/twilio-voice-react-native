@@ -1,11 +1,3 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
-
----
 
 - [ ] I have verified that the issue occurs with the latest release and is not marked as a known issue in the [CHANGELOG.md](https://github.com/twilio/twilio-voice-react-native/blob/main/CHANGELOG.md).
 - [ ] I reviewed the [Common Issues](https://github.com/twilio/twilio-voice-react-native/blob/main/COMMON_ISSUES.md) and open GitHub issues and verified that this report represents a potentially new issue.
@@ -39,7 +31,10 @@ If applicable, add screenshots to help explain your problem.
 **Software and Device Information (please complete the following information):**
  - Device: [e.g. iPhone, Pixel3]
  - OS: [e.g. iOS16, Android API Leveln 31]
- - Version [e.g. 22]
+ - React Version
+ - React Native Version
+ - Node Version
+ - npm or yarn version
 
 **Additional context**
 Add any other context about the problem here.
