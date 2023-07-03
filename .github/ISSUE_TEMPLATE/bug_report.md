@@ -1,4 +1,6 @@
-# Submission Checklist
+# Issue
+
+## Pre-submission Checklist
 - [ ] I have verified that the issue occurs with the latest release and is not marked as a known issue in the [CHANGELOG.md](https://github.com/twilio/twilio-voice-react-native/blob/main/CHANGELOG.md).
 - [ ] I reviewed the [Common Issues](https://github.com/twilio/twilio-voice-react-native/blob/main/COMMON_ISSUES.md) and open GitHub issues and verified that this report represents a potentially new issue.
 - [ ] I am not sharing any [Personally Identifiable Information (PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii)
