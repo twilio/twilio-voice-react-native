@@ -29,7 +29,7 @@ What percentage of the time does it reproduce?
 If applicable, add screenshots to help explain your problem.
 
 **Software and Device Information (please complete the following information):**
- - Device: [e.g. iPhone, Pixel3]
+ - Device: [e.g. iPhone 12, Pixel 3]
  - OS: [e.g. iOS 16, Android API Level 31]
  - React Version
  - React Native Version
