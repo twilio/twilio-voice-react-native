@@ -27,7 +27,8 @@ Is the reproducibility of the issue deterministic? If not, what percentage of th
 ## Screenshots
 If applicable, add screenshots to help explain your problem.
 
-**Software and Device Information (please complete the following information):**
+## Software and Device Information
+**Please complete the following information.**
  - Device: [e.g. iPhone 12, Pixel 3]
  - OS: [e.g. iOS 16, Android API Level 31]
  - React version: [e.g. 18.1.0]
