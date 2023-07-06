@@ -56,6 +56,9 @@ AudioDeviceKeyName=name
 AudioDeviceKeyType=type
 AudioDeviceKeyAudioDevices=audioDevices
 AudioDeviceKeySelectedDevice=selectedDevice
+AudioDeviceKeyEarpiece=earpiece
+AudioDeviceKeySpeaker=speaker
+AudioDeviceKeyBluetooth=bluetooth
 
 // Call events
 // State

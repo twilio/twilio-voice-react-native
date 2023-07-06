@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyEarpiece;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySpeaker;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyBluetooth;
+
 /**
  * AudioSwitchManager singleton class. Maintains a persistent AudioSwitch object and listens for audio
  * device changes. Generates UUIDs per audio device when the AudioSwitch library updates available
@@ -60,10 +64,10 @@ public class AudioSwitchManager {
    */
   private AudioSwitchManager(Context context) {
     if (AUDIO_DEVICE_TYPE.isEmpty()) {
-      AUDIO_DEVICE_TYPE.put("Speakerphone", "speaker");
-      AUDIO_DEVICE_TYPE.put("BluetoothHeadset", "bluetooth");
-      AUDIO_DEVICE_TYPE.put("WiredHeadset", "earpiece");
-      AUDIO_DEVICE_TYPE.put("Earpiece", "earpiece");
+      AUDIO_DEVICE_TYPE.put("Speakerphone", AudioDeviceKeySpeaker);
+      AUDIO_DEVICE_TYPE.put("BluetoothHeadset", AudioDeviceKeyBluetooth);
+      AUDIO_DEVICE_TYPE.put("WiredHeadset", AudioDeviceKeyEarpiece);
+      AUDIO_DEVICE_TYPE.put("Earpiece", AudioDeviceKeyEarpiece);
     }
 
     audioDevices = new HashMap<String, AudioDevice>();
