@@ -41,6 +41,12 @@ public class NotificationUtility {
     String packageName = context.getPackageName();
     int smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
 
+    Intent foreground_intent = new Intent(context.getApplicationContext(), NotificationProxyActivity.class);
+    foreground_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND);
+    foreground_intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
+    foreground_intent.putExtra(Constants.UUID, uuid);
+    PendingIntent piForegroundIntent = PendingIntent.getActivity(context.getApplicationContext(), 0, foreground_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
     Intent rejectIntent = new Intent(context.getApplicationContext(), NotificationProxyActivity.class);
     rejectIntent.setAction(Constants.ACTION_REJECT);
     rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -62,6 +68,7 @@ public class NotificationUtility {
     remoteViews.setTextViewText(R.id.notif_title, title);
     remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
 
+    remoteViews.setOnClickPendingIntent(R.id.button_foreground_app, piForegroundIntent);
     remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
     remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
 
