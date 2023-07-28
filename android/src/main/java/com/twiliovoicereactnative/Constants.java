@@ -4,6 +4,7 @@ public class Constants {
   public static final String CALL_SID_KEY = "CALL_SID";
   public static final String VOICE_CHANNEL_LOW_IMPORTANCE = "notification-channel-low-importance";
   public static final String VOICE_CHANNEL_HIGH_IMPORTANCE = "notification-channel-high-importance";
+  public static final String VOICE_CHANNEL_DEFAULT_IMPORTANCE = "notification-channel-normal-importance";
   public static final String INCOMING_CALL_INVITE = "INCOMING_CALL_INVITE";
   public static final String CANCELLED_CALL_INVITE = "CANCELLED_CALL_INVITE";
   public static final String NOTIFICATION_ID = "NOTIFICATION_ID";

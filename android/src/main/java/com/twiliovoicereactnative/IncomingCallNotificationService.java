@@ -71,15 +71,16 @@ public class IncomingCallNotificationService extends Service {
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
           Log.d(TAG, "ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:" + uuid + " notificationId: " + notificationId);
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.cancel(notificationId);
             notificationManager.notify(
               notificationId,
               NotificationUtility.createIncomingCallNotification(
                 callInvite,
                 notificationId,
                 uuid,
-                NotificationManager.IMPORTANCE_DEFAULT,
+                Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE,
                 false,
-                this));
+                getApplicationContext()));
           }
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
@@ -186,7 +187,7 @@ public class IncomingCallNotificationService extends Service {
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
-    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, true, this));
+    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE, true, getApplicationContext()));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
   }

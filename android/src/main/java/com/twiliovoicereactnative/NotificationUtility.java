@@ -28,11 +28,12 @@ import static android.content.Context.AUDIO_SERVICE;
 
 import java.net.URLDecoder;
 import java.util.Map;
+import java.util.Objects;
 
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
-  public static Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance, boolean fullScreenIntent, Context context) {
+  public static Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, final String channelImportance, boolean fullScreenIntent, Context context) {
 
     Bundle extras = new Bundle();
     extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
@@ -78,9 +79,10 @@ public class NotificationUtility {
 
     remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Notification.Builder builder = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))
-        .setSmallIcon(smallIconResId)
+    NotificationCompat.Builder builder = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      ? new NotificationCompat.Builder(context, getChannel(context.getApplicationContext(), channelImportance))
+      : new NotificationCompat.Builder(context);
+      builder.setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
         .setContentTitle(title)
         .setContentText(getContentBanner(context))
@@ -90,31 +92,12 @@ public class NotificationUtility {
         .setCustomContentView(remoteViews)
         .setCustomBigContentView(remoteViews)
         .setContentIntent(pendingIntent);
-      if (fullScreenIntent) {
-        builder.setFullScreenIntent(pendingIntent, true);
-      }
-      Notification notification = builder.build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
-    } else {
-      NotificationCompat.Builder builder =  new NotificationCompat.Builder(context)
-        .setSmallIcon(smallIconResId)
-        .setLargeIcon(icon)
-        .setContentTitle(title)
-        .setContentText(getContentBanner(context))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent);
-      if (fullScreenIntent) {
-        builder.setFullScreenIntent(pendingIntent, true);
-      }
-      Notification notification = builder.build();
-      notification.flags |= Notification.FLAG_INSISTENT;
-      return notification;
+    if (fullScreenIntent) {
+      builder.setFullScreenIntent(pendingIntent, true);
     }
+    Notification notification = builder.build();
+    notification.flags |= Notification.FLAG_INSISTENT;
+    return notification;
   }
 
   public static Notification createCallAnsweredNotificationWithLowImportance(CallInvite callInvite, int notificationId, String uuid, Context context) {
@@ -151,7 +134,9 @@ public class NotificationUtility {
 
       remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
 
-      Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
+      Notification notification = new Notification.Builder(
+        context.getApplicationContext(),
+        getChannel(context.getApplicationContext(), Constants.VOICE_CHANNEL_LOW_IMPORTANCE))
         .setSmallIcon(smallIconResId)
         .setContentTitle(title)
         .setContentText(getContentBanner(context))
@@ -214,7 +199,9 @@ public class NotificationUtility {
 
       remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
 
-      Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
+      Notification notification = new Notification.Builder(
+        context.getApplicationContext(),
+        getChannel(context.getApplicationContext(), Constants.VOICE_CHANNEL_LOW_IMPORTANCE))
         .setSmallIcon(smallIconResId)
         .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
@@ -275,7 +262,9 @@ public class NotificationUtility {
 
       remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
 
-      Notification notification = new Notification.Builder(context.getApplicationContext(), createChannelWithLowImportance(context.getApplicationContext()))
+      Notification notification = new Notification.Builder(
+        context.getApplicationContext(),
+        getChannel(context.getApplicationContext(), Constants.VOICE_CHANNEL_LOW_IMPORTANCE))
         .setSmallIcon(smallIconResId)
         .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
@@ -304,47 +293,43 @@ public class NotificationUtility {
   }
 
   @TargetApi(Build.VERSION_CODES.O)
-  private static String createChannel(Context context, int channelImportance) {
-      // play inbound call ringer on the speaker
-    AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-    audioManager.setSpeakerphoneOn(true);
-
-    NotificationChannel callInviteChannel = new NotificationChannel(Constants.VOICE_CHANNEL_HIGH_IMPORTANCE,
-      "Primary Voice Channel", NotificationManager.IMPORTANCE_HIGH);
-    String channelId = Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
-
-    Uri soundUri = Uri.parse(
-      "android.resource://" +
-        context.getPackageName() +
-        "/" +
-        R.raw.incoming);
-
-    AudioAttributes audioAttributes = new AudioAttributes.Builder()
-      .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-      .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-      .build();
-    callInviteChannel.setImportance(channelImportance);
-    callInviteChannel.setLightColor(Color.GREEN);
-    callInviteChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-    callInviteChannel.setSound(soundUri, audioAttributes);
-    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-    notificationManager.createNotificationChannel(callInviteChannel);
-
-    return channelId;
+  private static int getChannelImportance(final String voiceChannel) {
+    if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE)) {
+      return NotificationManager.IMPORTANCE_HIGH;
+    } else if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE)) {
+      return NotificationManager.IMPORTANCE_DEFAULT;
+    } else if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)) {
+      return NotificationManager.IMPORTANCE_LOW;
+    }
+    return NotificationManager.IMPORTANCE_DEFAULT;
   }
-
   @TargetApi(Build.VERSION_CODES.O)
-  private static String createChannelWithLowImportance(Context context) {
-    NotificationChannel voiceChannel = new NotificationChannel(Constants.VOICE_CHANNEL_LOW_IMPORTANCE,
-      "Primary Voice Channel", NotificationManager.IMPORTANCE_LOW);
-    String channelId = Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
-    voiceChannel.setImportance(NotificationManager.IMPORTANCE_LOW);
-    voiceChannel.setLightColor(Color.GREEN);
-    voiceChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-    notificationManager.createNotificationChannel(voiceChannel);
+  private static String getChannel(Context context, final String voiceChannelId) {
 
-    return channelId;
+    // construct channel if it has not been created
+    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (null == notificationManager.getNotificationChannel(voiceChannelId)) {
+      final int notificaitonImportance = getChannelImportance(voiceChannelId);
+      NotificationChannel voiceChannel = new NotificationChannel(voiceChannelId, "Primary Voice Channel", notificaitonImportance);
+
+      voiceChannel.setImportance(notificaitonImportance);
+      voiceChannel.setLightColor(Color.GREEN);
+      voiceChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+      notificationManager.createNotificationChannel(voiceChannel);
+      if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE)) {
+        // play inbound call ringer on the speaker
+        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
+        audioManager.setSpeakerphoneOn(true);
+        // set audio attributes for channel
+        Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.incoming);
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+          .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+          .build();
+        voiceChannel.setSound(soundUri, audioAttributes);
+      }
+    }
+    return voiceChannelId;
   }
 
   private static String getDisplayName(CallInvite callInvite) {
