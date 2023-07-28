@@ -1,14 +1,17 @@
 import type { Constants } from '../constants';
 import type { CustomParameters, Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
+import type { Call } from '../Call';
 
 export interface NativeCallInfo {
   uuid: Uuid;
   customParameters?: CustomParameters;
   from?: string;
+  initialConnectedTimestamp?: number;
   isMuted?: boolean;
   isOnHold?: boolean;
   sid?: string;
+  state?: Call.State;
   to?: string;
 }
 

@@ -79,6 +79,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 - (instancetype)init {
     if (self = [super init]) {
         _callMap = [NSMutableDictionary dictionary];
+        _callConnectMap = [NSMutableDictionary dictionary];
         _callInviteMap = [NSMutableDictionary dictionary];
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
         _audioDevices = [NSMutableDictionary dictionary];
@@ -346,11 +347,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 // TODO: Move to separate utility file someday
 - (NSDictionary *)callInfo:(TVOCall *)call {
+    NSNumber *initialConnectTimestamp = self.callConnectMap[call.uuid.UUIDString];
     NSMutableDictionary *callInfo = [@{kTwilioVoiceReactNativeCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
                                        kTwilioVoiceReactNativeCallInfoFrom: call.from? call.from : @"",
                                        kTwilioVoiceReactNativeCallInfoIsMuted: @(call.isMuted),
                                        kTwilioVoiceReactNativeCallInfoIsOnHold: @(call.isOnHold),
                                        kTwilioVoiceReactNativeCallInfoSid: call.sid,
+                                       kTwilioVoiceReactNativeCallInfoState: [self stringOfState:call.state],
+                                       kTwilioVoiceReactNativeCallInfoInitialConnectedTimestamp: initialConnectTimestamp,
                                        kTwilioVoiceReactNativeCallInfoTo: call.to? call.to : @""} mutableCopy];
 
     TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
@@ -908,17 +912,17 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
 - (NSString *)stringOfState:(TVOCallState)state {
     switch (state) {
         case TVOCallStateConnecting:
-            return @"connecting";
+            return kTwilioVoiceReactNativeCallStateConnecting;
         case TVOCallStateRinging:
-            return @"ringing";
+            return kTwilioVoiceReactNativeCallStateRinging;
         case TVOCallStateConnected:
-            return @"conencted";
+            return kTwilioVoiceReactNativeCallStateConnected;
         case TVOCallStateReconnecting:
-            return @"reconnecting";
+            return kTwilioVoiceReactNativeCallStateReconnecting;
         case TVOCallStateDisconnected:
-            return @"disconnected";
+            return kTwilioVoiceReactNativeCallStateDisconnected;
         default:
-            return @"connecting";
+            return kTwilioVoiceReactNativeCallStateConnecting;
     }
 }
 

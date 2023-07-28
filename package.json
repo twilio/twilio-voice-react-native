@@ -33,7 +33,7 @@
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
-    "check": "yarn run build:constants yarn run build:errors && tsc --noEmit && yarn run check:lint",
+    "check": "yarn run build:constants && yarn run build:errors && tsc --noEmit && yarn run check:lint",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",

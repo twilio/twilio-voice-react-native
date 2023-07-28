@@ -68,7 +68,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
     
-    // If "displayName" is passed as a custom parameter in the TwiML application, 
+    // If "displayName" is passed as a custom parameter in the TwiML application,
     // it will be used as the caller name.
     NSString *handleName = callInvite.from;
     NSDictionary *customParams = callInvite.customParameters;
@@ -318,6 +318,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         self.callKitCompletionCallback(YES);
         self.callKitCompletionCallback = nil;
     }
+    
+    NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
+    // NSTimeInterval is defined as double
+    NSNumber *timeStampObj = [NSNumber numberWithDouble: timeStamp];
+    [self.callConnectMap setValue:timeStampObj forKey:call.uuid.UUIDString];
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
@@ -367,6 +372,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         TVOCall *activeCall = self.callMap[uuidKey];
         if (activeCall == call) {
             [self.callMap removeObjectForKey:uuidKey];
+            [self.callConnectMap removeObjectForKey:call.uuid.UUIDString];
             break;
         }
     }
@@ -482,4 +488,3 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 }
 
 @end
-

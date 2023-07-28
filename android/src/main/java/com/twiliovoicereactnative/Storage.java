@@ -14,6 +14,8 @@ public class Storage {
 
   // A map to keep uuid and active Call mapping
   static final Map<String, Call> callMap = new HashMap<>();
+  // A map to keep uuid and initial connection timestamp
+  static final Map<String, Double> callConnectMap = new HashMap<>();
   // A map to keep uuid and active CallInvite mapping
   static final Map<String, CallInvite> callInviteMap = new HashMap<>();
   // A map to keep CallSid and uuid mapping
