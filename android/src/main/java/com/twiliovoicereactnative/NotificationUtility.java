@@ -68,7 +68,7 @@ public class NotificationUtility {
     remoteViews.setTextViewText(R.id.notif_title, title);
     remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
 
-    remoteViews.setOnClickPendingIntent(R.id.button_foreground_app, piForegroundIntent);
+    remoteViews.setOnClickPendingIntent(R.id.notification_frame, piForegroundIntent);
     remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
     remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
 

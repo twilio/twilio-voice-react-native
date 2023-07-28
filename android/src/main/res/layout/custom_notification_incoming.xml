@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/notification_frame"
   android:layout_width="match_parent"
   android:layout_height="140dp"
   android:background="@drawable/layout_bg">
-  <Button
-    android:id="@+id/button_foreground_app"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent" />
   <LinearLayout
     android:orientation="vertical"
     android:layout_width="match_parent"
