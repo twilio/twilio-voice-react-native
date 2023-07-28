@@ -82,6 +82,7 @@ public class IncomingCallNotificationService extends Service {
                 false,
                 getApplicationContext()));
           }
+          LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           Log.d(TAG, "Service should never receive FOREGROUND event, there is a bug");
