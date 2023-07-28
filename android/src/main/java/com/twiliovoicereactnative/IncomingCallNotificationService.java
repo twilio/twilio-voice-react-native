@@ -70,15 +70,17 @@ public class IncomingCallNotificationService extends Service {
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
           Log.d(TAG, "ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:" + uuid + " notificationId: " + notificationId);
-          notificationManager.notify(
-            notificationId,
-            NotificationUtility.createIncomingCallNotification(
-              callInvite,
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.notify(
               notificationId,
-              uuid,
-              NotificationManager.IMPORTANCE_DEFAULT,
-              false,
-              this));
+              NotificationUtility.createIncomingCallNotification(
+                callInvite,
+                notificationId,
+                uuid,
+                NotificationManager.IMPORTANCE_DEFAULT,
+                false,
+                this));
+          }
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           Log.d(TAG, "Service should never receive FOREGROUND event, there is a bug");
