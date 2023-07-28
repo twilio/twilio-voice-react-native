@@ -76,7 +76,7 @@ public class IncomingCallNotificationService extends Service {
               callInvite,
               notificationId,
               uuid,
-              NotificationManager.IMPORTANCE_HIGH,
+              NotificationManager.IMPORTANCE_DEFAULT,
               false,
               this));
           break;
