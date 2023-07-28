@@ -26,6 +26,7 @@ public class NotificationProxyActivity extends Activity {
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           launchMainActivity();
           break;
+        case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
         case Constants.ACTION_ACCEPT:
           launchService(intent);
           launchMainActivity();

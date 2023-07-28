@@ -68,6 +68,18 @@ public class IncomingCallNotificationService extends Service {
           callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
           handleOutgoingCall(callSid, notificationId, uuid);
           break;
+        case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
+          Log.d(TAG, "ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:" + uuid + " notificationId: " + notificationId);
+          notificationManager.notify(
+            notificationId,
+            NotificationUtility.createIncomingCallNotification(
+              callInvite,
+              notificationId,
+              uuid,
+              NotificationManager.IMPORTANCE_HIGH,
+              false,
+              this));
+          break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           Log.d(TAG, "Service should never receive FOREGROUND event, there is a bug");
           break;
@@ -172,7 +184,7 @@ public class IncomingCallNotificationService extends Service {
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
-    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, this));
+    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, true, this));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
   }

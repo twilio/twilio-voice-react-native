@@ -32,7 +32,7 @@ import java.util.Map;
 public class NotificationUtility {
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
 
-  public static Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance, Context context) {
+  public static Notification createIncomingCallNotification(CallInvite callInvite, int notificationId, String uuid, int channelImportance, boolean fullScreenIntent, Context context) {
 
     Bundle extras = new Bundle();
     extras.putString(Constants.CALL_SID_KEY, callInvite.getCallSid());
@@ -42,7 +42,8 @@ public class NotificationUtility {
     int smallIconResId = res.getIdentifier("ic_notification", "drawable", packageName);
 
     Intent foreground_intent = new Intent(context.getApplicationContext(), NotificationProxyActivity.class);
-    foreground_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND);
+    foreground_intent.setAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION);
+    foreground_intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     foreground_intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     foreground_intent.putExtra(Constants.UUID, uuid);
     PendingIntent piForegroundIntent = PendingIntent.getActivity(context.getApplicationContext(), 0, foreground_intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -78,7 +79,7 @@ public class NotificationUtility {
     remoteViews.setOnClickPendingIntent(R.id.notification, pendingIntent);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      Notification notification = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))
+      Notification.Builder builder = new Notification.Builder(context.getApplicationContext(), createChannel(context.getApplicationContext(), channelImportance))
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
         .setContentTitle(title)
@@ -88,12 +89,15 @@ public class NotificationUtility {
         .setAutoCancel(true)
         .setCustomContentView(remoteViews)
         .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
+        .setContentIntent(pendingIntent);
+      if (fullScreenIntent) {
+        builder.setFullScreenIntent(pendingIntent, true);
+      }
+      Notification notification = builder.build();
       notification.flags |= Notification.FLAG_INSISTENT;
       return notification;
     } else {
-      Notification notification = new NotificationCompat.Builder(context)
+      NotificationCompat.Builder builder =  new NotificationCompat.Builder(context)
         .setSmallIcon(smallIconResId)
         .setLargeIcon(icon)
         .setContentTitle(title)
@@ -103,8 +107,11 @@ public class NotificationUtility {
         .setAutoCancel(true)
         .setCustomContentView(remoteViews)
         .setCustomBigContentView(remoteViews)
-        .setContentIntent(pendingIntent)
-        .setFullScreenIntent(pendingIntent, true).build();
+        .setContentIntent(pendingIntent);
+      if (fullScreenIntent) {
+        builder.setFullScreenIntent(pendingIntent, true);
+      }
+      Notification notification = builder.build();
       notification.flags |= Notification.FLAG_INSISTENT;
       return notification;
     }
