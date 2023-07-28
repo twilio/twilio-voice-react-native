@@ -36,3 +36,7 @@ export interface NativeCancelledCallInviteInfo {
   from: string;
   to: string;
 }
+
+export interface NativeCallInviteNotificationTapped {
+  type: Constants.VoiceEventCallInviteNotificationTapped;
+}

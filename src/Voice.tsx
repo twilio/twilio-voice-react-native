@@ -375,6 +375,7 @@ export class Voice extends EventEmitter {
       [Constants.VoiceEventCallInviteRejected]: this._handleCallInviteRejected,
       [Constants.VoiceEventCallInviteCancelled]:
         this._handleCancelledCallInvite,
+      [Constants.VoiceEventCallInviteNotificationTapped]: () => {/* TODO(mhuynh): handle this event */},
 
       /**
        * Registration
