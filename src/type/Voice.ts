@@ -34,4 +34,5 @@ export type NativeVoiceEventType =
   | Constants.VoiceEventCallInviteRejected
   | Constants.VoiceEventError
   | Constants.VoiceEventRegistered
-  | Constants.VoiceEventUnregistered;
+  | Constants.VoiceEventUnregistered
+  | Constants.VoiceEventCallInviteNotificationTapped;

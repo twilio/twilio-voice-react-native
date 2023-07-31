@@ -1,3 +1,12 @@
+1.0.0-beta.3 (In Development)
+============================
+
+Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in this version are the following.
+
+## Features
+
+- Incoming call notifications can now be tapped to bring the application into the foreground.
+
 1.0.0-beta.2 (June 23, 2023)
 ============================
 
