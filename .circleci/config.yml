@@ -183,6 +183,26 @@ jobs:
           command: |
             yarn run prepare
 
+  build-docs:
+    executor: default
+    steps:
+      - attach_project
+      - run:
+          name: Build docs and check for API changes
+          command: |
+            yarn run build:docs
+            git diff --exit-code api/
+
+  build-errors:
+    executor: default
+    steps:
+      - attach_project
+      - run:
+          name: Build errors and check for changes
+          command: |
+            yarn run build:errors
+            git diff --exit-code src/error/generated.ts
+
   run-release:
     executor:
       name: default
@@ -251,6 +271,12 @@ workflows:
           requires:
             - cache-install-dependencies
       - build-package:
+          requires:
+            - cache-install-dependencies
+      - build-docs:
+          requires:
+            - cache-install-dependencies
+      - build-errors:
           requires:
             - cache-install-dependencies
       - e2e-ios:

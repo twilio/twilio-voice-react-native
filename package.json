@@ -33,7 +33,7 @@
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
-    "check": "yarn run build:constants && yarn run build:errors && tsc --noEmit && yarn run check:lint",
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && tsc --noEmit && yarn run check:lint && git diff --exit-code src/error/generated.ts api/",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
@@ -91,7 +91,7 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "yarn run check && yarn run build:errors && yarn run build:docs && git diff --exit-code src/error/generated.ts api/"
+      "pre-commit": "yarn run check"
     }
   },
   "commitlint": {
