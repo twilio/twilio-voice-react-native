@@ -2,7 +2,7 @@
 buildscript {
     ext.versions = [
       'java'               : JavaVersion.VERSION_11,
-      'androidGradlePlugin': '7.2.1',
+      'androidGradlePlugin': '7.4.2',
       'googleServices'     : '4.3.10',
       'voiceAndroid'       : '6.2.1',
       'androidxLifecycle'  : '2.2.0',
