@@ -347,16 +347,19 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 // TODO: Move to separate utility file someday
 - (NSDictionary *)callInfo:(TVOCall *)call {
-    NSNumber *initialConnectTimestamp = self.callConnectMap[call.uuid.UUIDString];
     NSMutableDictionary *callInfo = [@{kTwilioVoiceReactNativeCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
                                        kTwilioVoiceReactNativeCallInfoFrom: call.from? call.from : @"",
                                        kTwilioVoiceReactNativeCallInfoIsMuted: @(call.isMuted),
                                        kTwilioVoiceReactNativeCallInfoIsOnHold: @(call.isOnHold),
                                        kTwilioVoiceReactNativeCallInfoSid: call.sid,
                                        kTwilioVoiceReactNativeCallInfoState: [self stringOfState:call.state],
-                                       kTwilioVoiceReactNativeCallInfoInitialConnectedTimestamp: initialConnectTimestamp,
                                        kTwilioVoiceReactNativeCallInfoTo: call.to? call.to : @""} mutableCopy];
 
+    NSNumber *initialConnectedTimestamp = self.callConnectMap[call.uuid.UUIDString];
+    if (initialConnectedTimestamp != nil) {
+        callInfo[kTwilioVoiceReactNativeCallInfoInitialConnectedTimestamp] = initialConnectedTimestamp;
+    }
+    
     TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
     if (callInvite && callInvite.customParameters) {
         callInfo[kTwilioVoiceReactNativeCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
