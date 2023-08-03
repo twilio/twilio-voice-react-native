@@ -191,8 +191,8 @@ export declare interface Voice {
    * notification of a pending call invite has been tapped.
    *
    * @remarks
-   * Supported platforms:
-   * - Android
+   * Unsupported platforms:
+   * - iOS
    *
    * This event is raised by the native layer, i.e. through the native Android
    * UI.
@@ -859,8 +859,8 @@ export class Voice extends EventEmitter {
    * Show the native AV route picker.
    *
    * @remarks
-   * Supported platforms:
-   * - iOS
+   * Unsupported platforms:
+   * - Android
    *
    * This API is specific to iOS and unavailable in Android. If this API is
    * invoked on Android, there will be no operation and the returned `Promise`
@@ -880,8 +880,8 @@ export class Voice extends EventEmitter {
    * @param configuration - iOS CallKit configuration options.
    *
    * @remarks
-   * Supported platforms:
-   * - iOS
+   * Unsupported platforms:
+   * - Android
    *
    * See {@link CallKit} for more information.
    *
@@ -928,9 +928,8 @@ export namespace Voice {
      * handle.
      *
      * @remarks
-     * Applies to the following platforms:
-     *  iOS
-     * Ignored on other platforms.
+     * Unsupported platforms:
+     * - Android
      */
     contactHandle?: string;
   };
