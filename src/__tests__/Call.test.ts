@@ -387,7 +387,7 @@ describe('Call class', () => {
     });
 
     describe('.getInitialConnectedTimestamp', () => {
-      it('does the thing', () => {
+      it('gets the timestamp', () => {
         const nativeInfo = createNativeCallInfo();
         nativeInfo.initialConnectedTimestamp = 12321;
         const call = new Call(nativeInfo);
