@@ -29,6 +29,12 @@ export const mockVoiceNativeEvents = {
       callInvite: createNativeCallInviteInfo(),
     },
   },
+  callInviteNotificationTapped: {
+    name: Constants.VoiceEventCallInviteNotificationTapped,
+    nativeEvent: {
+      type: Constants.VoiceEventCallInviteNotificationTapped,
+    },
+  },
   callInviteRejected: {
     name: Constants.VoiceEventCallInviteRejected,
     nativeEvent: {
