@@ -191,8 +191,16 @@ export declare interface Voice {
    * notification of a pending call invite has been tapped.
    *
    * @remarks
+   * Supported platforms:
+   * - Android
+   *
    * This event is raised by the native layer, i.e. through the native Android
    * UI.
+   *
+   * This event is never raised when the application is running on the iOS
+   * platform due to CallKit. Attaching a listener while running on an iOS
+   * device is a no-operation, the listener will never be invoked, but no
+   * error will occur.
    *
    * @example
    * ```typescript
@@ -851,6 +859,9 @@ export class Voice extends EventEmitter {
    * Show the native AV route picker.
    *
    * @remarks
+   * Supported platforms:
+   * - iOS
+   *
    * This API is specific to iOS and unavailable in Android. If this API is
    * invoked on Android, there will be no operation and the returned `Promise`
    * will immediately resolve with `null`.
@@ -869,6 +880,9 @@ export class Voice extends EventEmitter {
    * @param configuration - iOS CallKit configuration options.
    *
    * @remarks
+   * Supported platforms:
+   * - iOS
+   *
    * See {@link CallKit} for more information.
    *
    * @returns
