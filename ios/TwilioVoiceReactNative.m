@@ -295,7 +295,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     NSLog(@"Selecting %@(%@), %@", device[kTwilioVoiceReactNativeAudioDeviceKeyName], device[kTwilioVoiceReactNativeAudioDeviceKeyType], device[kTwilioVoiceAudioDeviceUid]);
 
     AVAudioSessionPortDescription *portDescription = nil;
-    if ([portType isEqualToString:@"Earpiece"]) {
+    if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyEarpiece]) {
         NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
         for (AVAudioSessionPortDescription *port in availableInputs) {
             if ([port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
@@ -308,7 +308,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
             NSLog(@"Built-in mic not found");
             return NO;
         }
-    } else if ([portType isEqualToString:@"Bluetooth"]) {
+    } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyBluetooth]) {
         NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
         for (AVAudioSessionPortDescription *port in availableInputs) {
             if ([port.UID isEqualToString:portUid]) {
@@ -331,14 +331,15 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return NO;
     }
 
-    // Override output to speaker if speaker is selected, otherwise choose "none"
-    AVAudioSessionPortOverride outputOverride = ([portType isEqualToString:@"Speaker"])?
-                                                AVAudioSessionPortOverrideSpeaker : AVAudioSessionPortOverrideNone;
-    NSError *outputError;
-    [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
-    if (outputError) {
-        NSLog(@"Failed to override output port: %@", outputError);
-        return NO;
+    // Override output to speaker if speaker is selected
+    if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeySpeaker]) {
+        AVAudioSessionPortOverride outputOverride = AVAudioSessionPortOverrideSpeaker;
+        NSError *outputError;
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
+        if (outputError) {
+            NSLog(@"Failed to override output port: %@", outputError);
+            return NO;
+        }
     }
 
     return YES;

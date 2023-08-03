@@ -7,6 +7,10 @@ Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in th
 
 - Incoming call notifications can now be tapped to bring the application into the foreground.
 
+## Fixes
+
+- Fixed a bug where switching from Bluetooth to the iOS earpiece during a call does not have any effect or error.
+
 1.0.0-beta.2 (June 23, 2023)
 ============================
 
