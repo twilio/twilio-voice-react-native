@@ -3,6 +3,7 @@ import type { NativeAudioDevicesUpdatedEvent } from './AudioDevice';
 import type {
   NativeCallInviteEvent,
   NativeCallInviteAcceptedEvent,
+  NativeCallInviteNotificationTappedEvent,
   NativeCallInviteRejectedEvent,
   NativeCancelledCallInviteEvent,
 } from './CallInvite';
@@ -20,6 +21,7 @@ export type NativeVoiceEvent =
   | NativeAudioDevicesUpdatedEvent
   | NativeCallInviteEvent
   | NativeCallInviteAcceptedEvent
+  | NativeCallInviteNotificationTappedEvent
   | NativeCallInviteRejectedEvent
   | NativeCancelledCallInviteEvent
   | NativeErrorEvent
@@ -30,9 +32,9 @@ export type NativeVoiceEventType =
   | Constants.VoiceEventAudioDevicesUpdated
   | Constants.VoiceEventCallInvite
   | Constants.VoiceEventCallInviteAccepted
-  | Constants.VoiceEventCallInviteCancelled
+  | Constants.VoiceEventCallInviteNotificationTapped
   | Constants.VoiceEventCallInviteRejected
+  | Constants.VoiceEventCallInviteCancelled
   | Constants.VoiceEventError
   | Constants.VoiceEventRegistered
-  | Constants.VoiceEventUnregistered
-  | Constants.VoiceEventCallInviteNotificationTapped;
+  | Constants.VoiceEventUnregistered;
