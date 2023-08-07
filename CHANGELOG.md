@@ -6,7 +6,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in th
 ## Features
 
 - Incoming call notifications can now be tapped to bring the application into the foreground.
-- Service now specifies foreground service type MICROPHONE on API 30 >= devices.
+- On Android, Incomming call service now specifies foreground service type MICROPHONE on API >= 30 devices. This results in the compiled sdk verison being bumped to 33 from 29
 
 
 1.0.0-beta.2 (June 23, 2023)
