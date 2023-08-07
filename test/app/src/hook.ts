@@ -191,6 +191,10 @@ export function useCallInvites(
     [callHandler, logEvent, removeCallInvite]
   );
 
+  const callInviteNotificationTappedHandler = React.useCallback(() => {
+    logEvent(`call invite notification tapped`);
+  }, [logEvent]);
+
   const callInviteRejectedHandler = React.useCallback(
     async (callInvite: CallInvite) => {
       const callSid = callInvite.getCallSid();
@@ -218,6 +222,7 @@ export function useCallInvites(
     callInvites,
     callInviteHandler,
     callInviteAcceptedHandler,
+    callInviteNotificationTappedHandler,
     callInviteRejectedHandler,
     cancelledCallInviteHandler,
     recentCallInvite,
@@ -240,6 +245,7 @@ export function useVoice(token: string) {
   const {
     callInviteHandler,
     callInviteAcceptedHandler,
+    callInviteNotificationTappedHandler,
     callInviteRejectedHandler,
     cancelledCallInviteHandler,
     recentCallInvite,
@@ -353,6 +359,10 @@ export function useVoice(token: string) {
 
     voice.on(Voice.Event.CallInvite, callInviteHandler);
     voice.on(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
+    voice.on(
+      Voice.Event.CallInviteNotificationTapped,
+      callInviteNotificationTappedHandler
+    );
     voice.on(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
     voice.on(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
     voice.on(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
@@ -369,6 +379,7 @@ export function useVoice(token: string) {
     callHandler,
     callInviteHandler,
     callInviteAcceptedHandler,
+    callInviteNotificationTappedHandler,
     callInviteRejectedHandler,
     cancelledCallInviteHandler,
     voice,

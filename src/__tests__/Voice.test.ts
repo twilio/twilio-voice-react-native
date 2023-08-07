@@ -73,6 +73,7 @@ describe('Voice class', () => {
           Constants.VoiceEventCallInvite,
           Constants.VoiceEventCallInviteAccepted,
           Constants.VoiceEventCallInviteCancelled,
+          Constants.VoiceEventCallInviteNotificationTapped,
           Constants.VoiceEventCallInviteRejected,
           Constants.VoiceEventError,
           Constants.VoiceEventRegistered,
@@ -304,6 +305,22 @@ describe('Voice class', () => {
         const [cancelledCallInvite, error] = listenerMock.mock.calls[0];
         expect(cancelledCallInvite).toBeInstanceOf(MockCancelledCallInvite);
         expect(error).toBeInstanceOf(MockTwilioError);
+      });
+    });
+
+    describe(Constants.VoiceEventCallInviteNotificationTapped, () => {
+      it('emits CallInviteNotificationTapped', () => {
+        const voice = new Voice();
+        const listenerMock = jest.fn();
+        voice.on(Voice.Event.CallInviteNotificationTapped, listenerMock);
+
+        MockNativeEventEmitter.emit(
+          Constants.ScopeVoice,
+          mockVoiceNativeEvents.callInviteNotificationTapped.nativeEvent
+        );
+
+        expect(listenerMock).toHaveBeenCalledTimes(1);
+        expect(listenerMock.mock.calls[0]).toHaveLength(0);
       });
     });
 
@@ -801,6 +818,7 @@ describe('Voice class', () => {
       '_handleAudioDevicesUpdated',
       '_handleCallInvite',
       '_handleCallInviteAccepted',
+      '_handleCallInviteNotificationTapped',
       '_handleCallInviteRejected',
       '_handleCancelledCallInvite',
       '_handleError',
