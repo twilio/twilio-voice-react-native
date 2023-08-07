@@ -2,11 +2,11 @@
 buildscript {
     ext.versions = [
       'java'               : JavaVersion.VERSION_11,
-      'androidGradlePlugin': '7.2.1',
+      'androidGradlePlugin': '7.4.2',
       'googleServices'     : '4.3.10',
-      'voiceAndroid'       : '6.1.3',
+      'voiceAndroid'       : '6.2.1',
       'androidxLifecycle'  : '2.2.0',
-      'audioSwitch'        : '1.1.7',
+      'audioSwitch'        : '1.1.8',
       'firebaseMessaging'  : '23.1.2'
     ]
     if (project == rootProject) {
@@ -29,11 +29,10 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-    compileSdkVersion safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 31)
-    buildToolsVersion safeExtGet('TwilioVoiceReactNative_buildToolsVersion', '30.0.2')
+    compileSdk safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 33)
     defaultConfig {
         minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 21)
-        targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 29)
+        targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 33)
         versionCode 1
         versionName "1.0"
     }
