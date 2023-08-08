@@ -25,6 +25,12 @@ Twilio Voice React Native SDK has now reached milestone `beta.2`. Included in th
 
 - Pinned to a specific version of the Twilio Voice iOS SDK. This fixes issues with some builds failing on iOS platforms.
 - Fixed the Intent flags on Android platforms. This fixes issues with the application crashing on newer versions of Android.
+- Calls will now persist their state through JS runtimes. Now, if the React Native JS layer encounters a restart, and if your code performs `Voice.getCalls`, the `Call` objects will now have the proper state.
+
+## Features
+
+- Calls will now persist a timestamp (millseconds since epoch) of when they initially receive the `Call.Event.Connected` event.
+  See `Call.getInitialConnectedTimestamp`.
 
 1.0.0-beta.1 (March 10, 2023)
 =============================

@@ -386,6 +386,15 @@ describe('Call class', () => {
       });
     });
 
+    describe('.getInitialConnectedTimestamp', () => {
+      it('gets the timestamp', () => {
+        const nativeInfo = createNativeCallInfo();
+        nativeInfo.initialConnectedTimestamp = 12321;
+        const call = new Call(nativeInfo);
+        expect(call.getInitialConnectedTimestamp()).toBe(12321);
+      });
+    });
+
     describe('.getSid', () => {
       it('returns the sid value', () => {
         const sid = new Call(createNativeCallInfo()).getSid();
@@ -395,8 +404,17 @@ describe('Call class', () => {
 
     describe('.getState', () => {
       it('returns the call state', () => {
-        const state = new Call(createNativeCallInfo()).getState();
-        expect(state).toBe(Call.State.Connecting);
+        const nativeInfo = createNativeCallInfo();
+        nativeInfo.state = Call.State.Ringing;
+        const call = new Call(nativeInfo);
+        expect(call.getState()).toBe(Call.State.Ringing);
+      });
+
+      it('returns the default call state if missing from the native info', () => {
+        const nativeInfo = createNativeCallInfo();
+        nativeInfo.state = undefined;
+        const call = new Call(nativeInfo);
+        expect(call.getState()).toBe(Call.State.Connecting);
       });
     });
 

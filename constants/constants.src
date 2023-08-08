@@ -26,6 +26,15 @@ CallInfoFrom=from
 CallInfoTo=to
 CallInfoIsMuted=isMuted
 CallInfoIsOnHold=isOnHold
+CallInfoState=state
+CallInfoInitialConnectedTimestamp=initialConnectedTimestamp
+
+// Call States
+CallStateConnected=connected
+CallStateConnecting=connecting
+CallStateDisconnected=disconnected
+CallStateReconnecting=reconnecting
+CallStateRinging=ringing
 
 // Call Invite Info
 CallInviteInfoUuid=uuid

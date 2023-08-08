@@ -317,7 +317,11 @@ export function useVoice(token: string) {
     voice.getCalls().then((callsMap) => {
       const readableCalls: Record<string, any> = {};
       for (const [callUuid, _callInfo] of callsMap.entries()) {
-        readableCalls[callUuid] = _callInfo.getSid();
+        readableCalls[callUuid] = {
+          sid: _callInfo.getSid(),
+          state: _callInfo.getState(),
+          initialConnectedTimestamp: _callInfo.getInitialConnectedTimestamp(),
+        };
       }
       logEvent(JSON.stringify(readableCalls, null, 2));
     });

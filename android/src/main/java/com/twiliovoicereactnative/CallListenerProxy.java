@@ -30,6 +30,7 @@ import static com.twiliovoicereactnative.CommonConstants.CallEventConnectFailure
 import static com.twiliovoicereactnative.CommonConstants.CallEventQualityWarningsChanged;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
+import java.util.Date;
 import java.util.Set;
 
 class CallListenerProxy implements Call.Listener {
@@ -85,6 +86,8 @@ class CallListenerProxy implements Call.Listener {
 
     AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
     MediaPlayerManager.getInstance(this.context).stopRinging();
+
+    Storage.callConnectMap.put(uuid, (double) new Date().getTime());
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventConnected);

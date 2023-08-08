@@ -172,10 +172,11 @@ export class Call extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, customParameters, from, sid, to, isMuted, isOnHold, }: NativeCallInfo);
+    constructor({ uuid, customParameters, from, sid, state, to, isMuted, isOnHold, initialConnectedTimestamp, }: NativeCallInfo);
     disconnect(): Promise<void>;
     getCustomParameters(): CustomParameters;
     getFrom(): string | undefined;
+    getInitialConnectedTimestamp(): number | undefined;
     getSid(): string | undefined;
     getState(): Call.State;
     getStats(): Promise<RTCStats.StatsReport>;
@@ -241,7 +242,7 @@ export namespace Call {
         'Connected' = "connected",
         'Connecting' = "connecting",
         'Disconnected' = "disconnected",
-        'Reconnecting' = "reconnected",
+        'Reconnecting' = "reconnecting",
         'Ringing' = "ringing"
     }
 }

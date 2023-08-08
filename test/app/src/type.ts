@@ -13,7 +13,7 @@ export interface BoundCallInfo {
   customParameters: Record<any, any>;
   from?: string;
   to?: string;
-  state?: string;
+  state?: Call.State;
   sid?: string;
   isMuted?: boolean;
   isOnHold?: boolean;
