@@ -321,7 +321,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     
     NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
     // NSTimeInterval is defined as double
-    NSNumber *timeStampObj = [NSNumber numberWithDouble: timeStamp];
+    NSNumber *timeStampObj = [NSNumber numberWithDouble:timeStamp];
     [self.callConnectMap setValue:timeStampObj forKey:call.uuid.UUIDString];
 }
 
