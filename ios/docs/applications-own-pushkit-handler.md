@@ -16,7 +16,7 @@ To use your existing iOS PushKit delegate module, a few steps need to be done by
 
 ### PushKit device token updated
 
-Upon getting the PushKit device token update, post a notification and include the device token (in the form of `NSData`) in the `userInfo`. The device token will later be used when calling the `Voice.register()` method.
+Upon receiving the PushKit device token update, post a notification and include the device token (in the form of `NSData`) in the `userInfo`. The device token will later be used when calling the `Voice.register()` method.
 
 ```.objc
 - (void)pushRegistry:(PKPushRegistry *)registry
@@ -53,7 +53,7 @@ withCompletionHandler:(void (^)(void))completion {
 
 A `CallInvite` event will be raised to the application so the user can accept or reject the call invite.
 
-### Reporting new incoming call to iOS CallKit
+### Reporting a new incoming call to iOS CallKit
 
 The React Native Voice SDK uses Apple's VoIP Service for delivering incoming call notifications. The React Native Voice SDK automatically reports a new incoming call to CallKit upon the `callInviteReceived:` callback to ensure it happens before completing PushKit callback handler. For more information, check out the [Responding to VoIP Notifications from PushKit](https://developer.apple.com/documentation/pushkit/responding_to_voip_notifications_from_pushkit?language=objc) article by Apple.
 

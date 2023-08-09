@@ -814,14 +814,16 @@ export class Voice extends EventEmitter {
 
   /**
    * Initialize a Push Registry instance inside the SDK for handling
-   * PushKit device token update and receiving push notifications.
+   * PushKit device token updates and receiving push notifications.
    *
    * @remarks
+   Unsupport platforms:
+   - Android
    * This API is specific to iOS and unavailable in Android.
    * Use this method if the application does not have an iOS PushKit
    * module and wishes to delegate the event handling to the SDK.
-   * Call this method at app launch time to guarantee incoming call
-   * push notifications to be surfaced to the users, especially when
+   * Call this method upon launching the app to guarantee that incoming
+   * call push notifications will be surfaced to the users, especially when
    * the app is not running in the foreground.
    *
    * @return
