@@ -53,7 +53,7 @@ Additionally, we are also introducing the new Twilio Voice React Native Referenc
   }
   ```
   Not passing an options object or leaving any member of the options object undefined will result in those options using default values.
-  See the API documentation for descriptions of options [here](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/apidocs/voice-react-native-sdk.md).
+  See the API documentation for descriptions of options [here](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/docs/voice-react-native-sdk.md).
 
 ## Features
 
@@ -73,7 +73,7 @@ Additionally, we are also introducing the new Twilio Voice React Native Referenc
     }
   });
   ```
-  See the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/apidocs/voice-react-native-sdk.twilioerrors_namespace.md) for all error classes.
+  See the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/1.0.0-beta.1/docs/voice-react-native-sdk.twilioerrors_namespace.md) for all error classes.
 
 ## Fixes
 
