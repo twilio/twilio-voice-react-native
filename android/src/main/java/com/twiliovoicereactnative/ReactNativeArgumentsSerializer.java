@@ -1,14 +1,23 @@
 package com.twiliovoicereactnative;
 
+import android.util.Log;
+
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyAudioDevices;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyName;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyType;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoFrom;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoInitialConnectedTimestamp;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoSid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoState;
+import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
+import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
+import static com.twiliovoicereactnative.CommonConstants.CallStateDisconnected;
+import static com.twiliovoicereactnative.CommonConstants.CallStateReconnecting;
+import static com.twiliovoicereactnative.CommonConstants.CallStateRinging;
 import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCallSid;
 import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCustomParameters;
 import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoFrom;
@@ -34,6 +43,8 @@ import java.util.Map.Entry;
  * React Native (RN) bridge objects emit-able to the JS layer.
  */
 public class ReactNativeArgumentsSerializer {
+  static final String TAG = "RNArgSerializer";
+
   /**
    * Serializes the custom parameters of a CallInvite.
    * @param callInvite A CallInvite object
@@ -84,6 +95,29 @@ public class ReactNativeArgumentsSerializer {
   }
 
   /**
+   * Convert the call state enumeration to a string that the JS layer expects.
+   * @param state The call state
+   * @return A string representing the state
+   */
+  public static String callStateToString(Call.State state) {
+    switch (state) {
+      case CONNECTED:
+        return CallStateConnected;
+      case CONNECTING:
+        return CallStateConnecting;
+      case DISCONNECTED:
+        return CallStateDisconnected;
+      case RECONNECTING:
+        return CallStateReconnecting;
+      case RINGING:
+        return CallStateRinging;
+    }
+
+    Log.d(TAG, "Unknown call state: " + state.toString());
+    return CallStateConnecting;
+  }
+
+  /**
    * Serializes a Call.
    * @param uuid The UUID of the Call
    * @param call The Call
@@ -95,6 +129,12 @@ public class ReactNativeArgumentsSerializer {
     callInfo.putString(CallInfoSid, call.getSid());
     callInfo.putString(CallInfoFrom, call.getFrom());
     callInfo.putString(CallInfoTo, call.getTo());
+    callInfo.putString(CallInfoState, callStateToString(call.getState()));
+
+    Double timestamp = Storage.callConnectMap.get(uuid);
+    if (timestamp != null) {
+      callInfo.putDouble(CallInfoInitialConnectedTimestamp, timestamp);
+    }
 
     CallInvite callInvite = Storage.callInviteMap.get(uuid);
     if (callInvite != null) {

@@ -20,6 +20,10 @@ export interface NativeCallInviteAcceptedEvent {
   callInvite: NativeCallInviteInfo;
 }
 
+export interface NativeCallInviteNotificationTappedEvent {
+  type: Constants.VoiceEventCallInviteNotificationTapped;
+}
+
 export interface NativeCallInviteRejectedEvent {
   type: Constants.VoiceEventCallInviteRejected;
   callInvite: NativeCallInviteInfo;

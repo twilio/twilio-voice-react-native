@@ -1,10 +1,12 @@
 package com.twiliovoicereactnative;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -68,6 +70,22 @@ public class IncomingCallNotificationService extends Service {
           callSid = intent.getStringExtra(Constants.CALL_SID_KEY);
           handleOutgoingCall(callSid, notificationId, uuid);
           break;
+        case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
+          Log.d(TAG, "ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:" + uuid + " notificationId: " + notificationId);
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.cancel(notificationId);
+            notificationManager.notify(
+              notificationId,
+              NotificationUtility.createIncomingCallNotification(
+                callInvite,
+                notificationId,
+                uuid,
+                Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE,
+                false,
+                getApplicationContext()));
+          }
+          LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+          break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           Log.d(TAG, "Service should never receive FOREGROUND event, there is a bug");
           break;
@@ -109,7 +127,7 @@ public class IncomingCallNotificationService extends Service {
     notificationManager.cancel(notificationId);
 
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
-    startForeground(notificationId, NotificationUtility.createCallAnsweredNotificationWithLowImportance(callInvite, notificationId, uuid, this));
+    startForegroundCompat(notificationId, NotificationUtility.createCallAnsweredNotificationWithLowImportance(callInvite, notificationId, uuid, this));
     // Send the broadcast in case TwilioVoiceReactNative is loaded, it can emit the event
     LocalBroadcastManager.getInstance(this).sendBroadcast(activeCallIntent);
   }
@@ -137,7 +155,7 @@ public class IncomingCallNotificationService extends Service {
     Log.e(TAG, "Outgoing Call UUID " + uuid + " notificationId " + notificationId + " callSid " + callSid);
 
     NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    startForeground(notificationId, NotificationUtility.createOutgoingCallNotificationWithLowImportance(callSid, notificationId, uuid, this, true));
+    startForegroundCompat(notificationId, NotificationUtility.createOutgoingCallNotificationWithLowImportance(callSid, notificationId, uuid, this, true));
   }
 
   private void handleCancelledCall(Intent intent, String callSid, int notificationId, String uuid) {
@@ -157,6 +175,13 @@ public class IncomingCallNotificationService extends Service {
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
   }
 
+  private void startForegroundCompat(int id, Notification notification) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+    } else {
+      startForeground(id, notification);
+    }
+  }
   private void endForeground() {
     // after inbound call is accepted or rejected / disconnected
     // release the override of setSpeakerphoneOn(true) from NotificationUtility::createChannel
@@ -172,7 +197,7 @@ public class IncomingCallNotificationService extends Service {
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
-    startForeground(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, NotificationManager.IMPORTANCE_HIGH, this));
+    startForegroundCompat(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE, true, getApplicationContext()));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
     Storage.uuidNotificaionIdMap.put(uuid, notificationId);
   }

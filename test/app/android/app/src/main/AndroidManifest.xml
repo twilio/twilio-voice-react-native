@@ -39,6 +39,7 @@
     <service
       android:enabled="true"
       android:name="com.twiliovoicereactnative.IncomingCallNotificationService"
+      android:foregroundServiceType="microphone"
       android:exported="true">
       <intent-filter>
         <action android:name="ACTION_ACCEPT" />

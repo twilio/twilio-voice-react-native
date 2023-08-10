@@ -13,6 +13,7 @@ export function createNativeCallInfo(): NativeCallInfo {
     },
     from: 'mock-nativecallinfo-from',
     isMuted: false,
+    initialConnectedTimestamp: 0,
     isOnHold: false,
     sid: 'mock-nativecallinfo-sid',
     to: 'mock-nativecallinfo-to',

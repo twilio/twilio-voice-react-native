@@ -172,10 +172,11 @@ export class Call extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, customParameters, from, sid, to, isMuted, isOnHold, }: NativeCallInfo);
+    constructor({ uuid, customParameters, from, sid, state, to, isMuted, isOnHold, initialConnectedTimestamp, }: NativeCallInfo);
     disconnect(): Promise<void>;
     getCustomParameters(): CustomParameters;
     getFrom(): string | undefined;
+    getInitialConnectedTimestamp(): number | undefined;
     getSid(): string | undefined;
     getState(): Call.State;
     getStats(): Promise<RTCStats.StatsReport>;
@@ -241,7 +242,7 @@ export namespace Call {
         'Connected' = "connected",
         'Connecting' = "connecting",
         'Disconnected' = "disconnected",
-        'Reconnecting' = "reconnected",
+        'Reconnecting' = "reconnecting",
         'Ringing' = "ringing"
     }
 }
@@ -854,6 +855,7 @@ export interface Voice {
     addListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     addListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
     addListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
+    addListener(callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped, listener: Voice.Listener.CallInviteNotificationTapped): this;
     addListener(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
     addListener(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
     addListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
@@ -868,6 +870,8 @@ export interface Voice {
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteAccepted, callInvite: CallInvite, call: Call): boolean;
     // @internal (undocumented)
+    emit(voiceEvent: Voice.Event.CallInviteNotificationTapped): boolean;
+    // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInviteRejected, callInvite: CallInvite): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: TwilioError): boolean;
@@ -881,6 +885,7 @@ export interface Voice {
     on(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     on(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
     on(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
+    on(callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped, listener: Voice.Listener.CallInviteNotificationTapped): this;
     on(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
     on(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
     on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
@@ -917,6 +922,7 @@ export namespace Voice {
         'AudioDevicesUpdated' = "audioDevicesUpdated",
         'CallInvite' = "callInvite",
         'CallInviteAccepted' = "callInviteAccepted",
+        'CallInviteNotificationTapped' = "callInviteNotificationTapped",
         'CallInviteRejected' = "callInviteRejected",
         'CancelledCallInvite' = "cancelledCallInvite",
         'Error' = "error",
@@ -927,6 +933,7 @@ export namespace Voice {
         export type AudioDevicesUpdated = (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => void;
         export type CallInvite = (callInvite: CallInvite) => void;
         export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
+        export type CallInviteNotificationTapped = () => void;
         export type CallInviteRejected = (callInvite: CallInvite) => void;
         export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void;
         export type Error = (error: TwilioError) => void;

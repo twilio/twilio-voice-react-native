@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteNotificationTapped;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
@@ -44,6 +45,7 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
     intentFilter.addAction(Constants.ACTION_FCM_TOKEN);
     intentFilter.addAction(Constants.ACTION_ACCEPT);
     intentFilter.addAction(Constants.ACTION_REJECT);
+    intentFilter.addAction(Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION);
 
     LocalBroadcastManager
       .getInstance(context)
@@ -155,6 +157,12 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         error.putString(VoiceErrorKeyMessage, errorMessage);
         params.putMap(VoiceErrorKeyError, error);
 
+        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+        break;
+      case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
+        Log.d(TAG, "Successfully received ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION notification");
+        // send some event to JS
+        params.putString(VoiceEventType, VoiceEventCallInviteNotificationTapped);
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
         break;
       default:

@@ -1,3 +1,37 @@
+1.0.0-beta.3 (In Development)
+============================
+
+Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in this version are the following.
+
+## Features
+
+- Incoming call notifications can now be tapped to bring the application into the foreground.
+- On Android, IncomingCallService now specifies foreground service type MICROPHONE on `API >= 30` devices. This change also resulted in the compiled SDK verison being bumped to `33` from `29`.
+- Tapping on an incoming call notification will emit an event on Android platforms.
+  See `Voice.Event.CallInviteNotificationTapped` for more information.
+
+## Fixes
+
+- Fixed a bug where switching from Bluetooth to the iOS earpiece during a call does not have any effect or error.
+
+
+
+1.0.0-beta.2 (June 23, 2023)
+============================
+
+Twilio Voice React Native SDK has now reached milestone `beta.2`. Included in this version are the following.
+
+## Fixes
+
+- Pinned to a specific version of the Twilio Voice iOS SDK. This fixes issues with some builds failing on iOS platforms.
+- Fixed the Intent flags on Android platforms. This fixes issues with the application crashing on newer versions of Android.
+- Calls will now persist their state through JS runtimes. Now, if the React Native JS layer encounters a restart, and if your code performs `Voice.getCalls`, the `Call` objects will now have the proper state.
+
+## Features
+
+- Calls will now persist a timestamp (millseconds since epoch) of when they initially receive the `Call.Event.Connected` event.
+  See `Call.getInitialConnectedTimestamp`.
+
 1.0.0-beta.1 (March 10, 2023)
 =============================
 

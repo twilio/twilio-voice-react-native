@@ -332,6 +332,10 @@ export class Call extends EventEmitter {
    */
   private _from?: string;
   /**
+   * Initial `connected` timestamp. Milliseconds since epoch.
+   */
+  private _initialConnectedTimestamp?: number;
+  /**
    * A boolean representing if the call is currently muted.
    */
   private _isMuted?: boolean;
@@ -349,7 +353,7 @@ export class Call extends EventEmitter {
    * @remarks
    * See {@link (Call:namespace).State}.
    */
-  private _state: Call.State = Call.State.Connecting;
+  private _state: Call.State;
   /**
    * Call `to` parameter.
    */
@@ -385,9 +389,11 @@ export class Call extends EventEmitter {
     customParameters,
     from,
     sid,
+    state,
     to,
     isMuted,
     isOnHold,
+    initialConnectedTimestamp,
   }: NativeCallInfo) {
     super();
 
@@ -395,9 +401,11 @@ export class Call extends EventEmitter {
     this._customParameters = { ...customParameters };
     this._from = from;
     this._sid = sid;
+    this._state = typeof state === 'string' ? state : Call.State.Connecting;
     this._to = to;
     this._isMuted = isMuted;
     this._isOnHold = isOnHold;
+    this._initialConnectedTimestamp = initialConnectedTimestamp;
 
     this._nativeEventHandler = {
       /**
@@ -452,12 +460,16 @@ export class Call extends EventEmitter {
    * {@link (Call:namespace).State.Connected | Connected state}.
    * @param nativeCallEvent - The native call event.
    */
-  private _update({ type, call: { from, sid, to } }: NativeCallEvent) {
+  private _update({
+    type,
+    call: { from, initialConnectedTimestamp, sid, to },
+  }: NativeCallEvent) {
     const newState = Call.EventTypeStateMap[type];
     if (typeof newState === 'string') {
       this._state = newState;
     }
     this._from = from;
+    this._initialConnectedTimestamp = initialConnectedTimestamp;
     this._sid = sid;
     this._to = to;
   }
@@ -651,6 +663,16 @@ export class Call extends EventEmitter {
    */
   getFrom(): string | undefined {
     return this._from;
+  }
+
+  /**
+   * Get the timestamp (milliseconds since epoch) of the call connected event.
+   * @returns
+   *  - A `number` representing the timestamp.
+   *  - `undefined` if the call has not yet connected.
+   */
+  getInitialConnectedTimestamp(): number | undefined {
+    return this._initialConnectedTimestamp;
   }
 
   /**
@@ -871,7 +893,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:2)}.
      */
-    'Connected' = 'connected',
+    'Connected' = Constants.CallStateConnected,
 
     /**
      * Call `Connecting` state. Occurs when the `Connecting` event is raised.
@@ -879,7 +901,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:3)}.
      */
-    'Connecting' = 'connecting',
+    'Connecting' = Constants.CallStateConnecting,
 
     /**
      * Call `Disconnected` state. Occurs when the `Disconnected` event is
@@ -888,15 +910,15 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:4)}.
      */
-    'Disconnected' = 'disconnected',
+    'Disconnected' = Constants.CallStateDisconnected,
 
     /**
-     * Call `Reconnected` state. Occurs when the `Reconnected` event is raised.
+     * Call `Reconnecting` state. Occurs when the `Reconnecting` event is raised.
      *
      * @remarks
      * See {@link (Call:interface).(addListener:5)}.
      */
-    'Reconnecting' = 'reconnected',
+    'Reconnecting' = Constants.CallStateReconnecting,
 
     /**
      * Call `Ringing` state. Occurs when the `Ringing` event is raised.
@@ -904,7 +926,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:6)}.
      */
-    'Ringing' = 'ringing',
+    'Ringing' = Constants.CallStateRinging,
   }
 
   /**

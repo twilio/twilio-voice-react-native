@@ -26,6 +26,15 @@ CallInfoFrom=from
 CallInfoTo=to
 CallInfoIsMuted=isMuted
 CallInfoIsOnHold=isOnHold
+CallInfoState=state
+CallInfoInitialConnectedTimestamp=initialConnectedTimestamp
+
+// Call States
+CallStateConnected=connected
+CallStateConnecting=connecting
+CallStateDisconnected=disconnected
+CallStateReconnecting=reconnecting
+CallStateRinging=ringing
 
 // Call Invite Info
 CallInviteInfoUuid=uuid
@@ -44,6 +53,7 @@ CancelledCallInviteInfoCustomParameters=customParameters
 // Call Invite
 VoiceEventCallInvite=voiceEventCallInvite
 VoiceEventCallInviteAccepted=voiceEventCallInviteAccepted
+VoiceEventCallInviteNotificationTapped=voiceEventCallInviteNotificationTapped
 VoiceEventCallInviteRejected=voiceEventCallInviteRejected
 VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
 
@@ -56,6 +66,9 @@ AudioDeviceKeyName=name
 AudioDeviceKeyType=type
 AudioDeviceKeyAudioDevices=audioDevices
 AudioDeviceKeySelectedDevice=selectedDevice
+AudioDeviceKeyEarpiece=earpiece
+AudioDeviceKeySpeaker=speaker
+AudioDeviceKeyBluetooth=bluetooth
 
 // Call events
 // State
