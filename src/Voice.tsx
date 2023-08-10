@@ -879,8 +879,9 @@ export class Voice extends EventEmitter {
    * PushKit device token updates and receiving push notifications.
    *
    * @remarks
-   Unsupported platforms:
-   - Android
+   * Unsupported platforms:
+   * - Android
+   * 
    * This API is specific to iOS and unavailable in Android.
    * Use this method if the application does not have an iOS PushKit
    * module and wishes to delegate the event handling to the SDK.
