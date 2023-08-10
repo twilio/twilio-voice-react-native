@@ -95,13 +95,14 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         [self subscribeToNotifications];
         [self initializeCallKit];
         [self initializeAudioDeviceList];
-
-        // Initialize PKPushRegistry at launch
-        self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
-        [self.twilioVoicePushRegistry updatePushRegistry];
     }
 
     return self;
+}
+
+- (void)initializePushRegistry {
+    self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
+    [self.twilioVoicePushRegistry updatePushRegistry];
 }
 
 - (void)subscribeToNotifications {
@@ -122,38 +123,16 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 - (void)handlePushRegistryNotification:(NSNotification *)notification {
     NSMutableDictionary *eventBody = [notification.userInfo mutableCopy];
-    if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
-        NSAssert(eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey] != nil, @"Missing device token. Please check the body of NSNotification.userInfo,");
-        self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceTokenKey];
+    NSString *type = eventBody[kTwilioVoiceReactNativeVoiceEventType];
+    if ([type isEqualToString:kTwilioVoicePushRegistryNotificationDeviceTokenUpdated]) {
+        self.deviceTokenData = eventBody[kTwilioVoicePushRegistryNotificationDeviceToken];
 
         // Skip the event emitting since 1, the listener has not registered and 2, the app does not need to know about this
         return;
-    } else if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInvite]) {
-        TVOCallInvite *callInvite = eventBody[kTwilioVoicePushRegistryNotificationCallInviteKey];
-        NSAssert(callInvite != nil, @"Invalid call invite");
-        [self reportNewIncomingCall:callInvite];
-
-        eventBody[kTwilioVoiceReactNativeEventKeyCallInvite] = [self callInviteInfo:callInvite];
-    } else if ([eventBody[kTwilioVoiceReactNativeVoiceEventType] isEqualToString:kTwilioVoiceReactNativeVoiceEventCallInviteCancelled]) {
-        TVOCancelledCallInvite *cancelledCallInvite = eventBody[kTwilioVoicePushRegistryNotificationCancelledCallInviteKey];
-        NSAssert(cancelledCallInvite != nil, @"Invalid cancelled call invite");
-
-        NSString *uuid;
-        for (NSString *uuidKey in [self.callInviteMap allKeys]) {
-            TVOCallInvite *callInvite = self.callInviteMap[uuidKey];
-            if ([callInvite.callSid isEqualToString:cancelledCallInvite.callSid]) {
-                uuid = uuidKey;
-                break;
-            }
-        }
-        NSAssert(uuid, @"No matching call invite");
-        self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
-        [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
-
-        eventBody[kTwilioVoiceReactNativeEventKeyCancelledCallInvite] = [self cancelledCallInviteInfo:cancelledCallInvite];
+    } else if ([type isEqualToString:kTwilioVoicePushRegistryNotificationIncomingPushReceived]) {
+        NSDictionary *payload = eventBody[kTwilioVoicePushRegistryNotificationIncomingPushPayload];
+        [TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil];
     }
-
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:eventBody];
 }
 
 + (TVODefaultAudioDevice *)twilioAudioDevice {
@@ -440,6 +419,13 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
     } else {
         resolve(@"");
     }
+}
+
+RCT_EXPORT_METHOD(voice_initializePushRegistry:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self initializePushRegistry];
+    resolve(nil);
 }
 
 RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration

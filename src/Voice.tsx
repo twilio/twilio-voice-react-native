@@ -875,6 +875,36 @@ export class Voice extends EventEmitter {
   }
 
   /**
+   * Initialize a Push Registry instance inside the SDK for handling
+   * PushKit device token updates and receiving push notifications.
+   *
+   * @remarks
+   * Unsupported platforms:
+   * - Android
+   *
+   * This API is specific to iOS and unavailable in Android.
+   * Use this method if the application does not have an iOS PushKit
+   * module and wishes to delegate the event handling to the SDK.
+   * Call this method upon launching the app to guarantee that incoming
+   * call push notifications will be surfaced to the users, especially when
+   * the app is not running in the foreground.
+   *
+   * @return
+   * A `Promise` that
+   *  - Resolves when the initialization is done.
+   */
+  async initializePushRegistry(): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.voice_initializePushRegistry();
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
+  }
+
+  /**
    * Custom iOS CallKit configuration.
    *
    * @param configuration - iOS CallKit configuration options.

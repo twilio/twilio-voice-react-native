@@ -49,6 +49,8 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     if (configuration[kTwilioVoiceReactNativeCallKitSupportedHandleTypes]) {
         NSSet *supportedHandleTypes = [NSSet setWithArray:configuration[kTwilioVoiceReactNativeCallKitSupportedHandleTypes]];
         callKitConfiguration.supportedHandleTypes = supportedHandleTypes;
+    } else {
+        callKitConfiguration.supportedHandleTypes = [NSSet setWithArray:@[@(CXHandleTypeGeneric), @(CXHandleTypePhoneNumber)]];
     }
 
     if (configuration[kTwilioVoiceReactNativeCallKitIconTemplateImageData] && [configuration[kTwilioVoiceReactNativeCallKitIconTemplateImageData] isKindOfClass:[NSString class]]) {
@@ -66,8 +68,6 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
-    self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
-    
     // If "displayName" is passed as a custom parameter in the TwiML application,
     // it will be used as the caller name.
     NSString *handleName = callInvite.from;
@@ -77,7 +77,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         callerDisplayName = [callerDisplayName stringByReplacingOccurrencesOfString:@"+" withString:@" "];
         handleName = callerDisplayName;
     }
-
+    
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
