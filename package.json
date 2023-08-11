@@ -25,7 +25,7 @@
     "app": "yarn run check && yarn --cwd test/app",
     "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
     "build:api:extractor": "api-extractor run --local",
-    "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs",
+    "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs/api",
     "build:constants": "node ./scripts/constants.js",
     "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",

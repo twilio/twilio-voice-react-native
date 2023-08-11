@@ -56,6 +56,10 @@ const call = await voice.connect(token, params);
 - [Twilio Voice Android](https://github.com/twilio/voice-quickstart-android)
 - [Use your application's own iOS PushKit handler](ios/docs/applications-own-pushkit-handler.md)
 
+## Examples
+
+- [Play outgoing call ringback tone](docs/play-outgoing-call-ringback-tone.md)
+
 ## License
 
 See [LICENSE](LICENSE)
