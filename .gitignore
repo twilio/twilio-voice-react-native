@@ -72,7 +72,7 @@ android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
 ios/TwilioVoiceReactNativeConstants.h
 
 # docs
-apidocs/
+docs/api/
 temp/
 
 # e2e tests

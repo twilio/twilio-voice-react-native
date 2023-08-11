@@ -11,7 +11,7 @@ api-extractor.json
 babel.config.js
 constants
 coverage
-apidocs
+docs/api
 node_modules
 temp
 test/app
