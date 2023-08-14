@@ -1,20 +1,37 @@
 1.0.0-beta.3 (In Development)
-============================
+=============================
 
 Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in this version are the following.
 
 ## Features
 
+- Added documentation about outgoing call ringback tones.
+- Added more call info persistance. The native layers will now persist call state and initial connected timestamps.
+
+### Platform Specific Features
+
+#### iOS
+- Added a new API for injecting a caller handle for CallKit when a call invite is received.
+
+#### Android
 - Incoming call notifications can now be tapped to bring the application into the foreground.
-- On Android, IncomingCallService now specifies foreground service type MICROPHONE on `API >= 30` devices. This change also resulted in the compiled SDK verison being bumped to `33` from `29`.
-- Tapping on an incoming call notification will emit an event on Android platforms.
+- Tapping on an incoming call notification will emit an event.
   See `Voice.Event.CallInviteNotificationTapped` for more information.
+- Use latest versions of Twilio Voice Android SDK and the Audioswitch libraries.
 
 ## Fixes
 
+### Platform Specific Fixes
+
+#### iOS
 - Fixed a bug where switching from Bluetooth to the iOS earpiece during a call does not have any effect or error.
+- Fixed an issue where audio device types were incorrectly labeled using capitalized descriptions. I.e. `Earpiece` instead of `earpiece`.
+- Fixed return value of `Call.mute` and `Call.hold` to return the new mute/hold value. Thanks to our community (@treycucco with PR #164) for this addition!
 
-
+#### Android
+- `IncomingCallService` now specifies foreground service type MICROPHONE on `API >= 30` devices.
+  This fixes issues with microphone access for backgrounded apps.
+  Note that this change also resulted in the compiled SDK verison being bumped to `33` from `29`.
 
 1.0.0-beta.2 (June 23, 2023)
 ============================
