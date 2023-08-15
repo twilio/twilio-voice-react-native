@@ -48,6 +48,10 @@ voice.on('callInvite', (callInvite) => {
 const call = await voice.connect(token, params);
 ```
 
+### Ringtone
+
+To use a custom ringtone for outgoing calls, please see the documentation located at [docs/play-outgoing-call-ringback-tone.md](./docs/play-outgoing-call-ringback-tone.md).
+
 ## Related
 
 - [Reference App](https://github.com/twilio/twilio-voice-react-native-app)
