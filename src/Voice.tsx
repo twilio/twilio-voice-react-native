@@ -674,7 +674,7 @@ export class Voice extends EventEmitter {
     );
 
     const selectedDevice =
-      typeof selectedDeviceInfo !== 'undefined'
+      typeof selectedDeviceInfo !== 'undefined' && selectedDeviceInfo !== null
         ? new AudioDevice(selectedDeviceInfo)
         : undefined;
 
@@ -1054,7 +1054,7 @@ export namespace Voice {
      */
     export type AudioDevicesUpdated = (
       audioDevices: AudioDevice[],
-      selectedDevice: AudioDevice | null
+      selectedDevice?: AudioDevice
     ) => void;
 
     /**

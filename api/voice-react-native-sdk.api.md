@@ -930,7 +930,7 @@ export namespace Voice {
         'Unregistered' = "unregistered"
     }
     export namespace Listener {
-        export type AudioDevicesUpdated = (audioDevices: AudioDevice[], selectedDevice: AudioDevice | null) => void;
+        export type AudioDevicesUpdated = (audioDevices: AudioDevice[], selectedDevice?: AudioDevice) => void;
         export type CallInvite = (callInvite: CallInvite) => void;
         export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
         export type CallInviteNotificationTapped = () => void;
