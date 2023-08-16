@@ -851,7 +851,6 @@ namespace TwiMLErrors {
 
 // @public
 export interface Voice {
-    addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
     addListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     addListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
     addListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
@@ -861,8 +860,7 @@ export interface Voice {
     addListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
     addListener(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
     addListener(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
-    // @internal (undocumented)
-    emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
+    addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice?: AudioDevice): boolean;
     // @internal (undocumented)
@@ -881,7 +879,8 @@ export interface Voice {
     emit(voiceEvent: Voice.Event.Registered): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Unregistered): boolean;
-    on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+    // @internal (undocumented)
+    emit(voiceEvent: Voice.Event, ...args: any[]): boolean;
     on(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     on(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
     on(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
@@ -891,6 +890,7 @@ export interface Voice {
     on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
     on(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
     on(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
+    on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
 }
 
 // @public
