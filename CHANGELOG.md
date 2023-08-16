@@ -1,5 +1,5 @@
-1.0.0-beta.3 (In Development)
-=============================
+1.0.0-beta.3 (August 26, 2023)
+==============================
 
 Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in this version are the following.
 
