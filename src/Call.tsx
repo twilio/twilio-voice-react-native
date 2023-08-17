@@ -64,29 +64,19 @@ export declare interface Call {
 
   /** @internal */
   emit(
-    callEvent: Call.Event.QualityWarningsChanged,
+    qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
     currentQualityWarnings: Call.QualityWarning[],
     previousQualityWarnings: Call.QualityWarning[]
   ): boolean;
+
+  /** @internal */
+  emit(callEvent: Call.Event, ...args: any[]): boolean;
 
   /**
    * ----------------
    * Listener Typings
    * ----------------
    */
-
-  /**
-   * Generic event listener typings.
-   * @param callEvent - The raised event string.
-   * @param listener - A listener function that will be invoked when the event
-   * is raised.
-   * @returns - The call object.
-   */
-  addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
-  /**
-   * {@inheritDoc (Call:interface).(addListener:1)}
-   */
-  on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 
   /**
    * Connected event. Raised when the call has successfully connected.
@@ -108,7 +98,7 @@ export declare interface Call {
     listener: Call.Listener.Connected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:2)}
+   * {@inheritDoc (Call:interface).(addListener:1)}
    */
   on(
     connectedEvent: Call.Event.Connected,
@@ -135,7 +125,7 @@ export declare interface Call {
     listener: Call.Listener.ConnectFailure
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:3)}
+   * {@inheritDoc (Call:interface).(addListener:2)}
    */
   on(
     connectFailureEvent: Call.Event.ConnectFailure,
@@ -162,7 +152,7 @@ export declare interface Call {
     listener: Call.Listener.Reconnecting
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:4)}
+   * {@inheritDoc (Call:interface).(addListener:3)}
    */
   on(
     reconnectingEvent: Call.Event.Reconnecting,
@@ -189,7 +179,7 @@ export declare interface Call {
     listener: Call.Listener.Reconnected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:5)}
+   * {@inheritDoc (Call:interface).(addListener:4)}
    */
   on(
     reconnectedEvent: Call.Event.Reconnected,
@@ -224,7 +214,7 @@ export declare interface Call {
     listener: Call.Listener.Disconnected
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:6)}
+   * {@inheritDoc (Call:interface).(addListener:5)}
    */
   on(
     disconnectedEvent: Call.Event.Disconnected,
@@ -251,7 +241,7 @@ export declare interface Call {
     listener: Call.Listener.Ringing
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:7)}
+   * {@inheritDoc (Call:interface).(addListener:6)}
    */
   on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
 
@@ -283,12 +273,25 @@ export declare interface Call {
     listener: Call.Listener.QualityWarningsChanged
   ): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:8)}
+   * {@inheritDoc (Call:interface).(addListener:7)}
    */
   on(
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
     listener: Call.Listener.QualityWarningsChanged
   ): this;
+
+  /**
+   * Generic event listener typings.
+   * @param callEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The call object.
+   */
+  addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
+  /**
+   * {@inheritDoc (Call:interface).(addListener:8)}
+   */
+  on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 }
 
 /**

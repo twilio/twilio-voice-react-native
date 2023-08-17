@@ -135,7 +135,6 @@ namespace AuthorizationErrors {
 
 // @public
 export interface Call {
-    addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     addListener(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
     addListener(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
     addListener(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
@@ -143,6 +142,7 @@ export interface Call {
     addListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
     addListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
     addListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
     // @internal (undocumented)
@@ -156,8 +156,9 @@ export interface Call {
     // @internal (undocumented)
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
-    emit(callEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
-    on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
+    emit(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
+    // @internal (undocumented)
+    emit(callEvent: Call.Event, ...args: any[]): boolean;
     on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
     on(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
     on(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
@@ -165,6 +166,7 @@ export interface Call {
     on(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
     on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
     on(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 }
 
 // @public
