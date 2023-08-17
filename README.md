@@ -58,7 +58,7 @@ To use a custom ringtone for outgoing calls, please see the documentation locate
 - [Twilio Voice JS](https://github.com/twilio/twilio-voice.js)
 - [Twilio Voice iOS](https://github.com/twilio/voice-quickstart-ios)
 - [Twilio Voice Android](https://github.com/twilio/voice-quickstart-android)
-- [Use your application's own iOS PushKit handler](ios/docs/applications-own-pushkit-handler.md)
+- [Use your application's own iOS PushKit handler](docs/applications-own-pushkit-handler.md)
 
 ## Examples
 
