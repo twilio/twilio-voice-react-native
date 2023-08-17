@@ -156,25 +156,29 @@ describe('Voice class', () => {
         expect(selectedDevice).toBeInstanceOf(MockAudioDevice);
       });
 
-      it('emits undefined when the native selected audio device info is undefined', () => {
-        const voice = new Voice();
-        const listenerMock = jest.fn();
-        voice.on(Voice.Event.AudioDevicesUpdated, listenerMock);
+      [undefined, null].forEach((nativeSelectedDevice) => {
+        it(`emits undefined when the native selected audio device info is ${
+          nativeSelectedDevice === null ? 'null' : 'undefined'
+        }`, () => {
+          const voice = new Voice();
+          const listenerMock = jest.fn();
+          voice.on(Voice.Event.AudioDevicesUpdated, listenerMock);
 
-        const nativeEvent = {
-          ...mockVoiceNativeEvents.audioDevicesUpdated.nativeEvent,
-          selectedDevice: undefined,
-        };
-        MockNativeEventEmitter.emit(Constants.ScopeVoice, nativeEvent);
+          const nativeEvent = {
+            ...mockVoiceNativeEvents.audioDevicesUpdated.nativeEvent,
+            selectedDevice: nativeSelectedDevice,
+          };
+          MockNativeEventEmitter.emit(Constants.ScopeVoice, nativeEvent);
 
-        expect(listenerMock).toHaveBeenCalledTimes(1);
-        expect(listenerMock.mock.calls[0]).toHaveLength(2);
-        const [audioDevices, selectedDevice]: [AudioDevice[], AudioDevice] =
-          listenerMock.mock.calls[0];
-        audioDevices.forEach((audioDevice) => {
-          expect(audioDevice).toBeInstanceOf(MockAudioDevice);
+          expect(listenerMock).toHaveBeenCalledTimes(1);
+          expect(listenerMock.mock.calls[0]).toHaveLength(2);
+          const [audioDevices, selectedDevice]: [AudioDevice[], AudioDevice] =
+            listenerMock.mock.calls[0];
+          audioDevices.forEach((audioDevice) => {
+            expect(audioDevice).toBeInstanceOf(MockAudioDevice);
+          });
+          expect(selectedDevice).toBeUndefined();
         });
-        expect(selectedDevice).toBeUndefined();
       });
     });
 
