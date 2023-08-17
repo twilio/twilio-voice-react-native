@@ -20,7 +20,7 @@ import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CallKit } from './type/CallKit';
-import type { Uuid } from './type/common';
+import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 
 /**
@@ -437,7 +437,7 @@ export class Voice extends EventEmitter {
   /**
    * Connect for devices on Android platforms.
    */
-  private async _connect_android(token: string, params: Record<string, any>) {
+  private async _connect_android(token: string, params: CustomParameters) {
     const callInfo = await NativeModule.voice_connect_android(token, params);
     return new Call(callInfo);
   }
@@ -447,7 +447,7 @@ export class Voice extends EventEmitter {
    */
   private async _connect_ios(
     token: string,
-    params: Record<string, any>,
+    params: CustomParameters,
     contactHandle: string
   ) {
     const parsedContactHandle =
@@ -729,6 +729,14 @@ export class Voice extends EventEmitter {
       throw new InvalidArgumentError(
         'Optional argument "params" must be undefined or of type "object".'
       );
+    }
+
+    for (const [key, value] of Object.entries(params)) {
+      if (typeof value !== 'string') {
+        throw new InvalidArgumentError(
+          `Voice.ConnectOptions.params["${key}"] must be of type string`
+        );
+      }
     }
 
     switch (Platform.OS) {

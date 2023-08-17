@@ -11,6 +11,6 @@
  *
  * @public
  */
-export type CustomParameters = Record<string, any>;
+export type CustomParameters = Record<string, string>;
 
 export type Uuid = string;
