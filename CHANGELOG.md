@@ -11,7 +11,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.3`. Included in th
 ### Platform Specific Features
 
 #### iOS
-- Added a new API for injecting a caller handle for CallKit when a call invite is received.
+- The applications can now choose to use their own iOS PushKit implementation or delegate the incoming call handling to the SDK's default handler by calling the `Voice.initializePushRegistry()` method. Note that applications need to notify the SDK upon getting PushKit device token updates, push notifications received when using application's own PushKit implementation so the SDK can perform registration and report incoming calls to the iOS CallKit framework properly. See [this](docs/applications-own-pushkit-handler.md) for mose details.
 
 #### Android
 - Incoming call notifications can now be tapped to bring the application into the foreground.
