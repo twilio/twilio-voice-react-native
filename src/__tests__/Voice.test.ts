@@ -494,6 +494,23 @@ describe('Voice class', () => {
       );
 
       performPlatformAgnosticTest(
+        'throws when one or more params is not a string',
+        async () => {
+          for (const invalidParamValue of [{}, 101, false, []]) {
+            options.params = {
+              foo: invalidParamValue,
+              bar: 'baz',
+            } as unknown as Record<string, string>;
+            await expect(
+              new Voice().connect(token, options)
+            ).rejects.toThrowError(
+              'Voice.ConnectOptions.params["foo"] must be of type string'
+            );
+          }
+        }
+      );
+
+      performPlatformAgnosticTest(
         'throws when contactHandle is defined and not a string',
         async () => {
           for (const invalidContactHandle of [null, {}, 101, false]) {

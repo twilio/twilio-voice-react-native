@@ -407,7 +407,7 @@ namespace ClientErrors {
 }
 
 // @public
-export type CustomParameters = Record<string, any>;
+export type CustomParameters = Record<string, string>;
 
 // @internal (undocumented)
 const errorsByCode: ReadonlyMap<number, typeof TwilioError>;
