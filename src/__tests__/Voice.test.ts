@@ -500,7 +500,7 @@ describe('Voice class', () => {
             await expect(
               new Voice().connect(token, options)
             ).rejects.toThrowError(
-              'Voice.ConnectOptions.params["foo"] must be of type strin'
+              'Voice.ConnectOptions.params["foo"] must be of type string'
             );
           }
         }
