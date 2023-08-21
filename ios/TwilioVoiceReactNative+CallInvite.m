@@ -44,6 +44,8 @@
                               kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
     
+    [self.callInviteMap removeObjectForKey:uuid];
+    
     [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
 }
 
