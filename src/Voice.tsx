@@ -44,9 +44,6 @@ export declare interface Voice {
    */
 
   /** @internal */
-  emit(voiceEvent: Voice.Event, listener: (...args: any[]) => void): boolean;
-
-  /** @internal */
   emit(
     voiceEvent: Voice.Event.AudioDevicesUpdated,
     audioDevices: AudioDevice[],
@@ -88,22 +85,14 @@ export declare interface Voice {
   /** @internal */
   emit(voiceEvent: Voice.Event.Unregistered): boolean;
 
+  /** @internal */
+  emit(voiceEvent: Voice.Event, ...args: any[]): boolean;
+
   /**
    * ----------------
    * Listener Typings
    * ----------------
    */
-
-  /**
-   * Generic event listener typings.
-   * @param voiceEvent - The raised event string.
-   * @param listener - A listener function that will be invoked when the event
-   * is raised.
-   * @returns - The call object.
-   */
-  addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
-  /** {@inheritDoc (Voice:interface).(addListener:1)} */
-  on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
 
   /**
    * Audio devices updated event. Raised when the list of audio devices changes.
@@ -125,7 +114,7 @@ export declare interface Voice {
     audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated,
     listener: Voice.Listener.AudioDevicesUpdated
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:2)} */
+  /** {@inheritDoc (Voice:interface).(addListener:1)} */
   on(
     audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated,
     listener: Voice.Listener.AudioDevicesUpdated
@@ -150,7 +139,7 @@ export declare interface Voice {
     callInviteEvent: Voice.Event.CallInvite,
     listener: Voice.Listener.CallInvite
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:3)} */
+  /** {@inheritDoc (Voice:interface).(addListener:2)} */
   on(
     callInviteEvent: Voice.Event.CallInvite,
     listener: Voice.Listener.CallInvite
@@ -180,7 +169,7 @@ export declare interface Voice {
     callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
     listener: Voice.Listener.CallInviteAccepted
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:4)} */
+  /** {@inheritDoc (Voice:interface).(addListener:3)} */
   on(
     callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
     listener: Voice.Listener.CallInviteAccepted
@@ -214,7 +203,7 @@ export declare interface Voice {
     callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped,
     listener: Voice.Listener.CallInviteNotificationTapped
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:5)} */
+  /** {@inheritDoc (Voice:interface).(addListener:4)} */
   on(
     callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped,
     listener: Voice.Listener.CallInviteNotificationTapped
@@ -244,7 +233,7 @@ export declare interface Voice {
     callInviteRejectedEvent: Voice.Event.CallInviteRejected,
     listener: Voice.Listener.CallInviteRejected
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:6)} */
+  /** {@inheritDoc (Voice:interface).(addListener:5)} */
   on(
     callInviteRejectedEvent: Voice.Event.CallInviteRejected,
     listener: Voice.Listener.CallInviteRejected
@@ -270,7 +259,7 @@ export declare interface Voice {
     cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
     listener: Voice.Listener.CancelledCallInvite
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:7)} */
+  /** {@inheritDoc (Voice:interface).(addListener:6)} */
   on(
     cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
     listener: Voice.Listener.CancelledCallInvite
@@ -295,7 +284,7 @@ export declare interface Voice {
     errorEvent: Voice.Event.Error,
     listener: Voice.Listener.Error
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:8)} */
+  /** {@inheritDoc (Voice:interface).(addListener:7)} */
   on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
 
   /**
@@ -317,7 +306,7 @@ export declare interface Voice {
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:9)} */
+  /** {@inheritDoc (Voice:interface).(addListener:8)} */
   on(
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
@@ -342,11 +331,22 @@ export declare interface Voice {
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:10)} */
+  /** {@inheritDoc (Voice:interface).(addListener:9)} */
   on(
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
   ): this;
+
+  /**
+   * Generic event listener typings.
+   * @param voiceEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The call object.
+   */
+  addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
+  /** {@inheritDoc (Voice:interface).(addListener:10)} */
+  on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
 }
 
 /**
