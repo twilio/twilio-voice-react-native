@@ -319,10 +319,9 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         self.callKitCompletionCallback = nil;
     }
     
-    NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
-    // NSTimeInterval is defined as double
-    NSNumber *timeStampObj = [NSNumber numberWithDouble:timeStamp];
-    [self.callConnectMap setValue:timeStampObj forKey:call.uuid.UUIDString];
+    NSDate *timestamp = [NSDate date];
+    long long timestampMs = [[NSNumber numberWithDouble:[timestamp timeIntervalSince1970]] doubleValue] * 1000;
+    self.callConnectMap[call.uuid.UUIDString] = [NSNumber numberWithLongLong:timestampMs];
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
