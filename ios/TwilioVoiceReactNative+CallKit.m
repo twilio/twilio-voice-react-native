@@ -308,6 +308,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)callDidConnect:(TVOCall *)call {
+    NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
+    // NSTimeInterval is defined as double
+    NSNumber *timeStampObj = [NSNumber numberWithDouble:timeStamp];
+    [self.callConnectMap setValue:timeStampObj forKey:call.uuid.UUIDString];
+
     [self stopRingback];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
@@ -318,11 +323,6 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         self.callKitCompletionCallback(YES);
         self.callKitCompletionCallback = nil;
     }
-    
-    NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
-    // NSTimeInterval is defined as double
-    NSNumber *timeStampObj = [NSNumber numberWithDouble:timeStamp];
-    [self.callConnectMap setValue:timeStampObj forKey:call.uuid.UUIDString];
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
