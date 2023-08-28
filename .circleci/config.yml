@@ -236,6 +236,7 @@ jobs:
       - checkout
       - setup-e2e-creds
       - setup-detox-dependencies
+      - run: yarn policies set-version 1.22.10
       - install-dependencies
       - setup-pods
       - simulator-dependencies
