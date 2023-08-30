@@ -538,7 +538,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     WritableMap callInfo = serializeCall(callInviteUuid, call);
 
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
+    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), notificationId, "accept");
 
     promise.resolve(callInfo);
   }
