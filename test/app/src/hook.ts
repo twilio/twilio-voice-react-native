@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   AudioDevice,
   Call,
@@ -6,6 +5,8 @@ import {
   CancelledCallInvite,
   Voice,
 } from '@twilio/voice-react-native-sdk';
+import * as React from 'react';
+import { Platform } from 'react-native';
 import type {
   BoundCallInfo,
   BoundCallInvite,
@@ -344,7 +345,10 @@ export function useVoice(token: string) {
     voice.getVersion().then(setSdkVersion);
 
     const bootstrap = async () => {
-      await voice.initializePushRegistry();
+      if (Platform.OS === 'ios') {
+        await voice.initializePushRegistry();
+      }
+
       const calls = await voice.getCalls();
 
       for (const call of calls.values()) {
