@@ -1,3 +1,13 @@
+1.0.0-beta.4 (WIP)
+==============================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+- Replace frontline notification images with generic phone images
+
 1.0.0-beta.3 (August 26, 2023)
 ==============================
 
