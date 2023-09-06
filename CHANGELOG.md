@@ -1,9 +1,12 @@
-1.0.0-beta.4 (WIP)
+1.0.0-beta.4 (Ongoing)
 ==============================
+
+Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in this version are the following.
 
 ## Fixes
 
-### Platform Specific Fixes
+#### iOS
+- Fixed a bug where the call invite results in a rejected event when the call is hung up by the caller.
 
 #### Android
 - Replace frontline notification images with generic phone images
