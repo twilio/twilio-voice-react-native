@@ -224,7 +224,7 @@ jobs:
 
   e2e-ios:
     macos:
-      xcode: "14.3.1"
+      xcode: "14.2.0"
     resource_class: macos.m1.medium.gen1
     parameters:
       detox_configuration:
