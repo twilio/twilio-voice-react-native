@@ -235,7 +235,7 @@ jobs:
     steps:
       - checkout
       - setup-e2e-creds
-      - setup-detox-dependencies
+      # - setup-detox-dependencies
       - install-dependencies
       - setup-pods
       - simulator-dependencies
