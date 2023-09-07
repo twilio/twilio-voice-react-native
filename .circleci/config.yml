@@ -88,7 +88,7 @@ commands:
           name: Detox Build
           command: |
             cd test/app
-            detox build -c <<parameters.configuration>>
+            node node_modules/detox/local-cli/cli.js build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
   detox-test:
