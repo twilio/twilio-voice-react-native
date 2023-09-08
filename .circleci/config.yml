@@ -34,11 +34,6 @@ commands:
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
-  setup-detox-dependencies:
-    description: Setup environment for running test on detox
-    steps:
-      - run: npm install -g detox-cli && npm link detox
-      - run: npm install -g jest && npm link jest
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -49,7 +44,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/app/ios && rm Podfile.lock && pod install && cd ../../..
+            cd test/app/ios && pod install && cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -88,8 +83,6 @@ commands:
           name: Detox Build
           command: |
             cd test/app
-            nvm install 16.20.0
-            nvm use 16.20.0
             node node_modules/detox/local-cli/cli.js build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
@@ -226,7 +219,7 @@ jobs:
 
   e2e-ios:
     macos:
-      xcode: "14.1.0"
+      xcode: "14.3.1"
     resource_class: macos.m1.medium.gen1
     parameters:
       detox_configuration:
@@ -237,7 +230,6 @@ jobs:
     steps:
       - checkout
       - setup-e2e-creds
-      # - setup-detox-dependencies
       - install-dependencies
       - setup-pods
       - simulator-dependencies
