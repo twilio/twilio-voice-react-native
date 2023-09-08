@@ -49,7 +49,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/app/ios && pod install && cd ../../..
+            cd test/app/ios && rm Podfile.lock && pod install && cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -88,6 +88,7 @@ commands:
           name: Detox Build
           command: |
             cd test/app
+            nvm ls
             node node_modules/detox/local-cli/cli.js build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
