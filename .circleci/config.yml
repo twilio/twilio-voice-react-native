@@ -88,7 +88,7 @@ commands:
           name: Detox Build
           command: |
             cd test/app
-            nvm ls
+            nvm install 16.20.0
             nvm use 16.20.0
             node node_modules/detox/local-cli/cli.js build -c <<parameters.configuration>>
             cd ../..
