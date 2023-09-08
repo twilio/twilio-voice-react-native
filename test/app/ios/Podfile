@@ -31,6 +31,12 @@ target 'TwilioVoiceReactNativeExample' do
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
         end
       end
+      if target.name == "Yoga"
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
+          config.build_settings['OTHER_CFLAGS'] << '-Wno-bitwise-instead-of-logical'
+        end
+      end
     end
   end
 end
