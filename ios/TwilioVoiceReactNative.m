@@ -10,6 +10,7 @@
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
+#import "TwilioVoiceReactNativeVersion.h"
 #import "TwilioVoiceStatsReport.h"
 
 NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
@@ -86,6 +87,9 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         NSString *reactNativeSDK = kTwilioVoiceReactNativeReactNativeVoiceSDK;
         setenv("global-env-sdk", [reactNativeSDK UTF8String], 1);
+        
+        NSString *reactNativeSdkVersion = TWILIO_VOICE_REACT_NATIVE_VERSION;
+        setenv("com.twilio.voice.env.sdk.version", [reactNativeSdkVersion UTF8String], 1);
 
         sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
