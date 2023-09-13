@@ -4,7 +4,7 @@ const { readFile, writeFile } = require('fs').promises;
 
 async function main() {
   const packageJsonPath = './package.json';
-  const versionTemplatePath = './scripts/version.ios.template';
+  const templatePath = './scripts/version.ios.template';
   const headerOutputPath = './ios/TwilioVoiceReactNativeVersion.h';
 
   const packageJsonSource = (await readFile(packageJsonPath)).toString('utf-8');
@@ -12,13 +12,13 @@ async function main() {
   const json = JSON.parse(packageJsonSource);
   const version = json['version'];
 
-  let templateSource = (await readFile(versionTemplatePath)).toString('utf-8');
-  const verionHeaderSource = String(templateSource).replace(
+  const templateSource = (await readFile(templatePath)).toString('utf-8');
+  const versionHeaderSource = templateSource.replace(
     /{{PACKAGE_VERSION}}/g,
     version
   );
 
-  await writeFile(headerOutputPath, verionHeaderSource);
+  await writeFile(headerOutputPath, versionHeaderSource);
 }
 
 main();
