@@ -14,7 +14,7 @@ Please check out the following if you are new to Twilio's Programmable Voice or 
 - [React Native](https://reactnative.dev/docs/getting-started)
 
 ## Issues and Support
-Please checkout our [common issues](COMMON_ISSUES.md) page or file any issues you find here on Github. For general inquiries related to the Voice SDK you can file a support ticket. Please ensure that you are not sharing any [Personally Identifiable Information(PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information (API keys, credentials, etc.) when reporting an issue.
+Please check out our [common issues](COMMON_ISSUES.md) page or file any issues you find here on Github. For general inquiries related to the Voice SDK you can file a support ticket. Please ensure that you are not sharing any [Personally Identifiable Information(PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information (API keys, credentials, etc.) when reporting an issue.
 
 ## Access Tokens
 
