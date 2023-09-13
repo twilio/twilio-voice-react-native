@@ -1,0 +1,10 @@
+//
+//  TwilioVoiceReactNativeVersion.h
+//  TwilioVoiceReactNative
+//
+//  Copyright © 2023 Twilio, Inc. All rights reserved.
+//
+
+/* this file is auto-generated; do not edit! */
+
+#define TWILIO_VOICE_REACT_NATIVE_VERSION   @"{{PACKAGE_VERSION}}"
