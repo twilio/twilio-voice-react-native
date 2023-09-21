@@ -475,6 +475,8 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
                     reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
                 } else {
+                    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
+                                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventRegistered}];
                     resolve(nil);
                 }
             }];
@@ -540,6 +542,8 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
                     reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
                 } else {
+                    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
+                                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventUnregistered}];
                     resolve(nil);
                 }
             }];
