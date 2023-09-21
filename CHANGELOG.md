@@ -7,6 +7,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 
 #### iOS
 - Fixed a bug where the call invite results in a rejected event when the call is hung up by the caller.
+- Fixed a bug where the `registered` and `unregistered` events are not fired on iOS.
 
 #### Android
 - Replace frontline notification images with generic phone images
