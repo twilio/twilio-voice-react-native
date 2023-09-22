@@ -111,7 +111,7 @@ commands:
           name: Detox Test
           command: |
             cd test/app
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            node node_modules/detox/local-cli/cli.js test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 jobs:
