@@ -175,7 +175,10 @@ async function substituteVersion(constantsPath) {
     const version = json['version'];
 
     const constantsInput = (await readFile(constantsPath)).toString('utf-8');
-    const constantsOutput= constantsInput.replace(/(ReactNativeVoiceSDKVer\s*=\s*)(.*)/g, "$1" + version);
+    const constantsOutput= constantsInput.replace(
+	/(ReactNativeVoiceSDKVer\s*=\s*)(.*)/g,
+	"$1" + version
+    );
 
     await writeFile(constantsPath, constantsOutput);
 }
