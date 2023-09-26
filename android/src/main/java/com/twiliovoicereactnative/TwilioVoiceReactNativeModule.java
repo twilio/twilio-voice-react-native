@@ -37,6 +37,7 @@ import java.util.UUID;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
+import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDKVer;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
@@ -54,6 +55,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
 
   private static final String GLOBAL_ENV = "com.twilio.voice.env";
+  private static final String SDK_VERSION = "com.twilio.voice.env.sdk.version";
 
   private final ReactApplicationContext reactContext;
   private final AudioSwitchManager audioSwitchManager;
@@ -63,6 +65,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     this.reactContext = reactContext;
 
     System.setProperty(GLOBAL_ENV, ReactNativeVoiceSDK);
+    System.setProperty(SDK_VERSION, ReactNativeVoiceSDKVer);
 
     if (BuildConfig.DEBUG) {
       Voice.setLogLevel(LogLevel.DEBUG);
