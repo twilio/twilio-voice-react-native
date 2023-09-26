@@ -168,19 +168,19 @@ async function transform(constantsPath, templatePath, outputPath) {
 }
 
 async function substituteVersion(constantsPath) {
-    const packageJsonPath = './package.json';
-    const packageJsonSource = (await readFile(packageJsonPath)).toString('utf-8');
+  const packageJsonPath = './package.json';
+  const packageJsonSource = (await readFile(packageJsonPath)).toString('utf-8');
 
-    const json = JSON.parse(packageJsonSource);
-    const version = json.version;
+  const json = JSON.parse(packageJsonSource);
+  const version = json.version;
 
-    const constantsInput = (await readFile(constantsPath)).toString('utf-8');
-    const constantsOutput = constantsInput.replace(
-        /(ReactNativeVoiceSDKVer\s*=\s*)(.*)/g,
-        "$1" + version
-    );
+  const constantsInput = (await readFile(constantsPath)).toString('utf-8');
+  const constantsOutput = constantsInput.replace(
+    /(ReactNativeVoiceSDKVer\s*=\s*)(.*)/g,
+    "$1" + version
+  );
 
-    await writeFile(constantsPath, constantsOutput);
+  await writeFile(constantsPath, constantsOutput);
 }
 
 async function main() {
