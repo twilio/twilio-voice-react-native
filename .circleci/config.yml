@@ -233,10 +233,6 @@ jobs:
       - install-dependencies
       - setup-pods
       - simulator-dependencies
-      - run:
-          nane: "Install watchman"
-          command: |
-            brew install watchman
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
