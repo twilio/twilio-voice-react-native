@@ -520,7 +520,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     Storage.callAcceptedPromiseMap.put(callInviteUuid, promise);
 
     // Send Event to service
-    final int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
+    final int notificationId = Storage.uuidNotificationIdMap.get(callInviteUuid);
     Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     acceptIntent.setAction(Constants.ACTION_ACCEPT);
     acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
@@ -541,14 +541,14 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     activeCallInvite.reject(getReactApplicationContext());
 
-    int notificationId = Storage.uuidNotificaionIdMap.get(uuid);
+    int notificationId = Storage.uuidNotificationIdMap.get(uuid);
     Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
     rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
     rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     rejectIntent.putExtra(Constants.UUID, uuid);
     getReactApplicationContext().startService(rejectIntent);
 
-    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "reject");
+    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "reject");
 
     promise.resolve(uuid);
   }

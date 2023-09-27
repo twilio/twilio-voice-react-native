@@ -136,11 +136,11 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
           final Call call = Storage.callMap.get(uuid);
           final WritableMap callInfo = serializeCall(uuid, call);
 
-          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "accept");
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "accept");
 
           promise.resolve(callInfo);
         } else {
-          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "accept");
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "accept");
         }
         break;
       }
