@@ -510,40 +510,23 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
     Log.d(TAG, "callInvite_accept uuid" + callInviteUuid);
-    CallInvite activeCallInvite = Storage.callInviteMap.get(callInviteUuid);
+    CallInvite callInvite = Storage.callInviteMap.get(callInviteUuid);
 
-    if (activeCallInvite == null) {
+    if (callInvite == null) {
       promise.reject("No such \"callInvite\" object exists with UUID " + callInviteUuid);
       return;
     }
+    // Store promise for callback
+    Storage.callAcceptedPromiseMap.put(callInviteUuid, promise);
 
-    AcceptOptions acceptOptions = new AcceptOptions.Builder()
-      .enableDscp(true)
-      .build();
-
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid, reactContext));
-    Storage.callMap.put(callInviteUuid, call);
-
-    // Send Event to upstream
-    WritableMap params = Arguments.createMap();
-    WritableMap callInviteInfo = serializeCallInvite(callInviteUuid, activeCallInvite);
-    params.putString(VoiceEventType, VoiceEventCallInviteAccepted);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
-
-    int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
+    // Send Event to service
+    final int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
     Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
-    acceptIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+    acceptIntent.setAction(Constants.ACTION_ACCEPT);
     acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     acceptIntent.putExtra(Constants.UUID, callInviteUuid);
-
+    acceptIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     getReactApplicationContext().startService(acceptIntent);
-
-    WritableMap callInfo = serializeCall(callInviteUuid, call);
-
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
-
-    promise.resolve(callInfo);
   }
 
   @ReactMethod
