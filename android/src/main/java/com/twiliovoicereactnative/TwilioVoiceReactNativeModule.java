@@ -510,64 +510,56 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
     Log.d(TAG, "callInvite_accept uuid" + callInviteUuid);
-    CallInvite activeCallInvite = Storage.callInviteMap.get(callInviteUuid);
+    try {
+      CallInvite callInvite = Storage.callInviteMap.get(callInviteUuid);
 
-    if (activeCallInvite == null) {
-      promise.reject("No such \"callInvite\" object exists with UUID " + callInviteUuid);
-      return;
+      if (callInvite == null) {
+        promise.reject("No such \"callInvite\" object exists with UUID " + callInviteUuid);
+        return;
+      }
+      // Store promise for callback
+      Storage.callAcceptedPromiseMap.put(callInviteUuid, promise);
+
+      // Send Event to service
+      final int notificationId = Storage.uuidNotificationIdMap.get(callInviteUuid);
+      Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
+      acceptIntent.setAction(Constants.ACTION_ACCEPT);
+      acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
+      acceptIntent.putExtra(Constants.UUID, callInviteUuid);
+      acceptIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+      getReactApplicationContext().startService(acceptIntent);
+    } catch (Exception e) {
+      promise.reject("Internal Error: " + e.getMessage());
+      e.printStackTrace();
     }
-
-    AcceptOptions acceptOptions = new AcceptOptions.Builder()
-      .enableDscp(true)
-      .build();
-
-    Call call = activeCallInvite.accept(getReactApplicationContext(), acceptOptions, new CallListenerProxy(callInviteUuid, reactContext));
-    Storage.callMap.put(callInviteUuid, call);
-
-    // Send Event to upstream
-    WritableMap params = Arguments.createMap();
-    WritableMap callInviteInfo = serializeCallInvite(callInviteUuid, activeCallInvite);
-    params.putString(VoiceEventType, VoiceEventCallInviteAccepted);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
-
-    int notificationId = Storage.uuidNotificaionIdMap.get(callInviteUuid);
-    Intent acceptIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
-    acceptIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    acceptIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
-    acceptIntent.putExtra(Constants.UUID, callInviteUuid);
-
-    getReactApplicationContext().startService(acceptIntent);
-
-    WritableMap callInfo = serializeCall(callInviteUuid, call);
-
-    Storage.releaseCallInviteStorage(callInviteUuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(callInviteUuid), "accept");
-
-    promise.resolve(callInfo);
   }
 
   @ReactMethod
   public void callInvite_reject(String uuid, Promise promise) {
     Log.d(TAG, "callInvite_reject uuid" + uuid);
-    CallInvite activeCallInvite = Storage.callInviteMap.get(uuid);
+    try {
+      CallInvite activeCallInvite = Storage.callInviteMap.get(uuid);
 
-    if (activeCallInvite == null) {
-      promise.reject("No such \"callInvite\" object exists with UUID " + uuid);
-      return;
+      if (activeCallInvite == null) {
+        promise.reject("No such \"callInvite\" object exists with UUID " + uuid);
+        return;
+      }
+
+      activeCallInvite.reject(getReactApplicationContext());
+
+      int notificationId = Storage.uuidNotificationIdMap.get(uuid);
+      Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
+      rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+      rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
+      rejectIntent.putExtra(Constants.UUID, uuid);
+      getReactApplicationContext().startService(rejectIntent);
+
+      Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "reject");
+      promise.resolve(uuid);
+    } catch (Exception e) {
+      promise.reject("Internal Error: " + e.getMessage());
+      e.printStackTrace();
     }
-
-    activeCallInvite.reject(getReactApplicationContext());
-
-    int notificationId = Storage.uuidNotificaionIdMap.get(uuid);
-    Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
-    rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
-    rejectIntent.putExtra(Constants.UUID, uuid);
-    getReactApplicationContext().startService(rejectIntent);
-
-    Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificaionIdMap.get(uuid), "reject");
-
-    promise.resolve(uuid);
   }
 
   Call.Score getScoreFromId (int x) {

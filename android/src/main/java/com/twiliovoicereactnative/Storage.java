@@ -2,6 +2,7 @@ package com.twiliovoicereactnative;
 
 import android.util.Log;
 
+import com.facebook.react.bridge.Promise;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
@@ -21,9 +22,11 @@ public class Storage {
   // A map to keep CallSid and uuid mapping
   static final Map<String, String> callInviteCallSidUuidMap = new HashMap<>();
   // A map to keep uuid and notification id mapping
-  static final Map<String, Integer> uuidNotificaionIdMap = new HashMap<>();
+  static final Map<String, Integer> uuidNotificationIdMap = new HashMap<>();
   // A map to keep uuid and CancelledCallInvite mapping
   static final Map<String, CancelledCallInvite> cancelledCallInviteMap = new HashMap<>();
+  // A map to keep uuid and js promise objects associated
+  static final Map<String, Promise> callAcceptedPromiseMap = new HashMap<>();
 
   static void releaseCallInviteStorage(String uuid, String callSid, int notificationId, String action) {
     Log.d(TAG, "Removing items in callInviteMap" +
@@ -33,6 +36,7 @@ public class Storage {
       " action:" + action);
     Storage.callInviteMap.remove(uuid);
     Storage.callInviteCallSidUuidMap.remove(callSid);
-    Storage.uuidNotificaionIdMap.remove(uuid);
+    Storage.uuidNotificationIdMap.remove(uuid);
+    Storage.callAcceptedPromiseMap.remove(uuid);
   }
 }

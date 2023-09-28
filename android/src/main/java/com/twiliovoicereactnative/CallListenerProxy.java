@@ -170,7 +170,7 @@ class CallListenerProxy implements Call.Listener {
     Intent intent = new Intent(context, IncomingCallNotificationService.class);
     intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
     intent.putExtra(Constants.UUID, this.uuid);
-    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificaionIdMap.get(this.uuid));
+    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificationIdMap.get(this.uuid));
     intent.putExtra(Constants.NOTIFICATION_ID, this.notificationId);
     context.startService(intent);
   }
@@ -182,7 +182,7 @@ class CallListenerProxy implements Call.Listener {
     intent.putExtra(Constants.UUID, this.uuid);
     intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.CALL_SID_KEY, call.getSid());
-    Storage.uuidNotificaionIdMap.put(uuid, this.notificationId);
+    Storage.uuidNotificationIdMap.put(uuid, this.notificationId);
 
     context.startService(intent);
   }

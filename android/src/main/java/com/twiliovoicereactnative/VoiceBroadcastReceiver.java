@@ -23,8 +23,10 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
+import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 
@@ -128,6 +130,18 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+
+        if (Storage.callAcceptedPromiseMap.containsKey(uuid)) {
+          Promise promise = Storage.callAcceptedPromiseMap.get(uuid);
+          final Call call = Storage.callMap.get(uuid);
+          final WritableMap callInfo = serializeCall(uuid, call);
+
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "accept");
+
+          promise.resolve(callInfo);
+        } else {
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "accept");
+        }
         break;
       }
       case Constants.ACTION_REJECT:
