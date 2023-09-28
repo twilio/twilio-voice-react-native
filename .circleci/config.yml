@@ -34,11 +34,6 @@ commands:
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
-  setup-detox-dependencies:
-    description: Setup environment for running test on detox
-    steps:
-      - run: npm install -g detox-cli && npm link detox
-      - run: npm install -g jest && npm link jest
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -88,7 +83,7 @@ commands:
           name: Detox Build
           command: |
             cd test/app
-            detox build -c <<parameters.configuration>>
+            yarn detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
   detox-test:
@@ -116,7 +111,7 @@ commands:
           name: Detox Test
           command: |
             cd test/app
-            detox test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 jobs:
@@ -225,6 +220,7 @@ jobs:
   e2e-ios:
     macos:
       xcode: "12.5.1"
+    resource_class: macos.x86.medium.gen2
     parameters:
       detox_configuration:
         type: string
@@ -234,7 +230,6 @@ jobs:
     steps:
       - checkout
       - setup-e2e-creds
-      - setup-detox-dependencies
       - install-dependencies
       - setup-pods
       - simulator-dependencies
