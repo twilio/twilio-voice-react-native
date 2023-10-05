@@ -1,5 +1,7 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
+
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -26,6 +28,23 @@ import com.twilio.voice.CancelledCallInvite;
 public class IncomingCallNotificationService extends Service {
 
   private static final String TAG = IncomingCallNotificationService.class.getSimpleName();
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    // construct audio notification group if missing
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationUtility.createNotificationChannels(this);
+    }
+  }
+
+  public void onDestroy() {
+    // delete audio notification group
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationUtility.destroyNotificationChannels(this);
+    }
+    super.onDestroy();
+  }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
@@ -55,8 +74,9 @@ public class IncomingCallNotificationService extends Service {
           handleCancelledCall(intent, cancelledCallInvite.getCallSid(), notificationId, uuid);
           break;
         case Constants.ACTION_CANCEL_NOTIFICATION:
-          endForeground();
           Log.d(TAG, "Cancelling notification uuid:" + uuid + " notificationId: " + notificationId);
+          MediaPlayerManager.getInstance(this).stop();
+          endForeground();
           notificationManager.cancel(notificationId);
           Storage.uuidNotificationIdMap.remove(uuid);
           break;
@@ -80,10 +100,11 @@ public class IncomingCallNotificationService extends Service {
                 callInvite,
                 notificationId,
                 uuid,
-                Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE,
+                VOICE_CHANNEL_DEFAULT_IMPORTANCE,
                 false,
                 getApplicationContext()));
           }
+          MediaPlayerManager.getInstance(this).stop();
           LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
           break;
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
@@ -103,6 +124,7 @@ public class IncomingCallNotificationService extends Service {
 
   private void acceptCall(CallInvite callInvite, int notificationId, String uuid) {
     Log.e(TAG, "CallInvite UUID accept " + uuid);
+    MediaPlayerManager.getInstance(this).stop();
     endForeground();
     Intent activeCallIntent = new Intent(Constants.ACTION_ACCEPT);
     activeCallIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
@@ -133,6 +155,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void rejectCall(CallInvite callInvite, int notificationId, String uuid) {
+    MediaPlayerManager.getInstance(this).stop();
     endForeground();
     callInvite.reject(getApplicationContext());
     Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "reject");
@@ -159,6 +182,7 @@ public class IncomingCallNotificationService extends Service {
   }
 
   private void handleCancelledCall(Intent intent, String callSid, int notificationId, String uuid) {
+    MediaPlayerManager.getInstance(this).stop();
     endForeground();
     Storage.releaseCallInviteStorage(uuid, callSid, notificationId, "cancel");
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -169,6 +193,8 @@ public class IncomingCallNotificationService extends Service {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       setIncomingCallNotification(callInvite, notificationId, uuid);
     }
+    MediaPlayerManager mediaPlayerManager = MediaPlayerManager.getInstance(this);
+    mediaPlayerManager.play(mediaPlayerManager.INCOMING_WAV);
     Intent intent = new Intent(Constants.ACTION_INCOMING_CALL);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     intent.putExtra(Constants.UUID, uuid);
@@ -183,10 +209,6 @@ public class IncomingCallNotificationService extends Service {
     }
   }
   private void endForeground() {
-    // after inbound call is accepted or rejected / disconnected
-    // release the override of setSpeakerphoneOn(true) from NotificationUtility::createChannel
-    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-    audioManager.setSpeakerphoneOn(false);
     stopForeground(true);
   }
 
@@ -197,7 +219,7 @@ public class IncomingCallNotificationService extends Service {
     } else {
       Log.i(TAG, "setCallInProgressNotification - app is NOT visible with CallInvite UUID " + " notificationId" + notificationId);
     }
-    startForegroundCompat(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE, true, getApplicationContext()));
+    startForegroundCompat(notificationId, NotificationUtility.createIncomingCallNotification(callInvite, notificationId, uuid, VOICE_CHANNEL_DEFAULT_IMPORTANCE, true, getApplicationContext()));
     Log.d(TAG, "Adding items in callInviteUuidNotificaionIdMap uuid:" + uuid + " notificationId: " + notificationId);
     Storage.uuidNotificationIdMap.put(uuid, notificationId);
   }

@@ -244,7 +244,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           if (fcmToken == null) {
             Log.d(TAG, "FCM token is \"null\".");
             promise.reject("FCM token is \"null\".");
-            return;
           } else {
             promise.resolve(fcmToken);
           }

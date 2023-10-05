@@ -49,7 +49,8 @@ class CallListenerProxy implements Call.Listener {
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     Log.d(TAG, "onConnectFailure");
 
-    MediaPlayerManager.getInstance(this.context).stopRinging();
+    MediaPlayerManager.getInstance(this.context).stop();
+    AudioSwitchManager.getInstance(this.context).getAudioSwitch().deactivate();
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventConnectFailure);
@@ -70,7 +71,8 @@ class CallListenerProxy implements Call.Listener {
     Log.d(TAG, "onRinging");
 
     this.notificationId = (int) System.currentTimeMillis();
-    MediaPlayerManager.getInstance(this.context).playRinging();
+    MediaPlayerManager mediaPlayerManager = MediaPlayerManager.getInstance(context);
+    mediaPlayerManager.play(mediaPlayerManager.RINGTONE_WAV);
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventRinging);
@@ -84,8 +86,7 @@ class CallListenerProxy implements Call.Listener {
   public void onConnected(@NonNull Call call) {
     Log.d(TAG, "onConnected");
 
-    AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
-    MediaPlayerManager.getInstance(this.context).stopRinging();
+    MediaPlayerManager.getInstance(this.context).stop();
 
     Storage.callConnectMap.put(uuid, (double) new Date().getTime());
 
@@ -122,10 +123,11 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     Log.d(TAG, "onDisconnected");
+    MediaPlayerManager mediaPlayerManager = MediaPlayerManager.getInstance(this.context);
 
-    AudioSwitchManager.getInstance(context).getAudioSwitch().deactivate();
-    MediaPlayerManager.getInstance(this.context).stopRinging();
-    MediaPlayerManager.getInstance(this.context).playDisconnect();
+    mediaPlayerManager.stop();
+    mediaPlayerManager.play(mediaPlayerManager.DISCONNECT_WAV);
+    AudioSwitchManager.getInstance(this.context).getAudioSwitch().deactivate();
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventDisconnected);
