@@ -4,44 +4,40 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.net.Uri;
 import android.util.Log;
+
+import com.twilio.audioswitch.AudioSwitch;
 
 import java.io.IOException;
 
 public class MediaPlayerManager {
+    public final int DISCONNECT_WAV;
+    public final int INCOMING_WAV;
+    public final int OUTGOING_WAV;
+    public final int RINGTONE_WAV;
     private static final String TAG = MediaPlayerManager.class.getSimpleName();
-
-    private boolean playing = false;
-    private MediaPlayer ringtoneMediaPlayer;
-    private MediaPlayer disconnectMediaPlayer;
+    private final SoundPool soundPool;
+    private final AudioSwitch audioSwitch;
+    private int activeStream;
     private static MediaPlayerManager instance;
 
     private MediaPlayerManager(Context context) {
-        try {
-            ringtoneMediaPlayer = new MediaPlayer();
-            ringtoneMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.ringtone));
-            ringtoneMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build());
-            ringtoneMediaPlayer.setLooping(true);
-            ringtoneMediaPlayer.prepare();
-
-            disconnectMediaPlayer = new MediaPlayer();
-            disconnectMediaPlayer.setDataSource(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.disconnect));
-            disconnectMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
-                    .setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build());
-            disconnectMediaPlayer.prepare();
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to load soundtracks");
-        }
+      soundPool = (new SoundPool.Builder())
+        .setMaxStreams(2)
+        .setAudioAttributes(
+          new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+            .build())
+        .build();
+      audioSwitch = AudioSwitchManager.getInstance(context).getAudioSwitch();
+      activeStream = 0;
+      DISCONNECT_WAV = soundPool.load(context, R.raw.disconnect, 1);
+      INCOMING_WAV = soundPool.load(context, R.raw.incoming, 1);
+      OUTGOING_WAV = soundPool.load(context, R.raw.outgoing, 1);
+      RINGTONE_WAV = soundPool.load(context, R.raw.ringtone, 1);
     }
 
     public static MediaPlayerManager getInstance(Context context) {
@@ -51,35 +47,24 @@ public class MediaPlayerManager {
         return instance;
     }
 
-    public void playRinging() {
-        if (!playing) {
-            ringtoneMediaPlayer.start();
-            playing = true;
-        }
+    public void play(final int soundId) {
+      audioSwitch.activate();
+      activeStream = soundPool.play(
+        soundId,
+        1.f,
+        1.f,
+        1,
+        (DISCONNECT_WAV == soundId) ? 0 : -1,
+        1.f);
     }
 
-    public void stopRinging() {
-        if (playing) {
-            ringtoneMediaPlayer.stop();
-            try {
-                ringtoneMediaPlayer.prepare();
-            } catch (IOException e) {
-                Log.e(TAG, "Failed to prepare ringtone");
-            }
-            playing = false;
-        }
-    }
-
-    public void playDisconnect() {
-        if (!playing) {
-            disconnectMediaPlayer.start();
-            playing = false;
-        }
+    public void stop() {
+      soundPool.stop(activeStream);
+      activeStream = 0;
     }
 
     public void release() {
-        ringtoneMediaPlayer.release();
-        disconnectMediaPlayer.release();
-        instance = null;
+      soundPool.release();
+      instance = null;
     }
 }

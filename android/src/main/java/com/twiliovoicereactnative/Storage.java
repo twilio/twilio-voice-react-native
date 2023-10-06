@@ -1,6 +1,11 @@
 package com.twiliovoicereactnative;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Promise;
 import com.twilio.voice.Call;
@@ -8,6 +13,7 @@ import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class Storage {
@@ -40,5 +46,17 @@ public class Storage {
     Storage.uuidNotificationIdMap.remove(uuid);
     Storage.callAcceptedPromiseMap.remove(uuid);
     Storage.callRejectPromiseMap.remove(uuid);
+  }
+
+  static Uri provideResourceSilent_wav(@NonNull Context context) {
+    return provideResource(context, R.raw.silent);
+  }
+
+  private static Uri provideResource(@NonNull Context context, int id) {
+    return (new Uri.Builder()
+      .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+      .authority(context.getResources().getResourcePackageName(id))
+      .appendPath(String.valueOf(id))
+    ).build();
   }
 }

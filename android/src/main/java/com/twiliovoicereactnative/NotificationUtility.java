@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -25,6 +26,10 @@ import com.twilio.voice.CallInvite;
 
 import static android.content.Context.AUDIO_SERVICE;
 
+
+import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
+import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
+import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
 
 import java.net.URLDecoder;
 import java.util.Map;
@@ -293,41 +298,67 @@ public class NotificationUtility {
   }
 
   @TargetApi(Build.VERSION_CODES.O)
-  private static int getChannelImportance(final String voiceChannel) {
-    if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE)) {
-      return NotificationManager.IMPORTANCE_HIGH;
-    } else if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE)) {
-      return NotificationManager.IMPORTANCE_DEFAULT;
-    } else if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)) {
-      return NotificationManager.IMPORTANCE_LOW;
+  public static void createNotificationChannels(Context context) {
+    NotificationManager notificationManager =
+      (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.createNotificationChannelGroup(
+      new NotificationChannelGroup(Constants.VOICE_CHANNEL_GROUP, "Twilio Voice"));
+    for (String channelId:
+      new String[]{
+        VOICE_CHANNEL_HIGH_IMPORTANCE,
+        VOICE_CHANNEL_DEFAULT_IMPORTANCE,
+        VOICE_CHANNEL_LOW_IMPORTANCE}) {
+      notificationManager.createNotificationChannel(
+        createNotificationChannel(context, channelId));
     }
-    return NotificationManager.IMPORTANCE_DEFAULT;
+  }
+
+  @TargetApi(Build.VERSION_CODES.O)
+  public static void destroyNotificationChannels(Context context) {
+    NotificationManager notificationManager =
+      (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.deleteNotificationChannelGroup(Constants.VOICE_CHANNEL_GROUP);
+  }
+
+  @TargetApi(Build.VERSION_CODES.O)
+  private static NotificationChannel createNotificationChannel(Context context,
+                                                               final String voiceChannelId) {
+    final int notificationImportance = getChannelImportance(voiceChannelId);
+    NotificationChannel voiceChannel = new NotificationChannel(
+      voiceChannelId,
+      "Primary Voice Channel",
+      notificationImportance);
+    voiceChannel.setImportance(notificationImportance);
+    voiceChannel.setLightColor(Color.GREEN);
+    voiceChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+    voiceChannel.setGroup(Constants.VOICE_CHANNEL_GROUP);
+    // low-importance notifications don't have sound
+    if (!Constants.VOICE_CHANNEL_LOW_IMPORTANCE.equals(voiceChannelId)) {
+      // set audio attributes for channel
+      Uri soundUri = Storage.provideResourceSilent_wav(context);
+      AudioAttributes audioAttributes = new AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+        .build();
+      voiceChannel.setSound(soundUri, audioAttributes);
+    }
+    return voiceChannel;
+  }
+
+  @TargetApi(Build.VERSION_CODES.O)
+  private static int getChannelImportance(final String voiceChannel) {
+    final Map<String, Integer> importanceMapping = Map.of(
+      Constants.VOICE_CHANNEL_HIGH_IMPORTANCE, NotificationManager.IMPORTANCE_HIGH,
+      Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE, NotificationManager.IMPORTANCE_DEFAULT,
+      Constants.VOICE_CHANNEL_LOW_IMPORTANCE, NotificationManager.IMPORTANCE_LOW);
+    return importanceMapping.getOrDefault(voiceChannel, NotificationManager.IMPORTANCE_DEFAULT);
   }
   @TargetApi(Build.VERSION_CODES.O)
   private static String getChannel(Context context, final String voiceChannelId) {
-
     // construct channel if it has not been created
     NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     if (null == notificationManager.getNotificationChannel(voiceChannelId)) {
-      final int notificaitonImportance = getChannelImportance(voiceChannelId);
-      NotificationChannel voiceChannel = new NotificationChannel(voiceChannelId, "Primary Voice Channel", notificaitonImportance);
-
-      voiceChannel.setImportance(notificaitonImportance);
-      voiceChannel.setLightColor(Color.GREEN);
-      voiceChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-      notificationManager.createNotificationChannel(voiceChannel);
-      if (Objects.equals(voiceChannel, Constants.VOICE_CHANNEL_HIGH_IMPORTANCE)) {
-        // play inbound call ringer on the speaker
-        AudioManager audioManager = (AudioManager) context.getSystemService(AUDIO_SERVICE);
-        audioManager.setSpeakerphoneOn(true);
-        // set audio attributes for channel
-        Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.incoming);
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-          .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-          .build();
-        voiceChannel.setSound(soundUri, audioAttributes);
-      }
+      createNotificationChannels(context);
     }
     return voiceChannelId;
   }
