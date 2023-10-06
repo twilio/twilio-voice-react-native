@@ -537,24 +537,24 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void callInvite_reject(String uuid, Promise promise) {
     Log.d(TAG, "callInvite_reject uuid" + uuid);
     try {
-      CallInvite activeCallInvite = Storage.callInviteMap.get(uuid);
+      CallInvite callInvite = Storage.callInviteMap.get(uuid);
 
-      if (activeCallInvite == null) {
+      if (callInvite == null) {
         promise.reject("No such \"callInvite\" object exists with UUID " + uuid);
         return;
       }
 
-      activeCallInvite.reject(getReactApplicationContext());
+      // Store promise for callback
+      Storage.callRejectPromiseMap.put(uuid, promise);
 
-      int notificationId = Storage.uuidNotificationIdMap.get(uuid);
+      // Send Event to service
+      final int notificationId = Storage.uuidNotificationIdMap.get(uuid);
       Intent rejectIntent = new Intent(getReactApplicationContext(), IncomingCallNotificationService.class);
-      rejectIntent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
+      rejectIntent.setAction(Constants.ACTION_REJECT);
       rejectIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
       rejectIntent.putExtra(Constants.UUID, uuid);
+      rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
       getReactApplicationContext().startService(rejectIntent);
-
-      Storage.releaseCallInviteStorage(uuid, activeCallInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "reject");
-      promise.resolve(uuid);
     } catch (Exception e) {
       promise.reject("Internal Error: " + e.getMessage());
       e.printStackTrace();

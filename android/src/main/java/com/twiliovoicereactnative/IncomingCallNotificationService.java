@@ -158,11 +158,14 @@ public class IncomingCallNotificationService extends Service {
     MediaPlayerManager.getInstance(this).stop();
     endForeground();
     callInvite.reject(getApplicationContext());
-    Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), notificationId, "reject");
 
     Intent rejectCallInviteIntent = new Intent(Constants.ACTION_REJECT);
     rejectCallInviteIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
+    rejectCallInviteIntent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     rejectCallInviteIntent.putExtra(Constants.UUID, uuid);
+
+    // Send the broadcast in case TwilioVoiceReactNative is loaded, it can emit the event
+    Storage.uuidNotificationIdMap.put(uuid, notificationId);
     LocalBroadcastManager.getInstance(this).sendBroadcast(rejectCallInviteIntent);
   }
 

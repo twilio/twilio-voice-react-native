@@ -155,6 +155,14 @@ public class VoiceBroadcastReceiver extends BroadcastReceiver {
         params.putMap(EVENT_KEY_CALL_INVITE_INFO, callInviteInfo);
 
         AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+
+        if (Storage.callRejectPromiseMap.containsKey(uuid)) {
+          Promise promise = Storage.callRejectPromiseMap.get(uuid);
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "reject");
+          promise.resolve(uuid);
+        } else {
+          Storage.releaseCallInviteStorage(uuid, callInvite.getCallSid(), Storage.uuidNotificationIdMap.get(uuid), "reject");
+        }
         break;
       case Constants.ACTION_CANCEL_CALL:
         Log.d(TAG, "Successfully received cancel notification");

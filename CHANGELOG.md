@@ -13,6 +13,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 - Replace frontline notification images with generic phone images
 - In call notifications now display when accepting a call from JS application
 - Audio routing for incoming and outgoing calls are now correctly routed
+- Internal simplification of call accepted/rejected intent message paths
 
 
 1.0.0-beta.3 (August 26, 2023)

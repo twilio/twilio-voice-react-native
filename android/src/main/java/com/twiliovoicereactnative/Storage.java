@@ -33,6 +33,7 @@ public class Storage {
   static final Map<String, CancelledCallInvite> cancelledCallInviteMap = new HashMap<>();
   // A map to keep uuid and js promise objects associated
   static final Map<String, Promise> callAcceptedPromiseMap = new HashMap<>();
+  static final Map<String, Promise> callRejectPromiseMap = new HashMap<>();
 
   static void releaseCallInviteStorage(String uuid, String callSid, int notificationId, String action) {
     Log.d(TAG, "Removing items in callInviteMap" +
@@ -44,6 +45,7 @@ public class Storage {
     Storage.callInviteCallSidUuidMap.remove(callSid);
     Storage.uuidNotificationIdMap.remove(uuid);
     Storage.callAcceptedPromiseMap.remove(uuid);
+    Storage.callRejectPromiseMap.remove(uuid);
   }
 
   static Uri provideResourceSilent_wav(@NonNull Context context) {
