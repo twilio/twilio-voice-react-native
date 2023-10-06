@@ -323,12 +323,12 @@ public class NotificationUtility {
   @TargetApi(Build.VERSION_CODES.O)
   private static NotificationChannel createNotificationChannel(Context context,
                                                                final String voiceChannelId) {
-    final int notificaitonImportance = getChannelImportance(voiceChannelId);
+    final int notificationImportance = getChannelImportance(voiceChannelId);
     NotificationChannel voiceChannel = new NotificationChannel(
       voiceChannelId,
       "Primary Voice Channel",
-      notificaitonImportance);
-    voiceChannel.setImportance(notificaitonImportance);
+      notificationImportance);
+    voiceChannel.setImportance(notificationImportance);
     voiceChannel.setLightColor(Color.GREEN);
     voiceChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
     voiceChannel.setGroup(Constants.VOICE_CHANNEL_GROUP);
