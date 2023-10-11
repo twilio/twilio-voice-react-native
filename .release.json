@@ -23,6 +23,7 @@
         "git add -f ios/TwilioVoiceReactNativeConstants.h",
         "git add -f android/src/main/java/com/twiliovoicereactnative/CommonConstants.java",
         "git commit -nm \"${RELEASE_VERSION}\"",
+        "git status",
         "git tag ${RELEASE_VERSION}",
         "git status",
         "git rebase HEAD ${BRANCH}",
