@@ -167,30 +167,8 @@ async function transform(constantsPath, templatePath, outputPath) {
   await writeFile(outputPath, mergedConstants.join('\n'));
 }
 
-async function substituteVersion(constantsPath) {
-  const packageJsonPath = './package.json';
-  const packageJsonSource = (await readFile(packageJsonPath)).toString('utf-8');
-
-  const json = JSON.parse(packageJsonSource);
-  const version = json.version;
-
-  const constantsInput = (await readFile(constantsPath)).toString('utf-8');
-  /**
-   * NOTE(afalls): revisit VBLOCKS-2285
-   */
-  const constantsOutput = constantsInput.replace(
-    /(ReactNativeVoiceSDKVer\s*=\s*)(.*)/g,
-    '$1' + version
-  );
-
-  await writeFile(constantsPath, constantsOutput);
-}
-
 async function main() {
   const constantsPath = './constants/constants.src';
-
-  // Substitute version
-  await substituteVersion(constantsPath);
 
   // Transform TS files
   const tsTemplatePath = './constants/constants.typescript.template';
