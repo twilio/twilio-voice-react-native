@@ -629,23 +629,25 @@ export class Call extends EventEmitter {
   /**
    * Get the mute status of this side of the call.
    * @returns
-   *  - A boolean representing the muted status of the call.
-   *  - `undefined` if the call state has not yet been received from the native
-   *    layer.
+   *  A `Promise` that
+   *    - Resolves with the mute status of the call.
+   *    - Rejects if the native layer is unable to determine the mute status
+   *      of the call. For example if the call is no longer active.
    */
-  isMuted(): boolean | undefined {
-    return this._isMuted;
+  async isMuted(): Promise<boolean> {
+    return NativeModule.call_isMuted(this._uuid);
   }
 
   /**
    * Get the hold status of this side of the call.
    * @returns
-   *  - A boolean representing the hold status of the call.
-   *  - `undefined` if the call state has not yet been received from the native
-   *    layer.
+   *  A `Promise` that
+   *    - Resolves with the hold status of the call.
+   *    - Rejects if the native layer is unable to determine the hold status
+   *      of the call. For example if the call is no longer active.
    */
-  isOnHold(): boolean | undefined {
-    return this._isOnHold;
+  async isOnHold(): Promise<boolean> {
+    return NativeModule.call_isOnHold(this._uuid);
   }
 
   /**

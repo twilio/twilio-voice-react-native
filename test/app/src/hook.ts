@@ -53,8 +53,8 @@ export function useCall(logEvent: (event: string) => void) {
       setCallInfo({
         customParameters: call.getCustomParameters(),
         from: call.getFrom(),
-        isMuted: call.isMuted(),
-        isOnHold: call.isOnHold(),
+        isMuted: await call.isMuted(),
+        isOnHold: await call.isOnHold(),
         state: call.getState(),
         sid: call.getSid(),
         to: call.getTo(),
@@ -65,8 +65,8 @@ export function useCall(logEvent: (event: string) => void) {
           const _callInfo = {
             customParameters: call.getCustomParameters(),
             from: call.getFrom(),
-            isMuted: call.isMuted(),
-            isOnHold: call.isOnHold(),
+            isMuted: await call.isMuted(),
+            isOnHold: await call.isOnHold(),
             state: call.getState(),
             sid: call.getSid(),
             to: call.getTo(),
@@ -87,7 +87,7 @@ export function useCall(logEvent: (event: string) => void) {
           logEvent(`call stats: ${JSON.stringify(statsReport, null, 2)}`);
         },
         hold: async () => {
-          let isOnHold = call.isOnHold();
+          let isOnHold = await call.isOnHold();
           isOnHold = await call.hold(!isOnHold);
           setCallInfo((_callInfo) =>
             _callInfo
@@ -99,7 +99,7 @@ export function useCall(logEvent: (event: string) => void) {
           );
         },
         mute: async () => {
-          let isMuted = call.isMuted();
+          let isMuted = await call.isMuted();
           isMuted = await call.mute(!isMuted);
           setCallInfo((_callInfo) =>
             _callInfo

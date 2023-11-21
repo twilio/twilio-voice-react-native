@@ -184,8 +184,8 @@ export class Call extends EventEmitter {
     getStats(): Promise<RTCStats.StatsReport>;
     getTo(): string | undefined;
     hold(hold: boolean): Promise<boolean>;
-    isMuted(): boolean | undefined;
-    isOnHold(): boolean | undefined;
+    isMuted(): Promise<boolean>;
+    isOnHold(): Promise<boolean>;
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
