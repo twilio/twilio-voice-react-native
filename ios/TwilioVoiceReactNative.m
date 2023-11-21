@@ -10,7 +10,6 @@
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
-#import "TwilioVoiceReactNativeVersion.h"
 #import "TwilioVoiceStatsReport.h"
 
 NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
