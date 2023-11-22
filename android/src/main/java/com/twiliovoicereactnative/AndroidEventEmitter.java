@@ -59,7 +59,7 @@ public class AndroidEventEmitter {
       return;
     }
 
-    if (!context.hasActiveCatalystInstance()) {
+    if (!context.hasActiveReactInstance()) {
       if (BuildConfig.DEBUG) {
         Log.d(TAG, "failed Catalyst instance not active");
       }

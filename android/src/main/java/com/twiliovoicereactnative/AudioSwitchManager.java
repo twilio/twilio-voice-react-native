@@ -34,7 +34,7 @@ public class AudioSwitchManager {
   /**
    * Audio device type mapping. Normalizes the class name into a string the JS layer expects.
    */
-  public static final HashMap<String, String> AUDIO_DEVICE_TYPE = new HashMap();
+  public static final HashMap<String, String> AUDIO_DEVICE_TYPE = new HashMap<>();
 
   /**
    * Singleton instance of this class.

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
@@ -34,9 +35,7 @@ import java.util.Date;
 import java.util.Set;
 
 class CallListenerProxy implements Call.Listener {
-  static final String TAG = "CallListenerProxy";
   private final String uuid;
-
   private int notificationId;
   private final Context context;
 
@@ -47,7 +46,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
-    Log.d(TAG, "onConnectFailure");
+    log("onConnectFailure");
 
     MediaPlayerManager.getInstance(this.context).stop();
     AudioSwitchManager.getInstance(this.context).getAudioSwitch().deactivate();
@@ -68,11 +67,11 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onRinging(@NonNull Call call) {
-    Log.d(TAG, "onRinging");
+    log("onRinging");
 
     this.notificationId = (int) System.currentTimeMillis();
     MediaPlayerManager mediaPlayerManager = MediaPlayerManager.getInstance(context);
-    mediaPlayerManager.play(mediaPlayerManager.RINGTONE_WAV);
+    mediaPlayerManager.play(context, MediaPlayerManager.SoundTable.RINGTONE);
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventRinging);
@@ -84,7 +83,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onConnected(@NonNull Call call) {
-    Log.d(TAG, "onConnected");
+    log("onConnected");
 
     MediaPlayerManager.getInstance(this.context).stop();
 
@@ -98,7 +97,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
-    Log.d(TAG, "onReconnecting");
+    log("onReconnecting");
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventReconnecting);
@@ -112,7 +111,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onReconnected(@NonNull Call call) {
-    Log.d(TAG, "onReconnected");
+    log("onReconnected");
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventReconnected);
@@ -122,11 +121,11 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
-    Log.d(TAG, "onDisconnected");
+    log("onDisconnected");
     MediaPlayerManager mediaPlayerManager = MediaPlayerManager.getInstance(this.context);
 
     mediaPlayerManager.stop();
-    mediaPlayerManager.play(mediaPlayerManager.DISCONNECT_WAV);
+    mediaPlayerManager.play(context, MediaPlayerManager.SoundTable.DISCONNECT);
     AudioSwitchManager.getInstance(this.context).getAudioSwitch().deactivate();
 
     WritableMap params = Arguments.createMap();
@@ -148,7 +147,7 @@ class CallListenerProxy implements Call.Listener {
   public void onCallQualityWarningsChanged(@NonNull Call call,
                                            @NonNull Set<Call.CallQualityWarning> currentWarnings,
                                            @NonNull Set<Call.CallQualityWarning> previousWarnings) {
-    Log.d(TAG, "onCallQualityWarningsChanged");
+    log("onCallQualityWarningsChanged");
 
     WritableMap params = Arguments.createMap();
     params.putString(VoiceEventType, CallEventQualityWarningsChanged);
@@ -169,23 +168,23 @@ class CallListenerProxy implements Call.Listener {
   }
 
   private void cancelNotification() {
-    Intent intent = new Intent(context, IncomingCallNotificationService.class);
+    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
     intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    intent.putExtra(Constants.UUID, this.uuid);
-    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificationIdMap.get(this.uuid));
-    intent.putExtra(Constants.NOTIFICATION_ID, this.notificationId);
-    context.startService(intent);
+    intent.putExtra(Constants.UUID, uuid);
+    intent.putExtra(Constants.CALL_SID_KEY, Storage.uuidNotificationIdMap.get(uuid));
+    context.sendBroadcast(intent);
   }
 
   private void raiseNotification(Call call) {
-    Log.d(TAG, "Raising call in progress notification uuid:" + uuid + " notificationId: " + this.notificationId);
-    Intent intent = new Intent(context, IncomingCallNotificationService.class);
-    intent.setAction(Constants.ACTION_OUTGOING_CALL);
-    intent.putExtra(Constants.UUID, this.uuid);
-    intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
+    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
+    intent.setAction(Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION);
+    intent.putExtra(Constants.UUID, uuid);
     intent.putExtra(Constants.CALL_SID_KEY, call.getSid());
     Storage.uuidNotificationIdMap.put(uuid, this.notificationId);
+    context.sendBroadcast(intent);
+  }
 
-    context.startService(intent);
+  private static void log(final String message) {
+    Log.d(CallListenerProxy.class.getSimpleName(), message);
   }
 }

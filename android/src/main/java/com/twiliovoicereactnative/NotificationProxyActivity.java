@@ -4,6 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.twilio.voice.CallInvite;
+import com.twilio.voice.CancelledCallInvite;
+
 public class NotificationProxyActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +31,13 @@ public class NotificationProxyActivity extends Activity {
         case Constants.ACTION_PUSH_APP_TO_FOREGROUND:
           launchMainActivity();
           break;
-        case Constants.ACTION_PUSH_APP_TO_FOREGROUND_AND_MINIMIZE_NOTIFICATION:
-        case Constants.ACTION_ACCEPT:
-          launchService(intent);
+        case Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
+        case Constants.ACTION_ACCEPT_CALL:
           launchMainActivity();
+          sendMessage(intent);
           break;
         default:
-          launchService(intent);
+          sendMessage(intent);
           break;
       }
     }
@@ -43,13 +48,14 @@ public class NotificationProxyActivity extends Activity {
       Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
       launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(launchIntent);
-    }catch (Exception e){
+    } catch (Exception e){
       e.printStackTrace();
     }
   }
-  private void launchService(Intent intent) {
-    Intent launchIntent = new Intent(intent);
-    launchIntent.setClass(this, IncomingCallNotificationService.class);
-    startService(launchIntent);
+  private void sendMessage(Intent intent) {
+    Intent copiedIntent = new Intent(intent);
+    copiedIntent.setClass(getApplicationContext(), VoiceNotificationReceiver.class);
+    copiedIntent.setFlags(0);
+    getApplicationContext().sendBroadcast(copiedIntent);
   }
 }

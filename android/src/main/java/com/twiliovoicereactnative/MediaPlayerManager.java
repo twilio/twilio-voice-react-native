@@ -11,34 +11,37 @@ import android.util.Log;
 import com.twilio.audioswitch.AudioSwitch;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MediaPlayerManager {
-    public final int DISCONNECT_WAV;
-    public final int INCOMING_WAV;
-    public final int OUTGOING_WAV;
-    public final int RINGTONE_WAV;
-    private static final String TAG = MediaPlayerManager.class.getSimpleName();
-    private final SoundPool soundPool;
-    private final AudioSwitch audioSwitch;
-    private int activeStream;
-    private static MediaPlayerManager instance;
+  public enum SoundTable {
+    INCOMING,
+    OUTGOING,
+    DISCONNECT,
+    RINGTONE
+  }
+  private final SoundPool soundPool;
+  private final Map<SoundTable, Integer> soundMap;
+  private int activeStream;
+  private static MediaPlayerManager instance;
 
-    private MediaPlayerManager(Context context) {
-      soundPool = (new SoundPool.Builder())
-        .setMaxStreams(2)
-        .setAudioAttributes(
-          new AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-            .build())
-        .build();
-      audioSwitch = AudioSwitchManager.getInstance(context).getAudioSwitch();
-      activeStream = 0;
-      DISCONNECT_WAV = soundPool.load(context, R.raw.disconnect, 1);
-      INCOMING_WAV = soundPool.load(context, R.raw.incoming, 1);
-      OUTGOING_WAV = soundPool.load(context, R.raw.outgoing, 1);
-      RINGTONE_WAV = soundPool.load(context, R.raw.ringtone, 1);
-    }
+  private MediaPlayerManager(Context context) {
+    soundPool = (new SoundPool.Builder())
+      .setMaxStreams(2)
+      .setAudioAttributes(
+        new AudioAttributes.Builder()
+          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+          .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+          .build())
+      .build();
+    activeStream = 0;
+    soundMap = new HashMap<>();
+    soundMap.put(SoundTable.INCOMING, soundPool.load(context, R.raw.incoming, 1));
+    soundMap.put(SoundTable.OUTGOING, soundPool.load(context, R.raw.outgoing, 1));
+    soundMap.put(SoundTable.DISCONNECT, soundPool.load(context, R.raw.disconnect, 1));
+    soundMap.put(SoundTable.RINGTONE, soundPool.load(context, R.raw.ringtone, 1));
+  }
 
     public static MediaPlayerManager getInstance(Context context) {
         if (instance == null) {
@@ -47,14 +50,14 @@ public class MediaPlayerManager {
         return instance;
     }
 
-    public void play(final int soundId) {
-      audioSwitch.activate();
+    public void play(Context context, final SoundTable sound) {
+      AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
       activeStream = soundPool.play(
-        soundId,
+        soundMap.get(sound),
         1.f,
         1.f,
         1,
-        (DISCONNECT_WAV == soundId) ? 0 : -1,
+        (SoundTable.DISCONNECT== sound) ? 0 : -1,
         1.f);
     }
 
@@ -66,5 +69,9 @@ public class MediaPlayerManager {
     public void release() {
       soundPool.release();
       instance = null;
+    }
+
+    private static void log(final String message) {
+      Log.d(MediaPlayerManager.class.getSimpleName(), message);
     }
 }
