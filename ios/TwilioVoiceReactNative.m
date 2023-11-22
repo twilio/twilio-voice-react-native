@@ -10,7 +10,6 @@
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
-#import "TwilioVoiceReactNativeVersion.h"
 #import "TwilioVoiceStatsReport.h"
 
 NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
@@ -87,8 +86,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         NSString *reactNativeSDK = kTwilioVoiceReactNativeReactNativeVoiceSDK;
         setenv("global-env-sdk", [reactNativeSDK UTF8String], 1);
-        
-        NSString *reactNativeSdkVersion = TWILIO_VOICE_REACT_NATIVE_VERSION;
+
+        NSString *reactNativeSdkVersion = kTwilioVoiceReactNativeReactNativeVoiceSDKVer;
         setenv("com.twilio.voice.env.sdk.version", [reactNativeSdkVersion UTF8String], 1);
 
         sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
@@ -343,7 +342,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     if (initialConnectedTimestamp != nil) {
         callInfo[kTwilioVoiceReactNativeCallInfoInitialConnectedTimestamp] = initialConnectedTimestamp;
     }
-    
+
     TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
     if (callInvite && callInvite.customParameters) {
         callInfo[kTwilioVoiceReactNativeCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
