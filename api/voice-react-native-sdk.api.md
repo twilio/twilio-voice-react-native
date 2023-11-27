@@ -184,8 +184,8 @@ export class Call extends EventEmitter {
     getStats(): Promise<RTCStats.StatsReport>;
     getTo(): string | undefined;
     hold(hold: boolean): Promise<boolean>;
-    isMuted(): Promise<boolean>;
-    isOnHold(): Promise<boolean>;
+    isMuted(): boolean | undefined;
+    isOnHold(): boolean | undefined;
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
@@ -822,6 +822,7 @@ declare namespace TwilioErrors {
     export {
         InvalidArgumentError,
         InvalidStateError,
+        UnsupportedPlatformError,
         TwilioError,
         AuthorizationErrors,
         ClientErrors,
@@ -849,6 +850,15 @@ namespace TwiMLErrors {
         name: string;
         solutions: string[];
     }
+}
+
+// @public
+class UnsupportedPlatformError extends TwilioError {
+    constructor(message: string);
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
 }
 
 // @public

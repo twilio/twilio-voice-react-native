@@ -53,8 +53,8 @@ export function useCall(logEvent: (event: string) => void) {
       setCallInfo({
         customParameters: call.getCustomParameters(),
         from: call.getFrom(),
-        isMuted: await call.isMuted(),
-        isOnHold: await call.isOnHold(),
+        isMuted: call.isMuted(),
+        isOnHold: call.isOnHold(),
         state: call.getState(),
         sid: call.getSid(),
         to: call.getTo(),
@@ -65,8 +65,8 @@ export function useCall(logEvent: (event: string) => void) {
           const _callInfo = {
             customParameters: call.getCustomParameters(),
             from: call.getFrom(),
-            isMuted: await call.isMuted(),
-            isOnHold: await call.isOnHold(),
+            isMuted: call.isMuted(),
+            isOnHold: call.isOnHold(),
             state: call.getState(),
             sid: call.getSid(),
             to: call.getTo(),
@@ -87,7 +87,7 @@ export function useCall(logEvent: (event: string) => void) {
           logEvent(`call stats: ${JSON.stringify(statsReport, null, 2)}`);
         },
         hold: async () => {
-          let isOnHold = await call.isOnHold();
+          let isOnHold = call.isOnHold();
           isOnHold = await call.hold(!isOnHold);
           setCallInfo((_callInfo) =>
             _callInfo
@@ -99,7 +99,7 @@ export function useCall(logEvent: (event: string) => void) {
           );
         },
         mute: async () => {
-          let isMuted = await call.isMuted();
+          let isMuted = call.isMuted();
           isMuted = await call.mute(!isMuted);
           setCallInfo((_callInfo) =>
             _callInfo
@@ -256,8 +256,9 @@ export function useVoice(token: string) {
     async (to: string) => {
       const call = await voice.connect(token, {
         params: {
+          answerOnBridge: 'true',
           recipientType: 'client',
-          To: to,
+          to,
         },
       });
       callHandler(call);
@@ -378,6 +379,10 @@ export function useVoice(token: string) {
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
+      voice.off(
+        Voice.Event.CallInviteNotificationTapped,
+        callInviteNotificationTappedHandler
+      );
       voice.off(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
       voice.off(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
       voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);
