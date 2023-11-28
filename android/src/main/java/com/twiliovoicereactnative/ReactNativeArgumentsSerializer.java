@@ -13,6 +13,8 @@ import static com.twiliovoicereactnative.CommonConstants.CallInfoSid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoState;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoIsMuted;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoIsOnHold;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
 import static com.twiliovoicereactnative.CommonConstants.CallStateDisconnected;
@@ -130,6 +132,8 @@ public class ReactNativeArgumentsSerializer {
     callInfo.putString(CallInfoFrom, call.getFrom());
     callInfo.putString(CallInfoTo, call.getTo());
     callInfo.putString(CallInfoState, callStateToString(call.getState()));
+    callInfo.putBoolean(CallInfoIsMuted, call.isMuted());
+    callInfo.putBoolean(CallInfoIsOnHold, call.isOnHold());
 
     Double timestamp = Storage.callConnectMap.get(uuid);
     if (timestamp != null) {

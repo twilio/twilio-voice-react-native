@@ -8,6 +8,7 @@ import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
+import { UnsupportedPlatformError } from '../error';
 import type { NativeVoiceEventType } from '../type/Voice';
 import { Voice } from '../Voice';
 
@@ -826,6 +827,47 @@ describe('Voice class', () => {
         const showAvRoutePickerViewPromise =
           new Voice().showAvRoutePickerView();
         await expect(showAvRoutePickerViewPromise).resolves.toBeUndefined();
+      });
+    });
+
+    describe('.initializePushRegistry', () => {
+      it('should reject on android', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android');
+        await expect(new Voice().initializePushRegistry()).rejects.toThrowError(
+          UnsupportedPlatformError
+        );
+      });
+
+      it('should resolve on ios', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        await expect(
+          new Voice().initializePushRegistry()
+        ).resolves.toBeUndefined();
+      });
+    });
+
+    describe('.setCallKitConfiguration', () => {
+      const mockConfig = {
+        callKitIconTemplateImageData: 'foo',
+        callKitIncludesCallsInRecents: true,
+        callKitMaximumCallGroups: 1,
+        callKitMaximumCallsPerCallGroup: 2,
+        callKitRingtoneSound: 'bar',
+        callKitSupportedHandleTypes: [3, 4],
+      };
+
+      it('should reject on android', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android');
+        await expect(
+          new Voice().setCallKitConfiguration(mockConfig)
+        ).rejects.toThrowError(UnsupportedPlatformError);
+      });
+
+      it('should resolve on ios', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        await expect(
+          new Voice().setCallKitConfiguration(mockConfig)
+        ).resolves.toBeUndefined();
       });
     });
   });
