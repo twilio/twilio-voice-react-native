@@ -432,7 +432,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          warning(TAG, "Fetching FCM registration token failed", task.getException());
+          warning("Fetching FCM registration token failed" + task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }

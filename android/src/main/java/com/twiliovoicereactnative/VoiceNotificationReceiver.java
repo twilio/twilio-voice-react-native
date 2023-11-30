@@ -70,8 +70,8 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
       case ACTION_CANCEL_CALL:
         handleCancelCall(
           context,
-          Objects.requireNonNull(intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE),
-          Objects.requireNonNull(intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE)),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_CALL_DISCONNECT:
         handleDisconnect(intent.getStringExtra(Constants.UUID));
