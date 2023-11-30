@@ -48,7 +48,7 @@ public class NotificationProxyActivity extends Activity {
       Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
       launchIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(launchIntent);
-    } catch (Exception e){
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }

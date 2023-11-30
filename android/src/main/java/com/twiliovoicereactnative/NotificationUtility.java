@@ -50,14 +50,14 @@ public class NotificationUtility {
     final String title = getDisplayName(callInvite);
     final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
 
-    Intent foreground_intent = constructAction(
+    Intent foregroundIntent = constructAction(
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
       NotificationProxyActivity.class,
       context,
       uuid,
       callInvite,
       notificationId);
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foreground_intent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
     Intent rejectIntent = constructAction(
       Constants.ACTION_REJECT_CALL,
@@ -108,23 +108,23 @@ public class NotificationUtility {
     final int smallIconResId = getSmallIconResource(context);
     final String title = getDisplayName(callInvite);
 
-    Intent foreground_intent = constructAction(
+    Intent foregroundIntent = constructAction(
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       NotificationProxyActivity.class,
       context,
       uuid,
       callInvite,
       notificationId);
-    PendingIntent pendingIntent = constructPendingIntentForActivity(context, foreground_intent);
+    PendingIntent pendingIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
-    Intent endCall_intent = constructAction(
+    Intent endCallIntent = constructAction(
       Constants.ACTION_CALL_DISCONNECT,
       VoiceNotificationReceiver.class,
       context,
       uuid,
       callInvite,
       notificationId);
-    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCall_intent);
+    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
     remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
@@ -151,21 +151,21 @@ public class NotificationUtility {
     final Bundle extras = constructBundle(callSid);
     final int smallIconResId = getSmallIconResource(context);
 
-    Intent foreground_intent = constructAction(
+    Intent foregroundIntent = constructAction(
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       NotificationProxyActivity.class,
       context,
       uuid,
       notificationId);
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foreground_intent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
-    Intent endCall_intent = constructAction(
+    Intent endCallIntent = constructAction(
       Constants.ACTION_CALL_DISCONNECT,
       VoiceNotificationReceiver.class,
       context,
       uuid,
       notificationId);
-    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCall_intent);
+    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
     remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));

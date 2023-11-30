@@ -30,6 +30,7 @@ import com.twilio.voice.Voice;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -218,7 +219,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+          log("Fetching FCM registration token failed" + task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }
@@ -459,7 +460,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+          log("Fetching FCM registration token failed" + task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }

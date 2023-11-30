@@ -52,26 +52,26 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
       case ACTION_INCOMING_CALL:
         handleIncomingCall(
           context,
-          intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE)),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_ACCEPT_CALL:
         handleAccept(
           context,
-          intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE)),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_REJECT_CALL:
         handleReject(
           context,
           Objects.requireNonNull(intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE)),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_CANCEL_CALL:
         handleCancelCall(
           context,
-          intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getParcelableExtra(Constants.CANCELLED_CALL_INVITE),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID));
         break;
       case ACTION_CALL_DISCONNECT:
         handleDisconnect(intent.getStringExtra(Constants.UUID));
@@ -79,19 +79,19 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
       case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
         handleRaiseOutgoingCallNotification(
           context,
-          intent.getStringExtra(Constants.CALL_SID_KEY),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getStringExtra(Constants.CALL_SID_KEY)),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_CANCEL_NOTIFICATION:
         handleCancelNotification(
           context,
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
         handleForegroundAndDeprioritizeIncomingCallNotification(
           context,
-          intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE),
-          intent.getStringExtra(Constants.UUID));
+          Objects.requireNonNull(intent.getParcelableExtra(Constants.INCOMING_CALL_INVITE)),
+          Objects.requireNonNull(intent.getStringExtra(Constants.UUID)));
         break;
       case ACTION_PUSH_APP_TO_FOREGROUND:
         warning("BroadcastReceiver received foreground request, ignoring");
