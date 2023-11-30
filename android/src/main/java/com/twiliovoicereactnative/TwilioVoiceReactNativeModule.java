@@ -128,7 +128,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
         String errorMessage = String.format("Registration Error: %d, %s",
           registrationException.getErrorCode(), registrationException.getMessage());
-        Log.e(TAG, errorMessage);
+        error(errorMessage);
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
@@ -155,7 +155,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       @Override
       public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
         String errorMessage = String.format("Unregistration Error: %d, %s", registrationException.getErrorCode(), registrationException.getMessage());
-        Log.e(TAG, errorMessage);
+        error(errorMessage);
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventError);
         WritableMap error = Arguments.createMap();
@@ -219,7 +219,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          log("Fetching FCM registration token failed" + task.getException());
+          warning("Fetching FCM registration token failed" + task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }
@@ -432,7 +432,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+          warning(TAG, "Fetching FCM registration token failed", task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }
@@ -460,7 +460,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     FirebaseMessaging.getInstance().getToken()
       .addOnCompleteListener(task -> {
         if (!task.isSuccessful()) {
-          log("Fetching FCM registration token failed" + task.getException());
+          warning("Fetching FCM registration token failed" + task.getException());
           promise.reject("Fetching FCM registration token failed" + task.getException());
           return;
         }
@@ -575,5 +575,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   private static void log(@NonNull final String message) {
     Log.d(TAG, message);
+  }
+
+  private static void warning(@NonNull final String message) {
+    Log.w(TAG, message);
+  }
+
+  private static void error(@NonNull final String message) {
+    Log.e(TAG, message);
   }
 }
