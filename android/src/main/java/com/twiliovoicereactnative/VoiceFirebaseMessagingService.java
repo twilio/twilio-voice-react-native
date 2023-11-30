@@ -33,23 +33,21 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     this.context = this;
   }
 
-  public VoiceFirebaseMessagingService(FirebaseMessagingService delegate) {
-    super();
-    this.context = delegate;
-  }
-
   @Override
   public void onCreate() {
     super.onCreate();
-    Log.d(TAG, "onCreate");
+    NotificationUtility.createNotificationChannels(context.getApplicationContext());
+  }
+
+  @Override
+  public void onDestroy() {
+    NotificationUtility.destroyNotificationChannels(context.getApplicationContext());
+    super.onDestroy();
   }
 
   @Override
   public void onNewToken(String token) {
-    Log.d(TAG, "Refreshed FCM token: " + token);
-    Intent intent = new Intent(Constants.ACTION_FCM_TOKEN);
-    intent.putExtra(Constants.FCM_TOKEN, token);
-    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    log("Refreshed FCM token: " + token);
   }
 
   /**
@@ -59,9 +57,9 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
    */
   @Override
   public void onMessageReceived(RemoteMessage remoteMessage) {
-    Log.d(TAG, "onMessageReceived remoteMessage: " + remoteMessage.toString());
-    Log.d(TAG, "Bundle data: " + remoteMessage.getData());
-    Log.d(TAG, "From: " + remoteMessage.getFrom());
+    log("onMessageReceived remoteMessage: " + remoteMessage.toString());
+    log("Bundle data: " + remoteMessage.getData());
+    log("From: " + remoteMessage.getFrom());
 
     PowerManager pm = (PowerManager) this.context.getSystemService(this.context.POWER_SERVICE);
     boolean isScreenOn = Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn(); // check if screen is on
@@ -75,8 +73,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
       boolean valid = Voice.handleMessage(this.context, remoteMessage.getData(), new MessageListener() {
         @Override
         public void onCallInvite(@NonNull CallInvite callInvite) {
-          final int notificationId = (int) System.currentTimeMillis();
-          handleInvite(callInvite, notificationId);
+          handleInvite(callInvite);
         }
 
         @Override
@@ -92,34 +89,34 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     }
   }
 
-  private void handleInvite(CallInvite callInvite, int notificationId) {
+  private void handleInvite(CallInvite callInvite) {
     String uuid = UUID.randomUUID().toString();
 
-    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
+    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
     intent.setAction(Constants.ACTION_INCOMING_CALL);
-    intent.putExtra(Constants.NOTIFICATION_ID, notificationId);
     intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     intent.putExtra(Constants.UUID, uuid);
 
     Storage.callInviteMap.put(uuid, callInvite);
     Storage.callInviteCallSidUuidMap.put(callInvite.getCallSid(), uuid);
-    Log.d(TAG, "CallInvite UUID handleInvite " + uuid);
 
-    this.context.startService(intent);
+    context.sendBroadcast(intent);
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite, CallException callException) {
     String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
+    Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
 
-    Intent intent = new Intent(this.context, IncomingCallNotificationService.class);
+    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
     intent.setAction(Constants.ACTION_CANCEL_CALL);
     intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
     intent.putExtra(Constants.UUID, uuid);
     intent.putExtra(VoiceErrorKeyCode, callException.getErrorCode());
     intent.putExtra(VoiceErrorKeyMessage, callException.getMessage());
+    context.sendBroadcast(intent);
+  }
 
-    Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
-
-    this.context.startService(intent);
+  private static void log(final String message) {
+    Log.d(VoiceFirebaseMessagingService.class.getSimpleName(), message);
   }
 }
