@@ -23,7 +23,7 @@ import org.json.JSONException;
 
 import java.util.List;
 
-public class StatsListenerProxy implements StatsListener {
+class StatsListenerProxy implements StatsListener {
   private final Promise promise;
 
   public StatsListenerProxy(String uuid, Context context, Promise promise) {

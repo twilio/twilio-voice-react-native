@@ -18,7 +18,6 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
-import com.twilio.voice.CallInvite;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.LogLevel;
 import com.twilio.voice.RegistrationException;
@@ -28,7 +27,6 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -50,7 +48,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
-public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
+class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
   private static final SDKLog logger = new SDKLog(TwilioVoiceReactNativeModule.class);
   private static final String GLOBAL_ENV = "com.twilio.voice.env";

@@ -24,7 +24,6 @@ import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCallSid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
-import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 
 import androidx.annotation.NonNull;
 

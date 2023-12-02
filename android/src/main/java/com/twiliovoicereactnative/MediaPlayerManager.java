@@ -2,19 +2,12 @@ package com.twiliovoicereactnative;
 
 import android.content.Context;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.SoundPool;
-import android.net.Uri;
-import android.util.Log;
 
-import com.twilio.audioswitch.AudioSwitch;
-
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MediaPlayerManager {
+class MediaPlayerManager {
   public enum SoundTable {
     INCOMING,
     OUTGOING,

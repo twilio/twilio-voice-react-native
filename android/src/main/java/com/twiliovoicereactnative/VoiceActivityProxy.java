@@ -37,8 +37,6 @@ public class VoiceActivityProxy {
   }
   public void onCreate(Bundle ignoredSavedInstanceState) {
     logger.debug("onCreate(): invoked");
-    // register with application
-    VoiceApplicationProxy.setVoiceActivityProxy(this);
     // Ensure the microphone permission is enabled
     if (!checkPermissions()) {
       requestPermissions();
@@ -53,8 +51,6 @@ public class VoiceActivityProxy {
   }
   public void onDestroy() {
     logger.debug("onDestroy(): invoked");
-    // unregister from application
-    VoiceApplicationProxy.setVoiceActivityProxy(null);
   }
   public void onNewIntent(Intent intent) {
     logger.debug("onNewIntent(...): invoked");

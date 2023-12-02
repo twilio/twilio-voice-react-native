@@ -33,7 +33,7 @@ import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
 
 
 
-public class NotificationUtility {
+class NotificationUtility {
   private static final SecureRandom secureRandom = new SecureRandom();
 
   public static int createNotificationIdentifier() {

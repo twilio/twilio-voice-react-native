@@ -18,10 +18,9 @@ public class VoiceApplicationProxy {
   private static final SDKLog logger = new SDKLog(VoiceApplicationProxy.class);
   private static VoiceApplicationProxy instance = null;
   private Application context = null;
-  private CallRecordDatabase callRecordDatabase = new CallRecordDatabase();
+  private final CallRecordDatabase callRecordDatabase = new CallRecordDatabase();
   private AudioSwitchManager audioSwitchManager;
   private MediaPlayerManager mediaPlayerManager;
-  private WeakReference<VoiceActivityProxy> voiceActivityProxy;
 
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
     public VoiceReactNativeHost(Application application) {
@@ -53,8 +52,6 @@ public class VoiceApplicationProxy {
     logger.debug("onTerminate(..) invoked");
     // shutdown audioswitch & media manager
     audioSwitchManager.stop();
-    audioSwitchManager = null;
-    mediaPlayerManager = null;
     // verify that no call records are leaked
     for (CallRecord callRecord: callRecordDatabase.getCollection()) {
       logger.warning(
@@ -64,12 +61,6 @@ public class VoiceApplicationProxy {
           (null != callRecord.getCallSid()) ? callRecord.getCallSid() : "null"));
     }
     callRecordDatabase.clear();
-  }
-  static void setVoiceActivityProxy(VoiceActivityProxy activityProxy) {
-    VoiceApplicationProxy.instance.voiceActivityProxy = new WeakReference<>(activityProxy);
-  }
-  static VoiceActivityProxy getVoiceActivityProxy() {
-    return VoiceApplicationProxy.instance.voiceActivityProxy.get();
   }
   static CallRecordDatabase getCallRecordDatabase() {
     return VoiceApplicationProxy.instance.callRecordDatabase;
