@@ -19,6 +19,7 @@ import static com.twiliovoicereactnative.Constants.ACTION_PUSH_APP_TO_FOREGROUND
 import static com.twiliovoicereactnative.Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION;
 import static com.twiliovoicereactnative.Constants.ACTION_REJECT_CALL;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INFO;
+import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
@@ -131,7 +132,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInvite),
-        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
+        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleAccept(Context context, final UUID uuid) {
@@ -167,7 +168,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteAccepted),
-        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
+        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleReject(Context context, final UUID uuid) {
@@ -195,7 +196,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteRejected),
-        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
+        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleCancelCall(Context context, final UUID uuid) {
@@ -215,7 +216,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
-        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCancelledCallInvite(callRecord))));
+        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord))));
   }
 
   private void handleDisconnect(final UUID uuid) {
