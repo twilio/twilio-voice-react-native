@@ -8,6 +8,7 @@ import java.util.Objects;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -45,14 +46,13 @@ public class NotificationUtility {
                                                             final String channelImportance,
                                                             boolean fullScreenIntent,
                                                             Context context) {
-    final Bundle extras = constructBundle(callInvite.getCallSid());
     final int smallIconResId = getSmallIconResource(context);
     final String title = getDisplayName(callInvite);
     final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
 
     Intent foregroundIntent = constructAction(
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
-      NotificationProxyActivity.class,
+      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       context,
       uuid,
       callInvite,
@@ -70,7 +70,7 @@ public class NotificationUtility {
 
     Intent acceptIntent = constructAction(
       Constants.ACTION_ACCEPT_CALL,
-      NotificationProxyActivity.class,
+      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       context,
       uuid,
       callInvite,
@@ -89,7 +89,6 @@ public class NotificationUtility {
         .setContentTitle(title)
         .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
-        .setExtras(extras)
         .setAutoCancel(true)
         .setCustomContentView(remoteViews)
         .setCustomBigContentView(remoteViews)
@@ -104,13 +103,12 @@ public class NotificationUtility {
                                                                              int notificationId,
                                                                              String uuid,
                                                                              Context context) {
-    final Bundle extras = constructBundle(callInvite.getCallSid());
     final int smallIconResId = getSmallIconResource(context);
     final String title = getDisplayName(callInvite);
 
     Intent foregroundIntent = constructAction(
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
-      NotificationProxyActivity.class,
+      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       context,
       uuid,
       callInvite,
@@ -135,7 +133,6 @@ public class NotificationUtility {
       .setContentTitle(title)
       .setContentText(getContentBanner(context))
       .setCategory(Notification.CATEGORY_CALL)
-      .setExtras(extras)
       .setAutoCancel(false)
       .setCustomContentView(remoteViews)
       .setCustomBigContentView(remoteViews)
@@ -148,12 +145,11 @@ public class NotificationUtility {
                                                                              int notificationId,
                                                                              String uuid,
                                                                              Context context) {
-    final Bundle extras = constructBundle(callSid);
     final int smallIconResId = getSmallIconResource(context);
 
     Intent foregroundIntent = constructAction(
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
-      NotificationProxyActivity.class,
+      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       context,
       uuid,
       notificationId);
@@ -175,7 +171,6 @@ public class NotificationUtility {
       .setSmallIcon(smallIconResId)
       .setContentText(getContentBanner(context))
       .setCategory(Notification.CATEGORY_CALL)
-      .setExtras(extras)
       .setAutoCancel(false)
       .setCustomContentView(remoteViews)
       .setCustomBigContentView(remoteViews)
@@ -216,7 +211,7 @@ public class NotificationUtility {
     // low-importance notifications don't have sound
     if (!Constants.VOICE_CHANNEL_LOW_IMPORTANCE.equals(voiceChannelId)) {
       // set audio attributes for channel
-      Uri soundUri = Storage.provideResourceSilent_wav(context);
+      Uri soundUri = provideResourceSilent_wav(context);
       AudioAttributes audioAttributes = new AudioAttributes.Builder()
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .setUsage(AudioAttributes.USAGE_NOTIFICATION)
@@ -267,7 +262,6 @@ public class NotificationUtility {
                                         final int notificationId) {
     Intent rejectIntent = new Intent(context.getApplicationContext(), target);
     rejectIntent.setAction(action);
-    rejectIntent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
     rejectIntent.putExtra(Constants.UUID, uuid);
     return rejectIntent;
   }
@@ -317,13 +311,19 @@ public class NotificationUtility {
       context.getPackageName());
   }
 
-  private static Bundle constructBundle(@NonNull final String callSid) {
-    Bundle extras = new Bundle();
-    extras.putString(Constants.CALL_SID_KEY, callSid);
-    return extras;
-  }
-
   private static Bitmap constructBitmap(@NonNull Context context, final int resId) {
     return BitmapFactory.decodeResource(context.getResources(), resId);
+  }
+
+  static Uri provideResourceSilent_wav(@NonNull Context context) {
+    return provideResource(context, R.raw.silent);
+  }
+
+  private static Uri provideResource(@NonNull Context context, int id) {
+    return (new Uri.Builder()
+      .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+      .authority(context.getResources().getResourcePackageName(id))
+      .appendPath(String.valueOf(id))
+    ).build();
   }
 }

@@ -1,15 +1,13 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.CommonConstants.CallEventReconnecting;
+
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.IceCandidatePairState;
@@ -20,15 +18,12 @@ import com.twilio.voice.RemoteAudioTrackStats;
 import com.twilio.voice.StatsListener;
 import com.twilio.voice.StatsReport;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+
 
 import java.util.List;
 
 public class StatsListenerProxy implements StatsListener {
-
-  static final String TAG = "StatsListenerProxy";
   private final Promise promise;
 
   public StatsListenerProxy(String uuid, Context context, Promise promise) {
@@ -79,7 +74,7 @@ public class StatsListenerProxy implements StatsListener {
         promise.resolve(statsReportsArray);
       }
     } catch (JSONException e) {
-      promise.reject(TAG, e.getMessage());
+      promise.reject(StatsListenerProxy.class.getSimpleName(), e.getMessage());
       e.printStackTrace();
     }
   }

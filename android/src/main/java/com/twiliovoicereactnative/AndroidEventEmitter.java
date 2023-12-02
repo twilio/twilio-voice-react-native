@@ -1,16 +1,13 @@
 package com.twiliovoicereactnative;
 
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import static com.twiliovoicereactnative.TwilioVoiceReactNativeModule.TAG;
-
 public class AndroidEventEmitter {
+  private static final SDKLog logger = new SDKLog(AndroidEventEmitter.class);
   private static AndroidEventEmitter instance;
   private ReactApplicationContext context;
 
@@ -48,21 +45,15 @@ public class AndroidEventEmitter {
   }
 
   public void sendEvent(String eventName, @Nullable WritableMap params) {
-    if (BuildConfig.DEBUG) {
-      Log.d(TAG, "sendEvent "+eventName+" params "+params);
-    }
+    logger.debug("sendEvent " + eventName+" params " + params);
 
     if (context == null) {
-      if (BuildConfig.DEBUG) {
-        Log.d(TAG, "attempt to sendEvent without context");
-      }
+      logger.warning("attempt to sendEvent without context");
       return;
     }
 
     if (!context.hasActiveReactInstance()) {
-      if (BuildConfig.DEBUG) {
-        Log.d(TAG, "failed Catalyst instance not active");
-      }
+      logger.warning("failed Catalyst instance not active");
       return;
     }
 

@@ -1,15 +1,10 @@
 package com.twiliovoicereactnative;
 
 public class Constants {
-  public static final String CALL_SID_KEY = "CALL_SID";
   public static final String VOICE_CHANNEL_GROUP = "notification-group";
   public static final String VOICE_CHANNEL_LOW_IMPORTANCE = "notification-channel-low-importance";
   public static final String VOICE_CHANNEL_HIGH_IMPORTANCE = "notification-channel-high-importance";
   public static final String VOICE_CHANNEL_DEFAULT_IMPORTANCE = "notification-channel-normal-importance";
-  public static final String INCOMING_CALL_INVITE = "INCOMING_CALL_INVITE";
-  public static final String CANCELLED_CALL_INVITE = "CANCELLED_CALL_INVITE";
-  public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
-
   public static final String ACTION_ACCEPT_CALL = "ACTION_ACCEPT_CALL";
   public static final String ACTION_REJECT_CALL = "ACTION_REJECT_CALL";
   public static final String ACTION_CANCEL_NOTIFICATION = "ACTION_CANCEL_NOTIFICATION";

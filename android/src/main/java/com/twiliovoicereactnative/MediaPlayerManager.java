@@ -24,9 +24,8 @@ public class MediaPlayerManager {
   private final SoundPool soundPool;
   private final Map<SoundTable, Integer> soundMap;
   private int activeStream;
-  private static MediaPlayerManager instance;
 
-  private MediaPlayerManager(Context context) {
+  MediaPlayerManager(Context context) {
     soundPool = (new SoundPool.Builder())
       .setMaxStreams(2)
       .setAudioAttributes(
@@ -43,35 +42,24 @@ public class MediaPlayerManager {
     soundMap.put(SoundTable.RINGTONE, soundPool.load(context, R.raw.ringtone, 1));
   }
 
-    public static MediaPlayerManager getInstance(Context context) {
-        if (instance == null) {
-            instance = new MediaPlayerManager(context);
-        }
-        return instance;
-    }
+  public void play(final SoundTable sound) {
+    activeStream = soundPool.play(
+      soundMap.get(sound),
+      1.f,
+      1.f,
+      1,
+      (SoundTable.DISCONNECT== sound) ? 0 : -1,
+      1.f);
+  }
 
-    public void play(Context context, final SoundTable sound) {
-      AudioSwitchManager.getInstance(context).getAudioSwitch().activate();
-      activeStream = soundPool.play(
-        soundMap.get(sound),
-        1.f,
-        1.f,
-        1,
-        (SoundTable.DISCONNECT== sound) ? 0 : -1,
-        1.f);
-    }
+  public void stop() {
+    soundPool.stop(activeStream);
+    activeStream = 0;
+  }
 
-    public void stop() {
-      soundPool.stop(activeStream);
-      activeStream = 0;
-    }
-
-    public void release() {
-      soundPool.release();
-      instance = null;
-    }
-
-    private static void log(final String message) {
-      Log.d(MediaPlayerManager.class.getSimpleName(), message);
-    }
+  @Override
+  protected void finalize() throws Throwable {
+    soundPool.release();
+    super.finalize();
+  }
 }
