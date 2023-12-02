@@ -1,5 +1,6 @@
 package com.twiliovoicereactnative;
 
+import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
@@ -43,6 +44,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -453,10 +455,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       callRecord.setCallAcceptedPromise(promise);
 
       // Send Event to service
-      Intent acceptIntent = new Intent(getReactApplicationContext(), VoiceNotificationReceiver.class);
-      acceptIntent.setAction(Constants.ACTION_ACCEPT_CALL);
-      acceptIntent.putExtra(Constants.UUID, callRecord.getUuid());
-      getReactApplicationContext().sendBroadcast(acceptIntent);
+      sendMessage(getReactApplicationContext(), Constants.ACTION_ACCEPT_CALL, callRecord.getUuid());
     }
   }
 
@@ -471,10 +470,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       callRecord.setCallRejectedPromise(promise);
 
       // Send Event to service
-      Intent rejectIntent = new Intent(getReactApplicationContext(), VoiceNotificationReceiver.class);
-      rejectIntent.setAction(Constants.ACTION_REJECT_CALL);
-      rejectIntent.putExtra(Constants.UUID, callRecord.getUuid());
-      getReactApplicationContext().sendBroadcast(rejectIntent);
+      sendMessage(getReactApplicationContext(), Constants.ACTION_REJECT_CALL, callRecord.getUuid());
     }
   }
 

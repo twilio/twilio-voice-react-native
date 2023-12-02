@@ -2,7 +2,7 @@ package com.twiliovoicereactnative;
 
 import android.util.Log;
 class SDKLog {
-
+  private final String logTag;
   public SDKLog(Class<?> clazz) {
     logTag = clazz.getSimpleName();
   }
@@ -24,5 +24,4 @@ class SDKLog {
   public void error(final String message) {
     Log.e(logTag, message);
   }
-  private final String logTag;
 }

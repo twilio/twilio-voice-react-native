@@ -97,6 +97,22 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     }
   }
 
+  public static Intent constructMessage(@NonNull Context context,
+                                        @NonNull final String action,
+                                        @NonNull final Class<?> target,
+                                        @NonNull final UUID uuid) {
+    Intent intent = new Intent(context.getApplicationContext(), target);
+    intent.setAction(action);
+    intent.putExtra(Constants.UUID, uuid);
+    return intent;
+  }
+
+  public static void sendMessage(@NonNull Context context,
+                                 @NonNull final String action,
+                                 @NonNull final UUID uuid) {
+    context.sendBroadcast(constructMessage(context, action, VoiceNotificationReceiver.class, uuid));
+  }
+
   private void handleIncomingCall(Context context, final UUID uuid) {
     logger.debug("Incoming_Call Message Received");
     // find call record
@@ -105,14 +121,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // put up notification
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
-    Notification notification =
-      NotificationUtility.createIncomingCallNotification(
-        callRecord.getCallInvite(),
-        callRecord.getNotificationId(),
-        uuid.toString(),
-        VOICE_CHANNEL_DEFAULT_IMPORTANCE,
-        true,
-        context.getApplicationContext());
+    Notification notification = NotificationUtility.createIncomingCallNotification(
+      context.getApplicationContext(),
+      callRecord,
+      VOICE_CHANNEL_DEFAULT_IMPORTANCE,
+      true);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // play ringer sound
@@ -133,12 +146,9 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
       Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // cancel existing notification & put up in call
-    Notification notification =
-      NotificationUtility.createCallAnsweredNotificationWithLowImportance(
-        callRecord.getCallInvite(),
-        callRecord.getNotificationId(),
-        uuid.toString(),
-        context.getApplicationContext());
+    Notification notification = NotificationUtility.createCallAnsweredNotificationWithLowImportance(
+      context.getApplicationContext(),
+      callRecord);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop ringer sound
@@ -237,10 +247,8 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // put up outgoing call notification
     Notification notification = NotificationUtility.createOutgoingCallNotificationWithLowImportance(
-      callRecord.getCallSid(),
-      callRecord.getNotificationId(),
-      uuid.toString(),
-      context.getApplicationContext());
+      context.getApplicationContext(),
+      callRecord);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
   }
 
@@ -261,12 +269,10 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     // cancel existing notification & put up in call
     final CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
     Notification notification = NotificationUtility.createIncomingCallNotification(
-      callRecord.getCallInvite(),
-      callRecord.getNotificationId(),
-      uuid.toString(),
+      context.getApplicationContext(),
+      callRecord,
       VOICE_CHANNEL_DEFAULT_IMPORTANCE,
-      false,
-      context.getApplicationContext());
+      false);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop active sound (if any)

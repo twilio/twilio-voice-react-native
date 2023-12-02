@@ -4,6 +4,7 @@ import java.net.URLDecoder;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -16,7 +17,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.net.Uri;
-import android.os.Bundle;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
@@ -30,8 +30,9 @@ import com.twilio.voice.CallInvite;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
+import static com.twiliovoicereactnative.VoiceNotificationReceiver.constructMessage;
 
-
+import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 class NotificationUtility {
   private static final SecureRandom secureRandom = new SecureRandom();
@@ -40,41 +41,33 @@ class NotificationUtility {
     return (secureRandom.nextInt() & 0x7FFFFFFF) + 1; // prevent 0 as an id
   }
 
-  public static Notification createIncomingCallNotification(CallInvite callInvite,
-                                                            int notificationId,
-                                                            String uuid,
-                                                            final String channelImportance,
-                                                            boolean fullScreenIntent,
-                                                            Context context) {
+  public static Notification createIncomingCallNotification(@NonNull Context context,
+                                                            @NonNull final CallRecord callRecord,
+                                                            @NonNull final String channelImportance,
+                                                            boolean fullScreenIntent) {
     final int smallIconResId = getSmallIconResource(context);
-    final String title = getDisplayName(callInvite);
+    final String title = getDisplayName(callRecord.getCallInvite());
     final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
 
-    Intent foregroundIntent = constructAction(
+    Intent foregroundIntent = constructMessage(
+      context,
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
-      context,
-      uuid,
-      callInvite,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
-    Intent rejectIntent = constructAction(
+    Intent rejectIntent = constructMessage(
+      context,
       Constants.ACTION_REJECT_CALL,
       VoiceNotificationReceiver.class,
-      context,
-      uuid,
-      callInvite,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piRejectIntent = constructPendingIntentForReceiver(context, rejectIntent);
 
-    Intent acceptIntent = constructAction(
+    Intent acceptIntent = constructMessage(
+      context,
       Constants.ACTION_ACCEPT_CALL,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
-      context,
-      uuid,
-      callInvite,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
@@ -99,29 +92,23 @@ class NotificationUtility {
     return builder.build();
   }
 
-  public static Notification createCallAnsweredNotificationWithLowImportance(CallInvite callInvite,
-                                                                             int notificationId,
-                                                                             String uuid,
-                                                                             Context context) {
+  public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
+                                                                             @NonNull final CallRecord callRecord) {
     final int smallIconResId = getSmallIconResource(context);
-    final String title = getDisplayName(callInvite);
+    final String title = getDisplayName(callRecord.getCallInvite());
 
-    Intent foregroundIntent = constructAction(
+    Intent foregroundIntent = constructMessage(
+      context,
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
-      context,
-      uuid,
-      callInvite,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent pendingIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
-    Intent endCallIntent = constructAction(
+    Intent endCallIntent = constructMessage(
+      context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceNotificationReceiver.class,
-      context,
-      uuid,
-      callInvite,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
@@ -141,26 +128,22 @@ class NotificationUtility {
       .build();
   }
 
-  public static Notification createOutgoingCallNotificationWithLowImportance(String callSid,
-                                                                             int notificationId,
-                                                                             String uuid,
-                                                                             Context context) {
+  public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
+                                                                             @NonNull final CallRecord callRecord) {
     final int smallIconResId = getSmallIconResource(context);
 
-    Intent foregroundIntent = constructAction(
+    Intent foregroundIntent = constructMessage(
+      context,
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
-      context,
-      uuid,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
-    Intent endCallIntent = constructAction(
+    Intent endCallIntent = constructMessage(
+      context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceNotificationReceiver.class,
-      context,
-      uuid,
-      notificationId);
+      callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
     RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
@@ -179,7 +162,7 @@ class NotificationUtility {
       .build();
   }
 
-  public static void createNotificationChannels(Context context) {
+  public static void createNotificationChannels(@NonNull Context context) {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
     notificationManager.createNotificationChannelGroup(
       new NotificationChannelGroupCompat.Builder(Constants.VOICE_CHANNEL_GROUP)
@@ -195,13 +178,13 @@ class NotificationUtility {
     }
   }
 
-  public static void destroyNotificationChannels(Context context) {
+  public static void destroyNotificationChannels(@NonNull Context context) {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
     notificationManager.deleteNotificationChannelGroup(Constants.VOICE_CHANNEL_GROUP);
   }
 
-  private static NotificationChannelCompat createNotificationChannel(Context context,
-                                                               final String voiceChannelId) {
+  private static NotificationChannelCompat createNotificationChannel(@NonNull Context context,
+                                                                     @NonNull final String voiceChannelId) {
     final int notificationImportance = getChannelImportance(voiceChannelId);
     NotificationChannelCompat.Builder voiceChannelBuilder =
       new NotificationChannelCompat.Builder(voiceChannelId, notificationImportance)
@@ -221,7 +204,7 @@ class NotificationUtility {
     return voiceChannelBuilder.build();
   }
 
-  private static int getChannelImportance(final String voiceChannel) {
+  private static int getChannelImportance(@NonNull final String voiceChannel) {
     final Map<String, Integer> importanceMapping = Map.of(
       Constants.VOICE_CHANNEL_HIGH_IMPORTANCE, NotificationManagerCompat.IMPORTANCE_HIGH,
       Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE, NotificationManagerCompat.IMPORTANCE_DEFAULT,
@@ -229,7 +212,7 @@ class NotificationUtility {
     return Objects.requireNonNull(importanceMapping.get(voiceChannel));
   }
 
-  private static String getChannel(Context context, final String voiceChannelId) {
+  private static String getChannel(@NonNull Context context, @NonNull final String voiceChannelId) {
     // construct channel if it has not been created
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
@@ -239,7 +222,7 @@ class NotificationUtility {
     return voiceChannelId;
   }
 
-  private static String getDisplayName(CallInvite callInvite) {
+  private static String getDisplayName(@NonNull CallInvite callInvite) {
     String title = callInvite.getFrom();
     Map<String, String> customParameters = callInvite.getCustomParameters();
     // If "displayName" is passed as a custom parameter in the TwiML application,
@@ -250,31 +233,8 @@ class NotificationUtility {
     return title;
   }
 
-  private static String getContentBanner(Context context) {
+  private static String getContentBanner(@NonNull Context context) {
     return context.getString(R.string.app_name) + Constants.NOTIFICATION_BANNER;
-  }
-
-  private static Intent constructAction(@NonNull final String action,
-                                        @NonNull final Class<?> target,
-                                        @NonNull Context context,
-                                        @NonNull final String uuid,
-                                        @NonNull final CallInvite callInvite,
-                                        final int notificationId) {
-    Intent rejectIntent = new Intent(context.getApplicationContext(), target);
-    rejectIntent.setAction(action);
-    rejectIntent.putExtra(Constants.UUID, uuid);
-    return rejectIntent;
-  }
-
-  private static Intent constructAction(@NonNull final String action,
-                                        @NonNull final Class<?> target,
-                                        @NonNull Context context,
-                                        @NonNull final String uuid,
-                                        final int notificationId) {
-    Intent rejectIntent = new Intent(context.getApplicationContext(), target);
-    rejectIntent.setAction(action);
-    rejectIntent.putExtra(Constants.UUID, uuid);
-    return rejectIntent;
   }
 
   private static PendingIntent constructPendingIntentForActivity(@NonNull Context context,

@@ -1,10 +1,10 @@
 package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
-import android.content.Intent;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
@@ -85,27 +85,19 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   }
 
   private void handleInvite(CallInvite callInvite) {
-    final UUID uuid = UUID.randomUUID();
+    final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
-    Intent intent = new Intent(this, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_INCOMING_CALL);
-    intent.putExtra(Constants.UUID, uuid);
+    getCallRecordDatabase().add(callRecord);
 
-    getCallRecordDatabase().add(new CallRecord(uuid, callInvite));
-
-    this.sendBroadcast(intent);
+    sendMessage(this, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
   }
 
   private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite,
                                         CallException ignoredCallException) {
-    CallRecord callRecord =
-      Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
+    CallRecord callRecord = Objects.requireNonNull(
+      getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
 
     callRecord.setCancelledCallInvite(cancelledCallInvite);
-
-    Intent intent = new Intent(this, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_CANCEL_CALL);
-    intent.putExtra(Constants.UUID, callRecord.getUuid());
-    this.sendBroadcast(intent);
+    sendMessage(this, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
   }
 }

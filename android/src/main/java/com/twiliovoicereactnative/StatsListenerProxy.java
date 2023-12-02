@@ -33,46 +33,44 @@ class StatsListenerProxy implements StatsListener {
   @Override
   public void onStats(@NonNull List<StatsReport> statsReports) {
     try {
-      if (statsReports != null) {
-        WritableArray statsReportsArray = Arguments.createArray();
+      WritableArray statsReportsArray = Arguments.createArray();
 
-        for (int i = 0; i < statsReports.size(); i++) {
-          WritableMap params = Arguments.createMap();
-          params.putString(CommonConstants.PeerConnectionId, statsReports.get(i).getPeerConnectionId());
+      for (int i = 0; i < statsReports.size(); i++) {
+        WritableMap params = Arguments.createMap();
+        params.putString(CommonConstants.PeerConnectionId, statsReports.get(i).getPeerConnectionId());
 
-          List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
-          WritableArray localAudioStatsArray = Arguments.createArray();
-          for (int j = 0; j < localAudioStatsList.size(); j++) {
-            localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.LocalAudioTrackStats, localAudioStatsArray);
-
-          List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
-          WritableArray remoteAudioStatsArray = Arguments.createArray();
-          for (int j = 0; j < remoteAudioStatsList.size(); j++) {
-            remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.RemoteAudioTrackStats, remoteAudioStatsArray);
-
-          List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
-          WritableArray iceCandidatePairStatsArray = Arguments.createArray();
-          for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
-            iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.IceCandidatePairStats, iceCandidatePairStatsArray);
-
-          List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
-          WritableArray iceCandidateStatsArray = Arguments.createArray();
-          for (int j = 0; j < iceCandidateStatsList.size(); j++) {
-            iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.IceCandidateStats, iceCandidateStatsArray);
-
-          statsReportsArray.pushMap(params);
+        List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
+        WritableArray localAudioStatsArray = Arguments.createArray();
+        for (int j = 0; j < localAudioStatsList.size(); j++) {
+          localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
         }
+        params.putArray(CommonConstants.LocalAudioTrackStats, localAudioStatsArray);
 
-        promise.resolve(statsReportsArray);
+        List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
+        WritableArray remoteAudioStatsArray = Arguments.createArray();
+        for (int j = 0; j < remoteAudioStatsList.size(); j++) {
+          remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
+        }
+        params.putArray(CommonConstants.RemoteAudioTrackStats, remoteAudioStatsArray);
+
+        List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
+        WritableArray iceCandidatePairStatsArray = Arguments.createArray();
+        for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
+          iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
+        }
+        params.putArray(CommonConstants.IceCandidatePairStats, iceCandidatePairStatsArray);
+
+        List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
+        WritableArray iceCandidateStatsArray = Arguments.createArray();
+        for (int j = 0; j < iceCandidateStatsList.size(); j++) {
+          iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
+        }
+        params.putArray(CommonConstants.IceCandidateStats, iceCandidateStatsArray);
+
+        statsReportsArray.pushMap(params);
       }
+
+      promise.resolve(statsReportsArray);
     } catch (JSONException e) {
       promise.reject(StatsListenerProxy.class.getSimpleName(), e.getMessage());
       e.printStackTrace();
