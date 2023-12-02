@@ -70,8 +70,7 @@ class CallListenerProxy implements Call.Listener {
     sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
 
     // serialize and notify JS
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventConnectFailure),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
@@ -92,8 +91,7 @@ class CallListenerProxy implements Call.Listener {
     sendMessage(context, Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventRinging),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
@@ -109,8 +107,7 @@ class CallListenerProxy implements Call.Listener {
     mediaPlayerManager.stop();
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventConnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
@@ -124,8 +121,7 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventReconnecting),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
@@ -140,8 +136,7 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventReconnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
@@ -161,8 +156,7 @@ class CallListenerProxy implements Call.Listener {
     sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventDisconnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
@@ -179,13 +173,16 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    androidEventEmitter.sendEvent(
-      ScopeCall,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, CallEventQualityWarningsChanged),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
         new Pair<>(CallEventCurrentWarnings, serializeCallQualityWarnings(currentWarnings)),
         new Pair<>(CallEventPreviousWarnings, serializeCallQualityWarnings(previousWarnings))));
+  }
+
+  private void sendJSEvent(@NonNull WritableMap event) {
+    androidEventEmitter.sendEvent(ScopeCall, event);
   }
 
   private static WritableMap serializeCallException(@Nullable CallException callException) {

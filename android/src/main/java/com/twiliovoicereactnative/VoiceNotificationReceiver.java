@@ -1,6 +1,7 @@
 package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
+import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
@@ -127,8 +128,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     playRingerSound();
 
     // trigger JS layer
-    AndroidEventEmitter.getInstance().sendEvent(
-      ScopeVoice,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInvite),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
@@ -164,8 +164,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     }
 
     // notify JS layer
-    AndroidEventEmitter.getInstance().sendEvent(
-      ScopeVoice,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteAccepted),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
@@ -193,8 +192,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     }
 
     // notify JS layer
-    AndroidEventEmitter.getInstance().sendEvent(
-      ScopeVoice,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteRejected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
@@ -214,8 +212,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // notify JS layer
-    AndroidEventEmitter.getInstance().sendEvent(
-      ScopeVoice,
+    sendJSEvent(
       constructJSEvent(
         new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCancelledCallInvite(callRecord))));
@@ -277,9 +274,13 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     stopSound();
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, VoiceEventCallInviteNotificationTapped);
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+    sendJSEvent(
+      constructJSEvent(
+        new Pair<>(VoiceEventType, VoiceEventCallInviteNotificationTapped)));
+  }
+
+  private void sendJSEvent(@NonNull WritableMap event) {
+    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, event);
   }
 
   private static void createOrReplaceNotification(Context context,
