@@ -124,7 +124,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // play ringer sound
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().activate();
-    playRingerSound();
+    VoiceApplicationProxy.getMediaPlayerManager().play(MediaPlayerManager.SoundTable.INCOMING);
 
     // trigger JS layer
     sendJSEvent(
@@ -146,7 +146,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop ringer sound
-    stopSound();
+    VoiceApplicationProxy.getMediaPlayerManager().stop();
 
     // accept call
     AcceptOptions acceptOptions = new AcceptOptions.Builder()
@@ -179,7 +179,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     cancelNotification(context, callRecord.getNotificationId());
 
     // stop ringer sound
-    stopSound();
+    VoiceApplicationProxy.getMediaPlayerManager().stop();
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // reject call
@@ -207,7 +207,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     cancelNotification(context, callRecord.getNotificationId());
 
     // stop ringer sound
-    stopSound();
+    VoiceApplicationProxy.getMediaPlayerManager().stop();
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // notify JS layer
@@ -251,8 +251,8 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     // only take down notification & stop any active sounds if one is active
     final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(uuid));
     if (null != callRecord) {
+      VoiceApplicationProxy.getMediaPlayerManager().stop();
       cancelNotification(context, callRecord.getNotificationId());
-      stopSound();
     }
   }
 
@@ -270,7 +270,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop active sound (if any)
-    stopSound();
+    VoiceApplicationProxy.getMediaPlayerManager().stop();
 
     // notify JS layer
     sendJSEvent(
@@ -297,15 +297,5 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
   private static void cancelNotification(Context context, final int notificationId) {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
     notificationManager.cancel(notificationId);
-  }
-
-  private static void playRingerSound() {
-    MediaPlayerManager mediaPlayerManager = VoiceApplicationProxy.getMediaPlayerManager();
-    mediaPlayerManager.play(MediaPlayerManager.SoundTable.INCOMING);
-  }
-
-  private static void stopSound() {
-    MediaPlayerManager mediaPlayerManager = VoiceApplicationProxy.getMediaPlayerManager();
-    mediaPlayerManager.stop();
   }
 }
