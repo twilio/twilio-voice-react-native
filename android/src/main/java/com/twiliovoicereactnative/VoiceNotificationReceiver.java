@@ -1,7 +1,6 @@
 package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
-import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
@@ -18,7 +17,6 @@ import static com.twiliovoicereactnative.Constants.ACTION_INCOMING_CALL;
 import static com.twiliovoicereactnative.Constants.ACTION_PUSH_APP_TO_FOREGROUND;
 import static com.twiliovoicereactnative.Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION;
 import static com.twiliovoicereactnative.Constants.ACTION_REJECT_CALL;
-import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
