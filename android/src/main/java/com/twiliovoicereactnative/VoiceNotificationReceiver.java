@@ -1,9 +1,10 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INVITE_INFO;
+import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteCancelled;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteNotificationTapped;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteRejected;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
@@ -16,6 +17,7 @@ import static com.twiliovoicereactnative.Constants.ACTION_INCOMING_CALL;
 import static com.twiliovoicereactnative.Constants.ACTION_PUSH_APP_TO_FOREGROUND;
 import static com.twiliovoicereactnative.Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION;
 import static com.twiliovoicereactnative.Constants.ACTION_REJECT_CALL;
+import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
@@ -34,6 +36,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -42,7 +45,6 @@ import androidx.core.app.NotificationManagerCompat;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.AcceptOptions;
-import com.twilio.voice.CallInvite;
 
 
 public class VoiceNotificationReceiver extends BroadcastReceiver {
@@ -51,42 +53,30 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
   public void onReceive(@NonNull Context context, @NonNull Intent intent) {
     switch (Objects.requireNonNull(intent.getAction())) {
       case ACTION_INCOMING_CALL:
-        handleIncomingCall(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleIncomingCall(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_ACCEPT_CALL:
-        handleAccept(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleAccept(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_REJECT_CALL:
-        handleReject(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleReject(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_CANCEL_CALL:
-        handleCancelCall(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleCancelCall(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_CALL_DISCONNECT:
-        handleDisconnect(Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleDisconnect(Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
-        handleRaiseOutgoingCallNotification(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleRaiseOutgoingCallNotification(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_CANCEL_NOTIFICATION:
-        handleCancelNotification(
-          context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+        handleCancelNotification(context, Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
         handleForegroundAndDeprioritizeIncomingCallNotification(
           context,
-          Objects.requireNonNull((UUID)intent.getSerializableExtra(Constants.UUID)));
+          Objects.requireNonNull(getMessageUUID(intent)));
         break;
       case ACTION_PUSH_APP_TO_FOREGROUND:
         logger.warning("BroadcastReceiver received foreground request, ignoring");
@@ -103,7 +93,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
                                         @NonNull final UUID uuid) {
     Intent intent = new Intent(context.getApplicationContext(), target);
     intent.setAction(action);
-    intent.putExtra(Constants.UUID, uuid);
+    intent.putExtra(Constants.MSG_KEY_UUID, uuid);
     return intent;
   }
 
@@ -111,6 +101,10 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
                                  @NonNull final String action,
                                  @NonNull final UUID uuid) {
     context.sendBroadcast(constructMessage(context, action, VoiceNotificationReceiver.class, uuid));
+  }
+
+  private static UUID getMessageUUID(@NonNull final Intent intent) {
+    return (UUID)intent.getSerializableExtra(Constants.MSG_KEY_UUID);
   }
 
   private void handleIncomingCall(Context context, final UUID uuid) {
@@ -133,10 +127,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     playRingerSound();
 
     // trigger JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, VoiceEventCallInvite);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+    AndroidEventEmitter.getInstance().sendEvent(
+      ScopeVoice,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, VoiceEventCallInvite),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleAccept(Context context, final UUID uuid) {
@@ -169,10 +164,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     }
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, VoiceEventCallInviteAccepted);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+    AndroidEventEmitter.getInstance().sendEvent(
+      ScopeVoice,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, VoiceEventCallInviteAccepted),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleReject(Context context, final UUID uuid) {
@@ -197,10 +193,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     }
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, VoiceEventCallInviteRejected);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+    AndroidEventEmitter.getInstance().sendEvent(
+      ScopeVoice,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, VoiceEventCallInviteRejected),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCallInvite(callRecord))));
   }
 
   private void handleCancelCall(Context context, final UUID uuid) {
@@ -217,10 +214,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, VoiceEventCallInvite);
-    params.putMap(EVENT_KEY_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+    AndroidEventEmitter.getInstance().sendEvent(
+      ScopeVoice,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCancelledCallInvite(callRecord))));
   }
 
   private void handleDisconnect(final UUID uuid) {

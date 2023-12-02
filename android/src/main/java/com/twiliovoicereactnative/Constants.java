@@ -11,12 +11,12 @@ class Constants {
   public static final String ACTION_INCOMING_CALL = "ACTION_INCOMING_CALL";
   public static final String ACTION_CANCEL_CALL = "ACTION_CANCEL_CALL";
   public static final String ACTION_CALL_DISCONNECT = "ACTION_CALL_DISCONNECT";
-  public static final String ACTION_FCM_TOKEN = "ACTION_FCM_TOKEN";
   public static final String ACTION_RAISE_OUTGOING_CALL_NOTIFICATION = "ACTION_RAISE_OUTGOING_CALL_NOTIFICATION";
   public static final String ACTION_PUSH_APP_TO_FOREGROUND = "ACTION_PUSH_APP_TO_FOREGROUND";
   public static final String ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION = "ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION";
-  public static final String FCM_TOKEN = "FCM_TOKEN";
-  public static final String UUID = "UUID";
+  public static final String MSG_KEY_UUID = "UUID";
+  public static final String JS_EVENT_KEY_CALL_INFO = "call";
+  public static final String JS_EVENT_KEY_CALL_INVITE_INFO = "callInvite";
   public static final String NOTIFICATION_BANNER = " audio call";
   public static final String DISPLAY_NAME = "displayName";
 }

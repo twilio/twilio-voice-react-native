@@ -1,7 +1,7 @@
 package com.twiliovoicereactnative;
 
 import android.content.Context;
-import android.content.Intent;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,10 +24,12 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 import static com.twiliovoicereactnative.CommonConstants.CallEventCurrentWarnings;
 import static com.twiliovoicereactnative.CommonConstants.CallEventPreviousWarnings;
-import static com.twiliovoicereactnative.AndroidEventEmitter.EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.CommonConstants.CallEventConnectFailure;
 import static com.twiliovoicereactnative.CommonConstants.CallEventQualityWarningsChanged;
+import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
+import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -41,12 +43,14 @@ class CallListenerProxy implements Call.Listener {
   private static final SDKLog logger = new SDKLog(CallListenerProxy.class);
   private final UUID uuid;
   private final Context context;
+  private final AndroidEventEmitter androidEventEmitter;
   private final AudioSwitchManager audioSwitchManager;
   private final MediaPlayerManager mediaPlayerManager;
 
   public CallListenerProxy(UUID uuid, Context context) {
     this.uuid = uuid;
     this.context = context;
+    this.androidEventEmitter = AndroidEventEmitter.getInstance();
     this.audioSwitchManager = VoiceApplicationProxy.getAudioSwitchManager();
     this.mediaPlayerManager = VoiceApplicationProxy.getMediaPlayerManager();
   }
@@ -55,21 +59,23 @@ class CallListenerProxy implements Call.Listener {
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     logger.debug("onConnectFailure");
 
+    // stop sound and routing
     mediaPlayerManager.stop();
     audioSwitchManager.getAudioSwitch().deactivate();
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
-    // serialize and notify JS
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventConnectFailure);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    params.putMap(VoiceErrorKeyError, serializeCallException(callException));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
-
     // take down notification
-    cancelNotification(callRecord);
+    sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
+
+    // serialize and notify JS
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventConnectFailure),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
+        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
   }
 
   @Override
@@ -79,17 +85,18 @@ class CallListenerProxy implements Call.Listener {
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
-    // create notificationn & sound
+    // create notification & sound
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
     audioSwitchManager.getAudioSwitch().activate();
     mediaPlayerManager.play(MediaPlayerManager.SoundTable.RINGTONE);
-    raiseNotification(callRecord);
+    sendMessage(context, Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventRinging);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventRinging),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
 
   @Override
@@ -102,10 +109,11 @@ class CallListenerProxy implements Call.Listener {
     mediaPlayerManager.stop();
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventConnected);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventConnected),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
 
   @Override
@@ -116,11 +124,12 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventReconnecting);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    params.putMap(VoiceErrorKeyError, serializeCallException(callException));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventReconnecting),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
+        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
   }
 
   @Override
@@ -131,10 +140,11 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventReconnected);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventReconnected),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
 
   @Override
@@ -148,16 +158,15 @@ class CallListenerProxy implements Call.Listener {
     mediaPlayerManager.stop();
     mediaPlayerManager.play(MediaPlayerManager.SoundTable.DISCONNECT);
     audioSwitchManager.getAudioSwitch().deactivate();
-    cancelNotification(callRecord);
+    sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventDisconnected);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    if (callException != null) {
-      params.putMap(VoiceErrorKeyError, serializeCallException(callException));
-    }
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventDisconnected),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
+        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
   }
 
   @Override
@@ -170,33 +179,22 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
-    WritableMap params = Arguments.createMap();
-    params.putString(VoiceEventType, CallEventQualityWarningsChanged);
-    params.putMap(EVENT_KEY_CALL_INFO, serializeCall(callRecord));
-    params.putArray(CallEventCurrentWarnings, serializeCallQualityWarnings(currentWarnings));
-    params.putArray(CallEventPreviousWarnings, serializeCallQualityWarnings(previousWarnings));
-    AndroidEventEmitter.getInstance().sendEvent(ScopeCall, params);
+    androidEventEmitter.sendEvent(
+      ScopeCall,
+      constructJSEvent(
+        new Pair<>(VoiceEventType, CallEventQualityWarningsChanged),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
+        new Pair<>(CallEventCurrentWarnings, serializeCallQualityWarnings(currentWarnings)),
+        new Pair<>(CallEventPreviousWarnings, serializeCallQualityWarnings(previousWarnings))));
   }
 
-  private void cancelNotification(final CallRecord callRecord) {
-    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_CANCEL_NOTIFICATION);
-    intent.putExtra(Constants.UUID, callRecord.getUuid());
-    context.sendBroadcast(intent);
-  }
-
-  private void raiseNotification(final CallRecord callRecord) {
-    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION);
-    intent.putExtra(Constants.UUID, callRecord.getUuid());
-    context.sendBroadcast(intent);
-  }
-
-  private static WritableMap serializeCallException(CallException callException) {
-    WritableMap error = Arguments.createMap();
-    error.putInt(VoiceErrorKeyCode, callException.getErrorCode());
-    error.putString(VoiceErrorKeyMessage, callException.getMessage());
-    return error;
+  private static WritableMap serializeCallException(@Nullable CallException callException) {
+    if (null != callException) {
+      return constructJSEvent(
+        new Pair<>(VoiceErrorKeyCode, callException.getErrorCode()),
+        new Pair<>(VoiceErrorKeyMessage, callException.getMessage()));
+    }
+    return null;
   }
 
   private static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
