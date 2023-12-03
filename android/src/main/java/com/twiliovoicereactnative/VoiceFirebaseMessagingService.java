@@ -21,24 +21,8 @@ import com.twilio.voice.Voice;
 import java.util.Objects;
 import java.util.UUID;
 
-public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
+public class VoiceFirebaseMessagingService extends FirebaseMessagingService implements MessageListener {
   private static final SDKLog logger = new SDKLog(VoiceFirebaseMessagingService.class);
-
-  public VoiceFirebaseMessagingService() {
-    super();
-  }
-
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    NotificationUtility.createNotificationChannels(getApplicationContext());
-  }
-
-  @Override
-  public void onDestroy() {
-    NotificationUtility.destroyNotificationChannels(getApplicationContext());
-    super.onDestroy();
-  }
 
   @Override
   public void onNewToken(@NonNull String token) {
@@ -59,41 +43,32 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
     boolean isScreenOn = pm.isInteractive(); // check if screen is on
     if (!isScreenOn) {
-      PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "VoiceFirebaseMessagingService:notificationLock");
+      PowerManager.WakeLock wl = pm.newWakeLock(
+        PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+        "VoiceFirebaseMessagingService:notificationLock");
       wl.acquire(30000); //set your time in milliseconds
     }
 
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      boolean valid = Voice.handleMessage(this, remoteMessage.getData(), new MessageListener() {
-        @Override
-        public void onCallInvite(@NonNull CallInvite callInvite) {
-          handleInvite(callInvite);
-        }
-
-        @Override
-        public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite, @Nullable CallException callException) {
-          handleCanceledCallInvite(cancelledCallInvite, callException);
-        }
-      });
-
-      if (!valid) {
+      if (!Voice.handleMessage(this, remoteMessage.getData(), this)) {
         logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
       }
     }
   }
 
-  private void handleInvite(CallInvite callInvite) {
+  @Override
+  public void onCallInvite(@NonNull CallInvite callInvite) {
     final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
     getCallRecordDatabase().add(callRecord);
-
     sendMessage(this, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
   }
 
-  private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite,
-                                        CallException ignoredCallException) {
+  @Override
+  public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
+                                    @Nullable CallException callException) {
     CallRecord callRecord = Objects.requireNonNull(
       getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
 

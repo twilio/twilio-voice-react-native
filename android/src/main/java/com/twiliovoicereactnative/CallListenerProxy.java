@@ -28,8 +28,11 @@ import static com.twiliovoicereactnative.CommonConstants.CallEventConnectFailure
 import static com.twiliovoicereactnative.CommonConstants.CallEventQualityWarningsChanged;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INFO;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getAudioSwitchManager;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getMediaPlayerManager;
 import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
-import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -43,16 +46,10 @@ class CallListenerProxy implements Call.Listener {
   private static final SDKLog logger = new SDKLog(CallListenerProxy.class);
   private final UUID uuid;
   private final Context context;
-  private final AndroidEventEmitter androidEventEmitter;
-  private final AudioSwitchManager audioSwitchManager;
-  private final MediaPlayerManager mediaPlayerManager;
 
   public CallListenerProxy(UUID uuid, Context context) {
     this.uuid = uuid;
     this.context = context;
-    this.androidEventEmitter = AndroidEventEmitter.getInstance();
-    this.audioSwitchManager = VoiceApplicationProxy.getAudioSwitchManager();
-    this.mediaPlayerManager = VoiceApplicationProxy.getMediaPlayerManager();
   }
 
   @Override
@@ -60,8 +57,8 @@ class CallListenerProxy implements Call.Listener {
     logger.debug("onConnectFailure");
 
     // stop sound and routing
-    mediaPlayerManager.stop();
-    audioSwitchManager.getAudioSwitch().deactivate();
+    getMediaPlayerManager().stop();
+    getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -71,7 +68,7 @@ class CallListenerProxy implements Call.Listener {
 
     // serialize and notify JS
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventConnectFailure),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
         new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
@@ -86,13 +83,13 @@ class CallListenerProxy implements Call.Listener {
 
     // create notification & sound
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
-    audioSwitchManager.getAudioSwitch().activate();
-    mediaPlayerManager.play(MediaPlayerManager.SoundTable.RINGTONE);
+    getAudioSwitchManager().getAudioSwitch().activate();
+    getMediaPlayerManager().play(MediaPlayerManager.SoundTable.RINGTONE);
     sendMessage(context, Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventRinging),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
@@ -104,11 +101,11 @@ class CallListenerProxy implements Call.Listener {
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
     callRecord.setTimestamp(new Date());
-    mediaPlayerManager.stop();
+    getMediaPlayerManager().stop();
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventConnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
@@ -122,7 +119,7 @@ class CallListenerProxy implements Call.Listener {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventReconnecting),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
         new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
@@ -137,7 +134,7 @@ class CallListenerProxy implements Call.Listener {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventReconnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord))));
   }
@@ -150,14 +147,14 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // stop audio & cancel notification
-    mediaPlayerManager.stop();
-    mediaPlayerManager.play(MediaPlayerManager.SoundTable.DISCONNECT);
-    audioSwitchManager.getAudioSwitch().deactivate();
+    getMediaPlayerManager().stop();
+    getMediaPlayerManager().play(MediaPlayerManager.SoundTable.DISCONNECT);
+    getAudioSwitchManager().getAudioSwitch().deactivate();
     sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventDisconnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
         new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
@@ -174,7 +171,7 @@ class CallListenerProxy implements Call.Listener {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, CallEventQualityWarningsChanged),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
         new Pair<>(CallEventCurrentWarnings, serializeCallQualityWarnings(currentWarnings)),
@@ -182,12 +179,12 @@ class CallListenerProxy implements Call.Listener {
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
-    androidEventEmitter.sendEvent(ScopeCall, event);
+    getJSEventEmitter().sendEvent(ScopeCall, event);
   }
 
   private static WritableMap serializeCallException(@Nullable CallException callException) {
     if (null != callException) {
-      return constructJSEvent(
+      return constructJSMap(
         new Pair<>(VoiceErrorKeyCode, callException.getErrorCode()),
         new Pair<>(VoiceErrorKeyMessage, callException.getMessage()));
     }

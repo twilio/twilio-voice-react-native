@@ -1,6 +1,6 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.AndroidEventEmitter.constructJSEvent;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
@@ -23,6 +23,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCancelledCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
@@ -32,7 +33,6 @@ import java.util.UUID;
 import android.Manifest;
 import android.app.Notification;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -42,7 +42,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.AcceptOptions;
 
@@ -128,7 +127,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // trigger JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInvite),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
@@ -164,7 +163,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInviteAccepted),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
@@ -192,7 +191,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInviteRejected),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
@@ -212,7 +211,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord))));
   }
@@ -274,12 +273,12 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
-      constructJSEvent(
+      constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInviteNotificationTapped)));
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
-    AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, event);
+    getJSEventEmitter().sendEvent(ScopeVoice, event);
   }
 
   private static void createOrReplaceNotification(Context context,

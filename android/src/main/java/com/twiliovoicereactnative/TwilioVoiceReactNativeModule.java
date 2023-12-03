@@ -1,8 +1,5 @@
 package com.twiliovoicereactnative;
 
-import android.content.Context;
-import android.content.Intent;
-
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
@@ -44,6 +41,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
@@ -67,7 +65,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     System.setProperty(SDK_VERSION, ReactNativeVoiceSDKVer);
     Voice.setLogLevel(BuildConfig.DEBUG ? LogLevel.DEBUG : LogLevel.ERROR);
 
-    AndroidEventEmitter.getInstance().setContext(reactContext);
+    getJSEventEmitter().setContext(reactContext);
 
     audioSwitchManager = VoiceApplicationProxy.getAudioSwitchManager()
       .setListener((audioDevices, selectedDeviceUuid, selectedDevice) -> {
@@ -77,7 +75,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           selectedDevice
         );
         audioDeviceInfo.putString(VoiceEventType, VoiceEventAudioDevicesUpdated);
-        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, audioDeviceInfo);
+        getJSEventEmitter().sendEvent(ScopeVoice, audioDeviceInfo);
       });
   }
 
@@ -120,7 +118,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         logger.log("Successfully registered FCM");
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventRegistered);
-        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+        getJSEventEmitter().sendEvent(ScopeVoice, params);
         promise.resolve(null);
       }
 
@@ -135,7 +133,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
         error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
         params.putMap(VoiceErrorKeyError, error);
-        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+        getJSEventEmitter().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }
     };
@@ -148,7 +146,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         logger.log("Successfully unregistered FCM");
         WritableMap params = Arguments.createMap();
         params.putString(VoiceEventType, VoiceEventUnregistered);
-        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+        getJSEventEmitter().sendEvent(ScopeVoice, params);
         promise.resolve(null);
       }
 
@@ -162,7 +160,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
         error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
         params.putMap(VoiceErrorKeyError, error);
-        AndroidEventEmitter.getInstance().sendEvent(ScopeVoice, params);
+        getJSEventEmitter().sendEvent(ScopeVoice, params);
         promise.reject(errorMessage);
       }
     };

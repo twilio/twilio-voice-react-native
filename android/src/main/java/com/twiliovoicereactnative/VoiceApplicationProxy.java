@@ -21,6 +21,7 @@ public class VoiceApplicationProxy {
   private final CallRecordDatabase callRecordDatabase = new CallRecordDatabase();
   private AudioSwitchManager audioSwitchManager;
   private MediaPlayerManager mediaPlayerManager;
+  private JSEventEmitter jsEventEmitter;
 
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
     public VoiceReactNativeHost(Application application) {
@@ -43,6 +44,10 @@ public class VoiceApplicationProxy {
   }
   public void onCreate() {
     logger.debug("onCreate(..) invoked");
+    // construct JS event engine
+    jsEventEmitter = new JSEventEmitter();
+    // construct notification channels
+    NotificationUtility.createNotificationChannels(context);
     // Activate audio engine
     audioSwitchManager = new AudioSwitchManager(context);
     mediaPlayerManager = new MediaPlayerManager(context);
@@ -50,6 +55,8 @@ public class VoiceApplicationProxy {
   }
   public void onTerminate() {
     logger.debug("onTerminate(..) invoked");
+    // shutdown notificaiton channels
+    NotificationUtility.destroyNotificationChannels(context);
     // shutdown audioswitch & media manager
     audioSwitchManager.stop();
     // verify that no call records are leaked
@@ -71,6 +78,10 @@ public class VoiceApplicationProxy {
   static MediaPlayerManager getMediaPlayerManager() {
     return VoiceApplicationProxy.instance.mediaPlayerManager;
   }
+  static JSEventEmitter getJSEventEmitter() {
+    return VoiceApplicationProxy.instance.jsEventEmitter;
+  }
+
   static Class<?> getMainActivityClass() {
     Context context = VoiceApplicationProxy.instance.context;
     String packageName = context.getPackageName();
