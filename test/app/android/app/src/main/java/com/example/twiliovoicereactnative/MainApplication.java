@@ -35,8 +35,8 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onTerminate() {
     // Note: this method is not called when running on device, devies just kill the process.
-    super.onTerminate();
     voiceApplicationProxy.onTerminate();
+    super.onTerminate();
   }
   /**
    * Loads Flipper in React Native templates.
