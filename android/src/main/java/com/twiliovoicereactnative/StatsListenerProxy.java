@@ -133,7 +133,7 @@ class StatsListenerProxy implements StatsListener {
           new Pair<>(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent),
           new Pair<>(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived),
           new Pair<>(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent),
-          new Pair<>(CommonConstants.State, iceCandidatePairStats.state),
+          new Pair<>(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state)),
           new Pair<>(CommonConstants.TotalRoundTripTime, iceCandidatePairStats.totalRoundTripTime),
           new Pair<>(CommonConstants.TransportId, iceCandidatePairStats.transportId),
           new Pair<>(CommonConstants.Writeable, iceCandidatePairStats.writeable)));
