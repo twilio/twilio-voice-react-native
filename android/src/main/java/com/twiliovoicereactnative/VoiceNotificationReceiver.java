@@ -1,5 +1,6 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
@@ -117,7 +118,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     Notification notification = NotificationUtility.createIncomingCallNotification(
       context.getApplicationContext(),
       callRecord,
-      VOICE_CHANNEL_DEFAULT_IMPORTANCE,
+      VOICE_CHANNEL_HIGH_IMPORTANCE,
       true);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 

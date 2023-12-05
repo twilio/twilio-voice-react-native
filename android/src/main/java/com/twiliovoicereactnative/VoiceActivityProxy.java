@@ -19,11 +19,8 @@ import androidx.core.content.ContextCompat;
 public class VoiceActivityProxy {
   private static final SDKLog logger = new SDKLog(VoiceActivityProxy.class);
   private static final int PERMISSION_REQUEST_CODE = 101;
-  private static final String[] permissionList =
-    (Build.VERSION.SDK_INT > Build.VERSION_CODES.R)
-      ? new String[] { Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH_CONNECT }
-      : new String[] { Manifest.permission.RECORD_AUDIO };
-  private Activity context;
+  private static final String[] permissionList;
+  private final Activity context;
   private PermissionsRationalNotifier notifier;
 
   public interface PermissionsRationalNotifier {
@@ -85,6 +82,20 @@ public class VoiceActivityProxy {
       copiedIntent.setClass(context.getApplicationContext(), VoiceNotificationReceiver.class);
       copiedIntent.setFlags(0);
       context.getApplicationContext().sendBroadcast(copiedIntent);
+    }
+  }
+
+  static {
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+      permissionList = new String[] {
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.BLUETOOTH_CONNECT,
+        Manifest.permission.POST_NOTIFICATIONS };
+    } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+      permissionList = new String[] {
+        Manifest.permission.RECORD_AUDIO, Manifest.permission.BLUETOOTH_CONNECT };
+    } else {
+      permissionList = new String[] { Manifest.permission.RECORD_AUDIO };
     }
   }
 }
