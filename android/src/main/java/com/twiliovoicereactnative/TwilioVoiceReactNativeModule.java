@@ -38,12 +38,16 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesU
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
+
+import android.annotation.SuppressLint;
+import android.util.Pair;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
@@ -116,24 +120,25 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       @Override
       public void onRegistered(@NonNull String accessToken, @NonNull String fcmToken) {
         logger.log("Successfully registered FCM");
-        WritableMap params = Arguments.createMap();
-        params.putString(VoiceEventType, VoiceEventRegistered);
-        getJSEventEmitter().sendEvent(ScopeVoice, params);
+        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventRegistered)));
         promise.resolve(null);
       }
 
       @Override
-      public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
-        String errorMessage = String.format("Registration Error: %d, %s",
-          registrationException.getErrorCode(), registrationException.getMessage());
+      public void onError(@NonNull RegistrationException registrationException,
+                          @NonNull String accessToken,
+                          @NonNull String fcmToken) {
+        @SuppressLint("DefaultLocale")
+        String errorMessage = String.format(
+          "Registration Error: %d, %s",
+          registrationException.getErrorCode(),
+          registrationException.getMessage());
         logger.error(errorMessage);
-        WritableMap params = Arguments.createMap();
-        params.putString(VoiceEventType, VoiceEventError);
-        WritableMap error = Arguments.createMap();
-        error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
-        error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
-        params.putMap(VoiceErrorKeyError, error);
-        getJSEventEmitter().sendEvent(ScopeVoice, params);
+
+        sendJSEvent(constructJSMap(
+          new Pair<>(VoiceEventType, VoiceEventError),
+          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
+
         promise.reject(errorMessage);
       }
     };
@@ -144,23 +149,23 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       @Override
       public void onUnregistered(String accessToken, String fcmToken) {
         logger.log("Successfully unregistered FCM");
-        WritableMap params = Arguments.createMap();
-        params.putString(VoiceEventType, VoiceEventUnregistered);
-        getJSEventEmitter().sendEvent(ScopeVoice, params);
+        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventUnregistered)));
         promise.resolve(null);
       }
 
       @Override
       public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
-        String errorMessage = String.format("Unregistration Error: %d, %s", registrationException.getErrorCode(), registrationException.getMessage());
+        @SuppressLint("DefaultLocale")
+        String errorMessage = String.format(
+          "Unregistration Error: %d, %s",
+          registrationException.getErrorCode(),
+          registrationException.getMessage());
         logger.error(errorMessage);
-        WritableMap params = Arguments.createMap();
-        params.putString(VoiceEventType, VoiceEventError);
-        WritableMap error = Arguments.createMap();
-        error.putInt(VoiceErrorKeyCode, registrationException.getErrorCode());
-        error.putString(VoiceErrorKeyMessage, registrationException.getMessage());
-        params.putMap(VoiceErrorKeyError, error);
-        getJSEventEmitter().sendEvent(ScopeVoice, params);
+
+        sendJSEvent(constructJSMap(
+          new Pair<>(VoiceEventType, VoiceEventError),
+          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
+
         promise.reject(errorMessage);
       }
     };
@@ -208,8 +213,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     getCallRecordDatabase().add(callRecord);
 
     // notify JS layer
-    WritableMap callInfo = serializeCall(callRecord);
-    promise.resolve(callInfo);
+    promise.resolve(serializeCall(callRecord));
   }
 
   @ReactMethod
@@ -446,7 +450,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
     logger.debug("callInvite_accept uuid" + callInviteUuid);
-    final CallRecord callRecord = validateCallRecord(UUID.fromString(callInviteUuid), promise);
+    final CallRecord callRecord = validateCallInviteRecord(UUID.fromString(callInviteUuid), promise);
 
     if (null != callRecord) {
       // Store promise for callback
@@ -461,7 +465,7 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void callInvite_reject(String uuid, Promise promise) {
     logger.debug("callInvite_reject uuid" + uuid);
 
-    final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+    final CallRecord callRecord = validateCallInviteRecord(UUID.fromString(uuid), promise);
 
     if (null != callRecord) {
       // Store promise for callback
@@ -512,7 +516,21 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     if (null == callRecord || null == callRecord.getVoiceCall()) {
       promise.reject("No such \"call\" object exists with UUID " + uuid);
+      return null;
     }
     return callRecord;
+  }
+  private static CallRecord validateCallInviteRecord(@NonNull final UUID uuid,
+                                               @NonNull final Promise promise) {
+    CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(uuid));
+
+    if (null == callRecord || null == callRecord.getCallInvite()) {
+      promise.reject("No such \"callInvite\" object exists with UUID " + uuid);
+      return null;
+    }
+    return callRecord;
+  }
+  private static void sendJSEvent(@NonNull WritableMap event) {
+    getJSEventEmitter().sendEvent(ScopeVoice, event);
   }
 }

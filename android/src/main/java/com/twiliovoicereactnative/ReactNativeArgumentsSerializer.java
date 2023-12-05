@@ -34,6 +34,7 @@ import androidx.annotation.NonNull;
 
 import com.twilio.voice.CallException;
 import com.twilio.voice.CancelledCallInvite;
+import com.twilio.voice.VoiceException;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 import com.facebook.react.bridge.Arguments;
@@ -215,13 +216,14 @@ class ReactNativeArgumentsSerializer {
 
     return audioDevicesInfo;
   }
-
+  public static WritableMap serializeVoiceException(@NonNull VoiceException exception) {
+    return constructJSMap(
+      new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
+      new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+  }
   public static WritableMap serializeCallException(@NonNull final CallRecord callRecord) {
-    if (null != callRecord.getCallException()) {
-      return constructJSMap(
-        new Pair<>(VoiceErrorKeyCode, callRecord.getCallException().getErrorCode()),
-        new Pair<>(VoiceErrorKeyMessage, callRecord.getCallException().getMessage()));
-    }
-    return null;
+    return (null != callRecord.getCallException())
+      ? serializeVoiceException(callRecord.getCallException())
+      : null;
   }
 }

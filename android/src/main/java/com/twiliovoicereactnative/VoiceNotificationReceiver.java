@@ -190,7 +190,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // handle if event spawned from JS
     if (null != callRecord.getCallRejectedPromise()) {
-      callRecord.getCallRejectedPromise().resolve(uuid);
+      callRecord.getCallRejectedPromise().resolve(callRecord.getUuid().toString());
     }
 
     // notify JS layer
@@ -253,7 +253,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
   private void handleCancelNotification(Context context, final UUID uuid) {
     logger.debug("Cancel Notification Message Received");
     // only take down notification & stop any active sounds if one is active
-    final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(uuid));
+    final CallRecord callRecord = getCallRecordDatabase().remove(new CallRecord(uuid));
     if (null != callRecord) {
       VoiceApplicationProxy.getMediaPlayerManager().stop();
       cancelNotification(context, callRecord.getNotificationId());
@@ -282,7 +282,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
         new Pair<>(VoiceEventType, VoiceEventCallInviteNotificationTapped)));
   }
 
-  private void sendJSEvent(@NonNull WritableMap event) {
+  private static void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeVoice, event);
   }
 
