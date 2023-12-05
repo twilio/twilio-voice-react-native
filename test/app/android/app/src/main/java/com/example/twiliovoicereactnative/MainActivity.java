@@ -24,6 +24,12 @@ public class MainActivity extends ReactActivity {
             MainActivity.this,
             "Bluetooth permissions needed. Please allow in your application settings.",
             Toast.LENGTH_LONG).show();
+      } else if ((Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) &&
+        Manifest.permission.POST_NOTIFICATIONS.equals(permission)) {
+          Toast.makeText(
+            MainActivity.this,
+            "Notification permissions needed. Please allow in your application settings.",
+            Toast.LENGTH_LONG).show();
       }
     });
 
