@@ -159,6 +159,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
       context.getApplicationContext(),
       acceptOptions,
       new CallListenerProxy(uuid, context)));
+    callRecord.setCallInviteUsedState();
 
     // handle if event spawned from JS
     if (null != callRecord.getCallAcceptedPromise()) {
@@ -187,6 +188,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // reject call
     callRecord.getCallInvite().reject(context.getApplicationContext());
+    callRecord.setCallInviteUsedState();
 
     // handle if event spawned from JS
     if (null != callRecord.getCallRejectedPromise()) {

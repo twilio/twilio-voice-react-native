@@ -1,5 +1,9 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.CallInviteState.ACTIVE;
+import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.CallInviteState.NONE;
+import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.CallInviteState.USED;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -16,12 +20,14 @@ import com.twilio.voice.CancelledCallInvite;
 
 class CallRecordDatabase  {
   public static class CallRecord {
+    public enum CallInviteState { NONE, ACTIVE, USED }
     private final UUID uuid;
     private String callSid = null;
     private Date timestamp = null;
     private int notificationId = -1;
     private Call voiceCall = null;
     private CallInvite callInvite = null;
+    private CallInviteState callInviteState = NONE;
     private CancelledCallInvite cancelledCallInvite = null;
     private Promise callAcceptedPromise = null;
     private Promise callRejectedPromise = null;
@@ -37,6 +43,7 @@ class CallRecordDatabase  {
       this.uuid = uuid;
       this.callSid = callInvite.getCallSid();
       this.callInvite = callInvite;
+      this.callInviteState = ACTIVE;
     }
     public CallRecord(final UUID uuid, final Call call) {
       this.uuid = uuid;
@@ -61,6 +68,9 @@ class CallRecordDatabase  {
     public CallInvite getCallInvite() {
       return this.callInvite;
     }
+    public CallInviteState getCallInviteState() {
+      return this.callInviteState;
+    }
     public CancelledCallInvite getCancelledCallInvite() {
       return this.cancelledCallInvite;
     }
@@ -83,9 +93,14 @@ class CallRecordDatabase  {
       this.callSid = voiceCall.getSid();
       this.voiceCall = voiceCall;
     }
+    public void setCallInviteUsedState() {
+      this.callInviteState = (this.callInviteState == ACTIVE) ? USED : this.callInviteState;
+    }
     public void setCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite) {
       this.callSid = cancelledCallInvite.getCallSid();
       this.cancelledCallInvite = cancelledCallInvite;
+      this.callInvite = null;
+      this.callInviteState = NONE;
     }
     public void setCallAcceptedPromise(@NonNull Promise callAcceptedPromise) {
       this.callAcceptedPromise = callAcceptedPromise;
@@ -101,10 +116,10 @@ class CallRecordDatabase  {
       return (obj instanceof CallRecord) && comparator(this, (CallRecord)obj);
     }
   }
-  private List<CallRecord> callRecordList = new Vector<>();
+  private final List<CallRecord> callRecordList = new Vector<>();
 
-  public boolean add(final CallRecord callRecord) {
-    return callRecordList.add(callRecord);
+  public void add(final CallRecord callRecord) {
+    callRecordList.add(callRecord);
   }
   public void clear() {
     callRecordList.clear();

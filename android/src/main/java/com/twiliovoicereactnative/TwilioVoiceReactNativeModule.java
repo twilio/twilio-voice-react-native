@@ -31,8 +31,6 @@ import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDKVer;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesUpdated;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
@@ -262,7 +260,8 @@ class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void voice_getCallInvites(Promise promise) {
     WritableArray callInviteInfos = Arguments.createArray();
     for (CallRecord callRecord: getCallRecordDatabase().getCollection()) {
-      if (null != callRecord.getCallInvite()) {
+      if (null != callRecord.getCallInvite() &&
+          CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
         callInviteInfos.pushMap(serializeCallInvite(callRecord));
       }
     }
