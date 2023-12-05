@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Promise;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallException;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
 
@@ -24,6 +25,7 @@ class CallRecordDatabase  {
     private CancelledCallInvite cancelledCallInvite = null;
     private Promise callAcceptedPromise = null;
     private Promise callRejectedPromise = null;
+    private CallException callException = null;
     public CallRecord(final UUID uuid) {
       this.uuid = uuid;
     }
@@ -68,6 +70,9 @@ class CallRecordDatabase  {
     public Promise getCallRejectedPromise() {
       return this.callRejectedPromise;
     }
+    public CallException getCallException() {
+      return this.callException;
+    }
     public void setNotificationId(int notificationId) {
       this.notificationId = notificationId;
     }
@@ -87,6 +92,9 @@ class CallRecordDatabase  {
     }
     public void setCallRejectedPromise(@NonNull Promise callRejectedPromise) {
       this.callRejectedPromise = callRejectedPromise;
+    }
+    public void setCallException(CallException callException) {
+      this.callException = callException;
     }
     @Override
     public boolean equals(Object obj) {

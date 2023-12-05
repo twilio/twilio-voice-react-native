@@ -17,6 +17,7 @@ class Constants {
   public static final String MSG_KEY_UUID = "UUID";
   public static final String JS_EVENT_KEY_CALL_INFO = "call";
   public static final String JS_EVENT_KEY_CALL_INVITE_INFO = "callInvite";
+  public static final String JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO = "cancelledCallInvite";
   public static final String NOTIFICATION_BANNER = " audio call";
   public static final String DISPLAY_NAME = "displayName";
 }

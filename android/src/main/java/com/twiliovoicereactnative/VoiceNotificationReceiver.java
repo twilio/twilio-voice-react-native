@@ -1,5 +1,6 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
@@ -9,6 +10,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteCan
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteNotificationTapped;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteRejected;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.Constants.ACTION_ACCEPT_CALL;
 import static com.twiliovoicereactnative.Constants.ACTION_CALL_DISCONNECT;
 import static com.twiliovoicereactnative.Constants.ACTION_CANCEL_CALL;
@@ -21,6 +23,7 @@ import static com.twiliovoicereactnative.Constants.ACTION_REJECT_CALL;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
+import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallException;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCancelledCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
@@ -214,7 +217,8 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     sendJSEvent(
       constructJSMap(
         new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
-        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord))));
+        new Pair<>(JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord)),
+        new Pair<>(VoiceErrorKeyError, serializeCallException(callRecord))));
   }
 
   private void handleDisconnect(final UUID uuid) {

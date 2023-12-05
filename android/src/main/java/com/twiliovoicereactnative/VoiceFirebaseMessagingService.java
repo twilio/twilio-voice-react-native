@@ -73,6 +73,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
       getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
 
     callRecord.setCancelledCallInvite(cancelledCallInvite);
+    callRecord.setCallException(callException);
     sendMessage(this, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
   }
 }

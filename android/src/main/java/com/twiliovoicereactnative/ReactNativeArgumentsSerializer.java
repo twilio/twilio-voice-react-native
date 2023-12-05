@@ -24,9 +24,15 @@ import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCallSid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
+
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
+import com.twilio.voice.CallException;
 import com.twilio.voice.CancelledCallInvite;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
@@ -208,5 +214,14 @@ class ReactNativeArgumentsSerializer {
     }
 
     return audioDevicesInfo;
+  }
+
+  public static WritableMap serializeCallException(@NonNull final CallRecord callRecord) {
+    if (null != callRecord.getCallException()) {
+      return constructJSMap(
+        new Pair<>(VoiceErrorKeyCode, callRecord.getCallException().getErrorCode()),
+        new Pair<>(VoiceErrorKeyMessage, callRecord.getCallException().getMessage()));
+    }
+    return null;
   }
 }
