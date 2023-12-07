@@ -46,8 +46,10 @@ export const NativeModule = {
     .fn()
     .mockResolvedValue('mock-nativemodule-devicetoken'),
   voice_getVersion: jest.fn().mockResolvedValue('mock-nativemodule-version'),
+  voice_initializePushRegistry: jest.fn().mockResolvedValue(undefined),
   voice_register: jest.fn().mockResolvedValue(undefined),
   voice_selectAudioDevice: jest.fn().mockResolvedValue(undefined),
+  voice_setCallKitConfiguration: jest.fn().mockResolvedValue(undefined),
   voice_showNativeAvRoutePicker: jest.fn().mockResolvedValue(undefined),
   voice_unregister: jest.fn().mockResolvedValue(undefined),
 };

@@ -822,6 +822,7 @@ declare namespace TwilioErrors {
     export {
         InvalidArgumentError,
         InvalidStateError,
+        UnsupportedPlatformError,
         TwilioError,
         AuthorizationErrors,
         ClientErrors,
@@ -849,6 +850,15 @@ namespace TwiMLErrors {
         name: string;
         solutions: string[];
     }
+}
+
+// @public
+class UnsupportedPlatformError extends TwilioError {
+    constructor(message: string);
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
 }
 
 // @public
