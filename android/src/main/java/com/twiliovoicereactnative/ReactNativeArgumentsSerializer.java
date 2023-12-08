@@ -214,10 +214,13 @@ class ReactNativeArgumentsSerializer {
       new Pair<>(AudioDeviceKeyAudioDevices, serializeAudioDeviceMapIntoArray(audioDevices)),
       new Pair<>(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice)));
   }
-  public static WritableMap serializeVoiceException(@NonNull VoiceException exception) {
-    return constructJSMap(
-      new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
-      new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+  public static WritableMap serializeVoiceException(VoiceException exception) {
+    if (null != exception) {
+      return constructJSMap(
+        new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
+        new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+    }
+    return null;
   }
   public static WritableMap serializeCallException(@NonNull final CallRecord callRecord) {
     return (null != callRecord.getCallException())
