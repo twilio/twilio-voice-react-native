@@ -21,14 +21,14 @@ public class VoiceActivityProxy {
   private static final int PERMISSION_REQUEST_CODE = 101;
   private static final String[] permissionList;
   private final Activity context;
-  private PermissionsRationalNotifier notifier;
+  private PermissionsRationaleNotifier notifier;
 
-  public interface PermissionsRationalNotifier {
-    void displayRational(final String permission);
+  public interface PermissionsRationaleNotifier {
+    void displayRationale(final String permission);
   }
 
   public VoiceActivityProxy(@NonNull Activity activity,
-                            @NonNull PermissionsRationalNotifier notifier) {
+                            @NonNull PermissionsRationaleNotifier notifier) {
     this.context = activity;
     this.notifier = notifier;
   }
@@ -58,7 +58,7 @@ public class VoiceActivityProxy {
     for (final String permission: VoiceActivityProxy.permissionList) {
       permissionsRequestList.add(permission);
       if (ActivityCompat.shouldShowRequestPermissionRationale(context, permission)) {
-        notifier.displayRational(permission);
+        notifier.displayRationale(permission);
       }
     }
     ActivityCompat.requestPermissions(

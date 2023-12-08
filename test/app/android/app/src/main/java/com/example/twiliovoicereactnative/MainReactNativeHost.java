@@ -8,7 +8,7 @@ import com.twiliovoicereactnative.VoiceApplicationProxy;
 
 import java.util.List;
 
-public class MainReactNativeHost extends  VoiceApplicationProxy.VoiceReactNativeHost {
+public class MainReactNativeHost extends VoiceApplicationProxy.VoiceReactNativeHost {
   public MainReactNativeHost(Application application) {
     super(application);
   }

@@ -49,6 +49,8 @@ import com.twilio.voice.CallInvite;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * This class provides static helper functions that serializes native objects into
@@ -82,12 +84,12 @@ class ReactNativeArgumentsSerializer {
    */
   public static WritableMap serializeCallInvite(@NonNull final CallRecord callRecord) {
     // validate input
-    Objects.requireNonNull(callRecord.getUuid());
+    final UUID uuid = Objects.requireNonNull(callRecord.getUuid());
     final CallInvite callInvite = Objects.requireNonNull(callRecord.getCallInvite());
 
     // serialize
     return constructJSMap(
-      new Pair<>(CallInviteInfoUuid, callRecord.getUuid().toString()),
+      new Pair<>(CallInviteInfoUuid, uuid.toString()),
       new Pair<>(CallInviteInfoCallSid, callInvite.getCallSid()),
       new Pair<>(CallInviteInfoFrom, callInvite.getFrom()),
       new Pair<>(CallInviteInfoTo, callInvite.getTo()),
@@ -221,5 +223,13 @@ class ReactNativeArgumentsSerializer {
     return (null != callRecord.getCallException())
       ? serializeVoiceException(callRecord.getCallException())
       : null;
+  }
+
+  public static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
+    WritableArray previousWarningsArray = Arguments.createArray();
+    for (Call.CallQualityWarning warning : warnings) {
+      previousWarningsArray.pushString(warning.toString());
+    }
+    return previousWarningsArray;
   }
 }
