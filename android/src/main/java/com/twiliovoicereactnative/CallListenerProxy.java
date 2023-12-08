@@ -50,7 +50,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
-    logger.debug("onConnectFailure");
+    debug("onConnectFailure");
 
     // stop sound and routing
     getMediaPlayerManager().stop();
@@ -72,7 +72,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onRinging(@NonNull Call call) {
-    logger.debug("onRinging");
+    debug("onRinging");
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -92,7 +92,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onConnected(@NonNull Call call) {
-    logger.debug("onConnected");
+    debug("onConnected");
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -108,7 +108,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
-    logger.debug("onReconnecting");
+    debug("onReconnecting");
 
     // find & update call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -123,7 +123,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onReconnected(@NonNull Call call) {
-    logger.debug("onReconnected");
+    debug("onReconnected");
 
     // find & update call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -137,7 +137,7 @@ class CallListenerProxy implements Call.Listener {
 
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
-    logger.debug("onDisconnected");
+    debug("onDisconnected");
 
     // find & update call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -160,7 +160,7 @@ class CallListenerProxy implements Call.Listener {
   public void onCallQualityWarningsChanged(@NonNull Call call,
                                            @NonNull Set<Call.CallQualityWarning> currentWarnings,
                                            @NonNull Set<Call.CallQualityWarning> previousWarnings) {
-    logger.debug("onCallQualityWarningsChanged");
+    debug("onCallQualityWarningsChanged");
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
@@ -176,5 +176,9 @@ class CallListenerProxy implements Call.Listener {
 
   private void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeCall, event);
+  }
+
+  private void debug(final String message) {
+    logger.debug(String.format("%s UUID:%s", message, uuid));
   }
 }
