@@ -1,12 +1,19 @@
 <resources>
-    <string name="app_name">Twilio Voice React Native</string>
-    <string name="audio_device">Audio Device</string>
-    <string name="callee">client identity or phone number</string>
-    <string name="answer">ANSWER</string>
-    <string name="decline">DECLINE</string>
-    <string name="tapToApp">Tap to return to call</string>
-    <string name="end_call">End Call</string>
-    <string name="callHint">Dial a client name or phone number. Leaving the field empty results in an automated response.</string>
-    <string name="digitHint">A string of digits to be sent. Valid values are "0" - "9", "*", "#", and "w". Each "w" will cause a 500 ms pause between digits sent. </string>
-    <string name="select_device">Select Audio Device</string>
+  <string name="app_name">Twilio Voice React Native</string>
+  <string name="audio_device">Audio Device</string>
+  <string name="callee">client identity or phone number</string>
+  <string name="answer">ANSWER</string>
+  <string name="decline">DECLINE</string>
+  <string name="tapToApp">Tap to return to call</string>
+  <string name="end_call">End Call</string>
+  <string name="callHint">Dial a client name or phone number. Leaving the field empty results in an automated response.</string>
+  <string name="digitHint">A string of digits to be sent. Valid values are "0" - "9", "*", "#", and "w". Each "w" will cause a 500 ms pause between digits sent. </string>
+  <string name="select_device">Select Audio Device</string>
+  <string name="registration_error">Registration Error: %d, %s</string>
+  <string name="unregistration_error">Unregistration Error: %d, %s</string>
+  <string name="fcm_token_registration_fail">Fetching FCM registration token failed %s</string>
+  <string name="fcm_token_null">FCM token is "null"</string>
+  <string name="missing_audiodevice_uuid">No such "audioDevice" object exists with UUID %s</string>
+  <string name="missing_call_uuid">No such "call" object exists with UUID %s</string>
+  <string name="missing_callinvite_uuid">No such "callInvite" object exists with UUID %s</string>
 </resources>

@@ -7,14 +7,6 @@
   <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
   <application>
-    <activity
-      android:name="com.twiliovoicereactnative.NotificationProxyActivity"
-      android:noHistory="true"
-      android:excludeFromRecents="true"
-      android:taskAffinity=""
-      android:launchMode="singleTask"
-      android:theme="@android:style/Theme.Translucent.NoTitleBar"
-      android:exported="true" />
     <service
       android:name="com.twiliovoicereactnative.VoiceFirebaseMessagingService"
       android:stopWithTask="false"

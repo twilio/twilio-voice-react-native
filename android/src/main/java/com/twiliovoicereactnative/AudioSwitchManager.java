@@ -13,12 +13,14 @@ import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyEarpiece;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySpeaker;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyBluetooth;
 
+import kotlin.Unit;
+
 /**
- * AudioSwitchManager singleton class. Maintains a persistent AudioSwitch object and listens for audio
+ * AudioSwitchManager maintains a persistent AudioSwitch object and listens for audio
  * device changes. Generates UUIDs per audio device when the AudioSwitch library updates available
  * audio devices.
  */
-public class AudioSwitchManager {
+class AudioSwitchManager {
   /**
    * The functional interface of a listener to be bound to the AudioSwitchManager.
    */
@@ -34,12 +36,11 @@ public class AudioSwitchManager {
   /**
    * Audio device type mapping. Normalizes the class name into a string the JS layer expects.
    */
-  public static final HashMap<String, String> AUDIO_DEVICE_TYPE = new HashMap<>();
-
-  /**
-   * Singleton instance of this class.
-   */
-  private static AudioSwitchManager instance;
+  public static final Map<String, String> AUDIO_DEVICE_TYPE = Map.of(
+    "Speakerphone", AudioDeviceKeySpeaker,
+    "BluetoothHeadset", AudioDeviceKeyBluetooth,
+    "WiredHeadset", AudioDeviceKeyEarpiece,
+    "Earpiece", AudioDeviceKeyEarpiece);
 
   /**
    * Map of UUIDs to all available AudioDevices. Kept up-to-date by the AudioSwitch.
@@ -62,26 +63,18 @@ public class AudioSwitchManager {
    * Constructor for the AudioSwitchManager class. Intended to be a singleton.
    * @param context The Android application context
    */
-  private AudioSwitchManager(Context context) {
-    if (AUDIO_DEVICE_TYPE.isEmpty()) {
-      AUDIO_DEVICE_TYPE.put("Speakerphone", AudioDeviceKeySpeaker);
-      AUDIO_DEVICE_TYPE.put("BluetoothHeadset", AudioDeviceKeyBluetooth);
-      AUDIO_DEVICE_TYPE.put("WiredHeadset", AudioDeviceKeyEarpiece);
-      AUDIO_DEVICE_TYPE.put("Earpiece", AudioDeviceKeyEarpiece);
-    }
-
-    audioDevices = new HashMap<String, AudioDevice>();
-
+  public AudioSwitchManager(Context context) {
+    audioDevices = new HashMap<>();
     audioSwitch = new AudioSwitch(context);
+  }
 
+  public void start() {
     audioSwitch.start((devices, selectedDevice) -> {
-      audioDevices.clear();
 
+      audioDevices.clear();
       for (AudioDevice device : devices) {
         String uuid = UUID.randomUUID().toString();
-
         audioDevices.put(uuid, device);
-
         if (device.equals(selectedDevice)) {
           selectedAudioDeviceUuid = uuid;
         }
@@ -90,22 +83,12 @@ public class AudioSwitchManager {
       if (this.listener != null) {
         this.listener.apply(audioDevices, selectedAudioDeviceUuid, selectedDevice);
       }
-
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
-  /**
-   * Get the singleton AudioSwitchManager instance. Instantiates the AudioSwitchManager singleton if it does
-   * not exist.
-   * @param context The Android application context
-   * @return The singleton AudioSwitchManager instance.
-   */
-  public static AudioSwitchManager getInstance(Context context) {
-    if (instance == null) {
-      instance = new AudioSwitchManager(context);
-    }
-    return instance;
+  public void stop() {
+    audioSwitch.stop();
   }
 
   /**

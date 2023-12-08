@@ -1,17 +1,14 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
+import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
+
 import android.os.PowerManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -21,33 +18,15 @@ import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
 
+import java.util.Objects;
 import java.util.UUID;
 
-public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
-
-  public static String TAG = "VoiceFirebaseMessagingService";
-  private Context context;
-
-  public VoiceFirebaseMessagingService() {
-    super();
-    this.context = this;
-  }
+public class VoiceFirebaseMessagingService extends FirebaseMessagingService implements MessageListener {
+  private static final SDKLog logger = new SDKLog(VoiceFirebaseMessagingService.class);
 
   @Override
-  public void onCreate() {
-    super.onCreate();
-    NotificationUtility.createNotificationChannels(context.getApplicationContext());
-  }
-
-  @Override
-  public void onDestroy() {
-    NotificationUtility.destroyNotificationChannels(context.getApplicationContext());
-    super.onDestroy();
-  }
-
-  @Override
-  public void onNewToken(String token) {
-    log("Refreshed FCM token: " + token);
+  public void onNewToken(@NonNull String token) {
+    logger.log("Refreshed FCM token: " + token);
   }
 
   /**
@@ -57,66 +36,44 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
    */
   @Override
   public void onMessageReceived(RemoteMessage remoteMessage) {
-    log("onMessageReceived remoteMessage: " + remoteMessage.toString());
-    log("Bundle data: " + remoteMessage.getData());
-    log("From: " + remoteMessage.getFrom());
+    logger.debug("onMessageReceived remoteMessage: " + remoteMessage.toString());
+    logger.debug("Bundle data: " + remoteMessage.getData());
+    logger.debug("From: " + remoteMessage.getFrom());
 
-    PowerManager pm = (PowerManager) this.context.getSystemService(this.context.POWER_SERVICE);
-    boolean isScreenOn = Build.VERSION.SDK_INT >= 20 ? pm.isInteractive() : pm.isScreenOn(); // check if screen is on
+    PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
+    boolean isScreenOn = pm.isInteractive(); // check if screen is on
     if (!isScreenOn) {
-      PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "VoiceFirebaseMessagingService:notificationLock");
+      PowerManager.WakeLock wl = pm.newWakeLock(
+        PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+        "VoiceFirebaseMessagingService:notificationLock");
       wl.acquire(30000); //set your time in milliseconds
     }
 
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      boolean valid = Voice.handleMessage(this.context, remoteMessage.getData(), new MessageListener() {
-        @Override
-        public void onCallInvite(@NonNull CallInvite callInvite) {
-          handleInvite(callInvite);
-        }
-
-        @Override
-        public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite, @Nullable CallException callException) {
-          handleCanceledCallInvite(cancelledCallInvite, callException);
-        }
-      });
-
-      if (!valid) {
-        Log.e(TAG, "The message was not a valid Twilio Voice SDK payload: " +
+      if (!Voice.handleMessage(this, remoteMessage.getData(), this)) {
+        logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
       }
     }
   }
 
-  private void handleInvite(CallInvite callInvite) {
-    String uuid = UUID.randomUUID().toString();
+  @Override
+  public void onCallInvite(@NonNull CallInvite callInvite) {
+    final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
-    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_INCOMING_CALL);
-    intent.putExtra(Constants.INCOMING_CALL_INVITE, callInvite);
-    intent.putExtra(Constants.UUID, uuid);
-
-    Storage.callInviteMap.put(uuid, callInvite);
-    Storage.callInviteCallSidUuidMap.put(callInvite.getCallSid(), uuid);
-
-    context.sendBroadcast(intent);
+    getCallRecordDatabase().add(callRecord);
+    sendMessage(this, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
   }
 
-  private void handleCanceledCallInvite(CancelledCallInvite cancelledCallInvite, CallException callException) {
-    String uuid = Storage.callInviteCallSidUuidMap.get(cancelledCallInvite.getCallSid());
-    Storage.cancelledCallInviteMap.put(uuid, cancelledCallInvite);
+  @Override
+  public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
+                                    @Nullable CallException callException) {
+    CallRecord callRecord = Objects.requireNonNull(
+      getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
 
-    Intent intent = new Intent(context, VoiceNotificationReceiver.class);
-    intent.setAction(Constants.ACTION_CANCEL_CALL);
-    intent.putExtra(Constants.CANCELLED_CALL_INVITE, cancelledCallInvite);
-    intent.putExtra(Constants.UUID, uuid);
-    intent.putExtra(VoiceErrorKeyCode, callException.getErrorCode());
-    intent.putExtra(VoiceErrorKeyMessage, callException.getMessage());
-    context.sendBroadcast(intent);
-  }
-
-  private static void log(final String message) {
-    Log.d(VoiceFirebaseMessagingService.class.getSimpleName(), message);
+    callRecord.setCancelledCallInvite(cancelledCallInvite);
+    callRecord.setCallException(callException);
+    sendMessage(this, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
   }
 }

@@ -1,7 +1,5 @@
 package com.twiliovoicereactnative;
 
-import android.util.Log;
-
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyAudioDevices;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyName;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
@@ -26,6 +24,19 @@ import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoCallSid;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoFrom;
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
+import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
+
+import android.util.Pair;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.twilio.voice.CallException;
+import com.twilio.voice.CancelledCallInvite;
+import com.twilio.voice.VoiceException;
+import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
@@ -33,18 +44,19 @@ import com.facebook.react.bridge.WritableMap;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
-import com.twilio.voice.CancelledCallInvite;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * This class provides static helper functions that serializes native objects into
  * React Native (RN) bridge objects emit-able to the JS layer.
  */
-public class ReactNativeArgumentsSerializer {
-  static final String TAG = "RNArgSerializer";
-
+class ReactNativeArgumentsSerializer {
+  private static final SDKLog logger = new SDKLog(ReactNativeArgumentsSerializer.class);
   /**
    * Serializes the custom parameters of a CallInvite.
    * @param callInvite A CallInvite object
@@ -63,35 +75,37 @@ public class ReactNativeArgumentsSerializer {
 
   /**
    * Serializes a CallInvite.
-   * @param uuid The UUID of the CallInvite
-   * @param callInvite The CallInvite
+   * @param CallRecord the callRecord
    * @return A serialized CallInvite
    */
-  public static WritableMap serializeCallInvite(String uuid, CallInvite callInvite) {
-    WritableMap callInviteInfo = Arguments.createMap();
-    callInviteInfo.putString(CallInviteInfoUuid, uuid);
-    callInviteInfo.putString(CallInviteInfoCallSid, callInvite.getCallSid());
-    callInviteInfo.putString(CallInviteInfoFrom, callInvite.getFrom());
-    callInviteInfo.putString(CallInviteInfoTo, callInvite.getTo());
+  public static WritableMap serializeCallInvite(@NonNull final CallRecord callRecord) {
+    // validate input
+    final UUID uuid = Objects.requireNonNull(callRecord.getUuid());
+    final CallInvite callInvite = Objects.requireNonNull(callRecord.getCallInvite());
 
-    WritableMap customParameters = serializeCallInviteCustomParameters(callInvite);
-    callInviteInfo.putMap(CallInviteInfoCustomParameters, customParameters);
-
-    return callInviteInfo;
+    // serialize
+    return constructJSMap(
+      new Pair<>(CallInviteInfoUuid, uuid.toString()),
+      new Pair<>(CallInviteInfoCallSid, callInvite.getCallSid()),
+      new Pair<>(CallInviteInfoFrom, callInvite.getFrom()),
+      new Pair<>(CallInviteInfoTo, callInvite.getTo()),
+      new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callInvite)));
   }
 
   /**
    * Serializes a CancelledCallInvite.
-   * @param cancelledCallInvite The CancelledCallInvite
+   * @param CallRecord The callRecord
    * @return A serialized CancelledCallInvite
    */
-  public static WritableMap serializeCancelledCallInvite(CancelledCallInvite cancelledCallInvite) {
-    WritableMap cancelledCallInviteInfo = Arguments.createMap();
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoCallSid, cancelledCallInvite.getCallSid());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoFrom, cancelledCallInvite.getFrom());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoTo, cancelledCallInvite.getTo());
+  public static WritableMap serializeCancelledCallInvite(@NonNull final CallRecord callRecord) {
+    // validate input
+    final CancelledCallInvite callInvite = Objects.requireNonNull(callRecord.getCancelledCallInvite());
 
-    return cancelledCallInviteInfo;
+    // serialize
+    return constructJSMap(
+      new Pair<>(CancelledCallInviteInfoCallSid, callInvite.getCallSid()),
+      new Pair<>(CancelledCallInviteInfoFrom, callInvite.getFrom()),
+      new Pair<>(CancelledCallInviteInfoTo, callInvite.getTo()));
   }
 
   /**
@@ -111,37 +125,38 @@ public class ReactNativeArgumentsSerializer {
         return CallStateReconnecting;
       case RINGING:
         return CallStateRinging;
+      default:
+        logger.warning("Unknown call state: " + state);
+        return CallStateConnecting;
     }
-
-    Log.d(TAG, "Unknown call state: " + state.toString());
-    return CallStateConnecting;
   }
 
   /**
    * Serializes a Call.
-   * @param uuid The UUID of the Call
-   * @param call The Call
+   * @param CallRecord the call record
    * @return A serialized Call
    */
-  public static WritableMap serializeCall(String uuid, Call call) {
+  public static WritableMap serializeCall(@NonNull final CallRecord callRecord) {
+    // validate input
+    Objects.requireNonNull(callRecord.getUuid());
+    Objects.requireNonNull(callRecord.getVoiceCall());
+
+    // serialize
     WritableMap callInfo = Arguments.createMap();
-    callInfo.putString(CallInfoUuid, uuid);
-    callInfo.putString(CallInfoSid, call.getSid());
-    callInfo.putString(CallInfoFrom, call.getFrom());
-    callInfo.putString(CallInfoTo, call.getTo());
-    callInfo.putString(CallInfoState, callStateToString(call.getState()));
-
-    Double timestamp = Storage.callConnectMap.get(uuid);
-    if (timestamp != null) {
-      callInfo.putDouble(CallInfoInitialConnectedTimestamp, timestamp);
+    callInfo.putString(CallInfoUuid, callRecord.getUuid().toString());
+    callInfo.putString(CallInfoSid, callRecord.getVoiceCall().getSid());
+    callInfo.putString(CallInfoFrom, callRecord.getVoiceCall().getFrom());
+    callInfo.putString(CallInfoTo, callRecord.getVoiceCall().getTo());
+    callInfo.putString(CallInfoState, callStateToString(callRecord.getVoiceCall().getState()));
+    if (callRecord.getTimestamp() != null) {
+      callInfo.putDouble(
+        CallInfoInitialConnectedTimestamp,
+        (double)callRecord.getTimestamp().getTime());
     }
-
-    CallInvite callInvite = Storage.callInviteMap.get(uuid);
-    if (callInvite != null) {
-      WritableMap customParams = serializeCallInviteCustomParameters(callInvite);
+    if (callRecord.getCallInvite() != null) {
+      WritableMap customParams = serializeCallInviteCustomParameters(callRecord.getCallInvite());
       callInfo.putMap(CallInviteInfoCustomParameters, customParams);
     }
-
     return callInfo;
   }
 
@@ -151,7 +166,7 @@ public class ReactNativeArgumentsSerializer {
    * @param audioDevice The AudioDevice
    * @return A serialized AudioDevice
    */
-  public static WritableMap serializeAudioDevice(String uuid, AudioDevice audioDevice) {
+  public static WritableMap serializeAudioDevice(String uuid, @NonNull AudioDevice audioDevice) {
     WritableMap audioDeviceInfo = Arguments.createMap();
     audioDeviceInfo.putString(AudioDeviceKeyUuid, uuid);
     audioDeviceInfo.putString(AudioDeviceKeyName, audioDevice.getName());
@@ -201,5 +216,23 @@ public class ReactNativeArgumentsSerializer {
     }
 
     return audioDevicesInfo;
+  }
+  public static WritableMap serializeVoiceException(@NonNull VoiceException exception) {
+    return constructJSMap(
+      new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
+      new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+  }
+  public static WritableMap serializeCallException(@NonNull final CallRecord callRecord) {
+    return (null != callRecord.getCallException())
+      ? serializeVoiceException(callRecord.getCallException())
+      : null;
+  }
+
+  public static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
+    WritableArray previousWarningsArray = Arguments.createArray();
+    for (Call.CallQualityWarning warning : warnings) {
+      previousWarningsArray.pushString(warning.toString());
+    }
+    return previousWarningsArray;
   }
 }
