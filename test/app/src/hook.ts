@@ -256,8 +256,9 @@ export function useVoice(token: string) {
     async (to: string) => {
       const call = await voice.connect(token, {
         params: {
+          answerOnBridge: 'true',
           recipientType: 'client',
-          To: to,
+          to,
         },
       });
       callHandler(call);
@@ -378,6 +379,10 @@ export function useVoice(token: string) {
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
+      voice.off(
+        Voice.Event.CallInviteNotificationTapped,
+        callInviteNotificationTappedHandler
+      );
       voice.off(Voice.Event.CallInviteAccepted, callInviteAcceptedHandler);
       voice.off(Voice.Event.CallInviteRejected, callInviteRejectedHandler);
       voice.off(Voice.Event.CancelledCallInvite, cancelledCallInviteHandler);

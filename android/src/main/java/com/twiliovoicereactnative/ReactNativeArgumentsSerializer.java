@@ -11,6 +11,8 @@ import static com.twiliovoicereactnative.CommonConstants.CallInfoSid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoState;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoIsMuted;
+import static com.twiliovoicereactnative.CommonConstants.CallInfoIsOnHold;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
 import static com.twiliovoicereactnative.CommonConstants.CallStateDisconnected;
@@ -33,7 +35,6 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.twilio.voice.CallException;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.VoiceException;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -63,14 +64,17 @@ class ReactNativeArgumentsSerializer {
    * @return Serialized CallInvite custom parameters
    */
   public static WritableMap serializeCallInviteCustomParameters(CallInvite callInvite) {
-    WritableMap customParameters = Arguments.createMap();
-    for (Entry<String, String> entry : callInvite.getCustomParameters().entrySet()) {
-      String customParameterKey = entry.getKey();
-      String customParameterValue = entry.getValue();
+    if (null != callInvite) {
+      WritableMap customParameters = Arguments.createMap();
+      for (Entry<String, String> entry : callInvite.getCustomParameters().entrySet()) {
+        String customParameterKey = entry.getKey();
+        String customParameterValue = entry.getValue();
 
-      customParameters.putString(customParameterKey, customParameterValue);
+        customParameters.putString(customParameterKey, customParameterValue);
+      }
+      return customParameters;
     }
-    return customParameters;
+    return null;
   }
 
   /**
@@ -142,20 +146,19 @@ class ReactNativeArgumentsSerializer {
     Objects.requireNonNull(callRecord.getVoiceCall());
 
     // serialize
-    WritableMap callInfo = Arguments.createMap();
-    callInfo.putString(CallInfoUuid, callRecord.getUuid().toString());
-    callInfo.putString(CallInfoSid, callRecord.getVoiceCall().getSid());
-    callInfo.putString(CallInfoFrom, callRecord.getVoiceCall().getFrom());
-    callInfo.putString(CallInfoTo, callRecord.getVoiceCall().getTo());
-    callInfo.putString(CallInfoState, callStateToString(callRecord.getVoiceCall().getState()));
+    WritableMap callInfo = constructJSMap(
+      new Pair<>(CallInfoUuid, callRecord.getUuid().toString()),
+      new Pair<>(CallInfoSid, callRecord.getVoiceCall().getSid()),
+      new Pair<>(CallInfoFrom, callRecord.getVoiceCall().getFrom()),
+      new Pair<>(CallInfoTo, callRecord.getVoiceCall().getTo()),
+      new Pair<>(CallInfoState, callStateToString(callRecord.getVoiceCall().getState())),
+      new Pair<>(CallInfoIsMuted, callRecord.getVoiceCall().isMuted()),
+      new Pair<>(CallInfoIsOnHold, callRecord.getVoiceCall().isOnHold()),
+      new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callRecord.getCallInvite())));
     if (callRecord.getTimestamp() != null) {
       callInfo.putDouble(
         CallInfoInitialConnectedTimestamp,
         (double)callRecord.getTimestamp().getTime());
-    }
-    if (callRecord.getCallInvite() != null) {
-      WritableMap customParams = serializeCallInviteCustomParameters(callRecord.getCallInvite());
-      callInfo.putMap(CallInviteInfoCustomParameters, customParams);
     }
     return callInfo;
   }
@@ -166,15 +169,15 @@ class ReactNativeArgumentsSerializer {
    * @param audioDevice The AudioDevice
    * @return A serialized AudioDevice
    */
-  public static WritableMap serializeAudioDevice(String uuid, @NonNull AudioDevice audioDevice) {
-    WritableMap audioDeviceInfo = Arguments.createMap();
-    audioDeviceInfo.putString(AudioDeviceKeyUuid, uuid);
-    audioDeviceInfo.putString(AudioDeviceKeyName, audioDevice.getName());
-
-    String type = audioDevice.getClass().getSimpleName();
-    audioDeviceInfo.putString(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.get(type));
-
-    return audioDeviceInfo;
+  public static WritableMap serializeAudioDevice(String uuid, @Nullable AudioDevice audioDevice) {
+    if (null != audioDevice) {
+      String type = audioDevice.getClass().getSimpleName();
+      return constructJSMap(
+        new Pair<>(AudioDeviceKeyUuid, uuid),
+        new Pair<>(AudioDeviceKeyName, audioDevice.getName()),
+        new Pair<>(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.get(type)));
+    }
+    return null;
   }
 
   /**
@@ -206,21 +209,18 @@ class ReactNativeArgumentsSerializer {
   public static WritableMap serializeAudioDeviceInfo(
     Map<String, AudioDevice> audioDevices,
     String selectedAudioDeviceUuid,
-    AudioDevice selectedAudioDevice
-  ) {
-    WritableMap audioDevicesInfo = Arguments.createMap();
-
-    audioDevicesInfo.putArray(AudioDeviceKeyAudioDevices, serializeAudioDeviceMapIntoArray(audioDevices));
-    if (selectedAudioDevice != null) {
-      audioDevicesInfo.putMap(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice));
-    }
-
-    return audioDevicesInfo;
-  }
-  public static WritableMap serializeVoiceException(@NonNull VoiceException exception) {
+    AudioDevice selectedAudioDevice) {
     return constructJSMap(
-      new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
-      new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+      new Pair<>(AudioDeviceKeyAudioDevices, serializeAudioDeviceMapIntoArray(audioDevices)),
+      new Pair<>(AudioDeviceKeySelectedDevice, serializeAudioDevice(selectedAudioDeviceUuid, selectedAudioDevice)));
+  }
+  public static WritableMap serializeVoiceException(VoiceException exception) {
+    if (null != exception) {
+      return constructJSMap(
+        new Pair<>(VoiceErrorKeyCode, exception.getErrorCode()),
+        new Pair<>(VoiceErrorKeyMessage, exception.getMessage()));
+    }
+    return null;
   }
   public static WritableMap serializeCallException(@NonNull final CallRecord callRecord) {
     return (null != callRecord.getCallException())

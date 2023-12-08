@@ -71,9 +71,6 @@ src/constants.ts
 android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
 ios/TwilioVoiceReactNativeConstants.h
 
-# RN SDK version
-ios/TwilioVoiceReactNativeVersion.h
-
 # docs
 docs/api/
 temp/

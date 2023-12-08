@@ -13,7 +13,6 @@ target 'TwilioVoiceReactNativeExample' do
   )
 
   pod 'twilio-voice-react-native', :path => '../../..'
-  pod 'TwilioVoice', '~> 6.5.2'
 
   # # Enables Flipper.
   # #
