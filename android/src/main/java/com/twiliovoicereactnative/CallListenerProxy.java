@@ -6,8 +6,6 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
@@ -20,8 +18,6 @@ import static com.twiliovoicereactnative.CommonConstants.CallEventRinging;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
-import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 import static com.twiliovoicereactnative.CommonConstants.CallEventCurrentWarnings;
 import static com.twiliovoicereactnative.CommonConstants.CallEventPreviousWarnings;
 import static com.twiliovoicereactnative.CommonConstants.CallEventConnectFailure;
@@ -71,7 +67,7 @@ class CallListenerProxy implements Call.Listener {
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventConnectFailure),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
+        new Pair<>(VoiceErrorKeyError, serializeVoiceException(callException))));
   }
 
   @Override
@@ -122,7 +118,7 @@ class CallListenerProxy implements Call.Listener {
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventReconnecting),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
+        new Pair<>(VoiceErrorKeyError, serializeVoiceException(callException))));
   }
 
   @Override
@@ -157,7 +153,7 @@ class CallListenerProxy implements Call.Listener {
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventDisconnected),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-        new Pair<>(VoiceErrorKeyError, serializeCallException(callException))));
+        new Pair<>(VoiceErrorKeyError, serializeVoiceException(callException))));
   }
 
   @Override
@@ -180,22 +176,5 @@ class CallListenerProxy implements Call.Listener {
 
   private void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeCall, event);
-  }
-
-  private static WritableMap serializeCallException(@Nullable CallException callException) {
-    if (null != callException) {
-      return constructJSMap(
-        new Pair<>(VoiceErrorKeyCode, callException.getErrorCode()),
-        new Pair<>(VoiceErrorKeyMessage, callException.getMessage()));
-    }
-    return null;
-  }
-
-  private static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
-    WritableArray previousWarningsArray = Arguments.createArray();
-    for (Call.CallQualityWarning warning : warnings) {
-      previousWarningsArray.pushString(warning.toString());
-    }
-    return previousWarningsArray;
   }
 }

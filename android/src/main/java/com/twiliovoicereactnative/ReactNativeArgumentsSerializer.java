@@ -31,6 +31,7 @@ import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.twilio.voice.CallException;
 import com.twilio.voice.CancelledCallInvite;
@@ -47,6 +48,8 @@ import com.twilio.voice.CallInvite;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * This class provides static helper functions that serializes native objects into
@@ -77,17 +80,16 @@ class ReactNativeArgumentsSerializer {
    */
   public static WritableMap serializeCallInvite(@NonNull final CallRecord callRecord) {
     // validate input
-    Objects.requireNonNull(callRecord.getUuid());
+    final UUID uuid = Objects.requireNonNull(callRecord.getUuid());
     final CallInvite callInvite = Objects.requireNonNull(callRecord.getCallInvite());
 
     // serialize
-    WritableMap callInviteInfo = Arguments.createMap();
-    callInviteInfo.putString(CallInviteInfoUuid, callRecord.getUuid().toString());
-    callInviteInfo.putString(CallInviteInfoCallSid, callInvite.getCallSid());
-    callInviteInfo.putString(CallInviteInfoFrom, callInvite.getFrom());
-    callInviteInfo.putString(CallInviteInfoTo, callInvite.getTo());
-    callInviteInfo.putMap(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callInvite));
-    return callInviteInfo;
+    return constructJSMap(
+      new Pair<>(CallInviteInfoUuid, uuid.toString()),
+      new Pair<>(CallInviteInfoCallSid, callInvite.getCallSid()),
+      new Pair<>(CallInviteInfoFrom, callInvite.getFrom()),
+      new Pair<>(CallInviteInfoTo, callInvite.getTo()),
+      new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callInvite)));
   }
 
   /**
@@ -100,11 +102,10 @@ class ReactNativeArgumentsSerializer {
     final CancelledCallInvite callInvite = Objects.requireNonNull(callRecord.getCancelledCallInvite());
 
     // serialize
-    WritableMap cancelledCallInviteInfo = Arguments.createMap();
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoCallSid, callInvite.getCallSid());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoFrom, callInvite.getFrom());
-    cancelledCallInviteInfo.putString(CancelledCallInviteInfoTo, callInvite.getTo());
-    return cancelledCallInviteInfo;
+    return constructJSMap(
+      new Pair<>(CancelledCallInviteInfoCallSid, callInvite.getCallSid()),
+      new Pair<>(CancelledCallInviteInfoFrom, callInvite.getFrom()),
+      new Pair<>(CancelledCallInviteInfoTo, callInvite.getTo()));
   }
 
   /**
@@ -225,5 +226,13 @@ class ReactNativeArgumentsSerializer {
     return (null != callRecord.getCallException())
       ? serializeVoiceException(callRecord.getCallException())
       : null;
+  }
+
+  public static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
+    WritableArray previousWarningsArray = Arguments.createArray();
+    for (Call.CallQualityWarning warning : warnings) {
+      previousWarningsArray.pushString(warning.toString());
+    }
+    return previousWarningsArray;
   }
 }
