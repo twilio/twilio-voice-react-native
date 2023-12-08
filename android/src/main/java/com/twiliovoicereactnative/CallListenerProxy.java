@@ -179,6 +179,6 @@ class CallListenerProxy implements Call.Listener {
   }
 
   private void debug(final String message) {
-    logger.debug(String.format("%s UUID:%s", message, uuid));
+    logger.debug(String.format("%s UUID:%s", message, uuid.toString()));
   }
 }
