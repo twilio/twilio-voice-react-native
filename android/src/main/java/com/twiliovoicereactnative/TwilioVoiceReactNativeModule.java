@@ -49,6 +49,8 @@ import android.content.Context;
 import android.util.Pair;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
+import com.twiliovoicereactvative.BuildConfig;
+import com.twiliovoicereactvative.R;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {

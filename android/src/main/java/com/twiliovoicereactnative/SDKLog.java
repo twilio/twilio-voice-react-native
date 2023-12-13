@@ -1,6 +1,9 @@
 package com.twiliovoicereactnative;
 
 import android.util.Log;
+
+import com.twiliovoicereactvative.BuildConfig;
+
 class SDKLog {
   private final String logTag;
   public SDKLog(Class<?> clazz) {

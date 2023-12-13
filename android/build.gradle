@@ -1,55 +1,59 @@
-
 buildscript {
-    ext.versions = [
-      'java'               : JavaVersion.VERSION_11,
-      'androidGradlePlugin': '7.4.2',
-      'googleServices'     : '4.3.10',
-      'voiceAndroid'       : '6.3.3',
-      'androidxCore'       : '1.10.1',
-      'androidxLifecycle'  : '2.2.0',
-      'audioSwitch'        : '1.1.8',
-      'firebaseMessaging'  : '23.3.1'
-    ]
-    if (project == rootProject) {
-        repositories {
-            google()
-            mavenCentral()
-        }
-
-        dependencies {
-            classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
-            classpath "com.google.gms:google-services:${versions.googleServices}"
-        }
+  ext.versions = [
+    'java'               : JavaVersion.VERSION_11,
+    'androidGradlePlugin': '7.4.2',
+    'googleServices'     : '4.3.10',
+    'voiceAndroid'       : '6.3.3',
+    'androidxCore'       : '1.10.1',
+    'androidxLifecycle'  : '2.2.0',
+    'audioSwitch'        : '1.1.8',
+    'firebaseMessaging'  : '23.4.0'
+  ]
+  if (project == rootProject) {
+    repositories {
+      google()
+      mavenCentral()
     }
+
+    dependencies {
+      classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
+      classpath "com.google.gms:google-services:${versions.googleServices}"
+    }
+  }
 }
 
 apply plugin: 'com.android.library'
 
 def safeExtGet(prop, fallback) {
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 android {
-    compileSdk safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 33)
-    defaultConfig {
-        minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 21)
-        targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 33)
-        versionCode 1
-        versionName "1.0"
-    }
+  namespace 'com.twiliovoicereactvative'
+  compileSdk safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 33)
+  defaultConfig {
+    minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 21)
+    targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 33)
+    versionCode 1
+    versionName "1.0"
+  }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
+  buildTypes {
+    release {
+      minifyEnabled false
     }
-    lintOptions {
-        disable 'GradleCompatible'
-    }
-    compileOptions {
-        sourceCompatibility versions.java
-        targetCompatibility versions.java
-    }
+  }
+  lintOptions {
+    disable 'GradleCompatible'
+  }
+  compileOptions {
+    sourceCompatibility versions.java
+    targetCompatibility versions.java
+  }
+  buildFeatures {
+    // for buildconfig construction
+    buildConfig true
+  }
 }
 
 repositories {
@@ -62,14 +66,14 @@ repositories {
 }
 
 dependencies {
-    //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
-    implementation "com.twilio:voice-android:${versions.voiceAndroid}"
-    implementation "androidx.core:core:${versions.androidxCore}"
-    implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
-    implementation "com.google.firebase:firebase-messaging:${versions.firebaseMessaging}"
-    implementation "com.twilio:audioswitch:${versions.audioSwitch}"
-    implementation 'com.google.android.material:material:1.1.0'
+  //noinspection GradleDynamicVersion
+  implementation "com.facebook.react:react-native:+"  // From node_modules
+  implementation "com.twilio:voice-android:${versions.voiceAndroid}"
+  implementation "androidx.core:core:${versions.androidxCore}"
+  implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
+  implementation "com.google.firebase:firebase-messaging:${versions.firebaseMessaging}"
+  implementation "com.twilio:audioswitch:${versions.audioSwitch}"
+  implementation 'com.google.android.material:material:1.1.0'
 
   constraints {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
