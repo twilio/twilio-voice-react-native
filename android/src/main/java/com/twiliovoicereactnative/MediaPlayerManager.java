@@ -4,8 +4,6 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 
-import com.twiliovoicereactvative.R;
-
 import java.util.HashMap;
 import java.util.Map;
 
