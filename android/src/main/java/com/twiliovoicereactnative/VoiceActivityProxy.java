@@ -21,7 +21,7 @@ public class VoiceActivityProxy {
   private static final int PERMISSION_REQUEST_CODE = 101;
   private static final String[] permissionList;
   private final Activity context;
-  private PermissionsRationaleNotifier notifier;
+  private final PermissionsRationaleNotifier notifier;
 
   public interface PermissionsRationaleNotifier {
     void displayRationale(final String permission);
