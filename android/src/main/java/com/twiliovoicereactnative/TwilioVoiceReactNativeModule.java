@@ -254,7 +254,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void voice_getCalls(Promise promise) {
     WritableArray callInfos = Arguments.createArray();
     for (CallRecord callRecord: getCallRecordDatabase().getCollection()) {
-      callInfos.pushMap(serializeCall(callRecord));
+      // incoming calls that have not been acted on do not have call-objects
+      if (null != callRecord.getVoiceCall()) {
+        callInfos.pushMap(serializeCall(callRecord));
+      }
     }
     promise.resolve(callInfos);
   }
