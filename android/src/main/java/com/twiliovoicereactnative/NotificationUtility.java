@@ -70,11 +70,14 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
-    RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
-    remoteViews.setTextViewText(R.id.notif_title, title);
-    remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
-    remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
+    RemoteViews largeRemoteView = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
+    largeRemoteView.setTextViewText(R.id.notif_title, title);
+    largeRemoteView.setTextViewText(R.id.notif_content, getContentBanner(context));
+    largeRemoteView.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
+    largeRemoteView.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
+
+    RemoteViews smallRemoteView = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incomming_small);
+    smallRemoteView.setTextViewText(R.id.notif_title, title);
 
     NotificationCompat.Builder builder = constructNotificationBuilder(context, channelImportance);
       builder.setSmallIcon(smallIconResId)
@@ -83,9 +86,10 @@ class NotificationUtility {
         .setContentText(getContentBanner(context))
         .setCategory(Notification.CATEGORY_CALL)
         .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(piForegroundIntent);
+        .setCustomContentView(smallRemoteView)
+        .setCustomBigContentView(largeRemoteView)
+        .setContentIntent(piForegroundIntent)
+        .setStyle(new NotificationCompat.DecoratedCustomViewStyle());
     if (fullScreenIntent) {
       builder.setFullScreenIntent(piForegroundIntent, true);
     }
