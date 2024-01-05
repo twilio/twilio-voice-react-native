@@ -150,10 +150,16 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         [nativeAudioDeviceInfos addObject:self.audioDevices[key]];
     }
 
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventAudioDevicesUpdated,
-                              kTwilioVoiceReactNativeAudioDeviceKeyAudioDevices: nativeAudioDeviceInfos,
-                              kTwilioVoiceReactNativeAudioDeviceKeySelectedDevice: self.selectedAudioDevice}];
+    NSMutableDictionary *eventBody = [@{
+        kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventAudioDevicesUpdated,
+        kTwilioVoiceReactNativeAudioDeviceKeyAudioDevices: nativeAudioDeviceInfos
+    } mutableCopy];
+
+    if (self.selectedAudioDevice != nil) {
+        eventBody[kTwilioVoiceReactNativeAudioDeviceKeySelectedDevice] = self.selectedAudioDevice;
+    }
+
+    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:eventBody];
 }
 
 - (void)initializeAudioDeviceList {
@@ -330,13 +336,22 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 // TODO: Move to separate utility file someday
 - (NSDictionary *)callInfo:(TVOCall *)call {
-    NSMutableDictionary *callInfo = [@{kTwilioVoiceReactNativeCallInfoUuid: call.uuid? call.uuid.UUIDString : @"",
-                                       kTwilioVoiceReactNativeCallInfoFrom: call.from? call.from : @"",
-                                       kTwilioVoiceReactNativeCallInfoIsMuted: @(call.isMuted),
+    NSMutableDictionary *callInfo = [@{kTwilioVoiceReactNativeCallInfoIsMuted: @(call.isMuted),
                                        kTwilioVoiceReactNativeCallInfoIsOnHold: @(call.isOnHold),
                                        kTwilioVoiceReactNativeCallInfoSid: call.sid,
-                                       kTwilioVoiceReactNativeCallInfoState: [self stringOfState:call.state],
-                                       kTwilioVoiceReactNativeCallInfoTo: call.to? call.to : @""} mutableCopy];
+                                       kTwilioVoiceReactNativeCallInfoState: [self stringOfState:call.state]} mutableCopy];
+
+    if (call.uuid != nil) {
+        callInfo[kTwilioVoiceReactNativeCallInfoUuid] = call.uuid.UUIDString;
+    }
+
+    if (call.from != nil) {
+        callInfo[kTwilioVoiceReactNativeCallInfoFrom] = call.from;
+    }
+
+    if (call.to != nil) {
+        callInfo[kTwilioVoiceReactNativeCallInfoTo] = call.to;
+    }
 
     NSNumber *initialConnectedTimestamp = self.callConnectMap[call.uuid.UUIDString];
     if (initialConnectedTimestamp != nil) {
@@ -354,9 +369,13 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 - (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite {
     NSMutableDictionary *callInviteInfo = [@{kTwilioVoiceReactNativeCallInviteInfoUuid: callInvite.uuid.UUIDString,
                                              kTwilioVoiceReactNativeCallInviteInfoCallSid: callInvite.callSid,
-                                             kTwilioVoiceReactNativeCallInviteInfoFrom: callInvite.from,
                                              kTwilioVoiceReactNativeCallInviteInfoTo: callInvite.to} mutableCopy];
-    if (callInvite.customParameters) {
+
+    if (callInvite.from != nil) {
+        callInviteInfo[kTwilioVoiceReactNativeCallInviteInfoFrom] = callInvite.from;
+    }
+
+    if (callInvite.customParameters != nil) {
         callInviteInfo[kTwilioVoiceReactNativeCallInviteInfoCustomParameters] = [callInvite.customParameters copy];
     }
 
@@ -364,9 +383,20 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 }
 
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite {
-    return @{kTwilioVoiceReactNativeCancelledCallInviteInfoCallSid: cancelledCallInvite.callSid,
-             kTwilioVoiceReactNativeCancelledCallInviteInfoFrom: cancelledCallInvite.from,
-             kTwilioVoiceReactNativeCancelledCallInviteInfoTo: cancelledCallInvite.to};
+    NSMutableDictionary *cancelledCallInviteInfo = [@{
+        kTwilioVoiceReactNativeCancelledCallInviteInfoCallSid: cancelledCallInvite.callSid,
+        kTwilioVoiceReactNativeCancelledCallInviteInfoTo: cancelledCallInvite.to
+    } mutableCopy];
+
+    if (cancelledCallInvite.from != nil) {
+        cancelledCallInviteInfo[kTwilioVoiceReactNativeCancelledCallInviteInfoFrom] = cancelledCallInvite.from;
+    }
+
+    if (cancelledCallInvite.customParameters != nil) {
+        cancelledCallInviteInfo[kTwilioVoiceReactNativeCancelledCallInviteInfoCustomParameters] = [cancelledCallInvite.customParameters copy];
+    }
+
+    return cancelledCallInviteInfo;
 }
 
 RCT_EXPORT_MODULE();
