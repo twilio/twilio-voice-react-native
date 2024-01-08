@@ -1,15 +1,17 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.CommonConstants.CallEventReconnecting;
+import java.util.List;
+import java.util.Vector;
 
 import android.content.Context;
-import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
+import org.json.JSONException;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.IceCandidatePairState;
@@ -20,15 +22,10 @@ import com.twilio.voice.RemoteAudioTrackStats;
 import com.twilio.voice.StatsListener;
 import com.twilio.voice.StatsReport;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSArray;
+import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
-import java.util.List;
-
-public class StatsListenerProxy implements StatsListener {
-
-  static final String TAG = "StatsListenerProxy";
+class StatsListenerProxy implements StatsListener {
   private final Promise promise;
 
   public StatsListenerProxy(String uuid, Context context, Promise promise) {
@@ -38,137 +35,128 @@ public class StatsListenerProxy implements StatsListener {
   @Override
   public void onStats(@NonNull List<StatsReport> statsReports) {
     try {
-      if (statsReports != null) {
-        WritableArray statsReportsArray = Arguments.createArray();
-
-        for (int i = 0; i < statsReports.size(); i++) {
-          WritableMap params = Arguments.createMap();
-          params.putString(CommonConstants.PeerConnectionId, statsReports.get(i).getPeerConnectionId());
-
-          List<LocalAudioTrackStats> localAudioStatsList = statsReports.get(i).getLocalAudioTrackStats();
-          WritableArray localAudioStatsArray = Arguments.createArray();
-          for (int j = 0; j < localAudioStatsList.size(); j++) {
-            localAudioStatsArray.pushMap(jsonWithLocalAudioTrackStats(localAudioStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.LocalAudioTrackStats, localAudioStatsArray);
-
-          List<RemoteAudioTrackStats> remoteAudioStatsList = statsReports.get(i).getRemoteAudioTrackStats();
-          WritableArray remoteAudioStatsArray = Arguments.createArray();
-          for (int j = 0; j < remoteAudioStatsList.size(); j++) {
-            remoteAudioStatsArray.pushMap(jsonWithRemoteAudioTrackStats(remoteAudioStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.RemoteAudioTrackStats, remoteAudioStatsArray);
-
-          List<IceCandidatePairStats> iceCandidatePairStatsList = statsReports.get(i).getIceCandidatePairStats();
-          WritableArray iceCandidatePairStatsArray = Arguments.createArray();
-          for (int j = 0; j < iceCandidatePairStatsList.size(); j++) {
-            iceCandidatePairStatsArray.pushMap(jsonWithIceCandidatePairStats(iceCandidatePairStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.IceCandidatePairStats, iceCandidatePairStatsArray);
-
-          List<IceCandidateStats> iceCandidateStatsList = statsReports.get(i).getIceCandidateStats();
-          WritableArray iceCandidateStatsArray = Arguments.createArray();
-          for (int j = 0; j < iceCandidateStatsList.size(); j++) {
-            iceCandidateStatsArray.pushMap(jsonWithIceCandidateStats(iceCandidateStatsList.get(j)));
-          }
-          params.putArray(CommonConstants.IceCandidateStats, iceCandidateStatsArray);
-
-          statsReportsArray.pushMap(params);
-        }
-
-        promise.resolve(statsReportsArray);
+      WritableArray statsReportsArray = Arguments.createArray();
+      for(StatsReport statsReport: statsReports)  {
+        statsReportsArray.pushMap(
+          constructJSMap(
+          new Pair<>(CommonConstants.PeerConnectionId, statsReport.getPeerConnectionId()),
+          new Pair<>(
+            CommonConstants.LocalAudioTrackStats,
+            constructJSArray(jsonWithLocalAudioTrackStats(statsReport.getLocalAudioTrackStats()))),
+          new Pair<>(
+            CommonConstants.RemoteAudioTrackStats,
+            constructJSArray(jsonWithRemoteAudioTrackStats(statsReport.getRemoteAudioTrackStats()))),
+          new Pair<>(
+            CommonConstants.IceCandidatePairStats,
+            constructJSArray(jsonWithIceCandidatePairStats(statsReport.getIceCandidatePairStats()))),
+          new Pair<>(
+            CommonConstants.IceCandidateStats,
+            constructJSArray(jsonWithIceCandidateStats(statsReport.getIceCandidateStats())))));
       }
+      promise.resolve(statsReportsArray);
     } catch (JSONException e) {
-      promise.reject(TAG, e.getMessage());
+      promise.reject(StatsListenerProxy.class.getSimpleName(), e.getMessage());
       e.printStackTrace();
     }
   }
 
-  private WritableMap jsonWithLocalAudioTrackStats(LocalAudioTrackStats audioTrackStats) throws JSONException {
-    WritableMap params = Arguments.createMap();
-    params.putString(CommonConstants.Codec, audioTrackStats.codec);
-    params.putDouble(CommonConstants.PacketsLost, audioTrackStats.packetsLost);
-    params.putString(CommonConstants.Ssrc, audioTrackStats.ssrc);
-    params.putDouble(CommonConstants.Timestamp, audioTrackStats.timestamp);
-    params.putString(CommonConstants.TrackId, audioTrackStats.trackId);
-
-    // Local track stats
-    params.putDouble(CommonConstants.BytesSent, audioTrackStats.bytesSent);
-    params.putDouble(CommonConstants.PacketsSent, audioTrackStats.packetsSent);
-    params.putDouble(CommonConstants.RoundTripTime, audioTrackStats.roundTripTime);
-
-    // Local audio track stats
-    params.putDouble(CommonConstants.AudioLevel, audioTrackStats.audioLevel);
-    params.putDouble(CommonConstants.Jitter, audioTrackStats.jitter);
-    return params;
+  private Object[] jsonWithLocalAudioTrackStats(List<LocalAudioTrackStats> audioTrackStatsList) throws JSONException {
+    Vector<WritableMap> mapList = new Vector<>();
+    for (LocalAudioTrackStats localAudioTrackStats: audioTrackStatsList) {
+      mapList.add(
+        constructJSMap(
+          // Base track stats
+          new Pair<>(CommonConstants.Codec, localAudioTrackStats.codec),
+          new Pair<>(CommonConstants.PacketsLost, localAudioTrackStats.packetsLost),
+          new Pair<>(CommonConstants.Ssrc, localAudioTrackStats.ssrc),
+          new Pair<>(CommonConstants.Timestamp, localAudioTrackStats.timestamp),
+          new Pair<>(CommonConstants.TrackId, localAudioTrackStats.trackId),
+          // Local track stats
+          new Pair<>(CommonConstants.BytesSent, localAudioTrackStats.bytesSent),
+          new Pair<>(CommonConstants.PacketsSent, localAudioTrackStats.packetsSent),
+          new Pair<>(CommonConstants.RoundTripTime, localAudioTrackStats.roundTripTime),
+          // Local audio track stats
+          new Pair<>(CommonConstants.AudioLevel, localAudioTrackStats.audioLevel),
+          new Pair<>(CommonConstants.Jitter, localAudioTrackStats.jitter)));
+    }
+    return mapList.toArray();
   }
 
-  private WritableMap jsonWithRemoteAudioTrackStats(RemoteAudioTrackStats audioTrackStats) throws JSONException {
-    WritableMap params = Arguments.createMap();
-    // Base track stats
-    params.putString(CommonConstants.Codec, audioTrackStats.codec);
-    params.putDouble(CommonConstants.PacketsLost, audioTrackStats.packetsLost);
-    params.putString(CommonConstants.Ssrc, audioTrackStats.ssrc);
-    params.putDouble(CommonConstants.Timestamp, audioTrackStats.timestamp);
-    params.putString(CommonConstants.TrackId, audioTrackStats.trackId);
-
-    // Remote track stats
-    params.putDouble(CommonConstants.BytesReceived, audioTrackStats.bytesReceived);
-    params.putDouble(CommonConstants.PacketsReceived, audioTrackStats.packetsReceived);
-
-    // Remote audio track stats
-    params.putDouble(CommonConstants.AudioLevel, audioTrackStats.audioLevel);
-    params.putDouble(CommonConstants.Jitter, audioTrackStats.jitter);
-    params.putDouble(CommonConstants.Mos, audioTrackStats.mos);
-    return params;
+  private Object[] jsonWithRemoteAudioTrackStats(List<RemoteAudioTrackStats> audioTrackStatsList) throws JSONException {
+    Vector<WritableMap> mapList = new Vector<>();
+    for (RemoteAudioTrackStats remoteAudioTrackStats: audioTrackStatsList) {
+      mapList.add(
+        constructJSMap(
+        // Base track stats
+        new Pair<>(CommonConstants.Codec, remoteAudioTrackStats.codec),
+        new Pair<>(CommonConstants.PacketsLost, remoteAudioTrackStats.packetsLost),
+        new Pair<>(CommonConstants.Ssrc, remoteAudioTrackStats.ssrc),
+        new Pair<>(CommonConstants.Timestamp, remoteAudioTrackStats.timestamp),
+        new Pair<>(CommonConstants.TrackId, remoteAudioTrackStats.trackId),
+        // Remote track stats
+        new Pair<>(CommonConstants.BytesReceived, remoteAudioTrackStats.bytesReceived),
+        new Pair<>(CommonConstants.PacketsReceived, remoteAudioTrackStats.packetsReceived),
+        // Remote audio track stats
+        new Pair<>(CommonConstants.AudioLevel, remoteAudioTrackStats.audioLevel),
+        new Pair<>(CommonConstants.Jitter, remoteAudioTrackStats.jitter),
+        new Pair<>(CommonConstants.Mos, remoteAudioTrackStats.mos)));
+    }
+    return mapList.toArray();
   }
 
-  private WritableMap jsonWithIceCandidatePairStats(IceCandidatePairStats iceCandidatePairStats) throws JSONException {
-    WritableMap params = Arguments.createMap();
-    params.putBoolean(CommonConstants.ActiveCandidatePair, iceCandidatePairStats.activeCandidatePair);
-    params.putDouble(CommonConstants.AvailableIncomingBitrate, iceCandidatePairStats.availableIncomingBitrate);
-    params.putDouble(CommonConstants.AvailableOutgoingBitrate, iceCandidatePairStats.availableOutgoingBitrate);
-    params.putDouble(CommonConstants.BytesReceived, iceCandidatePairStats.bytesReceived);
-    params.putDouble(CommonConstants.BytesSent, iceCandidatePairStats.bytesSent);
-    params.putDouble(CommonConstants.ConsentRequestsReceived, iceCandidatePairStats.consentRequestsReceived);
-    params.putDouble(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentRequestsSent);
-    params.putDouble(CommonConstants.ConsentResponsesReceived, iceCandidatePairStats.consentResponsesReceived);
-    params.putDouble(CommonConstants.ConsentResponsesSent, iceCandidatePairStats.consentResponsesSent);
-    params.putDouble(CommonConstants.CurrentRoundTripTime, iceCandidatePairStats.currentRoundTripTime);
-    params.putString(CommonConstants.LocalCandidateId, iceCandidatePairStats.localCandidateId);
-    params.putString(CommonConstants.LocalCandidateIp, iceCandidatePairStats.localCandidateIp);
-    params.putBoolean(CommonConstants.Nominated, iceCandidatePairStats.nominated);
-    params.putDouble(CommonConstants.Priority, iceCandidatePairStats.priority);
-    params.putBoolean(CommonConstants.Readable, iceCandidatePairStats.readable);
-    params.putString(CommonConstants.RelayProtocol, iceCandidatePairStats.relayProtocol);
-    params.putString(CommonConstants.RemoteCandidateId, iceCandidatePairStats.remoteCandidateId);
-    params.putString(CommonConstants.RemoteCandidateIp, iceCandidatePairStats.remoteCandidateIp);
-    params.putDouble(CommonConstants.RequestsReceived, iceCandidatePairStats.requestsReceived);
-    params.putDouble(CommonConstants.RequestsSent, iceCandidatePairStats.requestsSent);
-    params.putDouble(CommonConstants.ResponsesReceived, iceCandidatePairStats.responsesReceived);
-    params.putDouble(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent);
-    params.putDouble(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived);
-    params.putDouble(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent);
-    params.putString(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state));
-    params.putDouble(CommonConstants.TotalRoundTripTime, iceCandidatePairStats.totalRoundTripTime);
-    params.putString(CommonConstants.TransportId, iceCandidatePairStats.transportId);
-    params.putBoolean(CommonConstants.Writeable, iceCandidatePairStats.writeable);
-
-    return params;
+  private Object[] jsonWithIceCandidatePairStats(List<IceCandidatePairStats> iceCandidatePairStatsList) throws JSONException {
+    Vector<WritableMap> mapList = new Vector<>();
+    for (IceCandidatePairStats iceCandidatePairStats: iceCandidatePairStatsList) {
+      mapList.add(
+        constructJSMap(
+          new Pair<>(CommonConstants.ActiveCandidatePair, iceCandidatePairStats.activeCandidatePair),
+          new Pair<>(CommonConstants.AvailableIncomingBitrate, iceCandidatePairStats.availableIncomingBitrate),
+          new Pair<>(CommonConstants.AvailableOutgoingBitrate, iceCandidatePairStats.availableOutgoingBitrate),
+          new Pair<>(CommonConstants.BytesReceived, iceCandidatePairStats.bytesReceived),
+          new Pair<>(CommonConstants.BytesSent, iceCandidatePairStats.bytesSent),
+          new Pair<>(CommonConstants.ConsentRequestsReceived, iceCandidatePairStats.consentRequestsReceived),
+          new Pair<>(CommonConstants.ConsentRequestsSent, iceCandidatePairStats.consentRequestsSent),
+          new Pair<>(CommonConstants.ConsentResponsesReceived, iceCandidatePairStats.consentResponsesReceived),
+          new Pair<>(CommonConstants.ConsentResponsesSent, iceCandidatePairStats.consentResponsesSent),
+          new Pair<>(CommonConstants.CurrentRoundTripTime, iceCandidatePairStats.currentRoundTripTime),
+          new Pair<>(CommonConstants.LocalCandidateId, iceCandidatePairStats.localCandidateId),
+          new Pair<>(CommonConstants.LocalCandidateIp, iceCandidatePairStats.localCandidateIp),
+          new Pair<>(CommonConstants.Nominated, iceCandidatePairStats.nominated),
+          new Pair<>(CommonConstants.Priority, iceCandidatePairStats.priority),
+          new Pair<>(CommonConstants.Readable, iceCandidatePairStats.readable),
+          new Pair<>(CommonConstants.RelayProtocol, iceCandidatePairStats.relayProtocol),
+          new Pair<>(CommonConstants.RemoteCandidateId, iceCandidatePairStats.remoteCandidateId),
+          new Pair<>(CommonConstants.RemoteCandidateIp, iceCandidatePairStats.remoteCandidateIp),
+          new Pair<>(CommonConstants.RequestsReceived, iceCandidatePairStats.requestsReceived),
+          new Pair<>(CommonConstants.RequestsSent, iceCandidatePairStats.requestsSent),
+          new Pair<>(CommonConstants.ResponsesReceived, iceCandidatePairStats.responsesReceived),
+          new Pair<>(CommonConstants.ResponsesSent, iceCandidatePairStats.responsesSent),
+          new Pair<>(CommonConstants.RetransmissionsReceived, iceCandidatePairStats.retransmissionsReceived),
+          new Pair<>(CommonConstants.RetransmissionsSent, iceCandidatePairStats.retransmissionsSent),
+          new Pair<>(CommonConstants.State, stringWithIceCandidatePairState(iceCandidatePairStats.state)),
+          new Pair<>(CommonConstants.TotalRoundTripTime, iceCandidatePairStats.totalRoundTripTime),
+          new Pair<>(CommonConstants.TransportId, iceCandidatePairStats.transportId),
+          new Pair<>(CommonConstants.Writeable, iceCandidatePairStats.writeable)));
+    }
+    return mapList.toArray();
   }
 
-  WritableMap jsonWithIceCandidateStats(IceCandidateStats iceCandidateStats) throws JSONException {
-    WritableMap params = Arguments.createMap();
-    params.putString(CommonConstants.CandidateType, iceCandidateStats.candidateType);
-    params.putBoolean(CommonConstants.Deleted, iceCandidateStats.deleted);
-    params.putString(CommonConstants.Ip, iceCandidateStats.ip);
-    params.putBoolean(CommonConstants.IsRemote, iceCandidateStats.isRemote);
-    params.putInt(CommonConstants.Port, iceCandidateStats.port);
-    params.putInt(CommonConstants.Priority, iceCandidateStats.priority);
-    params.putString(CommonConstants.Protocol, iceCandidateStats.protocol);
-    params.putString(CommonConstants.TransportId, iceCandidateStats.transportId);
-    params.putString(CommonConstants.Url, iceCandidateStats.url);
-    return params;
+  private Object[] jsonWithIceCandidateStats(List<IceCandidateStats> iceCandidateStatsList) throws JSONException {
+    Vector<WritableMap> mapList = new Vector<>();
+    for (IceCandidateStats iceCandidateStats: iceCandidateStatsList) {
+      mapList.add(
+        constructJSMap(
+          new Pair<>(CommonConstants.CandidateType, iceCandidateStats.candidateType),
+          new Pair<>(CommonConstants.Deleted, iceCandidateStats.deleted),
+          new Pair<>(CommonConstants.Ip, iceCandidateStats.ip),
+          new Pair<>(CommonConstants.IsRemote, iceCandidateStats.isRemote),
+          new Pair<>(CommonConstants.Port, iceCandidateStats.port),
+          new Pair<>(CommonConstants.Priority, iceCandidateStats.priority),
+          new Pair<>(CommonConstants.Protocol, iceCandidateStats.protocol),
+          new Pair<>(CommonConstants.TransportId, iceCandidateStats.transportId),
+          new Pair<>(CommonConstants.Url, iceCandidateStats.url)));
+    }
+    return mapList.toArray();
   }
 
   private String stringWithIceCandidatePairState(IceCandidatePairState state) {

@@ -1,11 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.example.twiliovoicereactnative">
 
-  <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-
   <application
     android:name=".MainApplication"
     android:allowBackup="false"
@@ -26,35 +21,6 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
-    <!-- Twilio Voice -->
-    <!-- [START fcm_listener] -->
-    <service
-      android:name="com.twiliovoicereactnative.VoiceFirebaseMessagingService"
-      android:stopWithTask="false"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="com.google.firebase.MESSAGING_EVENT" />
-      </intent-filter>
-    </service>
-    <service
-      android:enabled="true"
-      android:name="com.twiliovoicereactnative.IncomingCallNotificationService"
-      android:foregroundServiceType="microphone"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="ACTION_ACCEPT" />
-        <action android:name="ACTION_REJECT" />
-      </intent-filter>
-    </service>
-    <activity
-      android:name="com.twiliovoicereactnative.NotificationProxyActivity"
-      android:parentActivityName=".MainActivity"
-      android:noHistory="true"
-      android:excludeFromRecents="true"
-      android:taskAffinity=""
-      android:launchMode="singleTask"
-      android:theme="@android:style/Theme.Translucent.NoTitleBar"
-      android:exported="true" />
   </application>
 
 </manifest>

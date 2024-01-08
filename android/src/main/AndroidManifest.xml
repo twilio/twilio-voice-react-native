@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.twiliovoicereactnative">
+  package="com.twiliovoicereactnative">
   <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+  <application>
+    <service
+      android:name=".VoiceFirebaseMessagingService"
+      android:stopWithTask="false"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+    <receiver
+      android:name=".VoiceNotificationReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="ACTION_INCOMING_CALL" />
+        <action android:name="ACTION_ACCEPT_CALL" />
+        <action android:name="ACTION_REJECT_CALL" />
+        <action android:name="ACTION_CANCEL_CALL" />
+        <action android:name="ACTION_CALL_DISCONNECT" />
+        <action android:name="ACTION_RAISE_OUTGOING_CALL_NOTIFICATION" />
+        <action android:name="ACTION_CANCEL_NOTIFICATION" />
+        <action android:name="ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION" />
+        <action android:name="ACTION_FOREGROUND_APPLICATION" />
+      </intent-filter>
+    </receiver>
+  </application>
 </manifest>

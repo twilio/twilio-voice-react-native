@@ -2,43 +2,22 @@ package com.example.twiliovoicereactnative;
 
 import android.app.Application;
 import android.content.Context;
-import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
-import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import android.util.Log;
-import com.twiliovoicereactnative.TwilioVoiceReactNativePackage;
+
+import com.twiliovoicereactnative.VoiceApplicationProxy;
 
 public class MainApplication extends Application implements ReactApplication {
-  private static final String TAG = "MainApplication";
-
-  private final ReactNativeHost mReactNativeHost =
-      new ReactNativeHost(this) {
-        @Override
-        public boolean getUseDeveloperSupport() {
-          return BuildConfig.DEBUG;
-        }
-
-        @Override
-        protected List<ReactPackage> getPackages() {
-          @SuppressWarnings("UnnecessaryLocalVariable")
-          List<ReactPackage> packages = new PackageList(this).getPackages();
-          // Packages that cannot be autolinked yet can be added manually here, for TwilioVoiceReactNativeExample:
-          // packages.add(new MyReactNativePackage());
-          packages.add(new TwilioVoiceReactNativePackage());
-          return packages;
-        }
-
-        @Override
-        protected String getJSMainModuleName() {
-          return "index";
-        }
-      };
-
+  private final VoiceApplicationProxy voiceApplicationProxy;
+  private final MainReactNativeHost mReactNativeHost;
+  public MainApplication() {
+    super();
+    mReactNativeHost = new MainReactNativeHost(this);
+    voiceApplicationProxy = new VoiceApplicationProxy(mReactNativeHost);
+  }
   @Override
   public ReactNativeHost getReactNativeHost() {
     return mReactNativeHost;
@@ -47,11 +26,18 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
-    Log.d(TAG, "Inside onCreate");
+    voiceApplicationProxy.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
-    initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
+    // Remove the following line if you don't want Flipper enabled
+    initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
 
+  @Override
+  public void onTerminate() {
+    // Note: this method is not called when running on device, devies just kill the process.
+    voiceApplicationProxy.onTerminate();
+    super.onTerminate();
+  }
   /**
    * Loads Flipper in React Native templates.
    *
@@ -68,13 +54,8 @@ public class MainApplication extends Application implements ReactApplication {
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
+      } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+               InvocationTargetException e) {
         e.printStackTrace();
       }
     }
