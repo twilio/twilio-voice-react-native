@@ -52,7 +52,7 @@ import android.util.Pair;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
-class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
+public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
   private static final SDKLog logger = new SDKLog(TwilioVoiceReactNativeModule.class);
   private static final String GLOBAL_ENV = "com.twilio.voice.env";
