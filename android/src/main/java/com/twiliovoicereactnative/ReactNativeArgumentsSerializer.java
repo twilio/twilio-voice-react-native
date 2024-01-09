@@ -13,6 +13,9 @@ import static com.twiliovoicereactnative.CommonConstants.CallInfoUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoState;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoIsMuted;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoIsOnHold;
+import static com.twiliovoicereactnative.CommonConstants.CallMessageContent;
+import static com.twiliovoicereactnative.CommonConstants.CallMessageContentType;
+import static com.twiliovoicereactnative.CommonConstants.CallMessageSID;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
 import static com.twiliovoicereactnative.CommonConstants.CallStateDisconnected;
@@ -35,6 +38,7 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.twilio.voice.CallMessage;
 import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.VoiceException;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -234,5 +238,15 @@ class ReactNativeArgumentsSerializer {
       previousWarningsArray.pushString(warning.toString());
     }
     return previousWarningsArray;
+  }
+
+  public static WritableMap serializeCallMessage(@NonNull final CallMessage callMessage) {
+
+    WritableMap callMessageInfo = constructJSMap(
+      new Pair<>(CallMessageContent, callMessage.getContent()),
+      new Pair<>(CallMessageContentType, callMessage.getMessageContentType())
+    );
+
+    return callMessageInfo;
   }
 }

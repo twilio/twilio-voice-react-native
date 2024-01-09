@@ -1,3 +1,4 @@
+import type { CallMessageOptions } from 'src/type/CallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createStatsReport } from '../__mocks__/RTCStats';
@@ -523,6 +524,32 @@ describe('Call class', () => {
           createNativeCallInfo()
         ).postFeedback(score, issue);
         await expect(postFeedbackPromise).resolves.toBe(undefined);
+      });
+    });
+
+    describe('.sendMesssage', () => {
+      it('invokes the native module', async () => {
+        const message: CallMessageOptions = {
+          content: 'hello world',
+          contentType: 'application/json',
+          messageType: 'user-defined-message',
+        };
+        await new Call(createNativeCallInfo()).sendMessage(message);
+        expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
+          ['mock-nativecallinfo-uuid', message],
+        ]);
+      });
+
+      it('returns a Promise<void>', async () => {
+        const message: CallMessageOptions = {
+          content: 'hello world',
+          contentType: 'application/json',
+          messageType: 'user-defined-message',
+        };
+        const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
+          message
+        );
+        await expect(sendMessagePromise).resolves.toBe(undefined);
       });
     });
   });
