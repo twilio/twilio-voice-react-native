@@ -16,6 +16,7 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallMessage;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.LogLevel;
 import com.twilio.voice.RegistrationException;
@@ -393,6 +394,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     if (null != callRecord) {
       callRecord.getVoiceCall().getStats(new StatsListenerProxy(uuid, reactContext, promise));
+    }
+  }
+
+  @ReactMethod
+  public void call_sendMessage(String uuid, CallMessage message, Promise promise) {
+    final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
+
+    if (null != callRecord) {
+      callRecord.getVoiceCall().sendMessage(message);
+      promise.resolve(uuid);
     }
   }
 

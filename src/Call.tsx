@@ -14,6 +14,7 @@ import type {
   NativeCallEventType,
   NativeCallInfo,
 } from './type/Call';
+import type { CallMessageOptions } from './type/CallMessage';
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
@@ -804,6 +805,13 @@ export class Call extends EventEmitter {
    */
   sendDigits(digits: string): Promise<void> {
     return NativeModule.call_sendDigits(this._uuid, digits);
+  }
+
+  /**
+   * Send Call Message.
+   */
+  sendMessage(message: CallMessageOptions): Promise<void> {
+    return NativeModule.call_sendMessage(this._uuid, message);
   }
 
   /**
