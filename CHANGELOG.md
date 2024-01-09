@@ -12,6 +12,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 - Narrowed the `CustomParameters` type to `Record<string, string>` instead of `Record<string, any>`.
 - Fixed inconsistency with `AudioDevice` typings, preferring `undefined` over `null` for optional values.
 - Fixed an issue with `call.isMuted()` and `call.isOnHold()` APIs. They should now always return `boolean | undefined` instead of potentially returning `null`.
+- Fixed an issue with `call.getFrom()`, `call.getTo()`, and `call.getSid()` APIs. They should now always return `string | undefined` instead of potentially returning `null`.
 - Call Message feature for Android
 
 #### iOS

@@ -1,8 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.example.twiliovoicereactnative">
 
-  <uses-permission android:name="android.permission.WAKE_LOCK" />
-
   <application
     android:name=".MainApplication"
     android:allowBackup="false"

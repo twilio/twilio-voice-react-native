@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.twiliovoicereactnative">
+  package="com.twiliovoicereactnative">
   <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
 
   <application>
     <service
-      android:name="com.twiliovoicereactnative.VoiceFirebaseMessagingService"
+      android:name=".VoiceFirebaseMessagingService"
       android:stopWithTask="false"
       android:exported="true">
       <intent-filter>
