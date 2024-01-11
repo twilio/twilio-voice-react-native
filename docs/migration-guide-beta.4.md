@@ -1,4 +1,4 @@
-## Migration guide for Twilio Voice React Native Beta.4
+## Migration Guide for Twilio Voice React Native Beta.4
 On Android, there have been significant improvements to the integration of the SDK at the (Java) 
 native layer. These improvements simplify and encapsulate much of the integration complexity of 
 the SDK and its interaction with the Android system.
