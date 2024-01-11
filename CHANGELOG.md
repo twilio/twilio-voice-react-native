@@ -29,7 +29,6 @@ call.sendMessage(callMessage)
 - Fixed inconsistency with `AudioDevice` typings, preferring `undefined` over `null` for optional values.
 - Fixed an issue with `call.isMuted()` and `call.isOnHold()` APIs. They should now always return `boolean | undefined` instead of potentially returning `null`.
 - Fixed an issue with `call.getFrom()`, `call.getTo()`, and `call.getSid()` APIs. They should now always return `string | undefined` instead of potentially returning `null`.
-- Call Message feature for Android
 
 #### iOS
 - Fixed a bug where the call invite results in a rejected event when the call is hung up by the caller.
