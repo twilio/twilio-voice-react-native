@@ -69,6 +69,6 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   }
 
   private void debug(final String message) {
-    logger.debug(String.format(message));
+    logger.debug(message);
   }
 }

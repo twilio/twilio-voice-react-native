@@ -26,6 +26,7 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -400,11 +401,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void call_sendMessage(String uuid, CallMessage message, Promise promise) {
     final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
+    Objects.requireNonNull(callRecord);
 
-    if (null != callRecord) {
-      callRecord.getVoiceCall().sendMessage(message);
-      promise.resolve(uuid);
-    }
+    callRecord.getVoiceCall().sendMessage(message);
+    promise.resolve(uuid);
   }
 
   // Register/UnRegister
