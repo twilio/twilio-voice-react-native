@@ -189,6 +189,8 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
+    // Warning: (ae-forgotten-export) The symbol "CallMessageOptions" needs to be exported by the entry point index.d.ts
+    sendMessage(message: CallMessageOptions): Promise<void>;
 }
 
 // @public
