@@ -1,4 +1,4 @@
-1.0.0-beta.4 (In Progress)
+1.0.0-beta.4 (Jan 11, 2024)
 ==========================
 
 Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in this version are the following.
@@ -12,6 +12,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 - Narrowed the `CustomParameters` type to `Record<string, string>` instead of `Record<string, any>`.
 - Fixed inconsistency with `AudioDevice` typings, preferring `undefined` over `null` for optional values.
 - Fixed an issue with `call.isMuted()` and `call.isOnHold()` APIs. They should now always return `boolean | undefined` instead of potentially returning `null`.
+- Fixed an issue with `call.getFrom()`, `call.getTo()`, and `call.getSid()` APIs. They should now always return `string | undefined` instead of potentially returning `null`.
 
 #### iOS
 - Fixed a bug where the call invite results in a rejected event when the call is hung up by the caller.
@@ -23,7 +24,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 - In call notifications now display when accepting a call from JS application
 - Audio routing for incoming and outgoing calls are now correctly routed
 - Internal simplification of call accepted/rejected intent message paths
-- Refactored internals & added permissions for Bluetooth and notifications
+- Refactored internals & added permissions for Bluetooth and notifications. *Please Note that these changes require changes to the application integrating the SDK. For more information, please refer to the [Beta.4 migration guide](docs/migration-guide-beta.4.md).*
 
 
 1.0.0-beta.3 (August 26, 2023)
