@@ -3,6 +3,22 @@
 
 Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in this version are the following.
 
+## Features
+
+### Call Message Events (Beta)
+
+- Allow for "user-defined" messages during a Voice Call
+- To send a user-defined-message:
+```
+const callMessage = { 
+  content: 'This is a messsage from the parent call',
+  messageType: 'user-defined-message', 
+  contentType: "application/json"
+}
+call.sendMessage(callMessage)
+```
+- Related docs: https://www.twilio.com/docs/voice/sdks/call-message-events 
+
 ## Fixes
 
 ### Platform Specific Features

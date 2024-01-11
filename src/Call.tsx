@@ -809,6 +809,23 @@ export class Call extends EventEmitter {
 
   /**
    * Send Call Message.
+   *
+   * @example
+   * To send a user-defined-message
+   * const callMessage = {
+   *    content: 'This is a messsage from the parent call',
+   *    messageType: 'user-defined-message',
+   *    contentType: "application/json"
+   * }
+   * call.sendMessage(callMessage)
+   *
+   * @param message - A CallMessage object containing content,
+   * contentType, and messageType
+   *
+   * @returns
+   *  A `Promise` that
+   *    - Resolves when the message has been sent.
+   *    - Rejects when the message is unable to be sent.
    */
   sendMessage(message: CallMessageOptions): Promise<void> {
     return NativeModule.call_sendMessage(this._uuid, message);

@@ -239,8 +239,12 @@ class ReactNativeArgumentsSerializer {
     return previousWarningsArray;
   }
 
+  /**
+   * Serializes a Call Message 
+   * @param CallMessage the call message
+   * @return A serialized Call
+   */
   public static WritableMap serializeCallMessage(@NonNull final CallMessage callMessage) {
-
     return constructJSMap(
       new Pair<>(CallMessageContent, callMessage.getContent()),
       new Pair<>(CallMessageContentType, callMessage.getMessageContentType())
