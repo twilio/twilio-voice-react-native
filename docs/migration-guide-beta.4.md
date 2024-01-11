@@ -15,7 +15,7 @@ demonstrating these changes.
 #### AndroidManifest.xml Changes
 In previous releases, users of the SDK had to manually update their application's AndroidManifest.xml 
 to reflect changes in the SDK. These changes included, additional permissions or when 
-Services, BroadcastReceivers, or additional Activities were added to the SDK. this is no longer the 
+Services, BroadcastReceivers, or additional Activities were added to the SDK. This is no longer the 
 case. Now users of the SDK just need to define their main application activity and any additional
 permissions their application may use (outside the scope of the SDK). For an example of this, please
 refer to the reference app's [AndroidManifest.xml](https://github.com/twilio/twilio-voice-react-native-app/blob/main/app/android/app/src/main/AndroidManifest.xml).
@@ -40,8 +40,8 @@ application's main activity and `VoiceApplicationProxy` for the application's
 
 ###### How to wire up VoiceActivityProxy to your Main Activity
 Add the `VoiceActivityProxy` as private member to your main activity class and construct it in
-either the constructor (not in the `OnCreate(...)` method). Then, the following activity methods
-need to be overridden, `OnCreate(...)`, `OnDestroy(...)` and `onNewIntent(...)`. In the 
+either the constructor (not in the `onCreate(...)` method). Then, the following activity methods
+need to be overridden, `onCreate(...)`, `onDestroy(...)` and `onNewIntent(...)`. In the 
 implementation of these methods, please call the corresponding matching methods in the 
 `VoiceActivityProxy` member object. For a complete example, please refer to the reference 
 application [here](https://github.com/twilio/twilio-voice-react-native-app/blob/main/app/android/app/src/main/java/com/twiliovoicereactnativereferenceapp/MainActivity.java).
@@ -49,7 +49,7 @@ application [here](https://github.com/twilio/twilio-voice-react-native-app/blob/
 ###### How to wire up VoiceApplicationProxy to android.app.Application
 Similar to steps for wiring up the `VoiceActivityProxy`, add the `VoiceApplicationProxy` as a 
 private member to your Application class and construct it in the constructor. Then, the following
-`android.app.Application` methods need to be overridden, `OnCreate(...)` & `OnTerminate(...)`. In
+`android.app.Application` methods need to be overridden, `onCreate(...)` & `onTerminate(...)`. In
 the implementation of these methods, please call the corresponding matching methods in the 
 `VoiceApplicationProxy` member object. For a complete example, please refer to the reference 
 application [here](https://github.com/twilio/twilio-voice-react-native-app/blob/main/app/android/app/src/main/java/com/twiliovoicereactnativereferenceapp/MainApplication.java)
