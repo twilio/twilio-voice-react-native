@@ -62,8 +62,19 @@ export declare interface CallMessage {
    */
 
   /**
-   * Failure event. Raised when call message fails.
-   * TODO example
+   * Failure event. Raised when callMessage fails.
+   *
+   * @example
+   * ```typescript
+   * callMessage.addListener(CallMessage.Event.Failure, () => {
+   *    // callMessage failed, handle error
+   * });
+   * ```
+   *
+   * @param callMessageEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object.
    */
   addListener(
     callMessageEvent: CallMessage.Event.Failure,
@@ -76,8 +87,18 @@ export declare interface CallMessage {
   ): this;
 
   /**
-   * Received event. Raised when call message is received.
-   * TODO example
+   * Received event. Raised when callMessage is received.
+   * @example
+   * ```typescript
+   * callMessage.addListener(CallMessage.Event.Received, () => {
+   *    // callMessage received
+   * })
+   * ```
+   *
+   * @param callMessageEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object
    */
   addListener(
     callMessageEvent: CallMessage.Event.Received,
@@ -90,8 +111,18 @@ export declare interface CallMessage {
   ): this;
 
   /**
-   * Sent event. Raised when call message is sent.
-   * TODO example
+   * Sent event. Raised when callMessage is sent.
+   * @example
+   * ```typescript
+   * callMessage.addListener(CallMessage.Event.Sent, () => {
+   *    // callMessage sent
+   * })
+   * ```
+   *
+   * @param callMessageEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object
    */
   addListener(
     callMessageEvent: CallMessage.Event.Sent,
@@ -105,19 +136,52 @@ export declare interface CallMessage {
 }
 
 /**
- * Provides access to information about a call message
+ * Provides access to information about a callMessage, including the call
+ * message content, contentType, messageType, and messageSID
+ *
+ * @remarks
+ * Note that the callMessage information is fetched as soon as possible from the
+ * native layer, but there is no guarantee that all information is immediately
+ * available. Methods such as `CallMessage.getContent` or `CallMessage.getMessageSID`
+ * may return `undefined`.
+ *
+ * As callMessage events are received from the native layer, callMessage information will
+ * propagate from the native layer to the JS layer and become available.
+ * Therefore, it is good practice to read information from the callMessage after an
+ * event occurs, or as events occur.
+ *
+ * - See the {@link (CallMessage:namespace).Event} enum for events emitted by `CallMessage`
+ *   objects.
+ * - See the {@link (Call:interface) | Call interface} for overloaded event listening
+ *   metods.
+ * - See the {@link (Call:namespace) | Call namespace} for types and enumerations
+ *   used by this class.
+ *
+ * @public
  */
 export class CallMessage extends EventEmitter {
+  /**
+   * Content body of the message
+   */
   private _content: string;
 
+  /**
+   * MIME type for the message
+   */
   private _contentType: string;
 
+  /**
+   * Message type
+   */
   private _messageType: string;
 
+  /**
+   * Unique identifier of the message
+   */
   private _messageSID: string;
 
   /**
-   * Handlers for native call message events. Set upon construction so we can
+   * Handlers for native callMessage events. Set upon construction so we can
    * dynamically bind events to handlers.
    *
    * @privateRemarks
@@ -129,6 +193,16 @@ export class CallMessage extends EventEmitter {
     (callEvent: NativeCallMessageEvent) => void
   >;
 
+  /**
+   * Constructor for the {@link (CallMessage:class) | CallMessage class}. This should
+   * not be invoked by third-party code.
+   *
+   * @param NativeCallMessageInfo - An object containing all of the data from the
+   * native layer necessary to fully describe a callMessage, as well as invoke native
+   * functionality for the callMessage.
+   *
+   * @internal
+   */
   constructor({
     callMessageContent,
     callMessageContentType,
@@ -157,6 +231,10 @@ export class CallMessage extends EventEmitter {
     );
   }
 
+  /**
+   * This intermediate native callMessage event handler acts as a "gate".
+   * @param nativeCallMessageEvent - A callMessage event directly from the native layer.
+   */
   private _handleNativeEvent = (
     nativeCallMessageEvent: NativeCallMessageEvent
   ) => {
@@ -165,13 +243,17 @@ export class CallMessage extends EventEmitter {
     const handler = this._nativeEventHandler[type];
     if (typeof handler === 'undefined') {
       throw new Error(
-        `Unknown call message event type received from the native layer: "${type}"`
+        `Unknown callMessage event type received from the native layer: "${type}"`
       );
     }
 
     handler(nativeCallMessageEvent);
   };
 
+  /**
+   * Handler for the {@link (CallMessage:namespace).Event.Failure} event.
+   * @param nativeCallMessageEvent - The native callMessage event.
+   */
   private _handleFailureEvent = (
     nativeCallMessageEvent: NativeCallMessageEvent
   ) => {
@@ -187,6 +269,10 @@ export class CallMessage extends EventEmitter {
     this.emit(CallMessage.Event.Failure, error);
   };
 
+  /**
+   * Handler for the {@link (CallMessage:namespace).Event.Received} event.
+   * @param nativeCallMessageEvent - The native callMessage event.
+   */
   private _handleReceivedEvent = (
     nativeCallMessageEvent: NativeCallMessageEvent
   ) => {
@@ -205,6 +291,10 @@ export class CallMessage extends EventEmitter {
     this.emit(CallMessage.Event.Received, callMessageSID, callMessage);
   };
 
+  /**
+   * Handler for the {@link (CallMessage:namespace).Event.Sent} event.
+   * @param nativeCallMessageEvent - The native callMessage event.
+   */
   private _handleSentEvent = (
     nativeCallMessageEvent: NativeCallMessageEvent
   ) => {
@@ -220,18 +310,46 @@ export class CallMessage extends EventEmitter {
     this.emit(CallMessage.Event.Sent, callMessageSID);
   };
 
+  /**
+   * Get the content body of the message.
+   * @returns
+   * - A string representing the content body of the message.
+   * - `undefined` if the callMessage state has not yet been received from the
+   *   native layer.
+   */
   getContent(): string | undefined {
     return this._content;
   }
 
+  /**
+   * Get the MIME type for the message.
+   * @returns
+   * - A string representing the MIME type for the message.
+   * - `undefined` if the callMessage state has not yet been received from the
+   *   native layer.
+   */
   getContentType(): string | undefined {
     return this._contentType;
   }
 
+  /**
+   * Get the message type.
+   * @returns
+   * - A string representing the message type.
+   * - `undefined` if the callMessage state has not yet been received from the
+   *   native layer.
+   */
   getMessageType(): string | undefined {
     return this._messageType;
   }
 
+  /**
+   * Get the message SID.
+   * @returns
+   * - A string representing the message SID.
+   * - `undefined` if the callMessage state has not yet been received from the
+   *   native layer.
+   */
   getMessageSID(): string | undefined {
     return this._messageSID;
   }
@@ -253,26 +371,30 @@ export namespace CallMessage {
    */
   export enum Event {
     /**
-     * Raised when call message fails.
+     * Raised when callMessage fails.
      * See {@link (CallMessage:interface).(addListener:2)}.
      */
     'Failure' = 'failure',
     /**
-     * Raised when call message is received.
+     * Raised when callMessage is received.
      * See {@link (CallMessage:interface).(addListener:3)}.
      */
     'Received' = 'received',
     /**
-     * Raised when call message has been sent.
+     * Raised when callMessage has been sent.
      * See {@link (CallMessage:interface).(addListener:4)}.
      */
     'Sent' = 'sent',
   }
 
+  /**
+   * Listener types for all events emitted by a
+   * {@link (CallMessage:class) | CallMessage: object}
+   */
   export namespace Listener {
     /**
      * Generic event listener. This should be the function signature of any
-     * event listener bound to any call message event.
+     * event listener bound to any callMessage event.
      *
      * @remarks
      * See {@link (CallMessage:interface).(addListener:1)}.
@@ -280,9 +402,8 @@ export namespace CallMessage {
     export type Generic = (...args: any[]) => void;
 
     /**
-     * Call message failure event listener. This should be the function signature of
-     * any event listener bound to the
-     * {@link (CallMessage:namespace).Event.Failure} event.
+     * CallMessage failure event listener. This should be the function signature of
+     * any event listener bound to the {@link (CallMessage:namespace).Event.Failure} event.
      *
      * @remarks
      * See {@link (CallMessage:interface).(addListener:2)}.
@@ -292,9 +413,8 @@ export namespace CallMessage {
     export type Failure = (error: TwilioError) => void;
 
     /**
-     * Call message received event listner. This should be the function signature of
-     * any event listener bound to the
-     * {@link (CallMessage:namespace).Event.Received} event.
+     * CallMessage received event listner. This should be the function signature of
+     * any event listener bound to the {@link (CallMessage:namespace).Event.Received} event.
      *
      * @remarks
      * See {@link (CallMessage:interface).(addListener:3)}.
@@ -302,9 +422,8 @@ export namespace CallMessage {
     export type Received = (callMessage: CallMessage) => void;
 
     /**
-     * Call message sent event listner. This should be the function signature of
-     * any event listener bound to the
-     * {@link (CallMessage:namespace).Event.Sent} event.
+     * CallMessage sent event listner. This should be the function signature of
+     * any event listener bound to the {@link (CallMessage:namespace).Event.Sent} event.
      *
      * @remarks
      * See {@link (CallMessage:interface).(addListener:4)}.
