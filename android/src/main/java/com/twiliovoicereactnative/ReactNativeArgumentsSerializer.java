@@ -30,6 +30,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
+import 	java.text.SimpleDateFormat;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
@@ -46,6 +47,8 @@ import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -154,12 +157,9 @@ class ReactNativeArgumentsSerializer {
       new Pair<>(CallInfoState, callStateToString(callRecord.getVoiceCall().getState())),
       new Pair<>(CallInfoIsMuted, callRecord.getVoiceCall().isMuted()),
       new Pair<>(CallInfoIsOnHold, callRecord.getVoiceCall().isOnHold()),
-      new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callRecord.getCallInvite())));
-    if (callRecord.getTimestamp() != null) {
-      callInfo.putDouble(
-        CallInfoInitialConnectedTimestamp,
-        (double)callRecord.getTimestamp().getTime());
-    }
+      new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callRecord.getCallInvite())),
+      new Pair<>(CallInfoInitialConnectedTimestamp, rfc822DateTimeFormat(callRecord.getTimestamp()))
+    );
     return callInfo;
   }
 
@@ -234,5 +234,12 @@ class ReactNativeArgumentsSerializer {
       previousWarningsArray.pushString(warning.toString());
     }
     return previousWarningsArray;
+  }
+
+  private static String rfc822DateTimeFormat(final Date date) {
+    // Pre-Android 24 only ISO-822 is supported (RFC-822)
+    SimpleDateFormat simpleDateFormat =
+      new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+    return (null != date) ? simpleDateFormat.format(date) : null;
   }
 }
