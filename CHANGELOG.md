@@ -1,3 +1,16 @@
+1.0.0-beta.5 (In Progress)
+==========================
+
+Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in this version are the following.
+
+## Fixes
+
+### Platform Specific Features
+
+#### Android
+- Call timestamp now in RFC-822 format, not stored as a double from epoch
+
+
 1.0.0-beta.4 (Jan 11, 2024)
 ==========================
 
