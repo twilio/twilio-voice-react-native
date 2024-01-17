@@ -63,6 +63,7 @@ VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
 CallMessageSID=callMessageSID
 CallMessageContent=callMessageContent
 CallMessageContentType=callMessageContentType 
+JSEventKeyCallMessageInfo=callMessage
 
 // Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated

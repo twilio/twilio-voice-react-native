@@ -6,7 +6,6 @@ import type { NativeCallInfo } from './Call';
 import type { NativeCallInviteInfo } from './CallInvite';
 import type { Uuid } from './common';
 import type { RTCStats } from './RTCStats';
-import type { CallMessageOptions } from './CallMessage';
 
 export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
   /**
@@ -24,7 +23,12 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     issue: Call.Issue
   ): Promise<void>;
   call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
-  call_sendMessage(callUuid: Uuid, message: CallMessageOptions): Promise<void>;
+  call_sendMessage(
+    callUuid: Uuid,
+    content: string,
+    contentType: string,
+    messageType: string
+  ): Promise<string>;
 
   /**
    * Call Invite bindings.

@@ -14,7 +14,6 @@ import type {
   NativeCallEventType,
   NativeCallInfo,
 } from './type/Call';
-import type { CallMessageOptions } from './type/CallMessage';
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
@@ -815,20 +814,31 @@ export class Call extends EventEmitter {
    * const callMessage = {
    *    content: 'This is a messsage from the parent call',
    *    messageType: 'user-defined-message',
-   *    contentType: "application/json"
+   *    contentType: 'application/json'
    * }
    * call.sendMessage(callMessage)
    *
-   * @param message - A CallMessage object containing content,
-   * contentType, and messageType
+   * @param message - The message content
+   * @param contentType - The MIME type for the message
+   * @param messageType - The message type
    *
    * @returns
    *  A `Promise` that
-   *    - Resolves when the message has been sent.
+   *    - Resolves with a string that contains an unique identifier
+   *    for tracking the message.
    *    - Rejects when the message is unable to be sent.
    */
-  sendMessage(message: CallMessageOptions): Promise<void> {
-    return NativeModule.call_sendMessage(this._uuid, message);
+  sendMessage(
+    content: string,
+    contentType: string,
+    messageType: string
+  ): Promise<string> {
+    return NativeModule.call_sendMessage(
+      this._uuid,
+      content,
+      contentType,
+      messageType
+    );
   }
 
   /**

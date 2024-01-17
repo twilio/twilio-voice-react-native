@@ -7,7 +7,7 @@ import static com.twiliovoicereactnative.CommonConstants.CallMessageSID;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
-import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CALL_MESSAGE_INFO;
+import static com.twiliovoicereactnative.CommonConstants.JSEventKeyCallMessageInfo;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallMessage;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeVoiceException;
@@ -59,7 +59,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageReceived),
         new Pair<>(CallMessageSID, callMessage.getVoiceEventSID()),
-        new Pair<>(JS_EVENT_KEY_CALL_MESSAGE_INFO, serializeCallMessage(callMessage))
+        new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
       )
     );
   }

@@ -202,6 +202,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
       .enableDscp(true)
       .params(parsedTwimlParams)
+      .callMessageListener(new CallMessageListenerProxy())
       .build();
     CallRecord callRecord = new CallRecord(
       uuid,
@@ -399,12 +400,13 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void call_sendMessage(String uuid, CallMessage message, Promise promise) {
+  public void call_sendMessage(String uuid, String content, String contentType, String messageType, Promise promise) {
     final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
     Objects.requireNonNull(callRecord);
 
-    callRecord.getVoiceCall().sendMessage(message);
-    promise.resolve(uuid);
+    final CallMessage callMessage = new CallMessage.Builder(getMessageTypeFromString(messageType))
+      .contentType(contentType).content(content).build();
+    promise.resolve(callRecord.getVoiceCall().sendMessage(callMessage));
   }
 
   // Register/UnRegister
@@ -534,6 +536,14 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
     return Call.Issue.NOT_REPORTED;
   }
+
+  CallMessage.MessageType getMessageTypeFromString (String messageType) {
+    if (messageType.compareTo(CallMessage.MessageType.UserDefinedMessage.toString()) == 0) {
+      return CallMessage.MessageType.UserDefinedMessage;
+    }
+    return CallMessage.MessageType.UserDefinedMessage;
+  }
+
   private static CallRecord validateCallRecord(@NonNull final Context context,
                                                @NonNull final UUID uuid,
                                                @NonNull final Promise promise) {

@@ -372,17 +372,17 @@ export namespace CallMessage {
   export enum Event {
     /**
      * Raised when callMessage fails.
-     * See {@link (CallMessage:interface).(addListener:2)}.
+     * See {@link (CallMessage:interface).(addListener:1)}.
      */
     'Failure' = 'failure',
     /**
      * Raised when callMessage is received.
-     * See {@link (CallMessage:interface).(addListener:3)}.
+     * See {@link (CallMessage:interface).(addListener:2)}.
      */
     'Received' = 'received',
     /**
      * Raised when callMessage has been sent.
-     * See {@link (CallMessage:interface).(addListener:4)}.
+     * See {@link (CallMessage:interface).(addListener:3)}.
      */
     'Sent' = 'sent',
   }
