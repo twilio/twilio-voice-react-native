@@ -26,8 +26,10 @@
         "git add -f android/src/main/java/com/twiliovoicereactnative/CommonConstants.java",
         "git commit -nm \"${RELEASE_VERSION}\"",
         "git tag ${RELEASE_VERSION}",
+        "git tag -d latest",
+        "git tag latest ${RELEASE_VERSION}^{commit}",
         "git rebase HEAD ${BRANCH}",
-        "git push origin ${BRANCH} --tags &> /dev/null && echo \"Push to origin successful\" || (echo \"Push to origin failed\" 1>&2 && exit 1)"
+        "git push origin ${BRANCH} --tags --force &> /dev/null && echo \"Push to origin successful\" || (echo \"Push to origin failed\" 1>&2 && exit 1)"
       ]
     },
     "development": {
