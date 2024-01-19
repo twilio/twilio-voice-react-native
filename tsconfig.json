@@ -24,5 +24,4 @@
     "strict": true,
     "target": "esnext"
   },
-  "exclude": ["test/app/e2e"]
 }
