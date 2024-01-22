@@ -17,6 +17,7 @@ import type {
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
+import { CallMessage, SendingCallMessage } from './CallMessage';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -67,6 +68,13 @@ export declare interface Call {
     qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged,
     currentQualityWarnings: Call.QualityWarning[],
     previousQualityWarnings: Call.QualityWarning[]
+  ): boolean;
+
+  /** @internal */
+  emit(
+    messageReceivedEvent: Call.Event.MessageReceived,
+    callMessageSID: string,
+    callMessage: CallMessage
   ): boolean;
 
   /** @internal */
@@ -281,6 +289,30 @@ export declare interface Call {
   ): this;
 
   /**
+   * MessageReceived event. Raised when callMessage is received.
+   * @example
+   * ```typescript
+   * call.addListener(Call.Event.MessageReceived, () => {
+   *    // callMessage received
+   * })
+   * ```
+   *
+   * @param messageReceivedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object
+   */
+  addListener(
+    messageReceivedEvent: Call.Event.MessageReceived,
+    listener: Call.Listener.MessageReceived
+  ): this;
+  /** {@inheritDoc (Call:interface).(addListener:8)} */
+  on(
+    callMessageEvent: Call.Event.MessageReceived,
+    listener: Call.Listener.MessageReceived
+  ): this;
+
+  /**
    * Generic event listener typings.
    * @param callEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
@@ -289,7 +321,7 @@ export declare interface Call {
    */
   addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
   /**
-   * {@inheritDoc (Call:interface).(addListener:8)}
+   * {@inheritDoc (Call:interface).(addListener:9)}
    */
   on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 }
@@ -426,6 +458,11 @@ export class Call extends EventEmitter {
        */
       [Constants.CallEventQualityWarningsChanged]:
         this._handleQualityWarningsChangedEvent,
+
+      /**
+       * Call Message
+       */
+      [Constants.CallEventMessageReceived]: this._handleMessageReceivedEvent,
     };
 
     NativeEventEmitter.addListener(
@@ -613,6 +650,27 @@ export class Call extends EventEmitter {
       currentWarnings as Call.QualityWarning[],
       previousWarnings as Call.QualityWarning[]
     );
+  };
+
+  /**
+   * Handler for the {@link (Call:namespace).Event.MessageReceived} event.
+   * @param nativeCallEvent - The native call event.
+   */
+  private _handleMessageReceivedEvent = (nativeCallEvent: NativeCallEvent) => {
+    if (nativeCallEvent.type !== Constants.CallEventMessageReceived) {
+      throw new Error(
+        'Incorrect "call#Received" handler called for type' +
+          `"${nativeCallEvent.type}`
+      );
+    }
+
+    this._update(nativeCallEvent);
+
+    const { callMessageSID, callMessage: callMessageInfo } = nativeCallEvent;
+
+    const callMessage = new CallMessage(callMessageInfo);
+
+    this.emit(Call.Event.MessageReceived, callMessageSID, callMessage);
   };
 
   /**
@@ -811,34 +869,52 @@ export class Call extends EventEmitter {
    *
    * @example
    * To send a user-defined-message
+   * ```typescript
    * const callMessage = {
    *    content: 'This is a messsage from the parent call',
    *    messageType: 'user-defined-message',
    *    contentType: 'application/json'
    * }
-   * call.sendMessage(callMessage)
+   * const sendingCallMessage: SendingCallMessage = call.sendMessage(callMessage)
    *
-   * @param message - The message content
+   * sendingCallMessage.addListener(SendingCallMessage.Event.Failure, () => {
+   *    // sendingCallMessage failed, handle error
+   * });
+   *
+   * sendingCallMessage.addListener(SendingCallMessage.Event.Sent, () => {
+   *    // sendingCallMessage sent
+   * })
+   * ```
+   *
+   * @param content - The message content
    * @param contentType - The MIME type for the message
    * @param messageType - The message type
    *
    * @returns
    *  A `Promise` that
-   *    - Resolves with a string that contains an unique identifier
-   *    for tracking the message.
+   *    - Resolves with the SendingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
-  sendMessage(
+  async sendMessage(
     content: string,
     contentType: string,
     messageType: string
-  ): Promise<string> {
-    return NativeModule.call_sendMessage(
+  ): Promise<SendingCallMessage> {
+    const callMessageSID = await NativeModule.call_sendMessage(
       this._uuid,
       content,
       contentType,
       messageType
     );
+
+    const sendingCallMessage = new SendingCallMessage({
+      callMessageContent: content,
+      callMessageContentType: contentType,
+      callMessageType: messageType,
+      callMessageSID,
+    });
+
+    return sendingCallMessage;
   }
 
   /**
@@ -919,6 +995,12 @@ export namespace Call {
      * See {@link (Call:interface).(addListener:8)}.
      */
     'QualityWarningsChanged' = 'qualityWarningsChanged',
+
+    /**
+     * Event string for the `MessageReceived` event.
+     * See {@link (Call:interface).(addListener:9)}
+     */
+    'MessageReceived' = 'messageReceived',
   }
 
   /**
@@ -1172,5 +1254,14 @@ export namespace Call {
       currentQualityWarnings: Call.QualityWarning[],
       previousQualityWarnings: Call.QualityWarning[]
     ) => void;
+
+    /**
+     * CallMessage received event listener. This should be the function signature of
+     * any event listener bound to the {@link (Call:namespace).Event.MessageReceived} event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addListener:8)}.
+     */
+    export type MessageReceived = (callMessage: CallMessage) => void;
   }
 }

@@ -6,10 +6,97 @@
  */
 
 import { Call } from './Call';
-import { NativeModule } from './common';
+import { NativeEventEmitter, NativeModule } from './common';
 import { InvalidStateError } from './error/InvalidStateError';
-import type { NativeCallInviteInfo } from './type/CallInvite';
+import type {
+  NativeCallInviteInfo,
+  NativeCallInviteEvents,
+  NativeCallInviteEventType,
+} from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
+import { CallMessage, SendingCallMessage } from './CallMessage';
+import { Constants } from './constants';
+import { EventEmitter } from 'eventemitter3';
+
+/**
+ * Defines strict typings for all events emitted by {@link (CallInvite:class)
+ * | CallInvite objects}.
+ *
+ * @remarks
+ * Note that the `on` function is an alias for the `addListener` function.
+ * They share identical functionality and either may be used interchangeably.
+ *
+ * - See also the {@link (CallInvite:class) | CallInvite class}.
+ * - See also the {@link (CallInvite:namespace) | CallInvite namespace}.
+ *
+ * @public
+ */
+export declare interface CallInvite {
+  /**
+   * ------------
+   * Emit Typings
+   * ------------
+   */
+
+  /** @internal */
+  emit(
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
+    callMessageSID: string,
+    callMessage: CallMessage
+  ): boolean;
+
+  /** @internal */
+  emit(callInviteEvent: CallInvite.Event, ...args: any[]): boolean;
+
+  /**
+   * ----------------
+   * Listener Typings
+   * ----------------
+   */
+
+  /**
+   * MessageReceived event. Raised when callMessage is received.
+   * @example
+   * ```typescript
+   * callInvite.addListener(CallInvite.Event.MessageReceived, () => {
+   *    // callMessage received
+   * })
+   * ```
+   *
+   * @param messageReceivedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object
+   */
+  addListener(
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
+    listener: CallInvite.Listener.MessageReceived
+  ): this;
+  /** {@inheritDoc (CallInvite:interface).(addListener:1)} */
+  on(
+    callMessageEvent: CallInvite.Event.MessageReceived,
+    listener: CallInvite.Listener.MessageReceived
+  ): this;
+
+  /**
+   * Generic event listener typings.
+   * @param callInviteEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The call object.
+   */
+  addListener(
+    callInviteEvent: CallInvite.Event,
+    listener: CallInvite.Listener.Generic
+  ): this;
+  /**
+   * {@inheritDoc (CallInvite:interface).(addListener:2)}
+   */
+  on(
+    callInviteEvent: CallInvite.Event,
+    listener: CallInvite.Listener.Generic
+  ): this;
+}
 
 /**
  * Provides access to information about a call invite, including the call
@@ -34,7 +121,7 @@ import type { CustomParameters, Uuid } from './type/common';
  *
  * @public
  */
-export class CallInvite {
+export class CallInvite extends EventEmitter {
   /**
    * The current state of the call invite.
    *
@@ -66,6 +153,19 @@ export class CallInvite {
   private _to: string;
 
   /**
+   * Handlers for native callInvite events. Set upon construction so we can
+   * dynamically bind events to handlers.
+   *
+   * @privateRemarks
+   * This is done by the constructor so this mapping isn't made every time the
+   * {@link (CallInvite:class)._handleNativeEvent} function is invoked.
+   */
+  private _nativeEventHandler: Record<
+    NativeCallInviteEventType,
+    (callInviteEvent: NativeCallInviteEvents) => void
+  >;
+
+  /**
    * These objects should not be instantiated by consumers of the SDK. All
    * instances of the `CallInvite` class should be emitted by the SDK.
    *
@@ -79,6 +179,8 @@ export class CallInvite {
     { uuid, callSid, customParameters, from, to }: NativeCallInviteInfo,
     state: CallInvite.State
   ) {
+    super();
+
     this._uuid = uuid;
     this._callSid = callSid;
     this._customParameters = { ...customParameters };
@@ -86,7 +188,60 @@ export class CallInvite {
     this._to = to;
 
     this._state = state;
+
+    this._nativeEventHandler = {
+      /**
+       * Call Message
+       */
+      [Constants.CallEventMessageReceived]: this._handleMessageReceivedEvent,
+    };
+
+    NativeEventEmitter.addListener(
+      Constants.ScopeCallInvite,
+      this._handleNativeEvent
+    );
   }
+
+  /**
+   * This intermediate native callInvite event handler acts as a "gate".
+   * @param nativeCallInviteEvent - A callInvite event directly from the native layer.
+   */
+  private _handleNativeEvent = (
+    nativeCallInviteEvent: NativeCallInviteEvents
+  ) => {
+    const { type } = nativeCallInviteEvent;
+
+    const handler = this._nativeEventHandler[type];
+    if (typeof handler === 'undefined') {
+      throw new Error(
+        `Unknown callInvite event type received from the native layer: "${type}".`
+      );
+    }
+
+    handler(nativeCallInviteEvent);
+  };
+
+  /**
+   * Handler for the {@link (CallInvite:namespace).Event.MessageReceived} event.
+   * @param nativeCallEvent - The native call event.
+   */
+  private _handleMessageReceivedEvent = (
+    nativeCallInviteEvent: NativeCallInviteEvents
+  ) => {
+    if (nativeCallInviteEvent.type !== Constants.CallEventMessageReceived) {
+      throw new Error(
+        'Incorrect "callInvite#Received" handler called for type' +
+          `"${nativeCallInviteEvent.type}`
+      );
+    }
+
+    const { callMessageSID, callMessage: callMessageInfo } =
+      nativeCallInviteEvent;
+
+    const callMessage = new CallMessage(callMessageInfo);
+
+    this.emit(CallInvite.Event.MessageReceived, callMessageSID, callMessage);
+  };
 
   /**
    * Accept a call invite. Sets the state of this call invite to
@@ -183,6 +338,59 @@ export class CallInvite {
   getTo(): string {
     return this._to;
   }
+
+  /**
+   * Send Call Message.
+   *
+   * @example
+   * To send a user-defined-message
+   * ```typescript
+   * const callMessage = {
+   *    content: 'This is a messsage from the parent call',
+   *    messageType: 'user-defined-message',
+   *    contentType: 'application/json'
+   * }
+   * const sendingCallInviteMessage: SendingCallMessage = callInvite.sendMessage(callMessage)
+   *
+   * sendingCallInviteMessage.addListener(SendingCallMessage.Event.Failure, () => {
+   *    // sendingCallMessage failed, handle error
+   * });
+   *
+   * sendingCallInviteMessage.addListener(SendingCallMessage.Event.Sent, () => {
+   *    // sendingCallMessage sent
+   * })
+   * ```
+   *
+   * @param content - The message content
+   * @param contentType - The MIME type for the message
+   * @param messageType - The message type
+   *
+   * @returns
+   *  A `Promise` that
+   *    - Resolves with the SendingCallMessage object.
+   *    - Rejects when the message is unable to be sent.
+   */
+  async sendMessage(
+    content: string,
+    contentType: string,
+    messageType: string
+  ): Promise<SendingCallMessage> {
+    const callMessageSID = await NativeModule.call_sendMessage(
+      this._uuid,
+      content,
+      contentType,
+      messageType
+    );
+
+    const sendingCallMessage = new SendingCallMessage({
+      callMessageContent: content,
+      callMessageContentType: contentType,
+      callMessageType: messageType,
+      callMessageSID,
+    });
+
+    return sendingCallMessage;
+  }
 }
 
 /**
@@ -207,5 +415,40 @@ export namespace CallInvite {
     Pending = 'pending',
     Accepted = 'accepted',
     Rejected = 'rejected',
+  }
+
+  /**
+   * Enumeration of all event strings emitted by {@link (CallInvite:class)} objects.
+   */
+  export enum Event {
+    /**
+     * Event string for the `MessageReceived` event.
+     * See {@link (CallInvite:interface).(addListener:1)}
+     */
+    'MessageReceived' = 'messageReceived',
+  }
+
+  /**
+   * Listener types for all events emitted by a
+   * {@link (CallInvite:class) | Call object.}
+   */
+  export namespace Listener {
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any call invite event.
+     *
+     * @remarks
+     * See {@link (CallInvite:interface).(addListener:1)}.
+     */
+    export type Generic = (...args: any[]) => void;
+
+    /**
+     * CallInviteMessage received event listener. This should be the function signature of
+     * any event listener bound to the {@link (CallInvite:namespace).Event.MessageReceived} event.
+     *
+     * @remarks
+     * See {@link (CallInvite:interface).(addListener:2)}.
+     */
+    export type MessageReceived = (callMessage: CallMessage) => void;
   }
 }

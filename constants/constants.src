@@ -6,6 +6,7 @@ ReactNativeVoiceSDKVer=1.0.0-dev
 ScopeVoice=scopeVoice
 ScopeCall=scopeCall
 ScopeCallMessage=scopeCallMessage
+ScopeCallInvite=scopeCallInvite
 
 // Voice events
 // Common

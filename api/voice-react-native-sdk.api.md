@@ -142,6 +142,7 @@ export interface Call {
     addListener(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
     addListener(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
     addListener(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    addListener(messageReceivedEvent: Call.Event.MessageReceived, listener: Call.Listener.MessageReceived): this;
     addListener(callEvent: Call.Event, listener: Call.Listener.Generic): this;
     // @internal (undocumented)
     emit(connectedEvent: Call.Event.Connected): boolean;
@@ -157,6 +158,10 @@ export interface Call {
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
     emit(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
+    // Warning: (ae-forgotten-export) The symbol "CallMessage" needs to be exported by the entry point index.d.ts
+    //
+    // @internal (undocumented)
+    emit(messageReceivedEvent: Call.Event.MessageReceived, callMessageSID: string, callMessage: CallMessage): boolean;
     // @internal (undocumented)
     emit(callEvent: Call.Event, ...args: any[]): boolean;
     on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
@@ -166,6 +171,7 @@ export interface Call {
     on(disconnectedEvent: Call.Event.Disconnected, listener: Call.Listener.Disconnected): this;
     on(ringingEvent: Call.Event.Ringing, listener: Call.Listener.Ringing): this;
     on(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, listener: Call.Listener.QualityWarningsChanged): this;
+    on(callMessageEvent: Call.Event.MessageReceived, listener: Call.Listener.MessageReceived): this;
     on(callEvent: Call.Event, listener: Call.Listener.Generic): this;
 }
 
@@ -189,7 +195,8 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    sendMessage(content: string, contentType: string, messageType: string): Promise<string>;
+    // Warning: (ae-forgotten-export) The symbol "SendingCallMessage" needs to be exported by the entry point index.d.ts
+    sendMessage(content: string, contentType: string, messageType: string): Promise<SendingCallMessage>;
 }
 
 // @public
@@ -198,6 +205,7 @@ export namespace Call {
         'Connected' = "connected",
         'ConnectFailure' = "connectFailure",
         'Disconnected' = "disconnected",
+        'MessageReceived' = "messageReceived",
         'QualityWarningsChanged' = "qualityWarningsChanged",
         'Reconnected' = "reconnected",
         'Reconnecting' = "reconnecting",
@@ -221,6 +229,7 @@ export namespace Call {
         export type ConnectFailure = (error: TwilioError) => void;
         export type Disconnected = (error?: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
+        export type MessageReceived = (callMessage: CallMessage) => void;
         export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
         export type Reconnected = () => void;
         export type Reconnecting = (error: TwilioError) => void;
@@ -251,7 +260,19 @@ export namespace Call {
 }
 
 // @public
-export class CallInvite {
+export interface CallInvite {
+    addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
+    addListener(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
+    // @internal (undocumented)
+    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessageSID: string, callMessage: CallMessage): boolean;
+    // @internal (undocumented)
+    emit(callInviteEvent: CallInvite.Event, ...args: any[]): boolean;
+    on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
+    on(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
+}
+
+// @public
+export class CallInvite extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallInviteInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
@@ -265,11 +286,19 @@ export class CallInvite {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
+    sendMessage(content: string, contentType: string, messageType: string): Promise<SendingCallMessage>;
 }
 
 // @public
 export namespace CallInvite {
     export interface AcceptOptions {
+    }
+    export enum Event {
+        'MessageReceived' = "messageReceived"
+    }
+    export namespace Listener {
+        export type Generic = (...args: any[]) => void;
+        export type MessageReceived = (callMessage: CallMessage) => void;
     }
     export enum State {
         // (undocumented)

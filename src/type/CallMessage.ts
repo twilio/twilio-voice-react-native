@@ -13,12 +13,6 @@ export interface NativeCallMessageFailureEvent {
   error: NativeErrorInfo;
 }
 
-export interface NativeCallMessageReceivedEvent {
-  type: Constants.CallEventMessageReceived;
-  callMessageSID: string;
-  callMessage: NativeCallMessageInfo;
-}
-
 export interface NativeCallMessageSentEvent {
   type: Constants.CallEventMessageSent;
   callMessageSID: string;
@@ -26,12 +20,10 @@ export interface NativeCallMessageSentEvent {
 
 export type NativeCallMessageEvent =
   | NativeCallMessageFailureEvent
-  | NativeCallMessageReceivedEvent
   | NativeCallMessageSentEvent;
 
 export type NativeCallMessageEventType =
   | Constants.CallEventMessageFailure
-  | Constants.CallEventMessageReceived
   | Constants.CallEventMessageSent;
 
 export interface CallMessageOptions {
