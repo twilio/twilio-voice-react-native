@@ -1,3 +1,4 @@
+import { SendingCallMessage } from '../CallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createStatsReport } from '../__mocks__/RTCStats';
@@ -536,6 +537,7 @@ describe('Call class', () => {
           contentType,
           messageType
         );
+
         expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
           ['mock-nativecallinfo-uuid', content, contentType, messageType],
         ]);
@@ -550,9 +552,14 @@ describe('Call class', () => {
           contentType,
           messageType
         );
-        await expect(sendMessagePromise).resolves.toBe(
-          'mock-nativemodule-tracking-id'
-        );
+        const mockResult: SendingCallMessage = new SendingCallMessage({
+          callMessageContent: content,
+          callMessageContentType: contentType,
+          callMessageType: messageType,
+          callMessageSID: 'mock-nativemodule-tracking-id',
+        });
+        const result = await sendMessagePromise;
+        expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
       });
     });
   });
@@ -570,6 +577,7 @@ describe('Call class', () => {
       '_handleReconnectedEvent',
       '_handleRingingEvent',
       '_handleQualityWarningsChangedEvent',
+      '_handleMessageReceivedEvent',
     ].forEach((privateMethodKey) => {
       describe(`.${privateMethodKey}`, () => {
         it('throws an error for an invalid event', () => {
