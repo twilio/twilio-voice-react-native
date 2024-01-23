@@ -7,15 +7,29 @@ Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in th
 
 ### Call Message Events (Beta)
 
-- Allow for "user-defined" messages during a Voice Call
-- To send a user-defined-message:
+- Allow for "user-defined" messages during a Voice Call and Call Invite
+- To send a CallMessage, and handle `sent` and `failure` cases:
 ```
 const callMessage = { 
   content: 'This is a messsage from the parent call',
   messageType: 'user-defined-message', 
   contentType: "application/json"
 }
-call.sendMessage(callMessage)
+const sendingCallMessage: SendingCallMessage = call.sendMessage(callMessage)
+
+sendingCallMessage.addListener(SendingCallMessage.Event.Failure, () => {
+    // sendingCallMessage failed, handle error
+});
+
+sendingCallMessage.addListener(SendingCallMessage.Event.Sent, () => {
+    // sendingCallMessage sent
+})
+```
+- To `receive` a CallMessage:
+```
+call.addListener(Call.Event.MessageReceived, () => {
+  // callMessage received
+})
 ```
 - Related docs: https://www.twilio.com/docs/voice/sdks/call-message-events 
 
