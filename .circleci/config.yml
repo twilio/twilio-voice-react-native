@@ -137,6 +137,9 @@ commands:
             yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
+###
+# Jobs
+###
 jobs:
   cache-install-dependencies:
     executor: default
@@ -264,6 +267,44 @@ jobs:
       - store_artifacts:
           path: ./test/TwilioVoiceReactNative/test-report.html
 
+  e2e-android:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 2023.07.1
+    parameters:
+      detox_configuration:
+        type: string
+    steps:
+      - checkout
+      - setup-e2e-creds
+      - install-dependencies
+      - android/create-avd:
+          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
+          install: true
+          system-image: system-images;android-29;google_apis;x86_64
+          additional-args: --device pixel_4
+      - android/start-emulator:
+          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
+          memory: 8192
+          post-emulator-launch-assemble-command: ""
+          restore-gradle-cache-post-emulator-launch: false
+          wait-for-emulator: true
+      - detox-build:
+          configuration: android.emu.release
+      - detox-test:
+          configuration: android.emu.release
+      - run:
+          name: "Save Android logs"
+          when: always
+          command: |
+            cd app
+            adb logcat -d > ./detox_artifacts/logcat.txt
+      - store_artifacts:
+          when: always
+          path: app/detox_artifacts
+
+
 ###
 # Workflows
 ###
@@ -298,8 +339,8 @@ workflows:
             - cache-install-dependencies
       - e2e-ios:
           detox_configuration: ios.release
-          requires:
-            - cache-install-dependencies
+      - e2e-android:
+          detox_configuration: android.emu.release
 
   ###
   # Release workflow
