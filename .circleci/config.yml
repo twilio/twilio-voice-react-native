@@ -300,6 +300,8 @@ jobs:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
           configuration: <<parameters.detox_configuration>>
+          artifacts: ./detox_artifacts
+          screenshots: all
       - run:
           name: "Save Android logs"
           when: always
