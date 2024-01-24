@@ -290,19 +290,26 @@ jobs:
           post-emulator-launch-assemble-command: ""
           restore-gradle-cache-post-emulator-launch: false
           wait-for-emulator: true
+      - run:
+          name: "Save Google Services"
+          command: |
+            cd test/TwilioVoiceReactNativeExample/android/app
+            echo $GOOGLE_SERVICES_JSON > google-services.json
+            cd ../../../..
       - detox-build:
-          configuration: android.emu.release
+          configuration: <<parameters.detox_configuration>>
       - detox-test:
-          configuration: android.emu.release
+          configuration: <<parameters.detox_configuration>>
       - run:
           name: "Save Android logs"
           when: always
           command: |
-            cd app
+            cd test/TwilioVoiceReactNativeExample
             adb logcat -d > ./detox_artifacts/logcat.txt
+            cd ../..
       - store_artifacts:
           when: always
-          path: app/detox_artifacts
+          path: ./test/TwilioVoiceReactNativeExample/detox_artifacts
 
 
 ###
@@ -338,7 +345,7 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
-          detox_configuration: ios.release
+          detox_configuration: ios.sim.release
       - e2e-android:
           detox_configuration: android.emu.release
 
