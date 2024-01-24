@@ -42,7 +42,7 @@ export default function App() {
       <Grid
         gridComponents={[
           [
-            <Text>SDK Version: {String(sdkVersion)}</Text>,
+            <Text testID="sdk_version">SDK Version: {String(sdkVersion)}</Text>,
             <Text>Registered: {String(registered)}</Text>,
           ],
         ]}
@@ -119,7 +119,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.expand}>
       <View style={styles.padded}>
-        <Text>App Info</Text>
+        <Text testID="app_info">App Info</Text>
         {headerComponent}
       </View>
       <View style={styles.padded}>
