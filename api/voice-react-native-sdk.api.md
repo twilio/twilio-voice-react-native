@@ -195,8 +195,8 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "SendingCallMessage" needs to be exported by the entry point index.d.ts
-    sendMessage(content: string, contentType: string, messageType: string): Promise<SendingCallMessage>;
+    // Warning: (ae-forgotten-export) The symbol "OutgoingCallMessage" needs to be exported by the entry point index.d.ts
+    sendMessage(content: string, contentType: string, messageType: string): Promise<OutgoingCallMessage>;
 }
 
 // @public
@@ -286,7 +286,7 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    sendMessage(content: string, contentType: string, messageType: string): Promise<SendingCallMessage>;
+    sendMessage(content: string, contentType: string, messageType: string): Promise<OutgoingCallMessage>;
 }
 
 // @public

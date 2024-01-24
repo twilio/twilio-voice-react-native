@@ -15,14 +15,14 @@ const callMessage = {
   messageType: 'user-defined-message', 
   contentType: "application/json"
 }
-const sendingCallMessage: SendingCallMessage = call.sendMessage(callMessage)
+const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(callMessage)
 
-sendingCallMessage.addListener(SendingCallMessage.Event.Failure, () => {
-    // sendingCallMessage failed, handle error
+outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, () => {
+    // outgoingCallMessage failed, handle error
 });
 
-sendingCallMessage.addListener(SendingCallMessage.Event.Sent, () => {
-    // sendingCallMessage sent
+outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
+    // outgoingCallMessage sent
 })
 ```
 - To `receive` a CallMessage:

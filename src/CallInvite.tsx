@@ -14,7 +14,8 @@ import type {
   NativeCallInviteEventType,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage, SendingCallMessage } from './CallMessage';
+import { CallMessage } from './CallMessage';
+import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 import { EventEmitter } from 'eventemitter3';
 
@@ -350,14 +351,14 @@ export class CallInvite extends EventEmitter {
    *    messageType: 'user-defined-message',
    *    contentType: 'application/json'
    * }
-   * const sendingCallInviteMessage: SendingCallMessage = callInvite.sendMessage(callMessage)
+   * const sendingCallInviteMessage: OutgoingCallMessage = callInvite.sendMessage(callMessage)
    *
-   * sendingCallInviteMessage.addListener(SendingCallMessage.Event.Failure, () => {
-   *    // sendingCallMessage failed, handle error
+   * sendingCallInviteMessage.addListener(OutgoingCallMessage.Event.Failure, () => {
+   *    // outgoingCallMessage failed, handle error
    * });
    *
-   * sendingCallInviteMessage.addListener(SendingCallMessage.Event.Sent, () => {
-   *    // sendingCallMessage sent
+   * sendingCallInviteMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
+   *    // outgoingCallMessage sent
    * })
    * ```
    *
@@ -367,14 +368,14 @@ export class CallInvite extends EventEmitter {
    *
    * @returns
    *  A `Promise` that
-   *    - Resolves with the SendingCallMessage object.
+   *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(
     content: string,
     contentType: string,
     messageType: string
-  ): Promise<SendingCallMessage> {
+  ): Promise<OutgoingCallMessage> {
     const callMessageSID = await NativeModule.call_sendMessage(
       this._uuid,
       content,
@@ -382,14 +383,14 @@ export class CallInvite extends EventEmitter {
       messageType
     );
 
-    const sendingCallMessage = new SendingCallMessage({
+    const outgoingCallMessage = new OutgoingCallMessage({
       callMessageContent: content,
       callMessageContentType: contentType,
       callMessageType: messageType,
       callMessageSID,
     });
 
-    return sendingCallMessage;
+    return outgoingCallMessage;
   }
 }
 

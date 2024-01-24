@@ -1,4 +1,5 @@
-import { CallMessage, SendingCallMessage } from '../CallMessage';
+import { CallMessage } from '../CallMessage';
+import { OutgoingCallMessage } from '../OutgoingCallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createStatsReport } from '../__mocks__/RTCStats';
@@ -566,7 +567,7 @@ describe('Call class', () => {
           contentType,
           messageType
         );
-        const mockResult: SendingCallMessage = new SendingCallMessage({
+        const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
           callMessageContent: content,
           callMessageContentType: contentType,
           callMessageType: messageType,

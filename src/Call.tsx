@@ -17,7 +17,8 @@ import type {
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
-import { CallMessage, SendingCallMessage } from './CallMessage';
+import { CallMessage } from './CallMessage';
+import { OutgoingCallMessage } from './OutgoingCallMessage';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -875,14 +876,14 @@ export class Call extends EventEmitter {
    *    messageType: 'user-defined-message',
    *    contentType: 'application/json'
    * }
-   * const sendingCallMessage: SendingCallMessage = call.sendMessage(callMessage)
+   * const outgoingCallMessage: OutgoingCallMessage = call.sendMessage(callMessage)
    *
-   * sendingCallMessage.addListener(SendingCallMessage.Event.Failure, () => {
-   *    // sendingCallMessage failed, handle error
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, () => {
+   *    // outgoingCallMessage failed, handle error
    * });
    *
-   * sendingCallMessage.addListener(SendingCallMessage.Event.Sent, () => {
-   *    // sendingCallMessage sent
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
+   *    // outgoingCallMessage sent
    * })
    * ```
    *
@@ -892,14 +893,14 @@ export class Call extends EventEmitter {
    *
    * @returns
    *  A `Promise` that
-   *    - Resolves with the SendingCallMessage object.
+   *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(
     content: string,
     contentType: string,
     messageType: string
-  ): Promise<SendingCallMessage> {
+  ): Promise<OutgoingCallMessage> {
     const callMessageSID = await NativeModule.call_sendMessage(
       this._uuid,
       content,
@@ -907,14 +908,14 @@ export class Call extends EventEmitter {
       messageType
     );
 
-    const sendingCallMessage = new SendingCallMessage({
+    const outgoingCallMessage = new OutgoingCallMessage({
       callMessageContent: content,
       callMessageContentType: contentType,
       callMessageType: messageType,
       callMessageSID,
     });
 
-    return sendingCallMessage;
+    return outgoingCallMessage;
   }
 
   /**
