@@ -38,13 +38,13 @@ export declare interface SendingCallMessage {
 
   /** @internal */
   emit(
-    callMessageEvent: SendingCallMessage.Event.Failure,
+    failureEvent: SendingCallMessage.Event.Failure,
     error: TwilioError
   ): boolean;
 
   /** @internal */
   emit(
-    callMessageEvent: SendingCallMessage.Event.Sent,
+    sentEvent: SendingCallMessage.Event.Sent,
     callMessageSID: string
   ): boolean;
 
@@ -59,23 +59,23 @@ export declare interface SendingCallMessage {
    *
    * @example
    * ```typescript
-   * sendingCallMessage.addListener(SendingCallMessage.Event.Failure, () => {
+   * sendingCallMessage.addListener(SendingCallMessage.Event.Failure, (error) => {
    *    // sendingCallMessage failed, handle error
    * });
    * ```
    *
-   * @param sendingCallMessageEvent - The raised event string.
+   * @param failureEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
    * @returns - The callMessage object.
    */
   addListener(
-    sendingCallMessageEvent: SendingCallMessage.Event.Failure,
+    failureEvent: SendingCallMessage.Event.Failure,
     listener: SendingCallMessage.Listener.Failure
   ): this;
   /** {@inheritDoc (SendingCallMessage:interface).(addListener:1)} */
   on(
-    sendingCallMessageEvent: SendingCallMessage.Event.Failure,
+    failureEvent: SendingCallMessage.Event.Failure,
     listener: SendingCallMessage.Listener.Failure
   ): this;
 
@@ -88,18 +88,18 @@ export declare interface SendingCallMessage {
    * })
    * ```
    *
-   * @param sendingCallMessageEvent - The raised event string.
+   * @param sentEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
    * @returns - The callMessage object
    */
   addListener(
-    sendingCallMessageEvent: SendingCallMessage.Event.Sent,
+    sentEvent: SendingCallMessage.Event.Sent,
     listener: SendingCallMessage.Listener.Sent
   ): this;
   /** {@inheritDoc (SendingCallMessage:interface).(addListener:2)} */
   on(
-    sendingCallMessageEvent: SendingCallMessage.Event.Sent,
+    sentEvent: SendingCallMessage.Event.Sent,
     listener: SendingCallMessage.Listener.Sent
   ): this;
 }

@@ -1,4 +1,4 @@
-import { SendingCallMessage } from '../CallMessage';
+import { CallMessage, SendingCallMessage } from '../CallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createStatsReport } from '../__mocks__/RTCStats';
@@ -162,6 +162,15 @@ describe('Call class', () => {
       expect(Array.isArray(previousWarnings)).toBe(true);
     };
 
+    const listenerCalledWithMessageReceived = (listenerMock: jest.Mock) => {
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      const args = listenerMock.mock.calls[0];
+
+      const [callMessageSID, callMessage] = args;
+      expect(callMessageSID).toEqual('mock-nativecallmessageinfo-messageSID');
+      expect(callMessage).toBeInstanceOf(CallMessage);
+    };
+
     (
       [
         // Example test case configuration:
@@ -209,6 +218,11 @@ describe('Call class', () => {
           mockCallNativeEvents.qualityWarningsChanged,
           Call.Event.QualityWarningsChanged,
           listenerCalledWithQualityWarnings,
+        ],
+        [
+          mockCallNativeEvents.messageReceived,
+          Call.Event.MessageReceived,
+          listenerCalledWithMessageReceived,
         ],
       ] as const
     ).forEach(([{ name, nativeEvent }, callEvent, assertion]) => {

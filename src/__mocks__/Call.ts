@@ -1,6 +1,7 @@
 import type { NativeCallInfo } from '../type/Call';
 import { Constants } from '../constants';
 import { createNativeErrorInfo } from './Error';
+import { createNativeCallMessageInfo } from './CallMessage';
 
 export function createNativeCallInfo(): NativeCallInfo {
   return {
@@ -87,6 +88,15 @@ export const mockCallNativeEvents = {
       previousWarnings: [
         'mock-callqualitywarningschangedevent-nativeevent-previouswarnings',
       ],
+    },
+  },
+  messageReceived: {
+    name: Constants.CallEventMessageReceived,
+    nativeEvent: {
+      type: Constants.CallEventMessageReceived,
+      call: createNativeCallInfo(),
+      callMessageSID: 'mock-nativecallmessageinfo-messageSID',
+      callMessage: createNativeCallMessageInfo(),
     },
   },
 };
