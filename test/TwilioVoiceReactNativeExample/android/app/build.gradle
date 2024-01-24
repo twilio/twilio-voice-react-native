@@ -80,6 +80,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+
+        // Detox
+        testBuildType System.getProperty('testBuildType', 'debug')
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     signingConfigs {
         debug {
@@ -99,6 +103,9 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+
+            // Detox
+            proguardFile "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
         }
     }
 }
@@ -124,6 +131,10 @@ dependencies {
     implementation "com.android.support:animated-vector-drawable:30.0.0"
     implementation "com.android.support:appcompat-v7:30.0.0"
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+
+    // Detox
+    androidTestImplementation('com.wix:detox:+')
+    implementation 'androidx.appcompat:appcompat:1.1.0'
 }
 
 apply plugin: "com.google.gms.google-services"
