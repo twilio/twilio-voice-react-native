@@ -38,7 +38,7 @@ module.exports = {
     simulator: {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15'
+        type: 'iPhone 14'
       }
     },
     attached: {
@@ -50,7 +50,7 @@ module.exports = {
     emulator: {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_4a_API_33'
+        avdName: 'TwilioVoiceReactNativeReferenceApp_AVD'
       }
     }
   },
