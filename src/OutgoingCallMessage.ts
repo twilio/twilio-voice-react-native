@@ -18,8 +18,8 @@ import { constructTwilioError } from './error/utility';
 import type { CallMessage } from './CallMessage';
 
 /**
- * Defines strict typings for all events emitted by {@link (CallMessage:class)
- * | CallMessage objects}.
+ * Defines strict typings for all events emitted by {@link (OutgoingCallMessage:class)
+ * | OutgoingCallMessage objects}.
  *
  * @remarks
  * Note that the `on` function is an alias for the `addListener` function.
@@ -44,9 +44,12 @@ export declare interface OutgoingCallMessage {
   ): boolean;
 
   /** @internal */
+  emit(sentEvent: OutgoingCallMessage.Event.Sent): boolean;
+
+  /** @internal */
   emit(
-    sentEvent: OutgoingCallMessage.Event.Sent,
-    callMessageSID: string
+    outgoingCallMessageEvent: OutgoingCallMessage.Event,
+    ...args: any[]
   ): boolean;
 
   /**
@@ -56,7 +59,7 @@ export declare interface OutgoingCallMessage {
    */
 
   /**
-   * Failure event. Raised when outgoingCallMessage fails.
+   * Failure event. Raised when outgoingCallMessage fails to be sent out.
    *
    * @example
    * ```typescript
@@ -103,16 +106,35 @@ export declare interface OutgoingCallMessage {
     sentEvent: OutgoingCallMessage.Event.Sent,
     listener: OutgoingCallMessage.Listener.Sent
   ): this;
+
+  /**
+   * Generic event listener typings.
+   * @param outgoingCallMessageEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The outgoingCallMessage object.
+   */
+  addListener(
+    outgoingCallMessageEvent: OutgoingCallMessage.Event,
+    listener: OutgoingCallMessage.Listener.Generic
+  ): this;
+  /**
+   * {@inheritDoc (OutgoingCallMessage:interface).(addListener:3)}
+   */
+  on(
+    outgoingCallMessageEvent: OutgoingCallMessage.Event,
+    listener: OutgoingCallMessage.Listener.Generic
+  ): this;
 }
 
 /**
  * Provides access to information about a outgoingCallMessage, including the call
- * message content, contentType, messageType, and messageSID
+ * message content, contentType, messageType, and voiceEventSid
  *
  * @remarks
  * Note that the outgoingCallMessage information is fetched as soon as possible from the
  * native layer, but there is no guarantee that all information is immediately
- * available. Methods such as `OutgoingCallMessage.getContent` or `OutgoingCallMessage.getMessageSID`
+ * available. Methods such as `OutgoingCallMessage.getContent` or `OutgoingCallMessage.getSid`
  * may return `undefined`.
  *
  * As outgoingCallMessage events are received from the native layer, outgoingCallMessage information will
@@ -138,17 +160,17 @@ export class OutgoingCallMessage extends EventEmitter implements CallMessage {
   /**
    * MIME type for the message
    */
-  public _contentType: string;
+  public _contentType: CallMessage.ContentType;
 
   /**
    * Message type
    */
-  public _messageType: string;
+  public _messageType: CallMessage.MessageType;
 
   /**
    * Unique identifier of the message
    */
-  public _messageSID: string;
+  public _voiceEventSid?: string;
 
   /**
    * Handlers for native OutgoingCallMessage events. Set upon construction so we can
@@ -163,17 +185,17 @@ export class OutgoingCallMessage extends EventEmitter implements CallMessage {
     (callEvent: NativeCallMessageEvent) => void
   >;
   constructor({
-    callMessageContent,
-    callMessageContentType,
-    callMessageType,
-    callMessageSID,
+    content,
+    contentType,
+    messageType,
+    voiceEventSid,
   }: NativeCallMessageInfo) {
     super();
 
-    this._content = callMessageContent;
-    this._contentType = callMessageContentType;
-    this._messageType = callMessageType;
-    this._messageSID = callMessageSID;
+    this._content = content;
+    this._contentType = contentType;
+    this._messageType = messageType;
+    this._voiceEventSid = voiceEventSid;
 
     this._nativeEventHandler = {
       /**
@@ -240,41 +262,33 @@ export class OutgoingCallMessage extends EventEmitter implements CallMessage {
       );
     }
 
-    const { callMessageSID } = nativeCallMessageEvent;
-
-    this.emit(OutgoingCallMessage.Event.Sent, callMessageSID);
+    this.emit(OutgoingCallMessage.Event.Sent);
   };
 
   /**
    * Get the content body of the message.
    * @returns
    * - A string representing the content body of the message.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
    */
-  getContent(): string | undefined {
+  getContent(): string {
     return this._content;
   }
 
   /**
    * Get the MIME type for the message.
    * @returns
-   * - A string representing the MIME type for the message.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
+   * - A {@link (CallMessage:namespace).ContentType}.
    */
-  getContentType(): string | undefined {
+  getContentType(): CallMessage.ContentType {
     return this._contentType;
   }
 
   /**
    * Get the message type.
    * @returns
-   * - A string representing the message type.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
+   * - A {@link (CallMessage:namespace).MessageType}.
    */
-  getMessageType(): string | undefined {
+  getMessageType(): CallMessage.MessageType {
     return this._messageType;
   }
 
@@ -282,73 +296,73 @@ export class OutgoingCallMessage extends EventEmitter implements CallMessage {
    * Get the message SID.
    * @returns
    * - A string representing the message SID.
-   * - `undefined` if the callMessage state has not yet been received from the
+   * - `undefined` if the call information has not yet been received from the
    *   native layer.
    */
-  getMessageSID(): string | undefined {
-    return this._messageSID;
+  getSid(): string | undefined {
+    return this._voiceEventSid;
   }
 }
 
 /**
  * Namespace for enumerations and types used by
- * {@link (CallMessage:class) | CallMessage objects}.
+ * {@link (OutgoingCallMessage:class) | OutgoingCallMessage objects}.
  *
  * @remarks
- *  - See also the {@link (CallMessage:class) | CallMessage class}.
- *  - See also the {@link (CallMessage:interface) | CallMessage interface}.
+ *  - See also the {@link (OutgoingCallMessage:class) | OutgoingCallMessage class}.
+ *  - See also the {@link (OutgoingCallMessage:interface) | OutgoingCallMessage interface}.
  *
  * @public
  */
 export namespace OutgoingCallMessage {
   /**
-   * Enumeration of all event strings emitted by {@link (CallMessage:class)} objects.
+   * Enumeration of all event strings emitted by {@link (OutgoingCallMessage:class)} objects.
    */
   export enum Event {
     /**
-     * Raised when callMessage fails.
-     * See {@link (CallMessage:interface).(addListener:1)}.
+     * Raised when outgoingCallMessage fails.
+     * See {@link (OutgoingCallMessage:interface).(addListener:1)}.
      */
     'Failure' = 'failure',
     /**
-     * Raised when callMessage has been sent.
-     * See {@link (CallMessage:interface).(addListener:2)}.
+     * Raised when outgoingCallMessage has been sent.
+     * See {@link (OutgoingCallMessage:interface).(addListener:2)}.
      */
     'Sent' = 'sent',
   }
 
   /**
    * Listener types for all events emitted by a
-   * {@link (CallMessage:class) | CallMessage: object}
+   * {@link (OutgoingCallMessage:class) | OutgoingCallMessage: object}
    */
   export namespace Listener {
     /**
-     * Generic event listener. This should be the function signature of any
-     * event listener bound to any callMessage event.
+     * OutgoingCallMessage failure event listener. This should be the function signature of
+     * any event listener bound to the {@link (OutgoingCallMessage:namespace).Event.Failure} event.
      *
      * @remarks
-     * See {@link (CallMessage:interface).(addListener:1)}.
-     */
-    export type Generic = (...args: any[]) => void;
-
-    /**
-     * CallMessage failure event listener. This should be the function signature of
-     * any event listener bound to the {@link (CallMessage:namespace).Event.Failure} event.
-     *
-     * @remarks
-     * See {@link (CallMessage:interface).(addListener:2)}.
+     * See {@link (OutgoingCallMessage:interface).(addListener:1)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
     export type Failure = (error: TwilioError) => void;
 
     /**
-     * CallMessage sent event listner. This should be the function signature of
-     * any event listener bound to the {@link (CallMessage:namespace).Event.Sent} event.
+     * OutgoingCallMessage sent event listner. This should be the function signature of
+     * any event listener bound to the {@link (OutgoingCallMessage:namespace).Event.Sent} event.
      *
      * @remarks
-     * See {@link (CallMessage:interface).(addListener:3)}.
+     * See {@link (OutgoingCallMessage:interface).(addListener:2)}.
      */
     export type Sent = () => void;
+
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any OutgoingCallMessage event.
+     *
+     * @remarks
+     * See {@link (OutgoingCallMessage:interface).(addListener:3)}.
+     */
+    export type Generic = (...args: any[]) => void;
   }
 }

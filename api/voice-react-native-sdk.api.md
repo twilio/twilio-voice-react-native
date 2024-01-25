@@ -158,10 +158,8 @@ export interface Call {
     emit(ringingEvent: Call.Event.Ringing): boolean;
     // @internal (undocumented)
     emit(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
-    // Warning: (ae-forgotten-export) The symbol "CallMessage" needs to be exported by the entry point index.d.ts
-    //
     // @internal (undocumented)
-    emit(messageReceivedEvent: Call.Event.MessageReceived, callMessageSID: string, callMessage: CallMessage): boolean;
+    emit(messageReceivedEvent: Call.Event.MessageReceived, callMessage: CallMessage): boolean;
     // @internal (undocumented)
     emit(callEvent: Call.Event, ...args: any[]): boolean;
     on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
@@ -195,8 +193,7 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "OutgoingCallMessage" needs to be exported by the entry point index.d.ts
-    sendMessage(content: string, contentType: string, messageType: string): Promise<OutgoingCallMessage>;
+    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
 }
 
 // @public
@@ -264,7 +261,7 @@ export interface CallInvite {
     addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
     addListener(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
     // @internal (undocumented)
-    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessageSID: string, callMessage: CallMessage): boolean;
+    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
     // @internal (undocumented)
     emit(callInviteEvent: CallInvite.Event, ...args: any[]): boolean;
     on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
@@ -286,7 +283,7 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    sendMessage(content: string, contentType: string, messageType: string): Promise<OutgoingCallMessage>;
+    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
 }
 
 // @public
@@ -324,6 +321,36 @@ export namespace CallKit {
         EmailAddress = 2,
         Generic = 0,
         PhoneNumber = 1
+    }
+}
+
+// @public
+export class CallMessage {
+    // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
+    _content: string;
+    _contentType: CallMessage.ContentType;
+    getContent(): string;
+    getContentType(): CallMessage.ContentType;
+    getMessageType(): CallMessage.MessageType;
+    getSid(): string | undefined;
+    _messageType: CallMessage.MessageType;
+    _voiceEventSid?: string;
+}
+
+// @public (undocumented)
+export namespace CallMessage {
+    // (undocumented)
+    export enum ContentType {
+        // (undocumented)
+        'ApplicationJson' = "application/json"
+    }
+    // (undocumented)
+    export enum MessageType {
+        // (undocumented)
+        'UserDefinedMessage' = "userDefinedMessage"
     }
 }
 
@@ -571,6 +598,48 @@ namespace MediaErrors {
         explanation: string;
         name: string;
         solutions: string[];
+    }
+}
+
+// @public
+export interface OutgoingCallMessage {
+    addListener(failureEvent: OutgoingCallMessage.Event.Failure, listener: OutgoingCallMessage.Listener.Failure): this;
+    addListener(sentEvent: OutgoingCallMessage.Event.Sent, listener: OutgoingCallMessage.Listener.Sent): this;
+    addListener(outgoingCallMessageEvent: OutgoingCallMessage.Event, listener: OutgoingCallMessage.Listener.Generic): this;
+    // @internal (undocumented)
+    emit(failureEvent: OutgoingCallMessage.Event.Failure, error: TwilioError): boolean;
+    // @internal (undocumented)
+    emit(sentEvent: OutgoingCallMessage.Event.Sent): boolean;
+    // @internal (undocumented)
+    emit(outgoingCallMessageEvent: OutgoingCallMessage.Event, ...args: any[]): boolean;
+    on(failureEvent: OutgoingCallMessage.Event.Failure, listener: OutgoingCallMessage.Listener.Failure): this;
+    on(sentEvent: OutgoingCallMessage.Event.Sent, listener: OutgoingCallMessage.Listener.Sent): this;
+    on(outgoingCallMessageEvent: OutgoingCallMessage.Event, listener: OutgoingCallMessage.Listener.Generic): this;
+}
+
+// @public
+export class OutgoingCallMessage extends EventEmitter implements CallMessage {
+    constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
+    _content: string;
+    _contentType: CallMessage.ContentType;
+    getContent(): string;
+    getContentType(): CallMessage.ContentType;
+    getMessageType(): CallMessage.MessageType;
+    getSid(): string | undefined;
+    _messageType: CallMessage.MessageType;
+    _voiceEventSid?: string;
+}
+
+// @public
+export namespace OutgoingCallMessage {
+    export enum Event {
+        'Failure' = "failure",
+        'Sent' = "sent"
+    }
+    export namespace Listener {
+        export type Failure = (error: TwilioError) => void;
+        export type Generic = (...args: any[]) => void;
+        export type Sent = () => void;
     }
 }
 

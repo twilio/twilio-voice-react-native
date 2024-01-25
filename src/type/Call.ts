@@ -61,8 +61,7 @@ export interface NativeCallQualityWarningsEvent {
 export interface NativeCallMessageReceivedEvent {
   type: Constants.CallEventMessageReceived;
   call: NativeCallInfo;
-  callMessageSID: string;
-  callMessage: NativeCallMessageInfo;
+  [Constants.CallMessage]: NativeCallMessageInfo;
 }
 
 export type NativeCallEvent =

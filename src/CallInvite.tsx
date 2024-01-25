@@ -42,7 +42,6 @@ export declare interface CallInvite {
   /** @internal */
   emit(
     messageReceivedEvent: CallInvite.Event.MessageReceived,
-    callMessageSID: string,
     callMessage: CallMessage
   ): boolean;
 
@@ -59,7 +58,7 @@ export declare interface CallInvite {
    * MessageReceived event. Raised when callMessage is received.
    * @example
    * ```typescript
-   * callInvite.addListener(CallInvite.Event.MessageReceived, () => {
+   * callInvite.addListener(CallInvite.Event.MessageReceived, (message) => {
    *    // callMessage received
    * })
    * ```
@@ -236,12 +235,11 @@ export class CallInvite extends EventEmitter {
       );
     }
 
-    const { callMessageSID, callMessage: callMessageInfo } =
-      nativeCallInviteEvent;
+    const { callMessage: callMessageInfo } = nativeCallInviteEvent;
 
     const callMessage = new CallMessage(callMessageInfo);
 
-    this.emit(CallInvite.Event.MessageReceived, callMessageSID, callMessage);
+    this.emit(CallInvite.Event.MessageReceived, callMessage);
   };
 
   /**
@@ -346,37 +344,37 @@ export class CallInvite extends EventEmitter {
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const callMessage = {
+   * const message = new CallMessage({
    *    content: 'This is a messsage from the parent call',
-   *    messageType: 'user-defined-message',
-   *    contentType: 'application/json'
-   * }
-   * const sendingCallInviteMessage: OutgoingCallMessage = callInvite.sendMessage(callMessage)
+   *    contentType: CallMessage.ContentType.ApplicationJson,
+   *    messageType: CallMessage.MessageType.UserDefinedMessage
+   * })
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
    *
-   * sendingCallInviteMessage.addListener(OutgoingCallMessage.Event.Failure, () => {
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
    *    // outgoingCallMessage failed, handle error
    * });
    *
-   * sendingCallInviteMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
    *    // outgoingCallMessage sent
    * })
    * ```
    *
    * @param content - The message content
-   * @param contentType - The MIME type for the message
-   * @param messageType - The message type
+   * @param contentType - The MIME type for the message. See {@link (CallMessage:namespace).ContentType}.
+   * @param messageType - The message type. See {@link (CallMessage:namespace).MessageType}.
    *
    * @returns
    *  A `Promise` that
    *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
-  async sendMessage(
-    content: string,
-    contentType: string,
-    messageType: string
-  ): Promise<OutgoingCallMessage> {
-    const callMessageSID = await NativeModule.call_sendMessage(
+  async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    const content = message.getContent();
+    const contentType = message.getContentType();
+    const messageType = message.getMessageType();
+
+    const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
       content,
       contentType,
@@ -384,10 +382,10 @@ export class CallInvite extends EventEmitter {
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
-      callMessageContent: content,
-      callMessageContentType: contentType,
-      callMessageType: messageType,
-      callMessageSID,
+      content: content,
+      contentType: contentType,
+      messageType: messageType,
+      voiceEventSid,
     });
 
     return outgoingCallMessage;
@@ -435,21 +433,21 @@ export namespace CallInvite {
    */
   export namespace Listener {
     /**
-     * Generic event listener. This should be the function signature of any
-     * event listener bound to any call invite event.
-     *
-     * @remarks
-     * See {@link (CallInvite:interface).(addListener:1)}.
-     */
-    export type Generic = (...args: any[]) => void;
-
-    /**
      * CallInviteMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (CallInvite:namespace).Event.MessageReceived} event.
      *
      * @remarks
-     * See {@link (CallInvite:interface).(addListener:2)}.
+     * See {@link (CallInvite:interface).(addListener:1)}.
      */
     export type MessageReceived = (callMessage: CallMessage) => void;
+
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any call invite event.
+     *
+     * @remarks
+     * See {@link (CallInvite:interface).(addListener:2)}.
+     */
+    export type Generic = (...args: any[]) => void;
   }
 }

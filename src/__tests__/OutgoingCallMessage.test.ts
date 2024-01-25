@@ -37,13 +37,13 @@ describe('OutgoingCallMessage class', () => {
       );
       expect({
         // eslint-disable-next-line dot-notation
-        callMessageContent: outgoingCallMessage['_content'],
+        content: outgoingCallMessage['_content'],
         // eslint-disable-next-line dot-notation
-        callMessageContentType: outgoingCallMessage['_contentType'],
+        contentType: outgoingCallMessage['_contentType'],
         // eslint-disable-next-line dot-notation
-        callMessageType: outgoingCallMessage['_messageType'],
+        messageType: outgoingCallMessage['_messageType'],
         // eslint-disable-next-line dot-notation
-        callMessageSID: outgoingCallMessage['_messageSID'],
+        voiceEventSid: outgoingCallMessage['_voiceEventSid'],
       }).toEqual(createNativeCallMessageInfo());
     });
   });
@@ -54,7 +54,7 @@ describe('OutgoingCallMessage class', () => {
         createNativeCallMessageInfo()
       ).getContent();
       expect(typeof content).toBe('string');
-      expect(content).toBe(createNativeCallMessageInfo().callMessageContent);
+      expect(content).toBe(createNativeCallMessageInfo().content);
     });
   });
 
@@ -64,9 +64,7 @@ describe('OutgoingCallMessage class', () => {
         createNativeCallMessageInfo()
       ).getContentType();
       expect(typeof contentType).toBe('string');
-      expect(contentType).toBe(
-        createNativeCallMessageInfo().callMessageContentType
-      );
+      expect(contentType).toBe(createNativeCallMessageInfo().contentType);
     });
   });
 
@@ -76,17 +74,17 @@ describe('OutgoingCallMessage class', () => {
         createNativeCallMessageInfo()
       ).getMessageType();
       expect(typeof messageType).toBe('string');
-      expect(messageType).toBe(createNativeCallMessageInfo().callMessageType);
+      expect(messageType).toBe(createNativeCallMessageInfo().messageType);
     });
   });
 
-  describe('.getMessageSID()', () => {
-    it('returns the outgoingCallMessageSID value', () => {
-      const messageSID = new OutgoingCallMessage(
+  describe('.getSid()', () => {
+    it('returns the outgoingVoiceEventSid value', () => {
+      const voiceEventSid = new OutgoingCallMessage(
         createNativeCallMessageInfo()
-      ).getMessageSID();
-      expect(typeof messageSID).toBe('string');
-      expect(messageSID).toBe(createNativeCallMessageInfo().callMessageSID);
+      ).getSid();
+      expect(typeof voiceEventSid).toBe('string');
+      expect(voiceEventSid).toBe(createNativeCallMessageInfo().voiceEventSid);
     });
   });
 
@@ -97,11 +95,6 @@ describe('OutgoingCallMessage class', () => {
 
     const listenerCalledWithSent = (listenerMock: jest.Mock) => {
       expect(listenerMock).toHaveBeenCalledTimes(1);
-      const args = listenerMock.mock.calls[0];
-      expect(args).toHaveLength(1);
-
-      const [callMessageSID] = args;
-      expect(callMessageSID).toEqual('mock-nativecallmessageinfo-messageSID');
     };
 
     const listenerCalledWithGenericError = (listenerMock: jest.Mock) => {
@@ -134,7 +127,6 @@ describe('OutgoingCallMessage class', () => {
               createNativeCallMessageInfo()
             );
             const listenerMock = jest.fn();
-            //@ts-ignore
             outgoingCallMessage.on(OutgoingCallMessageEvent, listenerMock);
 
             MockNativeEventEmitter.emit(

@@ -74,7 +74,6 @@ export declare interface Call {
   /** @internal */
   emit(
     messageReceivedEvent: Call.Event.MessageReceived,
-    callMessageSID: string,
     callMessage: CallMessage
   ): boolean;
 
@@ -293,7 +292,7 @@ export declare interface Call {
    * MessageReceived event. Raised when callMessage is received.
    * @example
    * ```typescript
-   * call.addListener(Call.Event.MessageReceived, () => {
+   * call.addListener(Call.Event.MessageReceived, (message) => {
    *    // callMessage received
    * })
    * ```
@@ -667,11 +666,11 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const { callMessageSID, callMessage: callMessageInfo } = nativeCallEvent;
+    const { callMessage: callMessageInfo } = nativeCallEvent;
 
     const callMessage = new CallMessage(callMessageInfo);
 
-    this.emit(Call.Event.MessageReceived, callMessageSID, callMessage);
+    this.emit(Call.Event.MessageReceived, callMessage);
   };
 
   /**
@@ -871,14 +870,14 @@ export class Call extends EventEmitter {
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const callMessage = {
+   * const message = new CallMessage({
    *    content: 'This is a messsage from the parent call',
-   *    messageType: 'user-defined-message',
-   *    contentType: 'application/json'
-   * }
-   * const outgoingCallMessage: OutgoingCallMessage = call.sendMessage(callMessage)
+   *    contentType: CallMessage.ContentType.ApplicationJson,
+   *    messageType: CallMessage.MessageType.UserDefinedMessage
+   * })
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
    *
-   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, () => {
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
    *    // outgoingCallMessage failed, handle error
    * });
    *
@@ -888,20 +887,20 @@ export class Call extends EventEmitter {
    * ```
    *
    * @param content - The message content
-   * @param contentType - The MIME type for the message
-   * @param messageType - The message type
+   * @param contentType - The MIME type for the message. See {@link (CallMessage:namespace).ContentType}.
+   * @param messageType - The message type. See {@link (CallMessage:namespace).MessageType}.
    *
    * @returns
    *  A `Promise` that
    *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
-  async sendMessage(
-    content: string,
-    contentType: string,
-    messageType: string
-  ): Promise<OutgoingCallMessage> {
-    const callMessageSID = await NativeModule.call_sendMessage(
+  async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    const content = message.getContent();
+    const contentType = message.getContentType();
+    const messageType = message.getMessageType();
+
+    const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
       content,
       contentType,
@@ -909,10 +908,10 @@ export class Call extends EventEmitter {
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
-      callMessageContent: content,
-      callMessageContentType: contentType,
-      callMessageType: messageType,
-      callMessageSID,
+      content: content,
+      contentType: contentType,
+      messageType: messageType,
+      voiceEventSid,
     });
 
     return outgoingCallMessage;

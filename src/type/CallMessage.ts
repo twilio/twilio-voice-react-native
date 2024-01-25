@@ -1,11 +1,12 @@
 import type { Constants } from '../constants';
 import type { NativeErrorInfo } from './Error';
+import type { CallMessage } from '../CallMessage';
 
 export interface NativeCallMessageInfo {
-  callMessageContent: string;
-  callMessageContentType: string;
-  callMessageType: string;
-  callMessageSID: string;
+  [Constants.CallMessageContent]: string;
+  [Constants.CallMessageContentType]: CallMessage.ContentType;
+  [Constants.CallMessageMessageType]: CallMessage.MessageType;
+  [Constants.VoiceEventSid]?: string;
 }
 
 export interface NativeCallMessageFailureEvent {
@@ -15,7 +16,6 @@ export interface NativeCallMessageFailureEvent {
 
 export interface NativeCallMessageSentEvent {
   type: Constants.CallEventMessageSent;
-  callMessageSID: string;
 }
 
 export type NativeCallMessageEvent =
@@ -25,9 +25,3 @@ export type NativeCallMessageEvent =
 export type NativeCallMessageEventType =
   | Constants.CallEventMessageFailure
   | Constants.CallEventMessageSent;
-
-export interface CallMessageOptions {
-  content: string;
-  contentType: string;
-  messageType: string;
-}

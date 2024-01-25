@@ -30,56 +30,54 @@ describe('CallMessage class', () => {
       const callMessage = new CallMessage(createNativeCallMessageInfo());
       expect({
         // eslint-disable-next-line dot-notation
-        callMessageContent: callMessage['_content'],
+        content: callMessage['_content'],
         // eslint-disable-next-line dot-notation
-        callMessageContentType: callMessage['_contentType'],
+        contentType: callMessage['_contentType'],
         // eslint-disable-next-line dot-notation
-        callMessageType: callMessage['_messageType'],
+        messageType: callMessage['_messageType'],
         // eslint-disable-next-line dot-notation
-        callMessageSID: callMessage['_messageSID'],
+        voiceEventSid: callMessage['_voiceEventSid'],
       }).toEqual(createNativeCallMessageInfo());
     });
   });
 
   describe('.getContent()', () => {
-    it('returns the callMessageContent value', () => {
+    it('returns the content value', () => {
       const content = new CallMessage(
         createNativeCallMessageInfo()
       ).getContent();
       expect(typeof content).toBe('string');
-      expect(content).toBe(createNativeCallMessageInfo().callMessageContent);
+      expect(content).toBe(createNativeCallMessageInfo().content);
     });
   });
 
   describe('.getContentType()', () => {
-    it('returns the callMessageContentType value', () => {
+    it('returns the contentType value', () => {
       const contentType = new CallMessage(
         createNativeCallMessageInfo()
       ).getContentType();
       expect(typeof contentType).toBe('string');
-      expect(contentType).toBe(
-        createNativeCallMessageInfo().callMessageContentType
-      );
+      expect(contentType).toBe(createNativeCallMessageInfo().contentType);
     });
   });
 
   describe('.getMessageType()', () => {
-    it('returns the callMessageType value', () => {
+    it('returns the messageType value', () => {
       const messageType = new CallMessage(
         createNativeCallMessageInfo()
       ).getMessageType();
       expect(typeof messageType).toBe('string');
-      expect(messageType).toBe(createNativeCallMessageInfo().callMessageType);
+      expect(messageType).toBe(createNativeCallMessageInfo().messageType);
     });
   });
 
-  describe('.getMessageSID()', () => {
-    it('returns the callMessageSID value', () => {
-      const messageSID = new CallMessage(
+  describe('.getSid()', () => {
+    it('returns the voiceEventSid value', () => {
+      const voiceEventSid = new CallMessage(
         createNativeCallMessageInfo()
-      ).getMessageSID();
-      expect(typeof messageSID).toBe('string');
-      expect(messageSID).toBe(createNativeCallMessageInfo().callMessageSID);
+      ).getSid();
+      expect(typeof voiceEventSid).toBe('string');
+      expect(voiceEventSid).toBe(createNativeCallMessageInfo().voiceEventSid);
     });
   });
 });

@@ -1,13 +1,14 @@
+import { CallMessage } from '../CallMessage';
 import { Constants } from '../constants';
 import type { NativeCallMessageInfo } from '../type/CallMessage';
 import { createNativeErrorInfo } from './Error';
 
 export function createNativeCallMessageInfo(): NativeCallMessageInfo {
   return {
-    callMessageContent: 'mock-nativecallmessageinfo-content',
-    callMessageContentType: 'mock-nativecallmessageinfo-contentType',
-    callMessageType: 'mock-nativecallmessageinfo-messageType',
-    callMessageSID: 'mock-nativecallmessageinfo-messageSID',
+    content: 'mock-nativecallmessageinfo-content',
+    contentType: CallMessage.ContentType.ApplicationJson,
+    messageType: CallMessage.MessageType.UserDefinedMessage,
+    voiceEventSid: 'mock-nativecallmessageinfo-voiceEventSid',
   };
 }
 
@@ -16,7 +17,6 @@ export const mockCallMessageNativeEvents = {
     name: Constants.CallEventMessageSent,
     nativeEvent: {
       type: Constants.CallEventMessageSent,
-      callMessageSID: 'mock-nativecallmessageinfo-messageSID',
     },
   },
   failure: {

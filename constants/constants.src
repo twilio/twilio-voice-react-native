@@ -61,10 +61,14 @@ VoiceEventCallInviteRejected=voiceEventCallInviteRejected
 VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
 
 // Call Message
-CallMessageSID=callMessageSID
-CallMessageContent=callMessageContent
-CallMessageContentType=callMessageContentType 
+VoiceEventSid=voiceEventSid
+CallMessage=callMessage
+CallMessageContent=content
+CallMessageContentType=contentType
+CallMessageMessageType=messageType
 JSEventKeyCallMessageInfo=callMessage
+UserDefinedMessage=userDefinedMessage
+ApplicationJson=application/json
 
 // Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated

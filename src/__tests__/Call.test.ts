@@ -167,8 +167,7 @@ describe('Call class', () => {
       expect(listenerMock).toHaveBeenCalledTimes(1);
       const args = listenerMock.mock.calls[0];
 
-      const [callMessageSID, callMessage] = args;
-      expect(callMessageSID).toEqual('mock-nativecallmessageinfo-messageSID');
+      const [callMessage] = args;
       expect(callMessage).toBeInstanceOf(CallMessage);
     };
 
@@ -543,35 +542,38 @@ describe('Call class', () => {
     });
 
     describe('.sendMesssage', () => {
+      const content = 'hello world';
+      const contentType = CallMessage.ContentType.ApplicationJson;
+      const messageType = CallMessage.MessageType.UserDefinedMessage;
+
       it('invokes the native module', async () => {
-        const content = 'hello world';
-        const contentType = 'application/json';
-        const messageType = 'user-defined-message';
-        await new Call(createNativeCallInfo()).sendMessage(
+        const message = new CallMessage({
           content,
           contentType,
-          messageType
-        );
+          messageType,
+        });
+
+        await new Call(createNativeCallInfo()).sendMessage(message);
 
         expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
           ['mock-nativecallinfo-uuid', content, contentType, messageType],
         ]);
       });
 
-      it('returns a Promise<string>', async () => {
-        const content = 'hello world';
-        const contentType = 'application/json';
-        const messageType = 'user-defined-message';
-        const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
+      it('returns a Promise<OutgoingCallMessage>', async () => {
+        const message = new CallMessage({
           content,
           contentType,
-          messageType
+          messageType,
+        });
+        const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
+          message
         );
         const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
-          callMessageContent: content,
-          callMessageContentType: contentType,
-          callMessageType: messageType,
-          callMessageSID: 'mock-nativemodule-tracking-id',
+          content,
+          contentType,
+          messageType,
+          voiceEventSid: 'mock-nativemodule-tracking-id',
         });
         const result = await sendMessagePromise;
         expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));

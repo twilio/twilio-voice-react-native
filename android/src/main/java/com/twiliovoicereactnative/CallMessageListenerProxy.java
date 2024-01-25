@@ -3,7 +3,6 @@ package com.twiliovoicereactnative;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageFailure;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageReceived;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageSent;
-import static com.twiliovoicereactnative.CommonConstants.CallMessageSID;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
@@ -45,8 +44,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     // notify JS layer
     sendJSEvent(
       constructJSMap(
-        new Pair<>(VoiceEventType, CallEventMessageSent),
-        new Pair<>(CallMessageSID, voiceEventSID)
+        new Pair<>(VoiceEventType, CallEventMessageSent)
     ));
   }
 
@@ -58,7 +56,6 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     sendJSEvent(
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageReceived),
-        new Pair<>(CallMessageSID, callMessage.getVoiceEventSID()),
         new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
       )
     );

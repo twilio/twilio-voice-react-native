@@ -44,8 +44,7 @@ export interface NativeCancelledCallInviteInfo {
 
 export interface NativeCallInviteMessageReceivedEvent {
   type: Constants.CallEventMessageReceived;
-  callMessageSID: string;
-  callMessage: NativeCallMessageInfo;
+  [Constants.CallMessage]: NativeCallMessageInfo;
 }
 
 export type NativeCallInviteEvents = NativeCallInviteMessageReceivedEvent;

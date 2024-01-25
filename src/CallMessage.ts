@@ -5,16 +5,18 @@
  * See LICENSE in the project root for license information.
  */
 
+//@ts-ignore
+import { Constants } from './constants';
 import type { NativeCallMessageInfo } from './type/CallMessage';
 
 /**
  * Provides access to information about a callMessage, including the call
- * message content, contentType, messageType, and messageSID
+ * message content, contentType, messageType, and voiceEventSid
  *
  * @remarks
  * Note that the callMessage information is fetched as soon as possible from the
  * native layer, but there is no guarantee that all information is immediately
- * available. Methods such as `CallMessage.getContent` or `CallMessage.getMessageSID`
+ * available. Methods such as `CallMessage.getContent` or `CallMessage.getSid`
  * may return `undefined`.
  *
  * @public
@@ -28,17 +30,17 @@ export class CallMessage {
   /**
    * MIME type for the message
    */
-  public _contentType: string;
+  public _contentType: CallMessage.ContentType;
 
   /**
    * Message type
    */
-  public _messageType: string;
+  public _messageType: CallMessage.MessageType;
 
   /**
    * Unique identifier of the message
    */
-  public _messageSID: string;
+  public _voiceEventSid?: string;
 
   /**
    * Constructor for the {@link (CallMessage:class) | CallMessage class}. This should
@@ -51,47 +53,41 @@ export class CallMessage {
    * @internal
    */
   constructor({
-    callMessageContent,
-    callMessageContentType,
-    callMessageType,
-    callMessageSID,
+    content,
+    contentType,
+    messageType,
+    voiceEventSid,
   }: NativeCallMessageInfo) {
-    this._content = callMessageContent;
-    this._contentType = callMessageContentType;
-    this._messageType = callMessageType;
-    this._messageSID = callMessageSID;
+    this._content = content;
+    this._contentType = contentType;
+    this._messageType = messageType;
+    this._voiceEventSid = voiceEventSid;
   }
 
   /**
    * Get the content body of the message.
    * @returns
    * - A string representing the content body of the message.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
    */
-  getContent(): string | undefined {
+  getContent(): string {
     return this._content;
   }
 
   /**
    * Get the MIME type for the message.
    * @returns
-   * - A string representing the MIME type for the message.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
+   * - A {@link (CallMessage:namespace).ContentType}.
    */
-  getContentType(): string | undefined {
+  getContentType(): CallMessage.ContentType {
     return this._contentType;
   }
 
   /**
    * Get the message type.
    * @returns
-   * - A string representing the message type.
-   * - `undefined` if the callMessage state has not yet been received from the
-   *   native layer.
+   * - A {@link (CallMessage:namespace).MessageType}.
    */
-  getMessageType(): string | undefined {
+  getMessageType(): CallMessage.MessageType {
     return this._messageType;
   }
 
@@ -99,10 +95,20 @@ export class CallMessage {
    * Get the message SID.
    * @returns
    * - A string representing the message SID.
-   * - `undefined` if the callMessage state has not yet been received from the
+   * - `undefined` if the call information has not yet been received from the
    *   native layer.
    */
-  getMessageSID(): string | undefined {
-    return this._messageSID;
+  getSid(): string | undefined {
+    return this._voiceEventSid;
+  }
+}
+
+export namespace CallMessage {
+  export enum MessageType {
+    'UserDefinedMessage' = Constants.UserDefinedMessage,
+  }
+
+  export enum ContentType {
+    'ApplicationJson' = Constants.ApplicationJson,
   }
 }

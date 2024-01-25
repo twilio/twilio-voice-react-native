@@ -1,4 +1,6 @@
 import type { NativeCallInviteInfo } from '../type/CallInvite';
+import { Constants } from '../constants';
+import { createNativeCallMessageInfo } from './CallMessage';
 
 export function createNativeCallInviteInfo(): NativeCallInviteInfo {
   return {
@@ -14,3 +16,16 @@ export function createNativeCallInviteInfo(): NativeCallInviteInfo {
     to: 'mock-nativecallinviteinfo-to',
   };
 }
+
+/**
+ * Reusable default native callInvite events.
+ */
+export const mockCallInviteNativeEvents = {
+  messageReceived: {
+    name: Constants.CallEventMessageReceived,
+    nativeEvent: {
+      type: Constants.CallEventMessageReceived,
+      callMessage: createNativeCallMessageInfo(),
+    },
+  },
+};

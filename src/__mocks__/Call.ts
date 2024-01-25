@@ -95,7 +95,6 @@ export const mockCallNativeEvents = {
     nativeEvent: {
       type: Constants.CallEventMessageReceived,
       call: createNativeCallInfo(),
-      callMessageSID: 'mock-nativecallmessageinfo-messageSID',
       callMessage: createNativeCallMessageInfo(),
     },
   },
