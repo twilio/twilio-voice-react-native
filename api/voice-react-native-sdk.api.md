@@ -340,7 +340,7 @@ export class CallMessage {
     _voiceEventSid?: string;
 }
 
-// @public (undocumented)
+// @public
 export namespace CallMessage {
     // (undocumented)
     export enum ContentType {

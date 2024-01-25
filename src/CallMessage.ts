@@ -103,6 +103,16 @@ export class CallMessage {
   }
 }
 
+/**
+ * Namespace for enumerations and types used by
+ * {@link (CallMessage:class) | CallMessage objects}.
+ *
+ * @remarks
+ *  - See also the {@link (CallMessage:class) | CallMessage class}.
+ *  - See also the {@link (CallMessage:interface) | CallMessage interface}.
+ *
+ * @public
+ */
 export namespace CallMessage {
   export enum MessageType {
     'UserDefinedMessage' = Constants.UserDefinedMessage,
