@@ -1,5 +1,14 @@
-1.0.0-beta.4 (In Progress)
-==========================
+1.0.0-beta.5 (Ongoing)
+======================
+
+Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in this version are the following.
+
+## Changes
+
+- Fixed and improved the docstrings for the `Voice` and `Call` listeners. The descriptions of the events and listeners should now point to the correct docstrings.
+
+1.0.0-beta.4 (Jan 11, 2024)
+===========================
 
 Twilio Voice React Native SDK has now reached milestone `beta.4`. Included in this version are the following.
 
@@ -54,7 +63,7 @@ call.addListener(Call.Event.MessageReceived, () => {
 - In call notifications now display when accepting a call from JS application
 - Audio routing for incoming and outgoing calls are now correctly routed
 - Internal simplification of call accepted/rejected intent message paths
-- Refactored internals & added permissions for Bluetooth and notifications
+- Refactored internals & added permissions for Bluetooth and notifications. *Please Note that these changes require changes to the application integrating the SDK. For more information, please refer to the [Beta.4 migration guide](docs/migration-guide-beta.4.md).*
 
 
 1.0.0-beta.3 (August 26, 2023)
