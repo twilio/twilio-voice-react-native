@@ -109,7 +109,6 @@ export class CallMessage {
  *
  * @remarks
  *  - See also the {@link (CallMessage:class) | CallMessage class}.
- *  - See also the {@link (CallMessage:interface) | CallMessage interface}.
  *
  * @public
  */
