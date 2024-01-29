@@ -330,9 +330,9 @@ export class CallMessage {
     //
     // @internal
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
-    _content: string;
+    _content: any;
     _contentType: CallMessage.ContentType;
-    getContent(): string;
+    getContent(): any;
     getContentType(): CallMessage.ContentType;
     getMessageType(): CallMessage.MessageType;
     getSid(): string | undefined;
@@ -350,7 +350,7 @@ export namespace CallMessage {
     // (undocumented)
     export enum MessageType {
         // (undocumented)
-        'UserDefinedMessage' = "userDefinedMessage"
+        'UserDefinedMessage' = "user-defined-message"
     }
 }
 
@@ -620,9 +620,9 @@ export interface OutgoingCallMessage {
 // @public
 export class OutgoingCallMessage extends EventEmitter implements CallMessage {
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
-    _content: string;
+    _content: any;
     _contentType: CallMessage.ContentType;
-    getContent(): string;
+    getContent(): any;
     getContentType(): CallMessage.ContentType;
     getMessageType(): CallMessage.MessageType;
     getSid(): string | undefined;

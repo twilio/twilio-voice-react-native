@@ -3,7 +3,7 @@ import type { NativeErrorInfo } from './Error';
 import type { CallMessage } from '../CallMessage';
 
 export interface NativeCallMessageInfo {
-  [Constants.CallMessageContent]: string;
+  [Constants.CallMessageContent]: any;
   [Constants.CallMessageContentType]: CallMessage.ContentType;
   [Constants.CallMessageMessageType]: CallMessage.MessageType;
   [Constants.VoiceEventSid]?: string;

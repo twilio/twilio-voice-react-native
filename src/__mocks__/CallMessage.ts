@@ -5,7 +5,7 @@ import { createNativeErrorInfo } from './Error';
 
 export function createNativeCallMessageInfo(): NativeCallMessageInfo {
   return {
-    content: 'mock-nativecallmessageinfo-content',
+    content: { key1: 'mock-nativecallmessageinfo-content' },
     contentType: CallMessage.ContentType.ApplicationJson,
     messageType: CallMessage.MessageType.UserDefinedMessage,
     voiceEventSid: 'mock-nativecallmessageinfo-voiceEventSid',

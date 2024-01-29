@@ -542,7 +542,7 @@ describe('Call class', () => {
     });
 
     describe('.sendMesssage', () => {
-      const content = 'hello world';
+      const content = { key1: 'hello world' };
       const contentType = CallMessage.ContentType.ApplicationJson;
       const messageType = CallMessage.MessageType.UserDefinedMessage;
 
@@ -556,7 +556,12 @@ describe('Call class', () => {
         await new Call(createNativeCallInfo()).sendMessage(message);
 
         expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid', content, contentType, messageType],
+          [
+            'mock-nativecallinfo-uuid',
+            JSON.stringify(content),
+            contentType,
+            messageType,
+          ],
         ]);
       });
 

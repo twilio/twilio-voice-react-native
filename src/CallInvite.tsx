@@ -55,7 +55,7 @@ export declare interface CallInvite {
    */
 
   /**
-   * MessageReceived event. Raised when callMessage is received.
+   * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
    * @example
    * ```typescript
    * callInvite.addListener(CallInvite.Event.MessageReceived, (message) => {
@@ -339,13 +339,13 @@ export class CallInvite extends EventEmitter {
   }
 
   /**
-   * Send Call Message.
+   * Send {@link (CallMessage:class)}.
    *
    * @example
    * To send a user-defined-message
    * ```typescript
    * const message = new CallMessage({
-   *    content: 'This is a messsage from the parent call',
+   *    content: { key1: 'This is a messsage from the parent call' },
    *    contentType: CallMessage.ContentType.ApplicationJson,
    *    messageType: CallMessage.MessageType.UserDefinedMessage
    * })
@@ -376,15 +376,15 @@ export class CallInvite extends EventEmitter {
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
-      content,
+      JSON.stringify(content),
       contentType,
       messageType
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
-      content: content,
-      contentType: contentType,
-      messageType: messageType,
+      content,
+      contentType,
+      messageType,
       voiceEventSid,
     });
 

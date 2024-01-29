@@ -53,8 +53,7 @@ describe('OutgoingCallMessage class', () => {
       const content = new OutgoingCallMessage(
         createNativeCallMessageInfo()
       ).getContent();
-      expect(typeof content).toBe('string');
-      expect(content).toBe(createNativeCallMessageInfo().content);
+      expect(content).toEqual(createNativeCallMessageInfo().content);
     });
   });
 
