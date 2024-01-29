@@ -24,7 +24,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 @interface TwilioVoiceReactNative : RCTEventEmitter <RCTBridgeModule>
 
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCall *> *callMap;
-@property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, NSNumber *> *callConnectMap;
+@property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, NSString *> *callConnectMap;
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCallInvite *> *callInviteMap;
 @property (nonatomic, readonly, strong) NSMutableDictionary<NSString *, TVOCancelledCallInvite *> *cancelledCallInviteMap;
 
