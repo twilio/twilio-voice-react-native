@@ -308,6 +308,18 @@ describe('CallInvite class', () => {
       const result = await sendMessagePromise;
       expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
     });
+
+    it('throws an error if "message" is not instanceof "CallMessage"', async () => {
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+          //@ts-ignore
+        ).sendMessage('something-random')
+      ).rejects.toThrowError(
+        'Argument "message" must be instanceof "CallMessage"'
+      );
+    });
   });
 
   describe('on receiving a valid native event', () => {

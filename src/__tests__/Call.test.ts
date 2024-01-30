@@ -583,6 +583,15 @@ describe('Call class', () => {
         const result = await sendMessagePromise;
         expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
       });
+
+      it('throws an error if "message" is not instanceof "CallMessage"', async () => {
+        await expect(
+          //@ts-ignore
+          new Call(createNativeCallInfo()).sendMessage('something-random')
+        ).rejects.toThrowError(
+          'Argument "message" must be instanceof "CallMessage"'
+        );
+      });
     });
   });
 

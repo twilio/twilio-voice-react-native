@@ -18,6 +18,7 @@ import { CallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 import { EventEmitter } from 'eventemitter3';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 
 /**
  * Defines strict typings for all events emitted by {@link (CallInvite:class)
@@ -370,6 +371,12 @@ export class CallInvite extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    if (!(message instanceof CallMessage)) {
+      throw new InvalidArgumentError(
+        'Argument "message" must be instanceof "CallMessage"'
+      );
+    }
+
     const content = message.getContent();
     const contentType = message.getContentType();
     const messageType = message.getMessageType();

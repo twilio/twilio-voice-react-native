@@ -19,6 +19,7 @@ import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
 import { CallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -896,6 +897,12 @@ export class Call extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    if (!(message instanceof CallMessage)) {
+      throw new InvalidArgumentError(
+        'Argument "message" must be instanceof "CallMessage"'
+      );
+    }
+
     const content = message.getContent();
     const contentType = message.getContentType();
     const messageType = message.getMessageType();
