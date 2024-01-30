@@ -4,7 +4,10 @@ import static com.twiliovoicereactnative.CommonConstants.CallEventMessageFailure
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageReceived;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageSent;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
+import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
+import static com.twiliovoicereactnative.CommonConstants.ScopeCallMessage;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventSid;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.JSEventKeyCallMessageInfo;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
@@ -32,6 +35,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     sendJSEvent(
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageFailure),
+        new Pair<>(VoiceEventSid, voiceEventSID),
         new Pair<>(VoiceErrorKeyError, serializeVoiceException(voiceException))
       )
     );
@@ -44,7 +48,8 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     // notify JS layer
     sendJSEvent(
       constructJSMap(
-        new Pair<>(VoiceEventType, CallEventMessageSent)
+        new Pair<>(VoiceEventType, CallEventMessageSent),
+        new Pair<>(VoiceEventSid, voiceEventSID)
     ));
   }
 
@@ -52,8 +57,16 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   public void onMessageReceived(CallMessage callMessage) {
     debug("onMessageReceived");
 
-    // notify JS layer
-    sendJSEvent(
+    // notify JS layer ScopeCall
+    getJSEventEmitter().sendEvent(ScopeCall,
+      constructJSMap(
+        new Pair<>(VoiceEventType, CallEventMessageReceived),
+        new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
+      )
+    );
+
+    // notify JS layer ScopeCallInvite
+    getJSEventEmitter().sendEvent(ScopeCallInvite,
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageReceived),
         new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
@@ -62,7 +75,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
-    getJSEventEmitter().sendEvent(ScopeCall, event);
+    getJSEventEmitter().sendEvent(ScopeCallMessage, event);
   }
 
   private void debug(final String message) {

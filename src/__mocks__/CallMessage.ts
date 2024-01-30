@@ -12,18 +12,31 @@ export function createNativeCallMessageInfo(): NativeCallMessageInfo {
   };
 }
 
+export function createNativeCallMessageInfoSid(
+  voiceEventSid: string
+): NativeCallMessageInfo {
+  return {
+    content: { key1: 'mock-nativecallmessageinfo-content' },
+    contentType: CallMessage.ContentType.ApplicationJson,
+    messageType: CallMessage.MessageType.UserDefinedMessage,
+    voiceEventSid,
+  };
+}
+
 export const mockCallMessageNativeEvents = {
-  sent: {
-    name: Constants.CallEventMessageSent,
-    nativeEvent: {
-      type: Constants.CallEventMessageSent,
-    },
-  },
   failure: {
     name: Constants.CallEventMessageFailure,
     nativeEvent: {
       type: Constants.CallEventMessageFailure,
+      [Constants.VoiceEventSid]: '123',
       error: createNativeErrorInfo(),
+    },
+  },
+  sent: {
+    name: Constants.CallEventMessageSent,
+    nativeEvent: {
+      type: Constants.CallEventMessageSent,
+      [Constants.VoiceEventSid]: '456',
     },
   },
 };

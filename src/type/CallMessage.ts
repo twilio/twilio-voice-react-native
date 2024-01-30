@@ -11,11 +11,13 @@ export interface NativeCallMessageInfo {
 
 export interface NativeCallMessageFailureEvent {
   type: Constants.CallEventMessageFailure;
+  [Constants.VoiceEventSid]: string;
   error: NativeErrorInfo;
 }
 
 export interface NativeCallMessageSentEvent {
   type: Constants.CallEventMessageSent;
+  [Constants.VoiceEventSid]: string;
 }
 
 export type NativeCallMessageEvent =

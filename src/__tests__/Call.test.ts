@@ -50,6 +50,7 @@ describe('Call class', () => {
         Constants.CallEventReconnecting,
         Constants.CallEventRinging,
         Constants.CallEventQualityWarningsChanged,
+        Constants.CallEventMessageReceived,
       ].forEach((event: string) => {
         expect(event in nativeEventHandler).toBe(true);
       });

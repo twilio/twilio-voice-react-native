@@ -222,9 +222,11 @@ export class OutgoingCallMessage extends CallMessage {
       );
     }
 
-    const { message, code } = nativeCallMessageEvent.error;
-    const error = constructTwilioError(message, code);
-    this.emit(OutgoingCallMessage.Event.Failure, error);
+    if (this.getSid() === nativeCallMessageEvent.voiceEventSid) {
+      const { message, code } = nativeCallMessageEvent.error;
+      const error = constructTwilioError(message, code);
+      this.emit(OutgoingCallMessage.Event.Failure, error);
+    }
   };
 
   /**
@@ -241,7 +243,9 @@ export class OutgoingCallMessage extends CallMessage {
       );
     }
 
-    this.emit(OutgoingCallMessage.Event.Sent);
+    if (this.getSid() === nativeCallMessageEvent.voiceEventSid) {
+      this.emit(OutgoingCallMessage.Event.Sent);
+    }
   };
 }
 

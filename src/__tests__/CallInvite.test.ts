@@ -61,6 +61,29 @@ describe('CallInvite class', () => {
         expect(callInvite['_state']).toEqual(callInviteState);
       }
     );
+
+    it('contains an entry for every CallInvite event', () => {
+      const callInvite = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      );
+      /* eslint-disable-next-line dot-notation */
+      const nativeEventHandler = callInvite['_nativeEventHandler'];
+      [Constants.CallEventMessageReceived].forEach((event: string) => {
+        expect(event in nativeEventHandler).toBe(true);
+      });
+    });
+
+    it('binds to the native event emitter', () => {
+      const callInvite = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      );
+      expect(MockNativeEventEmitter.addListener.mock.calls).toEqual([
+        // eslint-disable-next-line dot-notation
+        [Constants.ScopeCallInvite, callInvite['_handleNativeEvent']],
+      ]);
+    });
   });
 
   describe.each([
@@ -380,6 +403,30 @@ describe('CallInvite class', () => {
       });
     });
   });
+
+  describe('private methods', () => {
+    /**
+     * Invalid event tests.
+     */
+    ['_handleNativeEvent', '_handleMessageReceivedEvent'].forEach(
+      (privateMethodKey) => {
+        describe(`.${privateMethodKey}`, () => {
+          it('throws an error for an invalid event', () => {
+            const handler = (
+              new CallInvite(
+                createNativeCallInviteInfo(),
+                CallInvite.State.Pending
+              ) as any
+            )[privateMethodKey];
+            expect(typeof handler).toBe('function');
+            expect(() => {
+              handler({ type: 'not-a-real-event' });
+            }).toThrow();
+          });
+        });
+      }
+    );
+  });
 });
 
 describe('CallInvite namespace', () => {
@@ -387,6 +434,10 @@ describe('CallInvite namespace', () => {
     it('State', () => {
       expect(CallInvite.State).toBeDefined();
       expect(typeof CallInvite.State).toBe('object');
+    });
+    it('Event', () => {
+      expect(CallInvite.Event).toBeDefined();
+      expect(typeof CallInvite.Event).toBe('object');
     });
   });
 });

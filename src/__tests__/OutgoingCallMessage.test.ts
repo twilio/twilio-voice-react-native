@@ -1,5 +1,6 @@
 import {
   createNativeCallMessageInfo,
+  createNativeCallMessageInfoSid,
   mockCallMessageNativeEvents,
 } from '../__mocks__/CallMessage';
 import { OutgoingCallMessage } from '../OutgoingCallMessage';
@@ -45,6 +46,30 @@ describe('OutgoingCallMessage class', () => {
         // eslint-disable-next-line dot-notation
         voiceEventSid: outgoingCallMessage['_voiceEventSid'],
       }).toEqual(createNativeCallMessageInfo());
+    });
+
+    it('contains an entry for every outgoingCallMessage event', () => {
+      const outgoingCallMessage = new OutgoingCallMessage(
+        createNativeCallMessageInfo()
+      );
+      /* eslint-disable-next-line dot-notation */
+      const nativeEventHandler = outgoingCallMessage['_nativeEventHandler'];
+      [
+        Constants.CallEventMessageSent,
+        Constants.CallEventMessageFailure,
+      ].forEach((event: string) => {
+        expect(event in nativeEventHandler).toBe(true);
+      });
+    });
+
+    it('binds to the native event emitter', () => {
+      const outgoingCallMessage = new OutgoingCallMessage(
+        createNativeCallMessageInfo()
+      );
+      expect(MockNativeEventEmitter.addListener.mock.calls).toEqual([
+        // eslint-disable-next-line dot-notation
+        [Constants.ScopeCallMessage, outgoingCallMessage['_handleNativeEvent']],
+      ]);
     });
   });
 
@@ -111,19 +136,26 @@ describe('OutgoingCallMessage class', () => {
           mockCallMessageNativeEvents.failure,
           OutgoingCallMessage.Event.Failure,
           listenerCalledWithGenericError,
+          '123',
         ],
         [
           mockCallMessageNativeEvents.sent,
           OutgoingCallMessage.Event.Sent,
           listenerCalledWithSent,
+          '456',
         ],
       ] as const
     ).forEach(
-      ([{ name, nativeEvent }, OutgoingCallMessageEvent, assertion]) => {
+      ([
+        { name, nativeEvent },
+        OutgoingCallMessageEvent,
+        assertion,
+        voiceEventSid,
+      ]) => {
         describe(name, () => {
           it('re-emits the native event', () => {
             const outgoingCallMessage = new OutgoingCallMessage(
-              createNativeCallMessageInfo()
+              createNativeCallMessageInfoSid(voiceEventSid)
             );
             const listenerMock = jest.fn();
             outgoingCallMessage.on(OutgoingCallMessageEvent, listenerMock);
@@ -137,11 +169,11 @@ describe('OutgoingCallMessage class', () => {
           });
 
           it('invokes the correct event handler', () => {
-            const callMessage = new OutgoingCallMessage(
+            const outgoingCallMessage = new OutgoingCallMessage(
               createNativeCallMessageInfo()
             );
             const spy = jest.spyOn(
-              callMessage['_nativeEventHandler'], // eslint-disable-line dot-notation
+              outgoingCallMessage['_nativeEventHandler'], // eslint-disable-line dot-notation
               nativeEvent.type as NativeCallMessageEventType
             );
 
@@ -152,8 +184,53 @@ describe('OutgoingCallMessage class', () => {
 
             expect(spy).toHaveBeenCalledTimes(1);
           });
+
+          it('does not re-emit if voiceEventSid does NOT match', () => {
+            const outgoingCallMessage = new OutgoingCallMessage(
+              createNativeCallMessageInfoSid('incorrect-sid')
+            );
+            const listenerMock = jest.fn();
+            outgoingCallMessage.on(OutgoingCallMessageEvent, listenerMock);
+
+            MockNativeEventEmitter.emit(
+              Constants.ScopeCallMessage,
+              nativeEvent
+            );
+
+            expect(listenerMock).toHaveBeenCalledTimes(0);
+          });
         });
       }
     );
+  });
+
+  describe('private methods', () => {
+    /**
+     * Invalid event tests.
+     */
+    ['_handleNativeEvent', '_handleFailureEvent', '_handleSentEvent'].forEach(
+      (privateMethodKey) => {
+        describe(`.${privateMethodKey}`, () => {
+          it('throws an error for an invalid event', () => {
+            const handler = (
+              new OutgoingCallMessage(createNativeCallMessageInfo()) as any
+            )[privateMethodKey];
+            expect(typeof handler).toBe('function');
+            expect(() => {
+              handler({ type: 'not-a-real-event' });
+            }).toThrow();
+          });
+        });
+      }
+    );
+  });
+});
+
+describe('OutgoingCallMessage namespace', () => {
+  describe('exports enumerations', () => {
+    it('Event', () => {
+      expect(OutgoingCallMessage.Event).toBeDefined();
+      expect(typeof OutgoingCallMessage.Event).toBe('object');
+    });
   });
 });
