@@ -349,8 +349,12 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
+          context:
+            - vblocks-js
           detox_configuration: ios.sim.release
       - e2e-android:
+          context:
+            - vblocks-js
           detox_configuration: android.emu.release
 
   ###
