@@ -1,27 +1,9 @@
 'use strict';
 
-const twilio = require('twilio');
+import twilio from 'twilio';
+import { parseEnvVar, parseScriptArgument } from './common.mjs';
 
 const { AccessToken } = twilio.jwt;
-
-/**
- * Attempt to parse an environment variable from the process.
- * @param {string} envVarKey The name of the environment variable.
- * @throws {Error} Will throw if the environment variable is missing.
- * @returns {string}
- */
-function parseEnvVar(envVarKey) {
-  const envVarValue = process.env[envVarKey];
-  if (typeof envVarKey === 'undefined') {
-    throw new Error(`Environment variable with key "${envVarKey}" is missing.`);
-  }
-  if (envVarValue === '') {
-    throw new Error(
-      `Environment variable with key "${envVarKey}" evaluated to the empty string.`
-    );
-  }
-  return envVarValue;
-}
 
 /**
  * Generate a configured access token using environment variables.
@@ -57,24 +39,6 @@ function generateToken(identity) {
   accessToken.addGrant(voiceGrant);
 
   return accessToken;
-}
-
-/**
- * Parse the script arguments.
- * @throws {Error} Will throw if the script was not executed with the correct
- * number of arguments or if an argument is invalid.
- */
-function parseScriptArgument() {
-  if (process.argv.length !== 3) {
-    throw new Error('Incorrect number of arguments.');
-  }
-
-  const identity = process.argv[2];
-  if (identity === '') {
-    throw new Error('Identity evaluated to empty string.');
-  }
-
-  return { identity };
 }
 
 /**
