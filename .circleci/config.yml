@@ -256,8 +256,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup-e2e-creds
       - install-dependencies
+      - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
       # run E2E tests
@@ -279,8 +279,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup-e2e-creds
       - install-dependencies
+      - setup-e2e-creds
       - android/create-avd:
           avd-name: TwilioVoiceReactNativeReferenceApp_AVD
           install: true
