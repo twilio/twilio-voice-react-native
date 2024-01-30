@@ -325,19 +325,15 @@ export namespace CallKit {
 }
 
 // @public
-export class CallMessage {
+export class CallMessage extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
-    _content: any;
-    _contentType: CallMessage.ContentType;
     getContent(): any;
     getContentType(): CallMessage.ContentType;
     getMessageType(): CallMessage.MessageType;
     getSid(): string | undefined;
-    _messageType: CallMessage.MessageType;
-    _voiceEventSid?: string;
 }
 
 // @public
@@ -618,16 +614,8 @@ export interface OutgoingCallMessage {
 }
 
 // @public
-export class OutgoingCallMessage extends EventEmitter implements CallMessage {
+export class OutgoingCallMessage extends CallMessage {
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
-    _content: any;
-    _contentType: CallMessage.ContentType;
-    getContent(): any;
-    getContentType(): CallMessage.ContentType;
-    getMessageType(): CallMessage.MessageType;
-    getSid(): string | undefined;
-    _messageType: CallMessage.MessageType;
-    _voiceEventSid?: string;
 }
 
 // @public
