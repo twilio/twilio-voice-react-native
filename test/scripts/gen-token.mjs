@@ -2,6 +2,7 @@
 
 import twilio from 'twilio';
 import { parseEnvVar, parseScriptArgument } from './common.mjs';
+import { writeFileSync } from 'node:fs';
 
 const { AccessToken } = twilio.jwt;
 
@@ -46,7 +47,7 @@ function generateToken(identity) {
  * @param {string} accessToken The access token in JWT form.
  */
 function templateAccessToken(accessToken) {
-  const TEMPLATE = (token) => `export const token =\n  '${token}';`;
+  const TEMPLATE = (token) => `export const token =\n  '${token}';\n`;
   return TEMPLATE(accessToken);
 }
 
@@ -54,11 +55,13 @@ function templateAccessToken(accessToken) {
  * Main function. Executed on script start.
  */
 function main() {
-  const { identity } = parseScriptArgument();
+  const { identity, path } = parseScriptArgument();
   const accessToken = generateToken(identity);
   const accessTokenJwt = accessToken.toJwt();
   const templatedAccessTokenJwt = templateAccessToken(accessTokenJwt);
-  console.log(templatedAccessTokenJwt);
+  writeFileSync(path, templatedAccessTokenJwt, {
+    flag: 'wx' /** wx prevents overwriting existing files */,
+  });
 }
 
 main();

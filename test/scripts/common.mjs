@@ -25,7 +25,7 @@ export function parseEnvVar(envVarKey) {
  * number of arguments or if an argument is invalid.
  */
 export function parseScriptArgument() {
-  if (process.argv.length !== 3) {
+  if (process.argv.length !== 4) {
     throw new Error('Incorrect number of arguments.');
   }
 
@@ -34,5 +34,10 @@ export function parseScriptArgument() {
     throw new Error('Identity evaluated to empty string.');
   }
 
-  return { identity };
+  const path = process.argv[3];
+  if (path === '') {
+    throw new Error('Path evaluted to empty string.');
+  }
+
+  return { identity, path };
 }
