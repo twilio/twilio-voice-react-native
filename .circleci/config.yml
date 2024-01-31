@@ -82,7 +82,7 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID > test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
