@@ -593,6 +593,40 @@ describe('Call class', () => {
           'Argument "message" must be instanceof "CallMessage"'
         );
       });
+
+      it('throws an error if "content" is undefined', async () => {
+        const message = new CallMessage({
+          content: undefined,
+          contentType,
+          messageType,
+        });
+        await expect(
+          new Call(createNativeCallInfo()).sendMessage(message)
+        ).rejects.toThrowError('"content" is empty');
+      });
+
+      it('throws an error if "content" is null', async () => {
+        const message = new CallMessage({
+          content: null,
+          contentType,
+          messageType,
+        });
+        await expect(
+          new Call(createNativeCallInfo()).sendMessage(message)
+        ).rejects.toThrowError('"content" is empty');
+      });
+
+      it('throws an error if "messageType" is empty string', async () => {
+        const message = new CallMessage({
+          content,
+          contentType,
+          //@ts-ignore
+          messageType: '',
+        });
+        await expect(
+          new Call(createNativeCallInfo()).sendMessage(message)
+        ).rejects.toThrowError('"messageType" must be a non-empty string');
+      });
     });
   });
 

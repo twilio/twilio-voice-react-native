@@ -377,6 +377,20 @@ export class CallInvite extends EventEmitter {
       );
     }
 
+    if (
+      typeof message.getContent() === 'undefined' ||
+      message.getContent() === null
+    ) {
+      throw new InvalidArgumentError('"content" is empty');
+    }
+
+    //@ts-ignore
+    if (message.getMessageType().length === 0) {
+      throw new InvalidArgumentError(
+        '"messageType" must be a non-empty string'
+      );
+    }
+
     const content = message.getContent();
     const contentType = message.getContentType();
     const messageType = message.getMessageType();
