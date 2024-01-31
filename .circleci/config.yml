@@ -63,7 +63,9 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/TwilioVoiceReactNativeExample/ios && pod install && cd ../../..
+            cd test/TwilioVoiceReactNativeExample/ios
+            pod install
+            cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -75,12 +77,12 @@ commands:
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
 
   setup-e2e-creds:
-    description: "Decode account credentials for e2e tests"
+    description: "Generate an access token for e2e tests"
     steps:
       - run:
-          name: "Decode creds"
+          name: "Generate access token"
           command: |
-            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -254,8 +256,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup-e2e-creds
       - install-dependencies
+      - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
       # run E2E tests
@@ -277,8 +279,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup-e2e-creds
       - install-dependencies
+      - setup-e2e-creds
       - android/create-avd:
           avd-name: TwilioVoiceReactNativeReferenceApp_AVD
           install: true
@@ -347,8 +349,12 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
+          context:
+            - vblocks-js
           detox_configuration: ios.sim.release
       - e2e-android:
+          context:
+            - vblocks-js
           detox_configuration: android.emu.release
 
   ###
