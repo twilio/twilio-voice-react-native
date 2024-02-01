@@ -76,6 +76,14 @@ commands:
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
 
+  generate-client-identity:
+    description: "Generate a client id"
+    steps:
+      - run:
+          name: "Generate client id"
+          command: |
+            export CLIENT_IDENTITY=client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
+
   setup-e2e-creds:
     description: "Generate an access token for e2e tests"
     steps:
@@ -257,6 +265,7 @@ jobs:
     steps:
       - checkout
       - install-dependencies
+      - generate-client-identity
       - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
@@ -280,10 +289,7 @@ jobs:
     steps:
       - checkout
       - install-dependencies
-      - run:
-          name: "Generate client identity"
-          command: |
-            export CLIENT_IDENTITY = client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
+      - generate-client-identity
       - setup-e2e-creds
       - android/create-avd:
           avd-name: TwilioVoiceReactNativeReferenceApp_AVD
