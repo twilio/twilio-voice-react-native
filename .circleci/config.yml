@@ -82,7 +82,7 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -280,6 +280,10 @@ jobs:
     steps:
       - checkout
       - install-dependencies
+      - run:
+          name: "Generate client identity"
+          command: |
+            export CLIENT_IDENTITY = client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
       - setup-e2e-creds
       - android/create-avd:
           avd-name: TwilioVoiceReactNativeReferenceApp_AVD

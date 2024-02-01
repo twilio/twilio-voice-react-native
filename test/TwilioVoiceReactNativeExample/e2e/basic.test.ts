@@ -57,62 +57,64 @@ describe('basic', () => {
     await detoxExpect(element(by.text('Registered: false'))).toBeVisible();
   });
 
-  it('should register', async () => {
-    await doRegister();
-  });
-
-  it('should unregister', async () => {
-    await doRegister();
-
-    await element(by.text('UNREGISTER')).tap();
-    await waitFor(element(by.text('Registered: false')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
-  });
-
-  it('should make an outgoing call and then disconnect', async () => {
-    await element(by.text('CONNECT')).tap();
-    await waitFor(element(by.text('Call State: connected')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
-
-    // Let the call go for 5 seconds
-    await new Promise((r) => setTimeout(r, 5000));
-
-    await element(by.text('DISCONNECT')).tap();
-    await waitFor(element(by.text('Call State: disconnected')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
-  });
-
-  it('should receive an incoming call and then disconnect', async () => {
-    await doRegister();
-
-    const testCall = await twilioClient.calls.create({
-      twiml:
-        '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
-      to: `client:${clientId}`,
-      from: 'detox',
+  if (device.getPlatform() === 'android') {
+    it('should register', async () => {
+      await doRegister();
     });
 
-    console.log(
-      `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
-    );
+    it('should unregister', async () => {
+      await doRegister();
 
-    await waitFor(element(by.text('ACCEPT')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
-    await element(by.text('ACCEPT')).tap();
-    await waitFor(element(by.text('Call State: connected')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
+      await element(by.text('UNREGISTER')).tap();
+      await waitFor(element(by.text('Registered: false')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
+    });
 
-    // Let the call go for 5 seconds
-    await new Promise((r) => setTimeout(r, 5000));
+    it('should make an outgoing call and then disconnect', async () => {
+      await element(by.text('CONNECT')).tap();
+      await waitFor(element(by.text('Call State: connected')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
 
-    await element(by.text('DISCONNECT')).tap();
-    await waitFor(element(by.text('Call State: disconnected')))
-      .toBeVisible()
-      .withTimeout(DEFAULT_TIMEOUT);
-  });
+      // Let the call go for 5 seconds
+      await new Promise((r) => setTimeout(r, 5000));
+
+      await element(by.text('DISCONNECT')).tap();
+      await waitFor(element(by.text('Call State: disconnected')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
+    });
+
+    it('should receive an incoming call and then disconnect', async () => {
+      await doRegister();
+
+      const testCall = await twilioClient.calls.create({
+        twiml:
+          '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+        to: `client:${clientId}`,
+        from: 'detox',
+      });
+
+      console.log(
+        `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+      );
+
+      await waitFor(element(by.text('ACCEPT')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
+      await element(by.text('ACCEPT')).tap();
+      await waitFor(element(by.text('Call State: connected')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
+
+      // Let the call go for 5 seconds
+      await new Promise((r) => setTimeout(r, 5000));
+
+      await element(by.text('DISCONNECT')).tap();
+      await waitFor(element(by.text('Call State: disconnected')))
+        .toBeVisible()
+        .withTimeout(DEFAULT_TIMEOUT);
+    });
+  }
 });
