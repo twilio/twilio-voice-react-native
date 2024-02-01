@@ -14,8 +14,8 @@ const message = new CallMessage({
    content: { key1: 'This is a messsage from the parent call' },
    contentType: CallMessage.ContentType.ApplicationJson,
    messageType: CallMessage.MessageType.UserDefinedMessage
-})
-const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message: CallMessage)
+});
+const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message);
 
 outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
    // outgoingCallMessage failed, handle error
@@ -23,13 +23,13 @@ outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
 
 outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
     // outgoingCallMessage sent
-})
+});
 ```
 - To `receive` a CallMessage:
 ```ts
-call.addListener(Call.Event.MessageReceived, (message) => {
+call.addListener(Call.Event.MessageReceived, (message: CallMessage) => {
   // callMessage received
-})
+});
 ```
 - Related docs: https://www.twilio.com/docs/voice/sdks/call-message-events
 
