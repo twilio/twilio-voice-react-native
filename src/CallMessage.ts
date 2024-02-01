@@ -6,6 +6,7 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
+// NOTE(kchoy): VBLOCKS-2673 Remove after typescript 5.x upgrade
 //@ts-ignore
 import { Constants } from './constants';
 import type { NativeCallMessageInfo } from './type/CallMessage';
@@ -136,8 +137,7 @@ export const verifySendMessage = (message: CallMessage): void => {
     throw new InvalidArgumentError('"content" is empty');
   }
 
-  //@ts-ignore
-  if (message.getMessageType().length === 0) {
+  if (message.getMessageType().toString().length === 0) {
     throw new InvalidArgumentError('"messageType" must be a non-empty string');
   }
 };
