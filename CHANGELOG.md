@@ -15,7 +15,7 @@ const message = new CallMessage({
    contentType: CallMessage.ContentType.ApplicationJson,
    messageType: CallMessage.MessageType.UserDefinedMessage
 })
-const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
+const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message: CallMessage)
 
 outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
    // outgoingCallMessage failed, handle error

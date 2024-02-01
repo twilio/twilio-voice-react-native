@@ -14,11 +14,10 @@ import type {
   NativeCallInviteEventType,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage } from './CallMessage';
+import { CallMessage, verifySendMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 import { EventEmitter } from 'eventemitter3';
-import { InvalidArgumentError } from './error/InvalidArgumentError';
 
 /**
  * Defines strict typings for all events emitted by {@link (CallInvite:class)
@@ -371,25 +370,7 @@ export class CallInvite extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
-    if (!(message instanceof CallMessage)) {
-      throw new InvalidArgumentError(
-        'Argument "message" must be instanceof "CallMessage"'
-      );
-    }
-
-    if (
-      typeof message.getContent() === 'undefined' ||
-      message.getContent() === null
-    ) {
-      throw new InvalidArgumentError('"content" is empty');
-    }
-
-    //@ts-ignore
-    if (message.getMessageType().length === 0) {
-      throw new InvalidArgumentError(
-        '"messageType" must be a non-empty string'
-      );
-    }
+    verifySendMessage(message);
 
     const content = message.getContent();
     const contentType = message.getContentType();

@@ -170,7 +170,7 @@ describe('OutgoingCallMessage class', () => {
 
           it('invokes the correct event handler', () => {
             const outgoingCallMessage = new OutgoingCallMessage(
-              createNativeCallMessageInfo()
+              createNativeCallMessageInfoSid(voiceEventSid)
             );
             const spy = jest.spyOn(
               outgoingCallMessage['_nativeEventHandler'], // eslint-disable-line dot-notation

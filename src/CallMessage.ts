@@ -9,6 +9,7 @@ import { EventEmitter } from 'eventemitter3';
 //@ts-ignore
 import { Constants } from './constants';
 import type { NativeCallMessageInfo } from './type/CallMessage';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 
 /**
  * Provides access to information about a callMessage, including the call
@@ -23,8 +24,7 @@ export class CallMessage extends EventEmitter {
   private _content: any;
 
   /**
-   * The MIME type of the content. application/json and is the only contentType
-   * that is supported at the moment.
+   * The MIME type of the content.
    */
   private _contentType: CallMessage.ContentType;
 
@@ -121,3 +121,23 @@ export namespace CallMessage {
     'ApplicationJson' = Constants.ApplicationJson,
   }
 }
+
+export const verifySendMessage = (message: CallMessage): void => {
+  if (!(message instanceof CallMessage)) {
+    throw new InvalidArgumentError(
+      'Argument "message" must be instanceof "CallMessage"'
+    );
+  }
+
+  if (
+    typeof message.getContent() === 'undefined' ||
+    message.getContent() === null
+  ) {
+    throw new InvalidArgumentError('"content" is empty');
+  }
+
+  //@ts-ignore
+  if (message.getMessageType().length === 0) {
+    throw new InvalidArgumentError('"messageType" must be a non-empty string');
+  }
+};

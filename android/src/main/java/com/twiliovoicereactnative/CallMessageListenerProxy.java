@@ -29,7 +29,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
 
   @Override
   public void onMessageFailure(String voiceEventSID, VoiceException voiceException) {
-    debug("onMessageFailure");
+    logger.debug("onMessageFailure");
 
     // notify JS layer
     sendJSEvent(
@@ -43,7 +43,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
 
   @Override
   public void onMessageSent(String voiceEventSID) {
-    debug("onMessageSent");
+    logger.debug("onMessageSent");
 
     // notify JS layer
     sendJSEvent(
@@ -55,7 +55,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
 
   @Override
   public void onMessageReceived(CallMessage callMessage) {
-    debug("onMessageReceived");
+    logger.debug("onMessageReceived");
 
     // notify JS layer ScopeCall
     getJSEventEmitter().sendEvent(ScopeCall,
@@ -76,9 +76,5 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
 
   private void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeCallMessage, event);
-  }
-
-  private void debug(final String message) {
-    logger.debug(message);
   }
 }
