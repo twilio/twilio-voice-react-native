@@ -83,6 +83,7 @@ commands:
           name: "Generate client id"
           command: |
             export CLIENT_IDENTITY=client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
+            echo "export CLIENT_IDENTITY=$CLIENT_IDENTITY" >> "$BASH_ENV"
 
   setup-e2e-creds:
     description: "Generate an access token for e2e tests"
