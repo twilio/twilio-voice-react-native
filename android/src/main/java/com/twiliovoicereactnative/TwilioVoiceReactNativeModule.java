@@ -404,8 +404,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
     Objects.requireNonNull(callRecord);
 
-    final CallMessage callMessage = new CallMessage.Builder(validateMessageTypeFromString(messageType))
-      .contentType(validateContentTypeFromString(contentType)).content(content).build();
+    final CallMessage callMessage = new CallMessage.Builder(validateMessageTypeFromString(messageType, promise))
+      .contentType(validateContentTypeFromString(contentType, promise)).content(content).build();
     promise.resolve(callRecord.getVoiceCall().sendMessage(callMessage));
   }
 
@@ -537,18 +537,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return Call.Issue.NOT_REPORTED;
   }
 
-  private CallMessage.MessageType validateMessageTypeFromString (String messageType) {
+  private CallMessage.MessageType validateMessageTypeFromString (String messageType, Promise promise) {
     if (messageType.equals(CommonConstants.UserDefinedMessage)) {
       return CallMessage.MessageType.UserDefinedMessage;
     }
-    return CallMessage.MessageType.UserDefinedMessage;
+    promise.reject("No such MessageType exists for the CallMessage class");
+    return null;
   }
 
-  private String validateContentTypeFromString (String contentType) {
+  private String validateContentTypeFromString (String contentType, Promise promise) {
     if (contentType.equals(CommonConstants.ApplicationJson)) {
       return CommonConstants.ApplicationJson;
     }
-    return CommonConstants.ApplicationJson;
+    promise.reject("No such ContentType exists for the CallMessage class");
+    return null;
   }
 
   private static CallRecord validateCallRecord(@NonNull final Context context,
