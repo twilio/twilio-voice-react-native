@@ -39,6 +39,50 @@ describe('CallMessage class', () => {
         voiceEventSid: callMessage['_voiceEventSid'],
       }).toEqual(createNativeCallMessageInfo());
     });
+
+    const content = { key1: 'hello world' };
+    const contentType = CallMessage.ContentType.ApplicationJson;
+    const messageType = CallMessage.MessageType.UserDefinedMessage;
+
+    it('throws an error if "content" is undefined', () => {
+      expect(
+        () => new CallMessage({ content: undefined, contentType, messageType })
+      ).toThrowError('"content" is empty');
+    });
+
+    it('throws an error if "content" is null', () => {
+      expect(
+        () => new CallMessage({ content: null, contentType, messageType })
+      ).toThrowError('"content" is empty');
+    });
+
+    it('throws an error if "contentType" is not a valid enum', () => {
+      expect(
+        () =>
+          new CallMessage({
+            content,
+            //@ts-ignore
+            contentType: CallMessage.ContentType.InvalidContentType,
+            messageType,
+          })
+      ).toThrowError(
+        '"contentType" must be valid enum of CallMessage.ContentType'
+      );
+    });
+
+    it('throws an error if "messageType" is not a valid enum', () => {
+      expect(
+        () =>
+          new CallMessage({
+            content,
+            contentType,
+            //@ts-ignore
+            messageType: CallMessage.ContentType.InvalidMessageType,
+          })
+      ).toThrowError(
+        '"messageType" must be valid enum of CallMessage.MessageType'
+      );
+    });
   });
 
   describe('.getContent()', () => {

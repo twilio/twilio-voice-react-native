@@ -59,6 +59,22 @@ export class CallMessage extends EventEmitter {
   }: NativeCallMessageInfo) {
     super();
 
+    if (typeof content === 'undefined' || content === null) {
+      throw new InvalidArgumentError('"content" is empty');
+    }
+
+    if (!(contentType in CallMessage.ContentType)) {
+      throw new InvalidArgumentError(
+        '"contentType" must be valid enum of CallMessage.ContentType'
+      );
+    }
+
+    if (!(messageType in CallMessage.MessageType)) {
+      throw new InvalidArgumentError(
+        '"messageType" must be valid enum of CallMessage.MessageType'
+      );
+    }
+
     this._content = content;
     this._contentType = contentType;
     this._messageType = messageType;
@@ -122,22 +138,3 @@ export namespace CallMessage {
     'ApplicationJson' = Constants.ApplicationJson,
   }
 }
-
-export const verifySendMessage = (message: CallMessage): void => {
-  if (!(message instanceof CallMessage)) {
-    throw new InvalidArgumentError(
-      'Argument "message" must be instanceof "CallMessage"'
-    );
-  }
-
-  if (
-    typeof message.getContent() === 'undefined' ||
-    message.getContent() === null
-  ) {
-    throw new InvalidArgumentError('"content" is empty');
-  }
-
-  if (message.getMessageType().toString().length === 0) {
-    throw new InvalidArgumentError('"messageType" must be a non-empty string');
-  }
-};

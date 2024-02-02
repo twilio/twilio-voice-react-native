@@ -14,7 +14,7 @@ import type {
   NativeCallInviteEventType,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage, verifySendMessage } from './CallMessage';
+import { CallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 import { EventEmitter } from 'eventemitter3';
@@ -370,8 +370,6 @@ export class CallInvite extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
-    verifySendMessage(message);
-
     const content = message.getContent();
     const contentType = message.getContentType();
     const messageType = message.getMessageType();
