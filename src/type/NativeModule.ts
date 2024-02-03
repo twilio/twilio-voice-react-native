@@ -1,6 +1,7 @@
 import type { EventSubscriptionVendor } from 'react-native';
 import type { Call } from '../Call';
 import type { CallInvite } from '../CallInvite';
+import type { CallMessage } from '../CallMessage';
 import type { NativeAudioDevicesInfo } from './AudioDevice';
 import type { NativeCallInfo } from './Call';
 import type { NativeCallInviteInfo } from './CallInvite';
@@ -23,6 +24,12 @@ export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
     issue: Call.Issue
   ): Promise<void>;
   call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
+  call_sendMessage(
+    callUuid: Uuid,
+    content: string,
+    contentType: CallMessage.ContentType,
+    messageType: CallMessage.MessageType
+  ): Promise<string>;
 
   /**
    * Call Invite bindings.

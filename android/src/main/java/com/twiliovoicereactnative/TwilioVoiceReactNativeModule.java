@@ -16,6 +16,7 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallMessage;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.LogLevel;
 import com.twilio.voice.RegistrationException;
@@ -25,6 +26,7 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -200,6 +202,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
       .enableDscp(true)
       .params(parsedTwimlParams)
+      .callMessageListener(new CallMessageListenerProxy())
       .build();
     CallRecord callRecord = new CallRecord(
       uuid,
@@ -396,6 +399,25 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
   }
 
+  @ReactMethod
+  public void call_sendMessage(String uuid, String content, String contentType, String messageType, Promise promise) {
+    final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
+    Objects.requireNonNull(callRecord);
+
+    final CallMessage.MessageType _messageType = validateMessageTypeFromString(messageType, promise);
+    if (_messageType == null) {
+      return;
+    }
+    final String _contentType = validateContentTypeFromString(contentType, promise);
+    if(_contentType == null) {
+      return;
+    }
+
+    final CallMessage callMessage = new CallMessage.Builder(_messageType)
+      .contentType(_contentType).content(content).build();
+    promise.resolve(callRecord.getVoiceCall().sendMessage(callMessage));
+  }
+
   // Register/UnRegister
 
   @ReactMethod
@@ -523,6 +545,25 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
     return Call.Issue.NOT_REPORTED;
   }
+
+  private CallMessage.MessageType validateMessageTypeFromString (String messageType, Promise promise) {
+    if (messageType.equals(CommonConstants.UserDefinedMessage)) {
+      return CallMessage.MessageType.UserDefinedMessage;
+    }
+    logger.log("No such MessageType exists for the CallMessage class");
+    promise.reject("No such MessageType exists for the CallMessage class");
+    return null;
+  }
+
+  private String validateContentTypeFromString (String contentType, Promise promise) {
+    if (contentType.equals(CommonConstants.ApplicationJson)) {
+      return CommonConstants.ApplicationJson;
+    }
+    logger.log("No such ContentType exists for the CallMessage class");
+    promise.reject("No such ContentType exists for the CallMessage class");
+    return null;
+  }
+
   private static CallRecord validateCallRecord(@NonNull final Context context,
                                                @NonNull final UUID uuid,
                                                @NonNull final Promise promise) {

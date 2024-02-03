@@ -2,6 +2,7 @@ import type { Constants } from '../constants';
 import type { CustomParameters, Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
 import type { Call } from '../Call';
+import type { NativeCallMessageInfo } from './CallMessage';
 
 export interface NativeCallInfo {
   uuid: Uuid;
@@ -57,6 +58,12 @@ export interface NativeCallQualityWarningsEvent {
   previousWarnings: NativeCallQualityWarnings;
 }
 
+export interface NativeCallMessageReceivedEvent {
+  type: Constants.CallEventMessageReceived;
+  call: NativeCallInfo;
+  [Constants.CallMessage]: NativeCallMessageInfo;
+}
+
 export type NativeCallEvent =
   | NativeCallConnectedEvent
   | NativeCallConnectFailureEvent
@@ -64,7 +71,8 @@ export type NativeCallEvent =
   | NativeCallReconnectedEvent
   | NativeCallDisconnectedEvent
   | NativeCallRingingEvent
-  | NativeCallQualityWarningsEvent;
+  | NativeCallQualityWarningsEvent
+  | NativeCallMessageReceivedEvent;
 
 export type NativeCallEventType =
   | Constants.CallEventConnectFailure
@@ -73,4 +81,5 @@ export type NativeCallEventType =
   | Constants.CallEventQualityWarningsChanged
   | Constants.CallEventReconnected
   | Constants.CallEventReconnecting
-  | Constants.CallEventRinging;
+  | Constants.CallEventRinging
+  | Constants.CallEventMessageReceived;

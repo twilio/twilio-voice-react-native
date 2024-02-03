@@ -154,6 +154,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     // accept call
     AcceptOptions acceptOptions = new AcceptOptions.Builder()
       .enableDscp(true)
+      .callMessageListener(new CallMessageListenerProxy())
       .build();
     callRecord.setCall(callRecord.getCallInvite().accept(
       context.getApplicationContext(),
