@@ -389,9 +389,12 @@ describe('Call class', () => {
     describe('.getInitialConnectedTimestamp', () => {
       it('gets the timestamp', () => {
         const nativeInfo = createNativeCallInfo();
-        nativeInfo.initialConnectedTimestamp = 12321;
+        nativeInfo.initialConnectedTimestamp =
+          'Mon, 15 Jan 2024 22:19:53 +0001';
         const call = new Call(nativeInfo);
-        expect(call.getInitialConnectedTimestamp()).toBe(12321);
+        const date = call.getInitialConnectedTimestamp();
+        expect(date).toBeInstanceOf(Date);
+        expect(date?.toISOString()).toEqual('2024-01-15T22:18:53.000Z');
       });
     });
 
