@@ -76,13 +76,22 @@ commands:
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
 
+  generate-client-identity:
+    description: "Generate a client id"
+    steps:
+      - run:
+          name: "Generate client id"
+          command: |
+            export CLIENT_IDENTITY=client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
+            echo "export CLIENT_IDENTITY=$CLIENT_IDENTITY" >> "$BASH_ENV"
+
   setup-e2e-creds:
     description: "Generate an access token for e2e tests"
     steps:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -257,6 +266,7 @@ jobs:
     steps:
       - checkout
       - install-dependencies
+      - generate-client-identity
       - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
@@ -280,6 +290,7 @@ jobs:
     steps:
       - checkout
       - install-dependencies
+      - generate-client-identity
       - setup-e2e-creds
       - android/create-avd:
           avd-name: TwilioVoiceReactNativeReferenceApp_AVD
