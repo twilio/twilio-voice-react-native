@@ -1,5 +1,4 @@
-import { device, element, expect as detoxExpect, by, waitFor } from 'detox';
-import { expect as jestExpect } from 'expect';
+import { device, element, by, waitFor } from 'detox';
 import twilio from 'twilio';
 
 const DEFAULT_TIMEOUT = 10000;
@@ -20,11 +19,11 @@ const bootstrap = () => {
   return { twilioClient, clientId: mockClientId as string };
 };
 
-describe('basic', () => {
+describe('call', () => {
   let twilioClient: ReturnType<typeof twilio>;
   let clientId: string;
 
-  const doRegister = async () => {
+  const register = async () => {
     await element(by.text('REGISTER')).tap();
     await waitFor(element(by.text('Registered: true')))
       .toBeVisible()
@@ -41,36 +40,13 @@ describe('basic', () => {
     await device.reloadReactNative();
   });
 
-  it('should show the SDK version', async () => {
-    const el = element(by.id('sdk_version'));
-    await detoxExpect(el).toBeVisible();
-    const sdkVersionAttr = await el.getAttributes();
-    if (!('text' in sdkVersionAttr)) {
-      throw new Error('could not parse text of sdk version element');
-    }
-    const sdkVersionText = sdkVersionAttr.text;
-    jestExpect(sdkVersionText).toMatch('SDK Version: ');
-    jestExpect(sdkVersionText).not.toMatch('SDK Version: unknown');
-  });
-
-  it('should start unregistered', async () => {
-    await detoxExpect(element(by.text('Registered: false'))).toBeVisible();
-  });
+  if (device.getPlatform() === 'ios') {
+    it('should pass the dummy test', () => {
+      // by default jest does not pass a test suite if there are no tests
+    });
+  }
 
   if (device.getPlatform() === 'android') {
-    it('should register', async () => {
-      await doRegister();
-    });
-
-    it('should unregister', async () => {
-      await doRegister();
-
-      await element(by.text('UNREGISTER')).tap();
-      await waitFor(element(by.text('Registered: false')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-    });
-
     it('should make an outgoing call and then disconnect', async () => {
       await element(by.text('CONNECT')).tap();
       await waitFor(element(by.text('Call State: connected')))
@@ -87,7 +63,7 @@ describe('basic', () => {
     });
 
     it('should receive an incoming call and then disconnect', async () => {
-      await doRegister();
+      await register();
 
       const testCall = await twilioClient.calls.create({
         twiml:
