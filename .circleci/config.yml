@@ -37,7 +37,6 @@ executors:
 # Commands
 ###
 commands:
-
   attach_project:
     steps:
       - attach_workspace:
@@ -49,7 +48,7 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
-            yarn install --cwd test/TwilioVoiceReactNativeExample --frozen-lockfile
+            yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
 
@@ -63,7 +62,7 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/TwilioVoiceReactNativeExample/ios
+            cd test/app/ios
             pod install
             cd ../../..
 
@@ -91,7 +90,7 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/TwilioVoiceReactNativeExample/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/app/src/e2e-tests-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -100,7 +99,7 @@ commands:
           working_directory: .
           name: Clear detox cache
           command: |
-            cd test/TwilioVoiceReactNativeExample
+            cd test/app
             detox clean-framework-cache
             detox build-framework-cache
             cd ../..
@@ -115,7 +114,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd test/TwilioVoiceReactNativeExample
+            cd test/app
             yarn detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
@@ -144,7 +143,7 @@ commands:
       - run:
           name: Detox Test
           command: |
-            cd test/TwilioVoiceReactNativeExample
+            cd test/app
             yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
@@ -277,7 +276,7 @@ jobs:
           configuration: <<parameters.detox_configuration>>
           artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
-          path: ./test/TwilioVoiceReactNative/test-report.html
+          path: ./test/app/test-report.html
 
   e2e-android:
     executor:
@@ -306,7 +305,7 @@ jobs:
       - run:
           name: "Save Google Services"
           command: |
-            cd test/TwilioVoiceReactNativeExample/android/app
+            cd test/app/android/app
             echo $GOOGLE_SERVICES_JSON > google-services.json
             cd ../../../..
       - detox-build:
@@ -319,12 +318,12 @@ jobs:
           name: "Save Android logs"
           when: always
           command: |
-            cd test/TwilioVoiceReactNativeExample
+            cd test/app
             adb logcat -d > ./detox_artifacts/logcat.txt
             cd ../..
       - store_artifacts:
           when: always
-          path: ./test/TwilioVoiceReactNativeExample/detox_artifacts
+          path: ./test/app/detox_artifacts
 
 
 ###
