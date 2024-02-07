@@ -239,7 +239,7 @@ class ReactNativeArgumentsSerializer {
   private static String rfc822DateTimeFormat(final Date date) {
     // Pre-Android 24 only ISO-822 is supported (RFC-822)
     SimpleDateFormat simpleDateFormat =
-      new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
     return (null != date) ? simpleDateFormat.format(date) : null;
   }
 }

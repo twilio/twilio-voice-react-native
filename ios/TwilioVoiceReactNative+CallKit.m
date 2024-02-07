@@ -488,7 +488,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     NSLocale *locale = [NSLocale currentLocale];
     [formatter setLocale:locale];
-    [formatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss Z"];
+    [formatter setDateFormat:@"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSSZ"];
 
     return [formatter stringFromDate:date];
 }
