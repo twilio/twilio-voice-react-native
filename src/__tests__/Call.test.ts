@@ -340,9 +340,9 @@ describe('Call class', () => {
     describe('.disconnect', () => {
       it('invokes the native module', async () => {
         await new Call(createNativeCallInfo()).disconnect();
-        expect(MockNativeModule.call_disconnect.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid'],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_disconnect).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid']]);
       });
 
       it('returns a Promise<void>', async () => {
@@ -421,7 +421,7 @@ describe('Call class', () => {
     describe('.getStats', () => {
       it('invokes the native module', async () => {
         await new Call(createNativeCallInfo()).getStats();
-        expect(MockNativeModule.call_getStats.mock.calls).toEqual([
+        expect(jest.mocked(MockNativeModule.call_getStats).mock.calls).toEqual([
           ['mock-nativecallinfo-uuid'],
         ]);
       });
@@ -446,7 +446,7 @@ describe('Call class', () => {
           MockNativeEventEmitter.reset();
 
           await new Call(createNativeCallInfo()).hold(doHold);
-          expect(MockNativeModule.call_hold.mock.calls).toEqual([
+          expect(jest.mocked(MockNativeModule.call_hold).mock.calls).toEqual([
             ['mock-nativecallinfo-uuid', doHold],
           ]);
         }
@@ -470,7 +470,7 @@ describe('Call class', () => {
           MockNativeEventEmitter.reset();
 
           await new Call(createNativeCallInfo()).mute(doMute);
-          expect(MockNativeModule.call_mute.mock.calls).toEqual([
+          expect(jest.mocked(MockNativeModule.call_mute).mock.calls).toEqual([
             ['mock-nativecallinfo-uuid', doMute],
           ]);
         }
@@ -491,9 +491,9 @@ describe('Call class', () => {
       it('invokes the native module', async () => {
         const digits = '12345';
         await new Call(createNativeCallInfo()).sendDigits(digits);
-        expect(MockNativeModule.call_sendDigits.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid', digits],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_sendDigits).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid', digits]]);
       });
 
       it('returns a Promise<void>', async () => {
@@ -510,9 +510,9 @@ describe('Call class', () => {
         const score = Call.Score.Three;
 
         await new Call(createNativeCallInfo()).postFeedback(score, issue);
-        expect(MockNativeModule.call_postFeedback.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid', score, issue],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_postFeedback).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid', score, issue]]);
       });
 
       it('returns a Promise<void>', async () => {

@@ -19,7 +19,6 @@ public class MainReactNativeHost extends VoiceApplicationProxy.VoiceReactNativeH
   @Override
   protected List<ReactPackage> getPackages() {
     List<ReactPackage> packages = new PackageList(this).getPackages();
-    packages.addAll(super.getPackages());
     // Packages that cannot be autolinked yet can be added manually here
     // packages.add(new MyReactNativePackage());
     return packages;

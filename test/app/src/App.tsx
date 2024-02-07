@@ -42,7 +42,7 @@ export default function App() {
       <Grid
         gridComponents={[
           [
-            <Text>SDK Version: {String(sdkVersion)}</Text>,
+            <Text testID="sdk_version">SDK Version: {String(sdkVersion)}</Text>,
             <Text>Registered: {String(registered)}</Text>,
           ],
         ]}
@@ -56,11 +56,11 @@ export default function App() {
       <Grid
         gridComponents={[
           [
-            <Text>From: {String(callInfo?.from)}</Text>,
-            <Text>To: {String(callInfo?.to)}</Text>,
+            <Text>Call From: {String(callInfo?.from)}</Text>,
+            <Text>Call To: {String(callInfo?.to)}</Text>,
           ],
-          [<Text>State: {String(callInfo?.state)}</Text>],
-          [<Text>SID: {String(callInfo?.sid)}</Text>],
+          [<Text>Call State: {String(callInfo?.state)}</Text>],
+          [<Text>Call SID: {String(callInfo?.sid)}</Text>],
         ]}
       />
     ),
@@ -72,10 +72,10 @@ export default function App() {
       <Grid
         gridComponents={[
           [
-            <Text>From: {String(recentCallInvite?.from)}</Text>,
-            <Text>To: {String(recentCallInvite?.to)}</Text>,
+            <Text>Call Invite From: {String(recentCallInvite?.from)}</Text>,
+            <Text>Call Invite To: {String(recentCallInvite?.to)}</Text>,
           ],
-          [<Text>Call SID: {String(recentCallInvite?.callSid)}</Text>],
+          [<Text>Call Invite SID: {String(recentCallInvite?.callSid)}</Text>],
         ]}
       />
     ),
@@ -119,7 +119,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.expand}>
       <View style={styles.padded}>
-        <Text>App Info</Text>
+        <Text testID="app_info">App Info</Text>
         {headerComponent}
       </View>
       <View style={styles.padded}>

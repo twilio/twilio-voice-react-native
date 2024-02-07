@@ -1,4 +1,4 @@
-import type { EventSubscriptionVendor } from 'react-native';
+import type { NativeModulesStatic } from 'react-native';
 import type { Call } from '../Call';
 import type { CallInvite } from '../CallInvite';
 import type { NativeAudioDevicesInfo } from './AudioDevice';
@@ -7,7 +7,16 @@ import type { NativeCallInviteInfo } from './CallInvite';
 import type { Uuid } from './common';
 import type { RTCStats } from './RTCStats';
 
-export interface TwilioVoiceReactNative extends EventSubscriptionVendor {
+export interface TwilioVoiceReactNative extends NativeModulesStatic {
+  /**
+   * Native types.
+   *
+   * The following event related functions are required by the React Native
+   * bindings.
+   */
+  addListener: (eventType: string) => void;
+  removeListeners: (count: number) => void;
+
   /**
    * Call bindings.
    */

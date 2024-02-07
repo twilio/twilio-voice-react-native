@@ -1,6 +1,12 @@
 version: 2.1
 
 ###
+# Orbs
+###
+orbs:
+  android: circleci/android@2.3.0
+
+###
 # Parameters
 ###
 parameters:
@@ -14,17 +20,28 @@ parameters:
     type: string
     default: "echo \"no release-command specified\""
 
+###
+# Executors
+###
 executors:
   default:
     docker:
-      - image: cimg/node:lts
+      - image: cimg/node:18.19
     working_directory: ~/project
+  ios-executor:
+    macos:
+      xcode: "14.3.1"
+      resource_class: macos.m1.medium.gen1
 
+###
+# Commands
+###
 commands:
   attach_project:
     steps:
       - attach_workspace:
           at: ~/project
+
   install-dependencies:
     steps:
       - run:
@@ -34,6 +51,7 @@ commands:
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
+
   setup-pods:
     description: Setup pods used for ios builds
     steps:
@@ -44,7 +62,9 @@ commands:
       - run:
           name: Install cocoapods if cache does not exist
           command: |
-            cd test/app/ios && pod install && cd ../../..
+            cd test/app/ios
+            pod install
+            cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -54,13 +74,24 @@ commands:
           command: |
             HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
             HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
-  setup-e2e-creds:
-    description: "Decode account credentials for e2e tests"
+
+  generate-client-identity:
+    description: "Generate a client id"
     steps:
       - run:
-          name: "Decode creds"
+          name: "Generate client id"
           command: |
-            echo "export const token ='$(curl $ACCESS_TOKEN_URL)'" >> test/app/src/e2e-tests-token.ts
+            export CLIENT_IDENTITY=client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
+            echo "export CLIENT_IDENTITY=$CLIENT_IDENTITY" >> "$BASH_ENV"
+
+  setup-e2e-creds:
+    description: "Generate an access token for e2e tests"
+    steps:
+      - run:
+          name: "Generate access token"
+          command: |
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/app/src/e2e-tests-token.ts
+
   clear-detox-cache:
     description: "Clears detox framework cache"
     steps:
@@ -72,6 +103,7 @@ commands:
             detox clean-framework-cache
             detox build-framework-cache
             cd ../..
+
   detox-build:
     description: Builds the app with given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -86,6 +118,7 @@ commands:
             yarn detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
+
   detox-test:
     description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
     parameters:
@@ -114,6 +147,9 @@ commands:
             yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
+###
+# Jobs
+###
 jobs:
   cache-install-dependencies:
     executor: default
@@ -218,9 +254,8 @@ jobs:
             - run: << pipeline.parameters.release_command >>
 
   e2e-ios:
-    macos:
-      xcode: "12.5.1"
-    resource_class: macos.x86.medium.gen2
+    executor:
+      name: ios-executor
     parameters:
       detox_configuration:
         type: string
@@ -229,8 +264,9 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup-e2e-creds
       - install-dependencies
+      - generate-client-identity
+      - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
       # run E2E tests
@@ -241,6 +277,54 @@ jobs:
           artifacts: <<parameters.artifacts_location>>
       - store_artifacts:
           path: ./test/app/test-report.html
+
+  e2e-android:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 2023.07.1
+    parameters:
+      detox_configuration:
+        type: string
+    steps:
+      - checkout
+      - install-dependencies
+      - generate-client-identity
+      - setup-e2e-creds
+      - android/create-avd:
+          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
+          install: true
+          system-image: system-images;android-29;google_apis;x86_64
+          additional-args: --device pixel_4
+      - android/start-emulator:
+          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
+          memory: 8192
+          post-emulator-launch-assemble-command: ""
+          restore-gradle-cache-post-emulator-launch: false
+          wait-for-emulator: true
+      - run:
+          name: "Save Google Services"
+          command: |
+            cd test/app/android/app
+            echo $GOOGLE_SERVICES_JSON > google-services.json
+            cd ../../../..
+      - detox-build:
+          configuration: <<parameters.detox_configuration>>
+      - detox-test:
+          configuration: <<parameters.detox_configuration>>
+          artifacts: ./detox_artifacts
+          screenshots: all
+      - run:
+          name: "Save Android logs"
+          when: always
+          command: |
+            cd test/app
+            adb logcat -d > ./detox_artifacts/logcat.txt
+            cd ../..
+      - store_artifacts:
+          when: always
+          path: ./test/app/detox_artifacts
+
 
 ###
 # Workflows
@@ -275,9 +359,13 @@ workflows:
           requires:
             - cache-install-dependencies
       - e2e-ios:
-          detox_configuration: ios.release
-          requires:
-            - cache-install-dependencies
+          context:
+            - vblocks-js
+          detox_configuration: ios.sim.release
+      - e2e-android:
+          context:
+            - vblocks-js
+          detox_configuration: android.emu.release
 
   ###
   # Release workflow
