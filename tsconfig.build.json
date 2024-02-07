@@ -1,5 +1,5 @@
 
 {
   "extends": "./tsconfig",
-  "exclude": ["test/app"]
+  "exclude": ["test/app", "test/TwilioVoiceReactNativeExample"]
 }

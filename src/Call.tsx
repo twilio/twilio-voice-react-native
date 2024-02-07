@@ -849,43 +849,43 @@ export namespace Call {
   export enum Event {
     /**
      * Event string for the `Connected` event.
-     * See {@link (Call:interface).(addListener:2)}.
+     * See {@link (Call:interface).(addListener:1)}.
      */
     'Connected' = 'connected',
 
     /**
      * Event string for the `ConnectedFailure` event.
-     * See {@link (Call:interface).(addListener:3)}.
+     * See {@link (Call:interface).(addListener:2)}.
      */
     'ConnectFailure' = 'connectFailure',
 
     /**
      * Event string for the `Reconnecting` event.
-     * See {@link (Call:interface).(addListener:4)}.
+     * See {@link (Call:interface).(addListener:3)}.
      */
     'Reconnecting' = 'reconnecting',
 
     /**
      * Event string for the `Reconnected` event.
-     * See {@link (Call:interface).(addListener:5)}.
+     * See {@link (Call:interface).(addListener:4)}.
      */
     'Reconnected' = 'reconnected',
 
     /**
      * Event string for the `Disconnected` event.
-     * See {@link (Call:interface).(addListener:6)}.
+     * See {@link (Call:interface).(addListener:5)}.
      */
     'Disconnected' = 'disconnected',
 
     /**
      * Event string for the `Ringing` event.
-     * See {@link (Call:interface).(addListener:7)}.
+     * See {@link (Call:interface).(addListener:6)}.
      */
     'Ringing' = 'ringing',
 
     /**
      * Event string for the `QualityWarningsChanged` event.
-     * See {@link (Call:interface).(addListener:8)}.
+     * See {@link (Call:interface).(addListener:7)}.
      */
     'QualityWarningsChanged' = 'qualityWarningsChanged',
   }
@@ -895,35 +895,46 @@ export namespace Call {
    */
   export enum State {
     /**
-     * Call `Connected` state. Occurs when the `Connected` event is raised.
+     * Call `Connected` state.
+     *
+     * Occurs when the `Connected` and `Reconnected` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:2)}.
+     *
+     * See {@link (Call:interface).(addListener:1)}.
+     *
+     * See {@link (Call:interface).(addListener:4)}.
      */
     'Connected' = Constants.CallStateConnected,
 
     /**
-     * Call `Connecting` state. Occurs when the `Connecting` event is raised.
+     * Call `Connecting` state.
      *
-     * @remarks
-     * See {@link (Call:interface).(addListener:3)}.
+     * The default state of an outgoing call.
      */
     'Connecting' = Constants.CallStateConnecting,
 
     /**
-     * Call `Disconnected` state. Occurs when the `Disconnected` event is
-     * raised.
+     * Call `Disconnected` state.
+     *
+     * Occurs when the `Disconnected` or `ConnectFailure` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:4)}.
+     *
+     * See {@link (Call:interface).(addListener:5)}.
+     *
+     * See {@link (Call:interface).(addListener:2)}.
      */
     'Disconnected' = Constants.CallStateDisconnected,
 
     /**
-     * Call `Reconnecting` state. Occurs when the `Reconnecting` event is raised.
+     * Call `Reconnecting` state.
+     *
+     * Occurs when the `Reconnecting` event is raised.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:5)}.
+     *
+     * See {@link (Call:interface).(addListener:3)}.
      */
     'Reconnecting' = Constants.CallStateReconnecting,
 
@@ -931,6 +942,7 @@ export namespace Call {
      * Call `Ringing` state. Occurs when the `Ringing` event is raised.
      *
      * @remarks
+     *
      * See {@link (Call:interface).(addListener:6)}.
      */
     'Ringing' = Constants.CallStateRinging,
@@ -1056,21 +1068,12 @@ export namespace Call {
    */
   export namespace Listener {
     /**
-     * Generic event listener. This should be the function signature of any
-     * event listener bound to any call event.
-     *
-     * @remarks
-     * See {@link (Call:interface).(addListener:1)}.
-     */
-    export type Generic = (...args: any[]) => void;
-
-    /**
      * Connected event listener. This should be the function signature of any
      * event listener bound to the {@link (Call:namespace).Event.Connected}
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:2)}.
+     * See {@link (Call:interface).(addListener:1)}.
      */
     export type Connected = () => void;
 
@@ -1080,7 +1083,7 @@ export namespace Call {
      * {@link (Call:namespace).Event.ConnectFailure} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:3)}.
+     * See {@link (Call:interface).(addListener:2)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1092,7 +1095,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:4)}.
+     * See {@link (Call:interface).(addListener:3)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1104,7 +1107,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:5)}.
+     * See {@link (Call:interface).(addListener:4)}.
      */
     export type Reconnected = () => void;
 
@@ -1114,7 +1117,7 @@ export namespace Call {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:6)}.
+     * See {@link (Call:interface).(addListener:5)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1125,7 +1128,7 @@ export namespace Call {
      * event listener bound to the {@link (Call:namespace).Event.Ringing} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:7)}.
+     * See {@link (Call:interface).(addListener:6)}.
      */
     export type Ringing = () => void;
 
@@ -1135,11 +1138,20 @@ export namespace Call {
      * {@link (Call:namespace).Event.QualityWarningsChanged} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:8)}.
+     * See {@link (Call:interface).(addListener:7)}.
      */
     export type QualityWarningsChanged = (
       currentQualityWarnings: Call.QualityWarning[],
       previousQualityWarnings: Call.QualityWarning[]
     ) => void;
+
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any call event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addListener:8)}.
+     */
+    export type Generic = (...args: any[]) => void;
   }
 }

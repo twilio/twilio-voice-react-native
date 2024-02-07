@@ -978,61 +978,99 @@ export namespace Voice {
   export enum Event {
     /**
      * Raised when there is a change in available audio devices.
-     * See {@link (Voice:interface).(addListener:2)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:1)
      * | Voice.addListener(AudioDevicesUpdated)}.
      */
     'AudioDevicesUpdated' = 'audioDevicesUpdated',
+
     /**
      * Raised when there is an incoming call invite.
-     * See {@link (Voice:interface).(addListener:3)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:2)
      * | Voice.addListener(CallInvite)}.
      */
     'CallInvite' = 'callInvite',
+
     /**
      * Raised when an incoming call invite has been accepted.
+     *
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
-     * See {@link (Voice:interface).(addListener:4)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:3)
      * | Voice.addListener(CallInviteAccepted)}.
      */
     'CallInviteAccepted' = 'callInviteAccepted',
+
     /**
      * Raised when the notification for an incoming call invite has been tapped.
+     *
      * This event is raised only from the native layer, through the push
      * notification.
-     * See {@link (Voice:interface).(addListener:5)}
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:4)}
      */
     'CallInviteNotificationTapped' = 'callInviteNotificationTapped',
+
     /**
      * Raised when an incoming call invite has been rejected.
+     *
      * This event can be raised either through the SDK or outside of the SDK
      * (i.e. through native UI/UX such as push notifications).
-     * See {@link (Voice:interface).(addListener:6)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:5)
      * | Voice.addListener(CallInviteRejected)}.
      */
     'CallInviteRejected' = 'callInviteRejected',
+
     /**
      * Raised when an incoming call invite has been cancelled, thus invalidating
      * the associated call invite.
-     * See {@link (Voice:interface).(addListener:7)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:6)
      * | Voice.addListener(CancelledCallInvite)}.
      */
     'CancelledCallInvite' = 'cancelledCallInvite',
+
     /**
      * Raised when the SDK encounters an error.
-     * See {@link (Voice:interface).(addListener:8)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:7)
      * | Voice.addListener(Error)}.
      */
     'Error' = 'error',
+
     /**
      * Raised when the SDK is registered for incoming calls.
-     * See {@link (Voice:interface).(addListener:9)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:8)
      * | Voice.addListener(Registered)}.
      */
     'Registered' = 'registered',
+
     /**
      * Raised when the SDK is unregistered for incoming calls.
-     * See {@link (Voice:interface).(addListener:10)
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:9)
      * | Voice.addListener(Unregistered)}.
      */
     'Unregistered' = 'unregistered',
@@ -1044,21 +1082,13 @@ export namespace Voice {
    */
   export namespace Listener {
     /**
-     * Generic event listener. This should be the function signature of any
-     * event listener bound to any voice event.
-     *
-     * @remarks
-     * See {@link (Voice:interface).(addListener:1)}.
-     */
-    export type Generic = (...args: any[]) => void;
-
-    /**
      * Audio devices updated event listener. This should be the function
      * signature of an event listener bound to the
      * {@link (Voice:namespace).Event.AudioDevicesUpdated} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:2)}.
+     *
+     * See {@link (Voice:interface).(addListener:1)}.
      */
     export type AudioDevicesUpdated = (
       audioDevices: AudioDevice[],
@@ -1071,7 +1101,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInvite} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:3)}.
+     *
+     * See {@link (Voice:interface).(addListener:2)}.
      */
     export type CallInvite = (callInvite: CallInvite) => void;
 
@@ -1081,7 +1112,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInviteAccepted} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:4)}.
+     *
+     * See {@link (Voice:interface).(addListener:3)}.
      */
     export type CallInviteAccepted = (
       callInvite: CallInvite,
@@ -1094,7 +1126,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInviteNotificationTapped} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:5)}.
+     *
+     * See {@link (Voice:interface).(addListener:4)}.
      */
     export type CallInviteNotificationTapped = () => void;
 
@@ -1104,7 +1137,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CallInviteRejected} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:6)}.
+     *
+     * See {@link (Voice:interface).(addListener:5)}.
      */
     export type CallInviteRejected = (callInvite: CallInvite) => void;
 
@@ -1114,7 +1148,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.CancelledCallInvite} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:7)}.
+     *
+     * See {@link (Voice:interface).(addListener:6)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1129,7 +1164,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Error} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:8)}.
+     *
+     * See {@link (Voice:interface).(addListener:7)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1141,7 +1177,8 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Registered} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:9)}.
+     *
+     * See {@link (Voice:interface).(addListener:8)}.
      */
     export type Registered = () => void;
 
@@ -1151,8 +1188,19 @@ export namespace Voice {
      * {@link (Voice:namespace).Event.Unregistered} event.
      *
      * @remarks
-     * See {@link (Voice:interface).(addListener:10)}.
+     *
+     * See {@link (Voice:interface).(addListener:9)}.
      */
     export type Unregistered = () => void;
+
+    /**
+     * Generic event listener. This should be the function signature of any
+     * event listener bound to any voice event.
+     *
+     * @remarks
+     *
+     * See {@link (Voice:interface).(addListener:10)}.
+     */
+    export type Generic = (...args: any[]) => void;
   }
 }
