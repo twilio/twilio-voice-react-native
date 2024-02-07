@@ -17,8 +17,6 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 #### iOS
 - The call connected timestamp is now in RFC-822 format.
 
-Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in this version are the following.
-
 1.0.0-beta.4 (Jan 11, 2024)
 ===========================
 
