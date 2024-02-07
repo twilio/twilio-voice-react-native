@@ -782,6 +782,23 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
     }
 }
 
+RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
+                  content:(NSString *)content
+                  contentType:(NSString *)contentType
+                  messageType:(NSString *)messageType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    TVOCall *call = self.callMap[uuid];
+    if (call) {
+        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        [call sendMessage:callMessage];
+        resolve(nil)
+    } else {
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
+}
+
 RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
                   score:(NSUInteger)score
                   issue:(NSString *)issue
