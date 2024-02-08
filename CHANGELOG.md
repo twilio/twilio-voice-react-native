@@ -6,6 +6,14 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 ## Changes
 
 - Fixed and improved the docstrings for the `Voice` and `Call` listeners. The descriptions of the events and listeners should now point to the correct docstrings.
+- The API for `call.getInitialConnectedTimestamp()` has now changed.
+  Please see the API documentation for details.
+  The method `call.getInitialConnectedTimestamp()` now returns a `Date` object.
+  ```ts
+  const call = voice.connect(...);
+  const date = call.getInitialConnectedTimestamp();
+  const millisecondsSinceEpoch = date.getTime();
+  ```
 
 ## Fixes
 
