@@ -308,7 +308,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)callDidConnect:(TVOCall *)call {
-    self.callConnectMap[call.uuid.UUIDString] = [self getRFC822FormattedTimestamp:[NSDate date]];
+    self.callConnectMap[call.uuid.UUIDString] = [self getSimplifiedISO8601FormattedTimestamp:[NSDate date]];
 
     [self stopRingback];
 
@@ -484,7 +484,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     }
 }
 
-- (NSString *)getRFC822FormattedTimestamp:(NSDate *)date {
+- (NSString *)getSimplifiedISO8601FormattedTimestamp:(NSDate *)date {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     NSLocale *locale = [NSLocale currentLocale];
     [formatter setLocale:locale];

@@ -158,7 +158,7 @@ class ReactNativeArgumentsSerializer {
       new Pair<>(CallInfoIsMuted, callRecord.getVoiceCall().isMuted()),
       new Pair<>(CallInfoIsOnHold, callRecord.getVoiceCall().isOnHold()),
       new Pair<>(CallInviteInfoCustomParameters, serializeCallInviteCustomParameters(callRecord.getCallInvite())),
-      new Pair<>(CallInfoInitialConnectedTimestamp, rfc822DateTimeFormat(callRecord.getTimestamp()))
+      new Pair<>(CallInfoInitialConnectedTimestamp, simplifiedISO8601DateTimeFormat(callRecord.getTimestamp()))
     );
     return callInfo;
   }
@@ -236,8 +236,7 @@ class ReactNativeArgumentsSerializer {
     return previousWarningsArray;
   }
 
-  private static String rfc822DateTimeFormat(final Date date) {
-    // Pre-Android 24 only ISO-822 is supported (RFC-822)
+  private static String simplifiedISO8601DateTimeFormat(final Date date) {
     SimpleDateFormat simpleDateFormat =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
     return (null != date) ? simpleDateFormat.format(date) : null;
