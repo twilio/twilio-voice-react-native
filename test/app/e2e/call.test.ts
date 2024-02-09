@@ -47,19 +47,49 @@ describe('call', () => {
   }
 
   if (device.getPlatform() === 'android') {
-    it('should make an outgoing call and then disconnect', async () => {
-      await element(by.text('CONNECT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+    describe('outgoing call', () => {
+      it('should make an outgoing call and then disconnect', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
+
+      it('should log a constant-audio-input-level quality warning', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 15 seconds
+        await new Promise((r) => setTimeout(r, 15000));
+
+        const eventLogAttr = await element(by.id('event_log')).getAttributes();
+        if (!('label' in eventLogAttr) || !eventLogAttr.label) {
+          throw new Error('cannot parse event log label');
+        }
+        const searchString =
+          'qualityWarningsChanged\n' +
+          JSON.stringify(
+            [['constant-audio-input-level'], []],
+            null,
+            2
+          );
+        expect(eventLogAttr.label.includes(searchString)).toBeTruthy();
+
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
     });
 
     it('should receive an incoming call and then disconnect', async () => {
