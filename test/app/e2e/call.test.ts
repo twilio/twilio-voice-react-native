@@ -1,5 +1,6 @@
 import { device, element, by, waitFor } from 'detox';
 import twilio from 'twilio';
+import { expect as jestExpect } from 'expect';
 
 const DEFAULT_TIMEOUT = 10000;
 
@@ -83,7 +84,7 @@ describe('call', () => {
             null,
             2
           );
-        expect(eventLogAttr.label.includes(searchString)).toBeTruthy();
+        jestExpect(eventLogAttr.label.includes(searchString)).toBeTruthy();
 
         await element(by.text('DISCONNECT')).tap();
         await waitFor(element(by.text('Call State: disconnected')))
