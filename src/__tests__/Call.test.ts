@@ -1,5 +1,6 @@
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
+import { createNativeErrorInfo } from '../__mocks__/Error';
 import { createStatsReport } from '../__mocks__/RTCStats';
 import { Call } from '../Call';
 import { NativeEventEmitter, NativeModule } from '../common';
@@ -389,9 +390,19 @@ describe('Call class', () => {
     describe('.getInitialConnectedTimestamp', () => {
       it('gets the timestamp', () => {
         const nativeInfo = createNativeCallInfo();
-        nativeInfo.initialConnectedTimestamp = 12321;
+        nativeInfo.initialConnectedTimestamp = '2024-02-01T16:31:47.498-0800';
         const call = new Call(nativeInfo);
-        expect(call.getInitialConnectedTimestamp()).toBe(12321);
+        const date = call.getInitialConnectedTimestamp();
+        expect(date).toBeInstanceOf(Date);
+        expect(date?.toISOString()).toEqual('2024-02-02T00:31:47.498Z');
+      });
+
+      it('should return undefined if the timestamp is not yet set', () => {
+        const nativeInfo = createNativeCallInfo();
+        nativeInfo.initialConnectedTimestamp = undefined;
+        const call = new Call(nativeInfo);
+        const date = call.getInitialConnectedTimestamp();
+        expect(date).toBeUndefined();
       });
     });
 
@@ -528,6 +539,44 @@ describe('Call class', () => {
   });
 
   describe('private methods', () => {
+    describe('._handleNativeEvent', () => {
+      it('should not update the initial connected timestamp if undefined', () => {
+        const info = createNativeCallInfo();
+        delete info.initialConnectedTimestamp;
+        const call = new Call(info);
+
+        const infoEv = createNativeCallInfo();
+        delete infoEv.initialConnectedTimestamp;
+        const callEv = {
+          type: Constants.CallEventConnectFailure as const,
+          call: infoEv,
+          error: createNativeErrorInfo(),
+        };
+
+        /* eslint-disable-next-line dot-notation */
+        call['_handleNativeEvent'](callEv);
+
+        expect(call.getInitialConnectedTimestamp()).toBeUndefined();
+      });
+
+      it('should update the initial connected timestamp if defined', () => {
+        const info = createNativeCallInfo();
+        delete info.initialConnectedTimestamp;
+        const call = new Call(info);
+
+        const callEv = {
+          type: Constants.CallEventConnected as const,
+          call: createNativeCallInfo(),
+          error: createNativeErrorInfo(),
+        };
+
+        /* eslint-disable-next-line dot-notation */
+        call['_handleNativeEvent'](callEv);
+
+        expect(call.getInitialConnectedTimestamp()).toBeInstanceOf(Date);
+      });
+    });
+
     /**
      * Invalid event tests.
      */
