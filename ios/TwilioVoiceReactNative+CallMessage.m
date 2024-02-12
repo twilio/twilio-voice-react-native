@@ -18,51 +18,42 @@
 
 #pragma mark - TVOCallMessageDelegate (Call)
 
-- (void)call:(TVOCall *)call didSendMessage:(NSString *)voiceEventSid {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageSent,
-                              kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid}];
-}
-
-- (void)call:(TVOCall *)call 
-didFailToSendMessage:(NSString *)voiceEventSid
-       error:(NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageFailure,
-                              kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid,
-                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
-}
-
-- (void)call:(TVOCall *)call didReceiveMessage:(TVOCallMessage *)callMessage {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
+- (void)messageReceivedForCallSid:(NSString *)callSid message:(TVOCallMessage *)callMessage {
+    NSString *eventScope = [self eventScopeWithCallSid:callSid];
+    if ([eventScope length] == 0) {
+        NSLog(@"TwilioVoiceReactNative error: no call or call-invite with matching Call SID");
+        return;
+    }
+    
+    [self sendEventWithName:eventScope
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageReceived,
                               kTwilioVoiceReactNativeJSEventKeyCallMessageInfo: [self callMessageInfo:callMessage]}];
 }
 
-#pragma mark - TVOCallMessageDelegate (Call Invite)
+- (void)messageSentForCallSid:(NSString *)callSid voiceEventSid:(NSString *)voiceEventSid {
+    NSString *eventScope = [self eventScopeWithCallSid:callSid];
+    if ([eventScope length] == 0) {
+        NSLog(@"TwilioVoiceReactNative error: no call or call-invite with matching Call SID");
+        return;
+    }
 
-- (void)callInvite:(TVOCallInvite *)callInvite didSendMessage:(NSString *)voiceEventSid {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
+    [self sendEventWithName:eventScope
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageSent,
                               kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid}];
 }
 
-- (void)callInvite:(TVOCallInvite *)callInvite 
-didFailToSendMessage:(NSString *)voiceEventSid
-             error:(NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
+- (void)messageFailedForCallSid:(NSString *)callSid voiceEventSid:(NSString *)voiceEventSid error:(NSError *)error {
+    NSString *eventScope = [self eventScopeWithCallSid:callSid];
+    if ([eventScope length] == 0) {
+        NSLog(@"TwilioVoiceReactNative error: no call or call-invite with matching Call SID");
+        return;
+    }
+
+    [self sendEventWithName:eventScope
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageFailure,
                               kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid,
                               kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
-}
-
-- (void)callInvite:(TVOCallInvite *)callInvite
- didReceiveMessage:(TVOCallMessage *)callMessage {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageReceived,
-                              kTwilioVoiceReactNativeJSEventKeyCallMessageInfo: [self callMessageInfo:callMessage]}];
 }
 
 #pragma mark - Utility
@@ -86,6 +77,34 @@ didFailToSendMessage:(NSString *)voiceEventSid
         default:
             return kTwilioVoiceReactNativeUserDefinedMessage;
     }
+}
+
+- (NSString *)eventScopeWithCallSid:(NSString *)callSid {
+    NSString *eventScope = @"";
+
+    NSArray *keys = self.callInviteMap.allKeys;
+    for (NSString *uuid in keys) {
+        TVOCallInvite *callInvite = self.callInviteMap[uuid];
+        if ([callInvite.callSid isEqualToString:callSid]) {
+            eventScope = kTwilioVoiceReactNativeScopeCallInvite;
+            break;
+        }
+    }
+    
+    if ([eventScope length] > 0) {
+        return eventScope;
+    }
+    
+    keys = self.callMap.allKeys;
+    for (NSString *uuid in keys) {
+        TVOCall *call = self.callMap[uuid];
+        if ([call.sid isEqualToString:callSid]) {
+            eventScope = kTwilioVoiceReactNativeScopeCall;
+            break;
+        }
+    }
+    
+    return eventScope;
 }
 
 @end

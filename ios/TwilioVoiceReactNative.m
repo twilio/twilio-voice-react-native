@@ -820,10 +820,13 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-// TODO: check if the call invite map has this uuid.
-
+    TVOCallInvite *callInvite = self.callInviteMap[uuid];
     TVOCall *call = self.callMap[uuid];
-    if (call) {
+    if (callInvite) {
+        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        NSString *voiceEventSid = [callInvite sendMessage:callMessage];
+        resolve(voiceEventSid);
+    } else if (call) {
         TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
         NSString *voiceEventSid = [call sendMessage:callMessage];
         resolve(voiceEventSid);
