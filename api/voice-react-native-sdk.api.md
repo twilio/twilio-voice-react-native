@@ -178,7 +178,7 @@ export class Call extends EventEmitter {
     disconnect(): Promise<void>;
     getCustomParameters(): CustomParameters;
     getFrom(): string | undefined;
-    getInitialConnectedTimestamp(): number | undefined;
+    getInitialConnectedTimestamp(): Date | undefined;
     getSid(): string | undefined;
     getState(): Call.State;
     getStats(): Promise<RTCStats.StatsReport>;
