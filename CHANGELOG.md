@@ -3,12 +3,9 @@
 
 Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in this version are the following.
 
-## Changes
-
-- Fixed and improved the docstrings for the `Voice` and `Call` listeners. The descriptions of the events and listeners should now point to the correct docstrings.
-
 ## Fixes
 
+- Fixed and improved the docstrings for the `Voice` and `Call` listeners. The descriptions of the events and listeners should now point to the correct docstrings.
 - Call quality warning events should now properly pass arguments to listener functions.
 
 1.0.0-beta.4 (Jan 11, 2024)
