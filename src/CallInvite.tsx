@@ -183,6 +183,31 @@ export class CallInvite {
   getTo(): string {
     return this._to;
   }
+
+  /**
+   * Update the caller name displayed in the iOS system incoming call screen.
+   * 
+   * @param newHandle - The new value of the caller's name.
+   * 
+   * @remarks
+   * Unsupported platforms:
+   * - Android
+   *
+   * This API is specific to iOS and unavailable in Android.
+   * 
+   * @returns
+   *  - Resolves when the caller name has been updated.
+   */
+  updateCallerHandle(newHandle: string): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return return NativeModule.callInvite_updateCallerHandle(this._uuid, newHandle);
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
+  }
 }
 
 /**
