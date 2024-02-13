@@ -264,6 +264,7 @@ export class CallInvite {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
+    updateCallerHandle(newHandle: string): Promise<void>;
 }
 
 // @public
