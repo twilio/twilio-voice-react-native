@@ -22,7 +22,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 ### Platform Specific Changes
 
 #### Android
-- Call timestamp now in simplified ISO-8601 format, not stored as a double from epoch
+- Call timestamp now in simplified ISO-8601 format, not stored as a double from epoch.
 
 #### iOS
 - The call connected timestamp is now in simplified ISO-8601 format.
