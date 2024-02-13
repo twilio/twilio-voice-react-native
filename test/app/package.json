@@ -1,32 +1,40 @@
 {
-  "name": "twilio-voice-react-native-example",
-  "description": "Example app for twilio-voice-react-native",
+  "name": "TwilioVoiceReactNativeExample",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "lint": "eslint .",
     "start": "react-native start",
+    "test": "jest",
     "detox:build": "detox build",
     "detox:test": "detox test"
   },
   "dependencies": {
-    "react": "17.0.2",
-    "react-native": "0.66.5"
+    "react": "18.2.0",
+    "react-native": "0.72.9"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.9",
-    "@babel/runtime": "^7.12.5",
-    "@types/jest": "^27.0.2",
-    "babel-plugin-module-resolver": "^4.0.0",
-    "detox": "^19.7.1",
-    "detox-cli": "^19.0.0",
-    "dotenv": "^16.0.3",
-    "jest": "^27.2.4",
-    "jest-circus": "^27.2.4",
-    "jest-html-reporter": "^3.4.1",
-    "jest-junit": "^13.0.0",
-    "metro-react-native-babel-preset": "^0.66.2",
-    "ts-jest": "^28.0.7"
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "@react-native/eslint-config": "^0.72.2",
+    "@react-native/metro-config": "^0.72.11",
+    "@tsconfig/react-native": "^3.0.0",
+    "@types/react": "18.2.48",
+    "@types/react-test-renderer": "^18.0.0",
+    "babel-jest": "^29.2.1",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "detox": "^20.17.0",
+    "eslint": "^8.19.0",
+    "jest": "^29.2.1",
+    "metro-react-native-babel-preset": "0.76.8",
+    "prettier": "^2.4.1",
+    "react-test-renderer": "18.2.0",
+    "typescript": "4.8.4"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }

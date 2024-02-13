@@ -369,7 +369,7 @@ export class Call extends EventEmitter {
   /**
    * Initial `connected` timestamp. Milliseconds since epoch.
    */
-  private _initialConnectedTimestamp?: number;
+  private _initialConnectedTimestamp?: Date;
   /**
    * A boolean representing if the call is currently muted.
    */
@@ -440,7 +440,9 @@ export class Call extends EventEmitter {
     this._to = to;
     this._isMuted = isMuted;
     this._isOnHold = isOnHold;
-    this._initialConnectedTimestamp = initialConnectedTimestamp;
+    this._initialConnectedTimestamp = initialConnectedTimestamp
+      ? new Date(initialConnectedTimestamp)
+      : undefined;
 
     this._nativeEventHandler = {
       /**
@@ -509,7 +511,9 @@ export class Call extends EventEmitter {
       this._state = newState;
     }
     this._from = from;
-    this._initialConnectedTimestamp = initialConnectedTimestamp;
+    this._initialConnectedTimestamp = initialConnectedTimestamp
+      ? new Date(initialConnectedTimestamp)
+      : undefined;
     this._sid = sid;
     this._to = to;
   }
@@ -732,7 +736,7 @@ export class Call extends EventEmitter {
    *  - A `number` representing the timestamp.
    *  - `undefined` if the call has not yet connected.
    */
-  getInitialConnectedTimestamp(): number | undefined {
+  getInitialConnectedTimestamp(): Date | undefined {
     return this._initialConnectedTimestamp;
   }
 

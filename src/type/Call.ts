@@ -8,7 +8,7 @@ export interface NativeCallInfo {
   uuid: Uuid;
   customParameters?: CustomParameters;
   from?: string;
-  initialConnectedTimestamp?: number;
+  [Constants.CallInfoInitialConnectedTimestamp]?: string;
   isMuted?: boolean;
   isOnHold?: boolean;
   sid?: string;
