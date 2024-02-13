@@ -253,7 +253,8 @@ class ReactNativeArgumentsSerializer {
       new Pair<>(CallMessageContentType, callMessage.getMessageContentType()),
       new Pair<>(CallMessageMessageType, callMessage.getMessageType())
     );
-    
+  }
+
   private static String simplifiedISO8601DateTimeFormat(final Date date) {
     SimpleDateFormat simpleDateFormat =
       new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
