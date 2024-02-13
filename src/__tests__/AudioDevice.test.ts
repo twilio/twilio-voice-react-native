@@ -39,9 +39,9 @@ describe('AudioDevice class', () => {
     describe('.select', () => {
       it('invokes the native module', async () => {
         await audioDevice.select();
-        expect(MockNativeModule.voice_selectAudioDevice.mock.calls).toEqual([
-          [createNativeAudioDeviceInfo().uuid],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.voice_selectAudioDevice).mock.calls
+        ).toEqual([[createNativeAudioDeviceInfo().uuid]]);
       });
 
       it('returns a Promise<void>', async () => {

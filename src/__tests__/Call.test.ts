@@ -2,6 +2,7 @@ import { CallMessage } from '../CallMessage';
 import { OutgoingCallMessage } from '../OutgoingCallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
+import { createNativeErrorInfo } from '../__mocks__/Error';
 import { createStatsReport } from '../__mocks__/RTCStats';
 import { Call } from '../Call';
 import { NativeEventEmitter, NativeModule } from '../common';
@@ -356,9 +357,9 @@ describe('Call class', () => {
     describe('.disconnect', () => {
       it('invokes the native module', async () => {
         await new Call(createNativeCallInfo()).disconnect();
-        expect(MockNativeModule.call_disconnect.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid'],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_disconnect).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid']]);
       });
 
       it('returns a Promise<void>', async () => {
@@ -405,9 +406,19 @@ describe('Call class', () => {
     describe('.getInitialConnectedTimestamp', () => {
       it('gets the timestamp', () => {
         const nativeInfo = createNativeCallInfo();
-        nativeInfo.initialConnectedTimestamp = 12321;
+        nativeInfo.initialConnectedTimestamp = '2024-02-01T16:31:47.498-0800';
         const call = new Call(nativeInfo);
-        expect(call.getInitialConnectedTimestamp()).toBe(12321);
+        const date = call.getInitialConnectedTimestamp();
+        expect(date).toBeInstanceOf(Date);
+        expect(date?.toISOString()).toEqual('2024-02-02T00:31:47.498Z');
+      });
+
+      it('should return undefined if the timestamp is not yet set', () => {
+        const nativeInfo = createNativeCallInfo();
+        nativeInfo.initialConnectedTimestamp = undefined;
+        const call = new Call(nativeInfo);
+        const date = call.getInitialConnectedTimestamp();
+        expect(date).toBeUndefined();
       });
     });
 
@@ -437,7 +448,7 @@ describe('Call class', () => {
     describe('.getStats', () => {
       it('invokes the native module', async () => {
         await new Call(createNativeCallInfo()).getStats();
-        expect(MockNativeModule.call_getStats.mock.calls).toEqual([
+        expect(jest.mocked(MockNativeModule.call_getStats).mock.calls).toEqual([
           ['mock-nativecallinfo-uuid'],
         ]);
       });
@@ -462,7 +473,7 @@ describe('Call class', () => {
           MockNativeEventEmitter.reset();
 
           await new Call(createNativeCallInfo()).hold(doHold);
-          expect(MockNativeModule.call_hold.mock.calls).toEqual([
+          expect(jest.mocked(MockNativeModule.call_hold).mock.calls).toEqual([
             ['mock-nativecallinfo-uuid', doHold],
           ]);
         }
@@ -486,7 +497,7 @@ describe('Call class', () => {
           MockNativeEventEmitter.reset();
 
           await new Call(createNativeCallInfo()).mute(doMute);
-          expect(MockNativeModule.call_mute.mock.calls).toEqual([
+          expect(jest.mocked(MockNativeModule.call_mute).mock.calls).toEqual([
             ['mock-nativecallinfo-uuid', doMute],
           ]);
         }
@@ -507,9 +518,9 @@ describe('Call class', () => {
       it('invokes the native module', async () => {
         const digits = '12345';
         await new Call(createNativeCallInfo()).sendDigits(digits);
-        expect(MockNativeModule.call_sendDigits.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid', digits],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_sendDigits).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid', digits]]);
       });
 
       it('returns a Promise<void>', async () => {
@@ -526,9 +537,9 @@ describe('Call class', () => {
         const score = Call.Score.Three;
 
         await new Call(createNativeCallInfo()).postFeedback(score, issue);
-        expect(MockNativeModule.call_postFeedback.mock.calls).toEqual([
-          ['mock-nativecallinfo-uuid', score, issue],
-        ]);
+        expect(
+          jest.mocked(MockNativeModule.call_postFeedback).mock.calls
+        ).toEqual([['mock-nativecallinfo-uuid', score, issue]]);
       });
 
       it('returns a Promise<void>', async () => {
@@ -556,7 +567,9 @@ describe('Call class', () => {
 
         await new Call(createNativeCallInfo()).sendMessage(message);
 
-        expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
+        expect(
+          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+        ).toEqual([
           [
             'mock-nativecallinfo-uuid',
             JSON.stringify(content),
@@ -588,6 +601,44 @@ describe('Call class', () => {
   });
 
   describe('private methods', () => {
+    describe('._handleNativeEvent', () => {
+      it('should not update the initial connected timestamp if undefined', () => {
+        const info = createNativeCallInfo();
+        delete info.initialConnectedTimestamp;
+        const call = new Call(info);
+
+        const infoEv = createNativeCallInfo();
+        delete infoEv.initialConnectedTimestamp;
+        const callEv = {
+          type: Constants.CallEventConnectFailure as const,
+          call: infoEv,
+          error: createNativeErrorInfo(),
+        };
+
+        /* eslint-disable-next-line dot-notation */
+        call['_handleNativeEvent'](callEv);
+
+        expect(call.getInitialConnectedTimestamp()).toBeUndefined();
+      });
+
+      it('should update the initial connected timestamp if defined', () => {
+        const info = createNativeCallInfo();
+        delete info.initialConnectedTimestamp;
+        const call = new Call(info);
+
+        const callEv = {
+          type: Constants.CallEventConnected as const,
+          call: createNativeCallInfo(),
+          error: createNativeErrorInfo(),
+        };
+
+        /* eslint-disable-next-line dot-notation */
+        call['_handleNativeEvent'](callEv);
+
+        expect(call.getInitialConnectedTimestamp()).toBeInstanceOf(Date);
+      });
+    });
+
     /**
      * Invalid event tests.
      */

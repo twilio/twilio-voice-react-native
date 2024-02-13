@@ -53,6 +53,7 @@ export function useCall(logEvent: (event: string) => void) {
       setCallInfo({
         customParameters: call.getCustomParameters(),
         from: call.getFrom(),
+        initialConnectedTimestamp: call.getInitialConnectedTimestamp(),
         isMuted: call.isMuted(),
         isOnHold: call.isOnHold(),
         state: call.getState(),
@@ -62,9 +63,10 @@ export function useCall(logEvent: (event: string) => void) {
 
       Object.values(Call.Event).forEach((callEventName) => {
         call.on(callEventName, async (...callEvent) => {
-          const _callInfo = {
+          const _callInfo: BoundCallInfo = {
             customParameters: call.getCustomParameters(),
             from: call.getFrom(),
+            initialConnectedTimestamp: call.getInitialConnectedTimestamp(),
             isMuted: call.isMuted(),
             isOnHold: call.isOnHold(),
             state: call.getState(),
@@ -74,6 +76,19 @@ export function useCall(logEvent: (event: string) => void) {
           let message = `call event ${_callInfo.sid}: ${callEventName}`;
           if (callEvent.length) {
             message += '\n' + JSON.stringify(callEvent, null, 2);
+          }
+          if (callEventName === Call.Event.Connected) {
+            message +=
+              '\n' +
+              'initial connected timestamp: ' +
+              JSON.stringify(
+                {
+                  iso: _callInfo.initialConnectedTimestamp?.toISOString(),
+                  locale: _callInfo.initialConnectedTimestamp?.toLocaleString(),
+                },
+                null,
+                2
+              );
           }
           logEvent(message);
           setCallInfo(_callInfo);

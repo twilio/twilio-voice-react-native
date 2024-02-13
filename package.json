@@ -27,13 +27,13 @@
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs/api",
     "build:constants": "node ./scripts/generate-constants.js",
-    "build:declaration": "tsc --project tsconfig.declaration.json",
     "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "build:errors": "node ./scripts/errors.js",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
-    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && tsc --noEmit && yarn run check:lint && git diff --exit-code src/error/generated.ts api/",
+    "check:api": "git diff --exit-code src/error/generated.ts api/",
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
@@ -55,11 +55,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@babel/core": "7.23.7",
+    "@babel/preset-env": "7.23.8",
     "@commitlint/config-conventional": "^11.0.0",
     "@microsoft/api-extractor": "^7.25.2",
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/jest": "^28.1.6",
-    "@types/react": "^16.9.19",
+    "@types/react": "18.2.48",
     "@types/react-native": "0.62.13",
     "api-documenter": "github:twilio/api-documenter#v0.0.1",
     "commitlint": "^11.0.0",
@@ -68,11 +70,13 @@
     "eslint-plugin-prettier": "^3.1.3",
     "husky": "^4.2.5",
     "jest": "^28.1.3",
+    "metro-react-native-babel-preset": "0.76.8",
     "pod-install": "^0.1.0",
     "prettier": "^2.0.5",
-    "react": "16.13.1",
-    "react-native": "0.63.4",
+    "react": "18.2.0",
+    "react-native": "0.72.9",
     "react-native-builder-bob": "^0.18.0",
+    "twilio": "^4.21.0",
     "twilio-release-tool": "^1.0.2",
     "typescript": "^4.1.3"
   },
@@ -83,8 +87,8 @@
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
-      "<rootDir>/test/app",
-      "<rootDir>/lib/",
+      "<rootDir>/test",
+      "<rootDir>/lib",
       "<rootDir>/types"
     ]
   },

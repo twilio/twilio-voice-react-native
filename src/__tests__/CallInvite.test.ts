@@ -96,9 +96,9 @@ describe('CallInvite class', () => {
         createNativeCallInviteInfo(),
         CallInvite.State.Pending
       ).accept(acceptOptions);
-      expect(MockNativeModule.callInvite_accept.mock.calls).toEqual([
-        [createNativeCallInviteInfo().uuid, expectation],
-      ]);
+      expect(
+        jest.mocked(MockNativeModule.callInvite_accept).mock.calls
+      ).toEqual([[createNativeCallInviteInfo().uuid, expectation]]);
     });
 
     it('constructs a Call using the info from the native module', async () => {
@@ -164,9 +164,9 @@ describe('CallInvite class', () => {
         createNativeCallInviteInfo(),
         CallInvite.State.Pending
       ).reject();
-      expect(MockNativeModule.callInvite_reject.mock.calls).toEqual([
-        [createNativeCallInviteInfo().uuid],
-      ]);
+      expect(
+        jest.mocked(MockNativeModule.callInvite_reject).mock.calls
+      ).toEqual([[createNativeCallInviteInfo().uuid]]);
     });
 
     (
@@ -213,9 +213,9 @@ describe('CallInvite class', () => {
         createNativeCallInviteInfo(),
         CallInvite.State.Pending
       ).isValid();
-      expect(MockNativeModule.callInvite_isValid.mock.calls).toEqual([
-        [createNativeCallInviteInfo().uuid],
-      ]);
+      expect(
+        jest.mocked(MockNativeModule.callInvite_isValid).mock.calls
+      ).toEqual([[createNativeCallInviteInfo().uuid]]);
     });
 
     it('returns a Promise<boolean>', async () => {
@@ -302,14 +302,16 @@ describe('CallInvite class', () => {
         CallInvite.State.Pending
       ).sendMessage(message);
 
-      expect(MockNativeModule.call_sendMessage.mock.calls).toEqual([
+      expect(jest.mocked(MockNativeModule.call_sendMessage).mock.calls).toEqual(
         [
-          'mock-nativecallinviteinfo-uuid',
-          JSON.stringify(content),
-          contentType,
-          messageType,
-        ],
-      ]);
+          [
+            'mock-nativecallinviteinfo-uuid',
+            JSON.stringify(content),
+            contentType,
+            messageType,
+          ],
+        ]
+      );
     });
 
     it('returns a Promise<OutgoingCallMessage>', async () => {
