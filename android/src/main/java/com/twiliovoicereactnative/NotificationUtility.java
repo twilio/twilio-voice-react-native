@@ -24,6 +24,7 @@ import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationChannelGroupCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
 
 import com.twilio.voice.CallInvite;
 
@@ -43,11 +44,12 @@ class NotificationUtility {
 
   public static Notification createIncomingCallNotification(@NonNull Context context,
                                                             @NonNull final CallRecord callRecord,
-                                                            @NonNull final String channelImportance,
-                                                            boolean fullScreenIntent) {
+                                                            @NonNull final String channelImportance) {
     final int smallIconResId = getSmallIconResource(context);
-    final String title = getDisplayName(callRecord.getCallInvite());
     final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
+    final Person incomingCaller =  new Person.Builder()
+      .setName(getDisplayName(callRecord.getCallInvite()))
+      .build();
 
     Intent foregroundIntent = constructMessage(
       context,
@@ -70,67 +72,25 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
-    RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_notification_incoming);
-    remoteViews.setTextViewText(R.id.notif_title, title);
-    remoteViews.setTextViewText(R.id.notif_content, getContentBanner(context));
-    remoteViews.setOnClickPendingIntent(R.id.button_answer, piAcceptIntent);
-    remoteViews.setOnClickPendingIntent(R.id.button_decline, piRejectIntent);
-
-    NotificationCompat.Builder builder = constructNotificationBuilder(context, channelImportance);
-      builder.setSmallIcon(smallIconResId)
-        .setLargeIcon(icon)
-        .setContentTitle(title)
-        .setContentText(getContentBanner(context))
-        .setCategory(Notification.CATEGORY_CALL)
-        .setAutoCancel(true)
-        .setCustomContentView(remoteViews)
-        .setCustomBigContentView(remoteViews)
-        .setContentIntent(piForegroundIntent);
-    if (fullScreenIntent) {
-      builder.setFullScreenIntent(piForegroundIntent, true);
-    }
-    return builder.build();
+    return  constructNotificationBuilder(context, channelImportance)
+      .setSmallIcon(smallIconResId)
+      .setLargeIcon(icon)
+      .setCategory(Notification.CATEGORY_CALL)
+      .setAutoCancel(true)
+      .setContentIntent(piForegroundIntent)
+      .setFullScreenIntent(piForegroundIntent, true)
+      .addPerson(incomingCaller)
+      .setStyle(NotificationCompat.CallStyle.forIncomingCall(
+        incomingCaller, piRejectIntent, piAcceptIntent))
+      .build();
   }
 
   public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
                                                                              @NonNull final CallRecord callRecord) {
     final int smallIconResId = getSmallIconResource(context);
-    final String title = getDisplayName(callRecord.getCallInvite());
-
-    Intent foregroundIntent = constructMessage(
-      context,
-      Constants.ACTION_PUSH_APP_TO_FOREGROUND,
-      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
-      callRecord.getUuid());
-    PendingIntent pendingIntent = constructPendingIntentForActivity(context, foregroundIntent);
-
-    Intent endCallIntent = constructMessage(
-      context,
-      Constants.ACTION_CALL_DISCONNECT,
-      VoiceNotificationReceiver.class,
-      callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
-
-    RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
-    remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
-    remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
-
-    return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
-      .setSmallIcon(smallIconResId)
-      .setContentTitle(title)
-      .setContentText(getContentBanner(context))
-      .setCategory(Notification.CATEGORY_CALL)
-      .setAutoCancel(false)
-      .setCustomContentView(remoteViews)
-      .setCustomBigContentView(remoteViews)
-      .setContentIntent(pendingIntent)
-      .setFullScreenIntent(pendingIntent, true)
+    final Person activeCaller =  new Person.Builder()
+      .setName(getDisplayName(callRecord.getCallInvite()))
       .build();
-  }
-
-  public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
-                                                                             @NonNull final CallRecord callRecord) {
-    final int smallIconResId = getSmallIconResource(context);
 
     Intent foregroundIntent = constructMessage(
       context,
@@ -146,19 +106,48 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
-    RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.custom_call_in_progress);
-    remoteViews.setTextViewText(R.id.make_call_text, getContentBanner(context));
-    remoteViews.setOnClickPendingIntent(R.id.end_call, piEndCallIntent);
+    return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
+      .setSmallIcon(smallIconResId)
+      .setCategory(Notification.CATEGORY_CALL)
+      .setAutoCancel(false)
+      .setContentIntent(piForegroundIntent)
+      .setFullScreenIntent(piForegroundIntent, true)
+      .setOngoing(true)
+      .addPerson(activeCaller)
+      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent))
+      .build();
+  }
+
+  public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
+                                                                             @NonNull final CallRecord callRecord) {
+    final int smallIconResId = getSmallIconResource(context);
+    final Person activeCaller =  new Person.Builder()
+      .setName("outgoing call")
+      .build();
+
+    Intent foregroundIntent = constructMessage(
+      context,
+      Constants.ACTION_PUSH_APP_TO_FOREGROUND,
+      Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
+      callRecord.getUuid());
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+
+    Intent endCallIntent = constructMessage(
+      context,
+      Constants.ACTION_CALL_DISCONNECT,
+      VoiceNotificationReceiver.class,
+      callRecord.getUuid());
+    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(smallIconResId)
-      .setContentText(getContentBanner(context))
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
-      .setCustomContentView(remoteViews)
-      .setCustomBigContentView(remoteViews)
       .setContentIntent(piForegroundIntent)
       .setFullScreenIntent(piForegroundIntent, true)
+      .setOngoing(true)
+      .addPerson(activeCaller)
+      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent))
       .build();
   }
 
@@ -223,12 +212,14 @@ class NotificationUtility {
   }
 
   private static String getDisplayName(@NonNull CallInvite callInvite) {
-    String title = callInvite.getFrom();
+    final String title = callInvite.getFrom();
     Map<String, String> customParameters = callInvite.getCustomParameters();
     // If "displayName" is passed as a custom parameter in the TwiML application,
     // it will be used as the caller name.
     if (customParameters.get(Constants.DISPLAY_NAME) != null) {
-      title = URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
+      return URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
+    } else if (title.startsWith("client:")) {
+      return title.replaceFirst("client:", "");
     }
     return title;
   }

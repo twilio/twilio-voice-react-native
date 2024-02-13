@@ -121,8 +121,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     Notification notification = NotificationUtility.createIncomingCallNotification(
       context.getApplicationContext(),
       callRecord,
-      VOICE_CHANNEL_HIGH_IMPORTANCE,
-      true);
+      VOICE_CHANNEL_HIGH_IMPORTANCE);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // play ringer sound
@@ -271,8 +270,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     Notification notification = NotificationUtility.createIncomingCallNotification(
       context.getApplicationContext(),
       callRecord,
-      VOICE_CHANNEL_DEFAULT_IMPORTANCE,
-      false);
+      VOICE_CHANNEL_DEFAULT_IMPORTANCE);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop active sound (if any)
