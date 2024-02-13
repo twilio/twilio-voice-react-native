@@ -201,7 +201,7 @@ export class CallInvite {
   updateCallerHandle(newHandle: string): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
-        return return NativeModule.callInvite_updateCallerHandle(this._uuid, newHandle);
+        return NativeModule.callInvite_updateCallerHandle(this._uuid, newHandle);
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`

@@ -202,13 +202,16 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
+    callUpdate.localizedCallerName = handle;
     callUpdate.supportsDTMF = YES;
     callUpdate.supportsHolding = YES;
     callUpdate.supportsGrouping = NO;
     callUpdate.supportsUngrouping = NO;
     callUpdate.hasVideo = NO;
 
-    [self.callKitProvider reportCallWithUUID:[[NSUUID alloc] initWithUUIDString:uuid] updated:callUpdate];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.callKitProvider reportCallWithUUID:[[NSUUID alloc] initWithUUIDString:uuid] updated:callUpdate];
+    });
 }
 
 #pragma mark - CXProviderDelegate
