@@ -134,7 +134,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return;
     } else if ([type isEqualToString:kTwilioVoicePushRegistryNotificationIncomingPushReceived]) {
         NSDictionary *payload = eventBody[kTwilioVoicePushRegistryNotificationIncomingPushPayload];
-        [TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil];
+        [TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil callMessageDelegate:self];
     }
 }
 
@@ -822,13 +822,13 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
 {
     TVOCallInvite *callInvite = self.callInviteMap[uuid];
     TVOCall *call = self.callMap[uuid];
-    if (callInvite) {
-        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
-        NSString *voiceEventSid = [callInvite sendMessage:callMessage];
-        resolve(voiceEventSid);
-    } else if (call) {
+    if (call) {
         TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
         NSString *voiceEventSid = [call sendMessage:callMessage];
+        resolve(voiceEventSid);
+    } else if (callInvite) {
+        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        NSString *voiceEventSid = [callInvite sendMessage:callMessage];
         resolve(voiceEventSid);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);

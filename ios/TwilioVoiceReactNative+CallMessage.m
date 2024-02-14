@@ -19,24 +19,24 @@
 #pragma mark - TVOCallMessageDelegate (Call)
 
 - (void)messageReceivedForCallSid:(NSString *)callSid message:(TVOCallMessage *)callMessage {
-    NSArray *keys = self.callInviteMap.allKeys;
+    NSArray *keys = self.callMap.allKeys;
     for (NSString *uuid in keys) {
-        TVOCallInvite *callInvite = self.callInviteMap[uuid];
-        if ([callInvite.callSid isEqualToString:callSid]) {
-            [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
-                               body:@{kTwilioVoiceReactNativeEventKeyCall: [self callInviteInfo:callInvite],
+        TVOCall *call = self.callMap[uuid];
+        if ([call.sid isEqualToString:callSid]) {
+            [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
+                               body:@{kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                                       kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageReceived,
                                       kTwilioVoiceReactNativeJSEventKeyCallMessageInfo: [self callMessageInfo:callMessage]}];
             return;
         }
     }
     
-    keys = self.callMap.allKeys;
+    keys = self.callInviteMap.allKeys;
     for (NSString *uuid in keys) {
-        TVOCall *call = self.callMap[uuid];
-        if ([call.sid isEqualToString:callSid]) {
-            [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
-                               body:@{kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
+        TVOCallInvite *callInvite = self.callInviteMap[uuid];
+        if ([callInvite.callSid isEqualToString:callSid]) {
+            [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
+                               body:@{kTwilioVoiceReactNativeEventKeyCall: [self callInviteInfo:callInvite],
                                       kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageReceived,
                                       kTwilioVoiceReactNativeJSEventKeyCallMessageInfo: [self callMessageInfo:callMessage]}];
             return;
