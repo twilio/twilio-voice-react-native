@@ -5,11 +5,94 @@
  * See LICENSE in the project root for license information.
  */
 
+import { EventEmitter } from 'eventemitter3';
 import { Call } from './Call';
-import { NativeModule } from './common';
+import { NativeModule, NativeEventEmitter } from './common';
+import { Constants } from './constants';
 import { InvalidStateError } from './error/InvalidStateError';
-import type { NativeCallInviteInfo } from './type/CallInvite';
+import type { NativeVoiceEvent } from './type/Voice';
+import type {
+  NativeCallInviteInfo,
+  NativeCallInviteAcceptedEvent,
+  NativeCallInviteRejectedEvent,
+} from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
+
+/**
+ * Call invite event types.
+ */
+export declare interface CallInvite {
+  /**
+   * ------------
+   * Emit Typings
+   * ------------
+   */
+
+  /** @internal */
+  emit(acceptEvent: CallInvite.Event.Accepted): boolean;
+
+  /** @internal */
+  emit(rejectEvent: CallInvite.Event.Rejected): boolean;
+
+  /** @internal */
+  emit(event: CallInvite.Event): boolean;
+
+  /**
+   * ----------------
+   * Listener Typings
+   * ----------------
+   */
+
+  /**
+   * Accepted event. Raised when the call invite has been accepted.
+   *
+   * @example
+   * ```ts
+   * voice.on(Voice.Event.CallInvite, (callInvite) => {
+   *   callInvite.on(CallInvite.Event.Accepted, () => {
+   *     // the call invite was accepted through either the native layer
+   *     // or the js layer
+   *   });
+   * });
+   * ```
+   *
+   * @remarks
+   *
+   * @param acceptedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The call invite object.
+   */
+  addListener(
+    acceptedEvent: CallInvite.Event.Accepted,
+    listener: CallInvite.Listener.Accepted
+  ): this;
+
+  /**
+   * Rejected event. Raised when the call invite has been rejected.
+   *
+   * @example
+   * ```ts
+   * voice.on(Voice.Event.CallInvite, (callInvite) => {
+   *   callInvite.on(CallInvite.Event.Rejected, () => {
+   *     // the call invite was rejected through either the native layer
+   *     // or the js layer
+   *   });
+   * });
+   * ```
+   *
+   * @remarks
+   *
+   * @param rejectedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The call invite object.
+   */
+  addListener(
+    rejectedEvent: CallInvite.Event.Rejected,
+    listener: CallInvite.Listener.Rejected
+  ): this;
+}
 
 /**
  * Provides access to information about a call invite, including the call
@@ -34,7 +117,7 @@ import type { CustomParameters, Uuid } from './type/common';
  *
  * @public
  */
-export class CallInvite {
+export class CallInvite extends EventEmitter {
   /**
    * The current state of the call invite.
    *
@@ -79,6 +162,8 @@ export class CallInvite {
     { uuid, callSid, customParameters, from, to }: NativeCallInviteInfo,
     state: CallInvite.State
   ) {
+    super();
+
     this._uuid = uuid;
     this._callSid = callSid;
     this._customParameters = { ...customParameters };
@@ -86,7 +171,56 @@ export class CallInvite {
     this._to = to;
 
     this._state = state;
+
+    NativeEventEmitter.addListener(
+      Constants.ScopeVoice,
+      this._handleNativeVoiceEvent
+    );
   }
+
+  /**
+   * This intermediate native voice event handler acts as a "gate", only
+   * executing the actual call invite event handler (such as `Accepted`) if
+   * this call invite object matches the `Uuid` of the call invite that had an
+   * event raised.
+   * @param nativeVoiceEvent - A call event directly from the native layer.
+   */
+  private _handleNativeVoiceEvent = (nativeVoiceEvent: NativeVoiceEvent) => {
+    switch (nativeVoiceEvent.type) {
+      case Constants.VoiceEventCallInviteAccepted:
+        return this._handleCallInviteAccepted(nativeVoiceEvent);
+      case Constants.VoiceEventCallInviteRejected:
+        return this._handleCallInviteRejected(nativeVoiceEvent);
+    }
+  };
+
+  /**
+   * Handle when this call invite is accepted.
+   */
+  private _handleCallInviteAccepted = (
+    nativeCallInviteAcceptedEvent: NativeCallInviteAcceptedEvent
+  ) => {
+    if (nativeCallInviteAcceptedEvent.callInvite.callSid !== this._callSid) {
+      return;
+    }
+
+    this._state = CallInvite.State.Accepted;
+    this.emit(CallInvite.Event.Accepted);
+  };
+
+  /**
+   * Handle when this call invite is rejected.
+   */
+  private _handleCallInviteRejected = (
+    nativeCallInviteRejectedEvent: NativeCallInviteRejectedEvent
+  ) => {
+    if (nativeCallInviteRejectedEvent.callInvite.callSid !== this._callSid) {
+      return;
+    }
+
+    this._state = CallInvite.State.Rejected;
+    this.emit(CallInvite.Event.Rejected);
+  };
 
   /**
    * Accept a call invite. Sets the state of this call invite to
@@ -204,8 +338,63 @@ export namespace CallInvite {
    * An enumeration of {@link (CallInvite:class)} states.
    */
   export enum State {
+    /**
+     * State of a call invite when it has not been acted upon.
+     */
     Pending = 'pending',
+
+    /**
+     * State of a call invite when it has been accepted.
+     */
     Accepted = 'accepted',
+
+    /**
+     * State of a call invite when it has been rejected.
+     */
     Rejected = 'rejected',
+  }
+
+  /**
+   * Enumeration of all event strings emitted by {@link (CallInvite:class)}
+   * objects.
+   */
+  export enum Event {
+    /**
+     * Event string for the `Accepted` event.
+     * See {@link (CallInvite:interface).(addListener:1)}.
+     */
+    Accepted = 'accepted',
+
+    /**
+     * Event string for the `Rejected` event.
+     * See {@link (CallInvite:interface).(addListener:2)}.
+     */
+    Rejected = 'rejected',
+  }
+
+  /**
+   * Listener types for all events emitted by a
+   * {@link (CallInvite:class) | Call invite object.}
+   */
+  export namespace Listener {
+    /**
+     * Accepted event listener. This should be the function signature of any
+     * event listener bound to the {@link (CallInvite:namespace).Event.Accepted}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addListener:1)}.
+     */
+    export type Accepted = () => void;
+
+    /**
+     * Rejected event listener. This should be the function signature of any
+     * event listener bound to the {@link (CallInvite:namespace).Event.Rejected}
+     * event.
+     *
+     * @remarks
+     * See {@link (Call:interface).(addListener:2)}.
+     */
+    export type Rejected = () => void;
   }
 }
