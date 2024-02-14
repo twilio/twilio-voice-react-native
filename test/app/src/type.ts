@@ -15,6 +15,7 @@ export interface BoundCallInfo {
   to?: string;
   state?: Call.State;
   sid?: string;
+  initialConnectedTimestamp?: Date;
   isMuted?: boolean;
   isOnHold?: boolean;
 }

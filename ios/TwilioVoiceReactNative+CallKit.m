@@ -309,9 +309,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)callDidConnect:(TVOCall *)call {
-    NSDate *timestamp = [NSDate date];
-    long long timestampMs = [[NSNumber numberWithDouble:[timestamp timeIntervalSince1970]] doubleValue] * 1000;
-    self.callConnectMap[call.uuid.UUIDString] = [NSNumber numberWithLongLong:timestampMs];
+    self.callConnectMap[call.uuid.UUIDString] = [self getSimplifiedISO8601FormattedTimestamp:[NSDate date]];
 
     [self stopRingback];
 
@@ -485,6 +483,15 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
         default:
             return @"undefined";
     }
+}
+
+- (NSString *)getSimplifiedISO8601FormattedTimestamp:(NSDate *)date {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    NSLocale *locale = [NSLocale currentLocale];
+    [formatter setLocale:locale];
+    [formatter setDateFormat:@"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSSZ"];
+
+    return [formatter stringFromDate:date];
 }
 
 @end

@@ -353,7 +353,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         callInfo[kTwilioVoiceReactNativeCallInfoTo] = call.to;
     }
 
-    NSNumber *initialConnectedTimestamp = self.callConnectMap[call.uuid.UUIDString];
+    NSString *initialConnectedTimestamp = self.callConnectMap[call.uuid.UUIDString];
     if (initialConnectedTimestamp != nil) {
         callInfo[kTwilioVoiceReactNativeCallInfoInitialConnectedTimestamp] = initialConnectedTimestamp;
     }
