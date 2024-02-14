@@ -30,6 +30,8 @@ import com.twilio.voice.VoiceException;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
+import java.util.Objects;
+
 
 public class CallMessageListenerProxy implements Call.CallMessageListener {
   private static final SDKLog logger = new SDKLog(CallMessageListenerProxy.class);
@@ -64,35 +66,28 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   public void onMessageReceived(String callSid, CallMessage callMessage) {
     logger.debug("onMessageReceived");
 
-    for (CallRecord callRecord: getCallRecordDatabase().getCollection()) {
-      if (callRecord.getCallSid() == callSid &&
-        CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
-        // notify JS layer ScopeCallInvite
-        getJSEventEmitter().sendEvent(ScopeCallInvite,
-          constructJSMap(
-            new Pair<>(VoiceEventType, CallEventMessageReceived),
-            new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
-          )
-        );
-        return;
-      }
-    }
+    //final call record
+    final CallRecord callRecord =
+      Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(callSid)));
 
-    for (CallRecord callRecord: getCallRecordDatabase().getCollection()) {
-      if (callRecord.getCallSid() == callSid) {
-        // notify JS layer ScopeCall
-        getJSEventEmitter().sendEvent(ScopeCall,
-          constructJSMap(
-            new Pair<>(VoiceEventType, CallEventMessageReceived),
-            new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-            new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
-          )
-        );
-        return;
-      }
+    if (CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
+      // notify JS layer ScopeCallInvite
+      getJSEventEmitter().sendEvent(ScopeCallInvite,
+        constructJSMap(
+          new Pair<>(VoiceEventType, CallEventMessageReceived),
+          new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
+        )
+      );
+    } else {
+      // notify JS layer ScopeCall
+      getJSEventEmitter().sendEvent(ScopeCall,
+        constructJSMap(
+          new Pair<>(VoiceEventType, CallEventMessageReceived),
+          new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
+          new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
+        )
+      );
     }
-
-    logger.debug(String.format("No match call or callInvite for %s", callSid));
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
