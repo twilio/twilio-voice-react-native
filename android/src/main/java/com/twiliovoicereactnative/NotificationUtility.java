@@ -47,7 +47,7 @@ class NotificationUtility {
                                                             @NonNull final String channelImportance) {
     final int smallIconResId = getSmallIconResource(context);
     final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
-    final Person incomingCaller =  new Person.Builder()
+    final Person incomingCaller = new Person.Builder()
       .setName(getDisplayName(callRecord.getCallInvite()))
       .build();
 
@@ -72,7 +72,7 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
-    return  constructNotificationBuilder(context, channelImportance)
+    return constructNotificationBuilder(context, channelImportance)
       .setSmallIcon(smallIconResId)
       .setLargeIcon(icon)
       .setCategory(Notification.CATEGORY_CALL)
@@ -88,7 +88,7 @@ class NotificationUtility {
   public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
                                                                              @NonNull final CallRecord callRecord) {
     final int smallIconResId = getSmallIconResource(context);
-    final Person activeCaller =  new Person.Builder()
+    final Person activeCaller = new Person.Builder()
       .setName(getDisplayName(callRecord.getCallInvite()))
       .build();
 
@@ -121,7 +121,7 @@ class NotificationUtility {
   public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
                                                                              @NonNull final CallRecord callRecord) {
     final int smallIconResId = getSmallIconResource(context);
-    final Person activeCaller =  new Person.Builder()
+    final Person activeCaller = new Person.Builder()
       .setName("outgoing call")
       .build();
 
