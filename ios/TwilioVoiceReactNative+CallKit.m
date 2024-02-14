@@ -167,6 +167,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:self.accessToken block:^(TVOConnectOptionsBuilder *builder) {
         builder.params = self.twimlParams;
         builder.uuid = uuid;
+        builder.callMessageDelegate = self;
     }];
     TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     if (call) {
