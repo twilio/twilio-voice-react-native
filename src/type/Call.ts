@@ -53,8 +53,8 @@ export type NativeCallQualityWarnings = string[];
 export interface NativeCallQualityWarningsEvent {
   type: Constants.CallEventQualityWarningsChanged;
   call: NativeCallInfo;
-  currentWarnings: NativeCallQualityWarnings;
-  previousWarnings: NativeCallQualityWarnings;
+  [Constants.CallEventCurrentWarnings]: NativeCallQualityWarnings;
+  [Constants.CallEventPreviousWarnings]: NativeCallQualityWarnings;
 }
 
 export type NativeCallEvent =
