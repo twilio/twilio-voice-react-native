@@ -25,6 +25,7 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -46,6 +47,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Pair;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -172,28 +174,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
     logger.debug("Calling voice_connect_android");
-    HashMap<String, String> parsedTwimlParams = new HashMap<>();
-
-    ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
-    while (iterator.hasNextKey()) {
-      String key = iterator.nextKey();
-      ReadableType readableType = twimlParams.getType(key);
-      switch (readableType) {
-        case Boolean:
-          parsedTwimlParams.put(key, String.valueOf(twimlParams.getBoolean(key)));
-          break;
-        case Number:
-          // Can be int or double.
-          parsedTwimlParams.put(key, String.valueOf(twimlParams.getDouble(key)));
-          break;
-        case String:
-          parsedTwimlParams.put(key, twimlParams.getString(key));
-          break;
-        default:
-          logger.warning("Could not convert with key: " + key + ".");
-          break;
-      }
-    }
+    Map<String, String> parsedTwimlParams = unmarshall(twimlParams);
 
     // connect & create call record
     final UUID uuid = UUID.randomUUID();
@@ -489,6 +470,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     }
   }
 
+  @ReactMethod
+  public void voice_handleMessage(ReadableMap message) {
+    logger.debug("voice_handleMessage");
+    final Context activityCtx = getReactApplicationContext();
+    // shutdown service
+    activityCtx.stopService(new Intent(activityCtx, VoiceFirebaseMessagingService.class));
+    // trigger callback
+    Map<String, String> messageMap = unmarshall(message);
+    Voice.handleMessage(
+      getReactApplicationContext().getApplicationContext(),
+      messageMap,
+      new VoiceFirebaseMessagingService());
+  }
+
   Call.Score getScoreFromId (int x) {
     switch(x) {
       case 0:
@@ -547,5 +542,30 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
   private static void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeVoice, event);
+  }
+
+  private static Map<String, String> unmarshall(ReadableMap readableMap) {
+    Map<String, String> parsedMap = new HashMap<>();
+    for (ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+         iterator.hasNextKey(); ) {
+      String key = iterator.nextKey();
+      ReadableType readableType = readableMap.getType(key);
+      switch (readableType) {
+        case Boolean:
+          parsedMap.put(key, String.valueOf(readableMap.getBoolean(key)));
+          break;
+        case Number:
+          // Can be int or double.
+          parsedMap.put(key, String.valueOf(readableMap.getDouble(key)));
+          break;
+        case String:
+          parsedMap.put(key, readableMap.getString(key));
+          break;
+        default:
+          logger.warning("Could not unmarshall with key: " + key + ".");
+          break;
+      }
+    }
+    return parsedMap;
   }
 }
