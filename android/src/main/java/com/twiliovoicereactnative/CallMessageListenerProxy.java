@@ -71,14 +71,18 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
       Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(callSid)));
 
     // notify JS layer ScopeCallInvite or ScopeCall
+    final String event =
+      CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
+      ? ScopeCallInvite : ScopeCall;
+    final WritableMap serializedCallMap =
+      CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
+      ? null : serializeCall(callRecord);
+
     getJSEventEmitter().sendEvent(
-      (CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
-        ? ScopeCallInvite : ScopeCall),
+      event,
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageReceived),
-        new Pair<>(JS_EVENT_KEY_CALL_INFO, (
-          CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState())
-          ? null : serializeCall(callRecord)),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, serializedCallMap),
         new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
       )
     );
