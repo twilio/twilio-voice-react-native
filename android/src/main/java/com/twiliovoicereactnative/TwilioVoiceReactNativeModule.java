@@ -473,15 +473,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void voice_handleMessage(ReadableMap message) {
     logger.debug("voice_handleMessage");
-    final Context activityCtx = getReactApplicationContext();
+    final Context jsContext = getReactApplicationContext();
     // shutdown service
-    activityCtx.stopService(new Intent(activityCtx, VoiceFirebaseMessagingService.class));
+    jsContext.stopService(new Intent(jsContext, VoiceFirebaseMessagingService.class));
     // trigger callback
     Map<String, String> messageMap = unmarshall(message);
     Voice.handleMessage(
       getReactApplicationContext().getApplicationContext(),
       messageMap,
-      new VoiceFirebaseMessagingService());
+      new VoiceFirebaseMessagingService.FirebaseNotificationListener(jsContext));
   }
 
   Call.Score getScoreFromId (int x) {

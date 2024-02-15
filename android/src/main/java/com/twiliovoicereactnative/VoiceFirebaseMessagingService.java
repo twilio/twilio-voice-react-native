@@ -5,6 +5,7 @@ import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
+import android.content.Context;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
@@ -21,7 +22,7 @@ import com.twilio.voice.Voice;
 import java.util.Objects;
 import java.util.UUID;
 
-public class VoiceFirebaseMessagingService extends FirebaseMessagingService implements MessageListener {
+public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   private static final SDKLog logger = new SDKLog(VoiceFirebaseMessagingService.class);
 
   @Override
@@ -29,6 +30,30 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
     logger.log("Refreshed FCM token: " + token);
   }
 
+  static class FirebaseNotificationListener implements MessageListener {
+    private final Context context;
+    FirebaseNotificationListener(Context context) {
+      this.context = context;
+    }
+
+    @Override
+    public void onCallInvite(@NonNull CallInvite callInvite) {
+      final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
+
+      getCallRecordDatabase().add(callRecord);
+      sendMessage(context, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
+    }
+
+    @Override
+    public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite, @Nullable CallException callException) {
+      CallRecord callRecord = Objects.requireNonNull(
+        getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
+
+      callRecord.setCancelledCallInvite(cancelledCallInvite);
+      callRecord.setCallException(callException);
+      sendMessage(context, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
+    }
+  }
   /**
    * Called when message is received.
    *
@@ -51,29 +76,13 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
 
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      if (!Voice.handleMessage(this, remoteMessage.getData(), this)) {
+      if (!Voice.handleMessage(
+        this,
+        remoteMessage.getData(),
+        new FirebaseNotificationListener(this))) {
         logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
       }
     }
-  }
-
-  @Override
-  public void onCallInvite(@NonNull CallInvite callInvite) {
-    final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
-
-    getCallRecordDatabase().add(callRecord);
-    sendMessage(this, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
-  }
-
-  @Override
-  public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
-                                    @Nullable CallException callException) {
-    CallRecord callRecord = Objects.requireNonNull(
-      getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
-
-    callRecord.setCancelledCallInvite(cancelledCallInvite);
-    callRecord.setCallException(callException);
-    sendMessage(this, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
   }
 }
