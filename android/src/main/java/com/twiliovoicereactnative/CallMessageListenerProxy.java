@@ -70,24 +70,18 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     final CallRecord callRecord =
       Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(callSid)));
 
-    if (CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
-      // notify JS layer ScopeCallInvite
-      getJSEventEmitter().sendEvent(ScopeCallInvite,
-        constructJSMap(
-          new Pair<>(VoiceEventType, CallEventMessageReceived),
-          new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
-        )
-      );
-    } else {
-      // notify JS layer ScopeCall
-      getJSEventEmitter().sendEvent(ScopeCall,
-        constructJSMap(
-          new Pair<>(VoiceEventType, CallEventMessageReceived),
-          new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-          new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
-        )
-      );
-    }
+    // notify JS layer ScopeCallInvite or ScopeCall
+    getJSEventEmitter().sendEvent(
+      (CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
+        ? ScopeCallInvite : ScopeCall),
+      constructJSMap(
+        new Pair<>(VoiceEventType, CallEventMessageReceived),
+        new Pair<>(JS_EVENT_KEY_CALL_INFO, (
+          CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState())
+          ? null : serializeCall(callRecord)),
+        new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
+      )
+    );
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
