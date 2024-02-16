@@ -193,9 +193,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
         self.callMap[call.uuid.UUIDString] = call;
     }
 
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteAccepted,
-                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
+    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
+                       body:@{
+                         kTwilioVoiceReactNativeCallInviteEventKeyType: kTwilioVoiceReactNativeCallInviteEventTypeValueAccepted,
+                         kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callInvite.callSid,
+                         kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
 }
 
 #pragma mark - CXProviderDelegate
@@ -223,9 +225,11 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     } else if (self.callInviteMap[action.callUUID.UUIDString]) {
         TVOCallInvite *callInvite = self.callInviteMap[action.callUUID.UUIDString];
         [callInvite reject];
-        [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                           body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteRejected,
-                                  kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
+        [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
+                           body:@{
+                             kTwilioVoiceReactNativeCallInviteEventKeyType: kTwilioVoiceReactNativeCallInviteEventTypeValueRejected,
+                             kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callInvite.callSid,
+                             kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
         [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
     }
     

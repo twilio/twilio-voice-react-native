@@ -14,5 +14,4 @@ export {
   SignalingErrors,
   SIPServerErrors,
   TwiMLErrors,
-  errorsByCode,
 } from './generated';

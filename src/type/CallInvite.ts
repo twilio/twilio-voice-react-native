@@ -2,6 +2,10 @@ import type { Constants } from '../constants';
 import type { CustomParameters, Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
 
+export interface BaseNativeCallInviteEvent {
+  callSid: string;
+}
+
 export interface NativeCallInviteInfo {
   uuid: Uuid;
   callSid: string;
@@ -10,29 +14,28 @@ export interface NativeCallInviteInfo {
   to: string;
 }
 
-export interface NativeCallInviteEvent {
-  type: Constants.VoiceEventCallInvite;
+export interface NativeCallInviteAcceptedEvent
+  extends BaseNativeCallInviteEvent {
+  type: Constants.CallInviteEventTypeValueAccepted;
   callInvite: NativeCallInviteInfo;
 }
 
-export interface NativeCallInviteAcceptedEvent {
-  type: Constants.VoiceEventCallInviteAccepted;
+export interface NativeCallInviteNotificationTappedEvent
+  extends BaseNativeCallInviteEvent {
+  type: Constants.CallInviteEventTypeValueNotificationTapped;
+}
+
+export interface NativeCallInviteRejectedEvent
+  extends BaseNativeCallInviteEvent {
+  type: Constants.CallInviteEventTypeValueRejected;
   callInvite: NativeCallInviteInfo;
 }
 
-export interface NativeCallInviteNotificationTappedEvent {
-  type: Constants.VoiceEventCallInviteNotificationTapped;
-}
-
-export interface NativeCallInviteRejectedEvent {
-  type: Constants.VoiceEventCallInviteRejected;
-  callInvite: NativeCallInviteInfo;
-}
-
-export interface NativeCancelledCallInviteEvent {
-  type: Constants.VoiceEventCallInviteCancelled;
+export interface NativeCallInviteCancelledEvent
+  extends BaseNativeCallInviteEvent {
+  type: Constants.CallInviteEventTypeValueCancelled;
   cancelledCallInvite: NativeCancelledCallInviteInfo;
-  error: NativeErrorInfo;
+  error?: NativeErrorInfo;
 }
 
 export interface NativeCancelledCallInviteInfo {
@@ -40,3 +43,9 @@ export interface NativeCancelledCallInviteInfo {
   from: string;
   to: string;
 }
+
+export type NativeCallInviteEvent =
+  | NativeCallInviteNotificationTappedEvent
+  | NativeCallInviteAcceptedEvent
+  | NativeCallInviteRejectedEvent
+  | NativeCallInviteCancelledEvent;
