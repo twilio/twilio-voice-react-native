@@ -93,35 +93,88 @@ describe('call', () => {
       });
     });
 
-    it('should receive an incoming call and then disconnect', async () => {
-      await register();
+    describe('incoming call', () => {
+      it('should reject an incoming call', async () => {
+        await register();
 
-      const testCall = await twilioClient.calls.create({
-        twiml:
-          '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
-        to: `client:${clientId}`,
-        from: 'detox',
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('REJECT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('REJECT')).tap();
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
       });
 
-      console.log(
-        `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
-      );
+      it('should let an incoming call timeout', async () => {
+        await register();
 
-      await waitFor(element(by.text('ACCEPT')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-      await element(by.text('ACCEPT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="10" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(60000);
+      });
+
+      it('should accept an incoming call', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text('ACCEPT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('ACCEPT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
+
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
     });
   }
 });
