@@ -81,10 +81,10 @@ export const mockCallNativeEvents = {
     nativeEvent: {
       type: Constants.CallEventQualityWarningsChanged,
       call: createNativeCallInfo(),
-      currentWarnings: [
+      [Constants.CallEventCurrentWarnings]: [
         'mock-callqualitywarningschangedevent-nativeevent-currentwarnings',
       ],
-      previousWarnings: [
+      [Constants.CallEventPreviousWarnings]: [
         'mock-callqualitywarningschangedevent-nativeevent-previouswarnings',
       ],
     },
