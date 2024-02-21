@@ -21,18 +21,14 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 
 - The API for Call Invite events has now changed.
 
-  The following events have been removed from the `Voice` class:
-  - `Voice#callInviteAccepted`
-  - `Voice#callInviteRejected`
-  - `Voice#callInviteNotificationTapped`
-  - `Voice#cancelledCallInvite`
+  The following events have been moved from the `Voice` class to the `CallInvite` class:
+  - `Voice#callInviteAccepted` is now `CallInvite#accepted`
+  - `Voice#callInviteRejected` is now `CallInvite#rejected`
+  - `Voice#callInviteNotificationTapped` is now `CallInvite#notificationTapped`
+  - `Voice#cancelledCallInvite` is now `CallInvite#cancelled`
+
   Please see the `Voice` class API documentation [here](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.voice_class.md) for details.
 
-  The following events have been added to the `CallInvite` class:
-  - `CallInvite#accepted`
-  - `CallInvite#rejected`
-  - `CallInvite#notificationTapped`
-  - `CallInvite#cancelled`
   Please see the `CallInvite` class API documentation [here](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.callinvite_class.md) for details.
 
 ### Platform Specific Changes
