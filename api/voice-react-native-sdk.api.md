@@ -284,6 +284,7 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
+    updateCallerHandle(newHandle: string): Promise<void>;
 }
 
 // @public
