@@ -6,10 +6,11 @@
  */
 
 import { Call } from './Call';
-import { NativeModule } from './common';
+import { NativeModule, Platform } from './common';
 import { InvalidStateError } from './error/InvalidStateError';
 import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
+import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 
 /**
  * Provides access to information about a call invite, including the call
@@ -182,6 +183,38 @@ export class CallInvite {
    */
   getTo(): string {
     return this._to;
+  }
+
+  /**
+   * Update the caller name displayed in the iOS system incoming call screen.
+   *
+   * @param newHandle - The new value of the caller's name.
+   *
+   * @remarks
+   * Unsupported platforms:
+   * - Android
+   *
+   * This API is specific to iOS and unavailable in Android. Invoke this method
+   * after the incoming call has been reported to CallKit and before the call
+   * has been accepted. For example, perform an async request to your app server
+   * to fetch the full name of the caller and use this method to replace the
+   * default caller name in `from`.
+   *
+   * @returns
+   *  - Resolves when the caller name has been updated.
+   */
+  async updateCallerHandle(newHandle: string): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        return NativeModule.callInvite_updateCallerHandle(
+          this._uuid,
+          newHandle
+        );
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+        );
+    }
   }
 }
 

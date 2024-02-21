@@ -1,7 +1,7 @@
 import { createNativeCallInfo } from '../__mocks__/Call';
 import { createNativeCallInviteInfo } from '../__mocks__/CallInvite';
 import { CallInvite } from '../CallInvite';
-import { NativeModule } from '../common';
+import { NativeModule, Platform } from '../common';
 
 const MockNativeModule = jest.mocked(NativeModule);
 let MockInvalidStateError: jest.Mock;
@@ -249,6 +249,48 @@ describe('CallInvite class', () => {
       ).getTo();
       expect(typeof to).toBe('string');
       expect(to).toBe(createNativeCallInviteInfo().to);
+    });
+  });
+
+  describe('.updateCallerHandle()', () => {
+    it('should resolve on ios platforms', async () => {
+      const platformSpy = jest
+        .spyOn(Platform, 'OS', 'get')
+        .mockReturnValue('ios');
+      const nativeMethodSpy = jest.spyOn(
+        NativeModule,
+        'callInvite_updateCallerHandle'
+      );
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).updateCallerHandle('foobar')
+      ).resolves.toBeUndefined();
+      expect(platformSpy.mock.calls).toEqual([[]]);
+      expect(nativeMethodSpy.mock.calls).toEqual([
+        ['mock-nativecallinviteinfo-uuid', 'foobar'],
+      ]);
+    });
+
+    it('should reject on android platforms', async () => {
+      const platformSpy = jest
+        .spyOn(Platform, 'OS', 'get')
+        .mockReturnValue('android');
+      const nativeMethodSpy = jest.spyOn(
+        NativeModule,
+        'callInvite_updateCallerHandle'
+      );
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).updateCallerHandle('foobar')
+      ).rejects.toThrowError(
+        'Unsupported platform "android". This method is only supported on iOS.'
+      );
+      expect(platformSpy.mock.calls).toEqual([[], []]);
+      expect(nativeMethodSpy.mock.calls).toEqual([]);
     });
   });
 });

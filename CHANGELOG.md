@@ -28,6 +28,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 
 #### iOS
 - The call connected timestamp is now in simplified ISO-8601 format.
+- A new method `CallInvite.updateCallerHandle()` has been added. Use this method to update the caller's name displayed in the iOS system incoming call UI. This method is specific to iOS and unavailable in Android.
 
 1.0.0-beta.4 (Jan 11, 2024)
 ===========================
