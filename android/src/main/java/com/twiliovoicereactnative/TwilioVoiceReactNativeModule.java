@@ -401,8 +401,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void call_sendMessage(String uuid, String content, String contentType, String messageType, Promise promise) {
-    final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
-    Objects.requireNonNull(callRecord);
+    final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(UUID.fromString(uuid)));
 
     final CallMessage.MessageType _messageType = validateMessageTypeFromString(messageType, promise);
     if (_messageType == null) {
@@ -415,7 +414,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     final CallMessage callMessage = new CallMessage.Builder(_messageType)
       .contentType(_contentType).content(content).build();
-    promise.resolve(callRecord.getVoiceCall().sendMessage(callMessage));
+
+    if (CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
+      promise.resolve(callRecord.getCallInvite().sendMessage(callMessage));
+    } else {
+      promise.resolve(callRecord.getVoiceCall().sendMessage(callMessage));
+    }
   }
 
   // Register/UnRegister
