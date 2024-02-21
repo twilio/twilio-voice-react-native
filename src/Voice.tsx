@@ -9,7 +9,6 @@ import { EventEmitter } from 'eventemitter3';
 import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
-import { CancelledCallInvite } from './CancelledCallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
@@ -52,29 +51,6 @@ export declare interface Voice {
 
   /** @internal */
   emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
-
-  /** @internal */
-  emit(
-    voiceEvent: Voice.Event.CallInviteAccepted,
-    callInvite: CallInvite,
-    call: Call
-  ): boolean;
-
-  /** @internal */
-  emit(voiceEvent: Voice.Event.CallInviteNotificationTapped): boolean;
-
-  /** @internal */
-  emit(
-    voiceEvent: Voice.Event.CallInviteRejected,
-    callInvite: CallInvite
-  ): boolean;
-
-  /** @internal */
-  emit(
-    voiceEvent: Voice.Event.CancelledCallInvite,
-    cancelledCallInvite: CancelledCallInvite,
-    error?: TwilioError
-  ): boolean;
 
   /** @internal */
   emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
@@ -146,126 +122,6 @@ export declare interface Voice {
   ): this;
 
   /**
-   * Call invite accepted event. Raised when a pending incoming call invite has
-   * been accepted.
-   *
-   * @remarks
-   * This event is raised when call invites are accepted outside of the SDK,
-   * i.e. through the native iOS or Android UI.
-   *
-   * @example
-   * ```typescript
-   * voice.addListener(Voice.Event.CallInviteAccepted, (callInvite: CallInvite, call: Call) => {
-   *   // handle the incoming call invite and the call associated with it
-   * });
-   * ```
-   *
-   * @param callInviteAcceptedEvent - The raised event string.
-   * @param listener - A listener function that will be invoked when the event
-   * is raised.
-   * @returns - The call object.
-   */
-  addListener(
-    callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
-    listener: Voice.Listener.CallInviteAccepted
-  ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:3)} */
-  on(
-    callInviteAcceptedEvent: Voice.Event.CallInviteAccepted,
-    listener: Voice.Listener.CallInviteAccepted
-  ): this;
-
-  /**
-   * Call invite notification tapped event. Raised when the body of a push
-   * notification of a pending call invite has been tapped.
-   *
-   * @remarks
-   * Unsupported platforms:
-   * - iOS
-   *
-   * This event is raised by the native layer, i.e. through the native Android
-   * UI.
-   *
-   * This event is never raised when the application is running on the iOS
-   * platform due to CallKit. Attaching a listener while running on an iOS
-   * device is a no-operation, the listener will never be invoked, but no
-   * error will occur.
-   *
-   * @example
-   * ```typescript
-   * voice.addEventListener(Voice.Event.CallInviteNotificationTapped, () => {
-   *   // handle the tapped event
-   *   // for example, your app could navigate to a call invite screen
-   * });
-   * ```
-   */
-  addListener(
-    callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped,
-    listener: Voice.Listener.CallInviteNotificationTapped
-  ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:4)} */
-  on(
-    callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped,
-    listener: Voice.Listener.CallInviteNotificationTapped
-  ): this;
-
-  /**
-   * Call invite rejected event. Raised when a pending incoming call invite has
-   * been rejected.
-   *
-   * @remarks
-   * This event is raised when call invites are rejected outside of the SDK,
-   * i.e. through the native iOS or Android UI.
-   *
-   * @example
-   * ```typescript
-   * voice.addListener(Voice.Event.CallInviteRejected, (callInvite: CallInvite) => {
-   *   // handle the rejection of the incoming call invite
-   * });
-   * ```
-   *
-   * @param callInviteRejectedEvent - The raised event string.
-   * @param listener - A listener function that will be invoked when the event
-   * is raised.
-   * @returns - The call object.
-   */
-  addListener(
-    callInviteRejectedEvent: Voice.Event.CallInviteRejected,
-    listener: Voice.Listener.CallInviteRejected
-  ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:5)} */
-  on(
-    callInviteRejectedEvent: Voice.Event.CallInviteRejected,
-    listener: Voice.Listener.CallInviteRejected
-  ): this;
-
-  /**
-   * Cancelled call invite event. Raised when a pending incoming call invite has
-   * been cancelled and is no longer valid.
-   *
-   * @example
-   * ```typescript
-   * voice.addListener(Voice.Event.CancelledCallInvite, (cancelledCallInvite: CancelledCallInvite) => {
-   *   // handle the cancellation of the incoming call invite
-   * });
-   * ```
-   *
-   * @param cancelledCallInviteEvent - The raised event string.
-   * @param listener - A listener function that will be invoked when the event
-   * is raised.
-   * @returns - The call object.
-   */
-  addListener(
-    cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
-    listener: Voice.Listener.CancelledCallInvite
-  ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:6)} */
-  on(
-    cancelledCallInviteEvent: Voice.Event.CancelledCallInvite,
-    listener: Voice.Listener.CancelledCallInvite
-  ): this;
-
-  /**
    * Error event. Raised when the SDK encounters an error.
    *
    * @example
@@ -284,7 +140,7 @@ export declare interface Voice {
     errorEvent: Voice.Event.Error,
     listener: Voice.Listener.Error
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:7)} */
+  /** {@inheritDoc (Voice:interface).(addListener:3)} */
   on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
 
   /**
@@ -306,7 +162,7 @@ export declare interface Voice {
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:8)} */
+  /** {@inheritDoc (Voice:interface).(addListener:4)} */
   on(
     registeredEvent: Voice.Event.Registered,
     listener: Voice.Listener.Registered
@@ -331,7 +187,7 @@ export declare interface Voice {
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
   ): this;
-  /** {@inheritDoc (Voice:interface).(addListener:9)} */
+  /** {@inheritDoc (Voice:interface).(addListener:5)} */
   on(
     unregisteredEvent: Voice.Event.Unregistered,
     listener: Voice.Listener.Unregistered
@@ -345,7 +201,7 @@ export declare interface Voice {
    * @returns - The call object.
    */
   addListener(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
-  /** {@inheritDoc (Voice:interface).(addListener:10)} */
+  /** {@inheritDoc (Voice:interface).(addListener:6)} */
   on(voiceEvent: Voice.Event, listener: Voice.Listener.Generic): this;
 }
 
@@ -407,13 +263,7 @@ export class Voice extends EventEmitter {
       /**
        * Call Invite
        */
-      [Constants.VoiceEventCallInvite]: this._handleCallInvite,
-      [Constants.VoiceEventCallInviteAccepted]: this._handleCallInviteAccepted,
-      [Constants.VoiceEventCallInviteNotificationTapped]:
-        this._handleCallInviteNotificationTapped,
-      [Constants.VoiceEventCallInviteRejected]: this._handleCallInviteRejected,
-      [Constants.VoiceEventCallInviteCancelled]:
-        this._handleCancelledCallInvite,
+      [Constants.VoiceEventTypeValueIncomingCallInvite]: this._handleCallInvite,
 
       /**
        * Registration
@@ -484,7 +334,9 @@ export class Voice extends EventEmitter {
    * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
    */
   private _handleCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInvite) {
+    if (
+      nativeVoiceEvent.type !== Constants.VoiceEventTypeValueIncomingCallInvite
+    ) {
       throw new Error(
         'Incorrect "voice#callInvite" handler called for type ' +
           `"${nativeVoiceEvent.type}".`
@@ -496,108 +348,6 @@ export class Voice extends EventEmitter {
     const callInvite = new CallInvite(callInviteInfo, CallInvite.State.Pending);
 
     this.emit(Voice.Event.CallInvite, callInvite);
-  };
-
-  /**
-   * Call invite accepted handler. Creates a {@link (CallInvite:class)} and a
-   * {@link (Call:class)} from the info raised by the native layer and emits it.
-   * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
-   */
-  private _handleCallInviteAccepted = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteAccepted) {
-      throw new Error(
-        'Incorrect "voice#callInviteAccepted" handler called for type ' +
-          `"${nativeVoiceEvent.type}".`
-      );
-    }
-
-    const { callInvite: callInviteInfo } = nativeVoiceEvent;
-
-    const callInvite = new CallInvite(
-      callInviteInfo,
-      CallInvite.State.Accepted
-    );
-
-    const callInfo = {
-      uuid: callInviteInfo.uuid,
-      customParameters: callInviteInfo.customParameters,
-      sid: callInviteInfo.callSid,
-      from: callInviteInfo.from,
-      to: callInviteInfo.to,
-    };
-
-    const call = new Call(callInfo);
-
-    this.emit(Voice.Event.CallInviteAccepted, callInvite, call);
-  };
-
-  /**
-   * Call invite rejected handler. Creates a {@link (CallInvite:class)} from the
-   * info raised by the native layer and emits it.
-   * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
-   */
-  private _handleCallInviteRejected = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteRejected) {
-      throw new Error(
-        'Incorrect "voice#callInviteRejected" handler called for type ' +
-          `"${nativeVoiceEvent.type}".`
-      );
-    }
-
-    const { callInvite: callInviteInfo } = nativeVoiceEvent;
-
-    const callInvite = new CallInvite(
-      callInviteInfo,
-      CallInvite.State.Rejected
-    );
-
-    this.emit(Voice.Event.CallInviteRejected, callInvite);
-  };
-
-  /**
-   * Call invite notification tapped handler. This event can be used to
-   * navigate to a call invite screen.
-   * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
-   */
-  private _handleCallInviteNotificationTapped = (
-    nativeVoiceEvent: NativeVoiceEvent
-  ) => {
-    if (
-      nativeVoiceEvent.type !== Constants.VoiceEventCallInviteNotificationTapped
-    ) {
-      throw new Error(
-        'Incorrect "voice#callInviteNotificationTapped" handler called for ' +
-          `type "${nativeVoiceEvent.type}".`
-      );
-    }
-
-    this.emit(Voice.Event.CallInviteNotificationTapped);
-  };
-
-  /**
-   * Call invite cancelled handler. Creates a
-   * {@link (CancelledCallInvite:class)} from the info raised by the native
-   * layer and emits it.
-   * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
-   */
-  private _handleCancelledCallInvite = (nativeVoiceEvent: NativeVoiceEvent) => {
-    if (nativeVoiceEvent.type !== Constants.VoiceEventCallInviteCancelled) {
-      throw new Error(
-        'Incorrect "voice#cancelledCallInvite" handler called for type ' +
-          `"${nativeVoiceEvent.type}".`
-      );
-    }
-
-    const {
-      cancelledCallInvite: cancelledCallInviteInfo,
-      error: { code, message },
-    } = nativeVoiceEvent;
-    const cancelledCallInvite = new CancelledCallInvite(
-      cancelledCallInviteInfo
-    );
-    const error = constructTwilioError(message, code);
-
-    this.emit(Voice.Event.CancelledCallInvite, cancelledCallInvite, error);
   };
 
   /**
@@ -997,60 +747,11 @@ export namespace Voice {
     'CallInvite' = 'callInvite',
 
     /**
-     * Raised when an incoming call invite has been accepted.
-     *
-     * This event can be raised either through the SDK or outside of the SDK
-     * (i.e. through native UI/UX such as push notifications).
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:3)
-     * | Voice.addListener(CallInviteAccepted)}.
-     */
-    'CallInviteAccepted' = 'callInviteAccepted',
-
-    /**
-     * Raised when the notification for an incoming call invite has been tapped.
-     *
-     * This event is raised only from the native layer, through the push
-     * notification.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:4)}
-     */
-    'CallInviteNotificationTapped' = 'callInviteNotificationTapped',
-
-    /**
-     * Raised when an incoming call invite has been rejected.
-     *
-     * This event can be raised either through the SDK or outside of the SDK
-     * (i.e. through native UI/UX such as push notifications).
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:5)
-     * | Voice.addListener(CallInviteRejected)}.
-     */
-    'CallInviteRejected' = 'callInviteRejected',
-
-    /**
-     * Raised when an incoming call invite has been cancelled, thus invalidating
-     * the associated call invite.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:6)
-     * | Voice.addListener(CancelledCallInvite)}.
-     */
-    'CancelledCallInvite' = 'cancelledCallInvite',
-
-    /**
      * Raised when the SDK encounters an error.
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:7)
+     * See {@link (Voice:interface).(addListener:3)
      * | Voice.addListener(Error)}.
      */
     'Error' = 'error',
@@ -1060,7 +761,7 @@ export namespace Voice {
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:8)
+     * See {@link (Voice:interface).(addListener:4)
      * | Voice.addListener(Registered)}.
      */
     'Registered' = 'registered',
@@ -1070,7 +771,7 @@ export namespace Voice {
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:9)
+     * See {@link (Voice:interface).(addListener:5)
      * | Voice.addListener(Unregistered)}.
      */
     'Unregistered' = 'unregistered',
@@ -1107,65 +808,13 @@ export namespace Voice {
     export type CallInvite = (callInvite: CallInvite) => void;
 
     /**
-     * Call invite accepted event listener. This should be the function
-     * signature of an event listener bound to the
-     * {@link (Voice:namespace).Event.CallInviteAccepted} event.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:3)}.
-     */
-    export type CallInviteAccepted = (
-      callInvite: CallInvite,
-      call: Call
-    ) => void;
-
-    /**
-     * Call invite notification tapped event listener. This should be the
-     * function signature of an event listener bound to the
-     * {@link (Voice:namespace).Event.CallInviteNotificationTapped} event.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:4)}.
-     */
-    export type CallInviteNotificationTapped = () => void;
-
-    /**
-     * Call invite rejected event listener. This should be the function
-     * signature of an event listener bound to the
-     * {@link (Voice:namespace).Event.CallInviteRejected} event.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:5)}.
-     */
-    export type CallInviteRejected = (callInvite: CallInvite) => void;
-
-    /**
-     * Call invite cancelled event listener. This should be the function
-     * signature of an event listener bound to the
-     * {@link (Voice:namespace).Event.CancelledCallInvite} event.
-     *
-     * @remarks
-     *
-     * See {@link (Voice:interface).(addListener:6)}.
-     *
-     * See {@link TwilioErrors} for all error classes.
-     */
-    export type CancelledCallInvite = (
-      cancelledCallInvite: CancelledCallInvite,
-      error?: TwilioError
-    ) => void;
-
-    /**
      * Error event listener. This should be the function signature of an event
      * listener bound to the
      * {@link (Voice:namespace).Event.Error} event.
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:7)}.
+     * See {@link (Voice:interface).(addListener:3)}.
      *
      * See {@link TwilioErrors} for all error classes.
      */
@@ -1178,7 +827,7 @@ export namespace Voice {
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:8)}.
+     * See {@link (Voice:interface).(addListener:4)}.
      */
     export type Registered = () => void;
 
@@ -1189,7 +838,7 @@ export namespace Voice {
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:9)}.
+     * See {@link (Voice:interface).(addListener:5)}.
      */
     export type Unregistered = () => void;
 
@@ -1199,7 +848,7 @@ export namespace Voice {
      *
      * @remarks
      *
-     * See {@link (Voice:interface).(addListener:10)}.
+     * See {@link (Voice:interface).(addListener:6)}.
      */
     export type Generic = (...args: any[]) => void;
   }

@@ -5,6 +5,7 @@ ReactNativeVoiceSDKVer=1.0.0-dev
 // Scope names
 ScopeVoice=scopeVoice
 ScopeCall=scopeCall
+ScopeCallInvite=scopeCallInvite
 
 // Voice events
 // Common
@@ -51,12 +52,8 @@ CancelledCallInviteInfoFrom=from
 CancelledCallInviteInfoTo=to
 CancelledCallInviteInfoCustomParameters=customParameters
 
-// Call Invite
-VoiceEventCallInvite=voiceEventCallInvite
-VoiceEventCallInviteAccepted=voiceEventCallInviteAccepted
-VoiceEventCallInviteNotificationTapped=voiceEventCallInviteNotificationTapped
-VoiceEventCallInviteRejected=voiceEventCallInviteRejected
-VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
+// Incoming Call Invite event
+VoiceEventTypeValueIncomingCallInvite=voiceEventTypeValueIncomingCallInvite
 
 // Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated
@@ -70,6 +67,14 @@ AudioDeviceKeySelectedDevice=selectedDevice
 AudioDeviceKeyEarpiece=earpiece
 AudioDeviceKeySpeaker=speaker
 AudioDeviceKeyBluetooth=bluetooth
+
+// CallInvite events
+CallInviteEventKeyType=type
+CallInviteEventTypeValueAccepted=callInviteEventTypeValueCallInviteAccepted
+CallInviteEventTypeValueNotificationTapped=callInviteEventTypeValueCallInviteNotificationTapped
+CallInviteEventTypeValueRejected=callInviteEventTypeValueCallInviteRejected
+CallInviteEventTypeValueCancelled=callInviteEventTypeValueCallInviteCancelled
+CallInviteEventKeyCallSid=callSid
 
 // Call events
 // State

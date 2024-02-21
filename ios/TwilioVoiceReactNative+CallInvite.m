@@ -22,8 +22,9 @@
     [self reportNewIncomingCall:callInvite];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInvite,
-                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
+                       body:@{
+                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventTypeValueIncomingCallInvite,
+                         kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
 }
 
 - (void)cancelledCallInviteReceived:(TVOCancelledCallInvite *)cancelledCallInvite error:(NSError *)error {
@@ -38,11 +39,14 @@
     NSAssert(uuid, @"No matching call invite");
     self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
 
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventCallInviteCancelled,
-                              kTwilioVoiceReactNativeEventKeyCancelledCallInvite: [self cancelledCallInviteInfo:cancelledCallInvite],
-                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
+                       body:@{
+                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallInviteEventTypeValueCancelled,
+                         kTwilioVoiceReactNativeCallInviteEventKeyCallSid: cancelledCallInvite.callSid,
+                         kTwilioVoiceReactNativeEventKeyCancelledCallInvite: [self cancelledCallInviteInfo:cancelledCallInvite],
+                         kTwilioVoiceReactNativeVoiceErrorKeyError: @{
+                           kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
     
     [self.callInviteMap removeObjectForKey:uuid];
     

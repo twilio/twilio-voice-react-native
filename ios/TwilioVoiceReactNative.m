@@ -405,7 +405,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall];
+    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall, kTwilioVoiceReactNativeScopeCallInvite];
 }
 
 + (BOOL)requiresMainQueueSetup

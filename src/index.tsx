@@ -15,7 +15,6 @@ export { Voice } from './Voice';
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';
 export { CallInvite } from './CallInvite';
-export { CancelledCallInvite } from './CancelledCallInvite';
 export { CustomParameters } from './type/common';
 export { CallKit } from './type/CallKit';
 export { RTCStats } from './type/RTCStats';
