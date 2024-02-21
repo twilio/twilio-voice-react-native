@@ -251,7 +251,7 @@ class ReactNativeArgumentsSerializer {
       new Pair<>(VoiceEventSid, callMessage.getVoiceEventSID()),
       new Pair<>(CallMessageContent, callMessage.getContent()),
       new Pair<>(CallMessageContentType, callMessage.getMessageContentType()),
-      new Pair<>(CallMessageMessageType, String.valueOf(callMessage.getMessageType()))
+      new Pair<>(CallMessageMessageType, callMessage.getMessageType().name())
     );
   }
 
