@@ -8,6 +8,12 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 - Fixed and improved the docstrings for the `Voice` and `Call` listeners. The descriptions of the events and listeners should now point to the correct docstrings.
 - Call quality warning events should now properly pass arguments to listener functions.
 
+### Platform Specific Fixes
+
+#### Android
+
+- Receiving an incoming call while your app is backgrounded will no longer crash your application.
+
 ## Changes
 
 - The API for `call.getInitialConnectedTimestamp()` has now changed.
