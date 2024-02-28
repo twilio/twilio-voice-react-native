@@ -4,7 +4,9 @@ package com.twiliovoicereactnative;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 
 import androidx.annotation.NonNull;
@@ -32,11 +34,15 @@ public class VoiceService extends Service {
     }
 
     public void foreground(int id, Notification notification) {
-      VoiceService.this.startForeground(id, notification);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        VoiceService.this.startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      } else {
+        VoiceService.this.startForeground(id, notification);
+      }
     }
 
     public void background() {
-      ServiceCompat.stopForeground(VoiceService.this, ServiceCompat.STOP_FOREGROUND_DETACH);
+      ServiceCompat.stopForeground(VoiceService.this, ServiceCompat.STOP_FOREGROUND_REMOVE);
     }
   }
 
