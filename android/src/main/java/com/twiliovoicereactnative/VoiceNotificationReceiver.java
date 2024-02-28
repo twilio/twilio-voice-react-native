@@ -1,6 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCallSid;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
@@ -32,6 +31,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCancelledCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
@@ -159,10 +159,11 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     AcceptOptions acceptOptions = new AcceptOptions.Builder()
       .enableDscp(true)
       .build();
-    callRecord.setCall(callRecord.getCallInvite().accept(
-      context.getApplicationContext(),
-      acceptOptions,
-      new CallListenerProxy(uuid, context)));
+    callRecord.setCall(
+      getVoiceServiceApi().accept(
+        callRecord.getCallInvite(),
+        acceptOptions,
+        new CallListenerProxy(uuid, context)));
     callRecord.setCallInviteUsedState();
 
     // handle if event spawned from JS
@@ -193,7 +194,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
     // reject call
-    callRecord.getCallInvite().reject(context.getApplicationContext());
+    getVoiceServiceApi().reject(callRecord.getCallInvite());
     callRecord.setCallInviteUsedState();
 
     // handle if event spawned from JS
@@ -305,7 +306,8 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
       == PackageManager.PERMISSION_GRANTED) {
-      notificationManager.notify(notificationId, notification);
+      getVoiceServiceApi().foreground(notificationId, notification);
+      //notificationManager.notify(notificationId, notification);
     } else {
       logger.warning("WARNING: Notification not posted, permission not granted");
     }
@@ -313,6 +315,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
   private static void cancelNotification(Context context, final int notificationId) {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-    notificationManager.cancel(notificationId);
+    getVoiceServiceApi().background();
+    //notificationManager.cancel(notificationId);
   }
 }

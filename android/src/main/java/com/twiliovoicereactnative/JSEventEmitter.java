@@ -14,25 +14,49 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.lang.ref.WeakReference;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 class JSEventEmitter {
   private static final SDKLog logger = new SDKLog(JSEventEmitter.class);
-  private WeakReference<ReactApplicationContext> context;
+  private WeakReference<ReactApplicationContext> context = new WeakReference<>(null);
+  private Queue<JSEventRecord> pendingEventQueue = new LinkedList<>();
+
+  private static class JSEventRecord {
+    public JSEventRecord(String eventName, WritableMap params) {
+      this.eventName = eventName;
+      this.params = params;
+    }
+    public final String eventName;
+    public final WritableMap params;
+  }
 
   public void setContext(ReactApplicationContext context) {
     this.context = new WeakReference<>(context);
   }
   public void sendEvent(String eventName, @Nullable WritableMap params) {
     logger.debug("sendEvent " + eventName + " params " + params);
-
-    if ((null != context.get() && context.get().hasActiveReactInstance())) {
+    if ((null != context.get()) &&
+        pendingEventQueue.isEmpty() &&
+        context.get().hasActiveReactInstance()) {
       context.get()
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
         .emit(eventName, params);
     } else {
+      pendingEventQueue.add(new JSEventRecord(eventName, params));
+    }
+  }
+  public void flushPendingEvents() {
+    if ((null != context.get() && context.get().hasActiveReactInstance())) {
+      while (!pendingEventQueue.isEmpty()) {
+        JSEventRecord record = pendingEventQueue.remove();
+        sendEvent(record.eventName, record.params);
+      }
+    } else {
       logger.warning(
         String.format(
-          "attempt to sendEvent without context {%s} or Catalyst instance not active",
+          "attempt to flush events without context {%s} or Catalyst instance not active",
           context.get()));
     }
   }

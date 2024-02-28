@@ -10,6 +10,8 @@ import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -22,7 +24,18 @@ public class VoiceApplicationProxy {
   private AudioSwitchManager audioSwitchManager;
   private MediaPlayerManager mediaPlayerManager;
   private JSEventEmitter jsEventEmitter;
-
+  private VoiceService.VoiceServiceAPI voiceServiceApi = null;
+  private final ServiceConnection voiceServiceObserver = new ServiceConnection() {
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+      if (name.getClassName().equals(VoiceService.class.getName()))
+        voiceServiceApi = (VoiceService.VoiceServiceAPI)service;
+    }
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+      voiceServiceApi = null;
+    }
+  };
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
     public VoiceReactNativeHost(Application application) {
       super(application);
@@ -35,6 +48,7 @@ public class VoiceApplicationProxy {
       return super.getApplication();
     }
   }
+
   public VoiceApplicationProxy(VoiceReactNativeHost reactNativeHost) {
     if (null != instance) {
       logger.error("Voice application proxy already created!");
@@ -48,6 +62,11 @@ public class VoiceApplicationProxy {
     jsEventEmitter = new JSEventEmitter();
     // construct notification channels
     NotificationUtility.createNotificationChannels(context);
+    // launch and bind to voice call service
+    context.bindService(
+      new Intent(context, VoiceService.class),
+      voiceServiceObserver,
+      Context.BIND_AUTO_CREATE);
     // Activate audio engine
     audioSwitchManager = new AudioSwitchManager(context);
     mediaPlayerManager = new MediaPlayerManager(context);
@@ -82,6 +101,10 @@ public class VoiceApplicationProxy {
     return VoiceApplicationProxy.instance.jsEventEmitter;
   }
 
+  static Context getApplicationContext() {
+    return VoiceApplicationProxy.instance.context;
+  }
+
   static Class<?> getMainActivityClass() {
     Context context = VoiceApplicationProxy.instance.context;
     String packageName = context.getPackageName();
@@ -93,5 +116,12 @@ public class VoiceApplicationProxy {
       e.printStackTrace();
       return null;
     }
+  }
+
+  static VoiceService.VoiceServiceAPI getVoiceServiceApi() {
+    if (null == VoiceApplicationProxy.instance.voiceServiceApi) {
+      logger.error("Voice Service not bound!");
+    }
+    return VoiceApplicationProxy.instance.voiceServiceApi;
   }
 }

@@ -41,6 +41,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
@@ -93,6 +94,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void addListener(String eventName) {
     logger.debug(String.format("Calling addListener: %s", eventName));
+    VoiceApplicationProxy.getJSEventEmitter().flushPendingEvents();
   }
 
   /**
@@ -203,10 +205,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .build();
     CallRecord callRecord = new CallRecord(
       uuid,
-      Voice.connect(
-        getReactApplicationContext(),
-        connectOptions,
-        new CallListenerProxy(uuid, reactContext))
+      getVoiceServiceApi().connect(connectOptions, new CallListenerProxy(uuid, reactContext))
     );
     getCallRecordDatabase().add(callRecord);
 
