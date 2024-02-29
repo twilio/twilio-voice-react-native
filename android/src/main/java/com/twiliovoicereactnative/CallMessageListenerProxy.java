@@ -3,6 +3,7 @@ package com.twiliovoicereactnative;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageFailure;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageReceived;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageSent;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventKeyCallSid;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCall;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.ScopeCallMessage;
@@ -21,6 +22,7 @@ import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
@@ -73,17 +75,24 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     // notify JS layer ScopeCallInvite or ScopeCall
     final String event =
       CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
-      ? ScopeCallInvite : ScopeCall;
+        ? ScopeCallInvite
+        : ScopeCall;
     final WritableMap serializedCallMap =
       CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
-      ? null : serializeCall(callRecord);
+        ? null
+        : serializeCall(callRecord);
+    final @Nullable String optionalCallSid =
+      CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()
+        ? callSid
+        : null;
 
     getJSEventEmitter().sendEvent(
       event,
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventMessageReceived),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializedCallMap),
-        new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage))
+        new Pair<>(JSEventKeyCallMessageInfo, serializeCallMessage(callMessage)),
+        new Pair<>(CallInviteEventKeyCallSid, optionalCallSid)
       )
     );
   }
