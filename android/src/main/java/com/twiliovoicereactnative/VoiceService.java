@@ -90,6 +90,9 @@ public class VoiceService extends Service {
     public void foregroundAndDeprioritizeIncomingCallNotification(final CallRecordDatabase.CallRecord callRecord) {
       VoiceService.this.foregroundAndDeprioritizeIncomingCallNotification(callRecord);
     }
+    public Context getServiceContext() {
+      return VoiceService.this;
+    }
   }
 
   @Override

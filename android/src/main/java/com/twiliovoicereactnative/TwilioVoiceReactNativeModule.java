@@ -203,8 +203,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .build();
     CallRecord callRecord = new CallRecord(
       uuid,
-      getVoiceServiceApi().connect(connectOptions, new CallListenerProxy(uuid, reactContext))
-    );
+      getVoiceServiceApi().connect(
+        connectOptions,
+        new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())));
     getCallRecordDatabase().add(callRecord);
 
     // notify JS layer
