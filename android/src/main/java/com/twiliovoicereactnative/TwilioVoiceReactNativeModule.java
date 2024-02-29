@@ -93,7 +93,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void addListener(String eventName) {
     logger.debug(String.format("Calling addListener: %s", eventName));
-    VoiceApplicationProxy.getJSEventEmitter().flushPendingEvents();
   }
 
   /**

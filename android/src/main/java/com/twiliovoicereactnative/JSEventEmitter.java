@@ -21,7 +21,6 @@ import java.util.Queue;
 class JSEventEmitter {
   private static final SDKLog logger = new SDKLog(JSEventEmitter.class);
   private WeakReference<ReactApplicationContext> context = new WeakReference<>(null);
-  private Queue<JSEventRecord> pendingEventQueue = new LinkedList<>();
 
   private static class JSEventRecord {
     public JSEventRecord(String eventName, WritableMap params) {
@@ -38,21 +37,10 @@ class JSEventEmitter {
   public void sendEvent(String eventName, @Nullable WritableMap params) {
     logger.debug("sendEvent " + eventName + " params " + params);
     if ((null != context.get()) &&
-        pendingEventQueue.isEmpty() &&
         context.get().hasActiveReactInstance()) {
       context.get()
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
         .emit(eventName, params);
-    } else {
-      pendingEventQueue.add(new JSEventRecord(eventName, params));
-    }
-  }
-  public void flushPendingEvents() {
-    if ((null != context.get() && context.get().hasActiveReactInstance())) {
-      while (!pendingEventQueue.isEmpty()) {
-        JSEventRecord record = pendingEventQueue.remove();
-        sendEvent(record.eventName, record.params);
-      }
     } else {
       logger.warning(
         String.format(
@@ -60,6 +48,7 @@ class JSEventEmitter {
           context.get()));
     }
   }
+
   public static WritableArray constructJSArray(@NonNull Object...entries) {
     WritableArray params = Arguments.createArray();
     for (Object entry: entries) {
