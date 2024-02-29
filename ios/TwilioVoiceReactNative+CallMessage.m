@@ -36,7 +36,7 @@
         TVOCallInvite *callInvite = self.callInviteMap[uuid];
         if ([callInvite.callSid isEqualToString:callSid]) {
             [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
-                               body:@{kTwilioVoiceReactNativeEventKeyCall: [self callInviteInfo:callInvite],
+                               body:@{kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callSid,
                                       kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageReceived,
                                       kTwilioVoiceReactNativeJSEventKeyCallMessageInfo: [self callMessageInfo:callMessage]}];
             return;
