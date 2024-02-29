@@ -21,20 +21,5 @@
       android:name=".VoiceService"
       android:foregroundServiceType="microphone"
       android:exported="false" />
-    <receiver
-      android:name=".VoiceNotificationReceiver"
-      android:exported="false">
-      <intent-filter>
-        <action android:name="ACTION_INCOMING_CALL" />
-        <action android:name="ACTION_ACCEPT_CALL" />
-        <action android:name="ACTION_REJECT_CALL" />
-        <action android:name="ACTION_CANCEL_CALL" />
-        <action android:name="ACTION_CALL_DISCONNECT" />
-        <action android:name="ACTION_RAISE_OUTGOING_CALL_NOTIFICATION" />
-        <action android:name="ACTION_CANCEL_NOTIFICATION" />
-        <action android:name="ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION" />
-        <action android:name="ACTION_FOREGROUND_APPLICATION" />
-      </intent-filter>
-    </receiver>
   </application>
 </manifest>

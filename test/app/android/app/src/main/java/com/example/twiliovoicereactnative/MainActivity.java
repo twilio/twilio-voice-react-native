@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.react.ReactActivity;
@@ -36,6 +37,7 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    Log.i("[debug]", "onCreated");
     activityProxy.onCreate(savedInstanceState);
   }
 
@@ -43,6 +45,7 @@ public class MainActivity extends ReactActivity {
   public void onDestroy() {
     activityProxy.onDestroy();
     super.onDestroy();
+    Log.i("[debug]", "onDestroy");
   }
 
   @Override
@@ -51,6 +54,17 @@ public class MainActivity extends ReactActivity {
     activityProxy.onNewIntent(intent);
   }
 
+  @Override
+  public void onStart() {
+    super.onStart();
+    Log.i("[debug]", "onStart");
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    Log.i("[debug]", "onStop");
+  }
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
