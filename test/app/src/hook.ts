@@ -4,7 +4,9 @@ import {
   AudioDevice,
   Call,
   CallInvite,
+  CallMessage,
   CancelledCallInvite,
+  OutgoingCallMessage,
   Voice,
 } from '@twilio/voice-react-native-sdk';
 import type {
@@ -90,6 +92,14 @@ export function useCall(logEvent: (event: string) => void) {
                 2
               );
           }
+
+          call.addListener(
+            Call.Event.MessageReceived,
+            (_message: CallMessage) => {
+              logEvent(`Call Message Received: ${_message.getContent()}`);
+            }
+          );
+
           logEvent(message);
           setCallInfo(_callInfo);
         });
@@ -128,6 +138,22 @@ export function useCall(logEvent: (event: string) => void) {
         postFeedback: (_score: Call.Score, _issue: Call.Issue) => () =>
           call.postFeedback(_score, _issue),
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
+        sendMessage: async (_message: CallMessage) => {
+          const outgoingCallMessage: OutgoingCallMessage =
+            await call.sendMessage(_message);
+          outgoingCallMessage.addListener(
+            OutgoingCallMessage.Event.Failure,
+            (error) => {
+              logEvent(error.message);
+            }
+          );
+          outgoingCallMessage.addListener(
+            OutgoingCallMessage.Event.Sent,
+            () => {
+              logEvent(`Call: Successfully sent message`);
+            }
+          );
+        },
       });
 
       logEvent(`call sid: ${call.getSid()}`);
@@ -182,8 +208,31 @@ export function useCallInvites(
             removeCallInvite(callInvite.getCallSid());
             await callInvite.reject();
           },
+          sendMessage: async (_message: CallMessage) => {
+            const outgoingCallMessage: OutgoingCallMessage =
+              await callInvite.sendMessage(_message);
+            outgoingCallMessage.addListener(
+              OutgoingCallMessage.Event.Failure,
+              (error) => {
+                logEvent(error.message);
+              }
+            );
+            outgoingCallMessage.addListener(
+              OutgoingCallMessage.Event.Sent,
+              () => {
+                logEvent(`CallInvite: Successfully sent message`);
+              }
+            );
+          },
         },
       ]);
+
+      callInvite.addListener(
+        CallInvite.Event.MessageReceived,
+        (message: CallMessage) => {
+          logEvent(`Call Invite Message Received: ${message.getContent()}`);
+        }
+      );
 
       logEvent(`call invite: ${callSid}`);
       logEvent(
