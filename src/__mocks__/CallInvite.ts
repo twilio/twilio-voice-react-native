@@ -4,6 +4,7 @@ import type {
 } from '../type/CallInvite';
 import { Constants } from '../constants';
 import { createNativeErrorInfo } from './Error';
+import { createNativeCallMessageInfo } from './CallMessage';
 
 export function createNativeCallInviteInfo(): NativeCallInviteInfo {
   return {
@@ -70,11 +71,10 @@ export function createMockNativeCallInviteEvents() {
       error: createNativeErrorInfo(),
     },
     messageReceived: {
-      name: Constants.CallEventMessageReceived,
-      nativeEvent: {
-        type: Constants.CallEventMessageReceived,
-        callMessage: createNativeCallMessageInfo(),
-      },
+      [Constants.CallInviteEventKeyType]: Constants.CallEventMessageReceived,
+      [Constants.CallInviteEventKeyCallSid]:
+        'mock-nativecallinviteinfo-callsid',
+      callMessage: createNativeCallMessageInfo(),
     },
   } as const;
 }

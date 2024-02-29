@@ -45,17 +45,15 @@ export interface NativeCancelledCallInviteInfo {
   to: string;
 }
 
-export interface NativeCallInviteMessageReceivedEvent {
+export interface NativeCallInviteMessageReceivedEvent
+  extends BaseNativeCallInviteEvent {
   type: Constants.CallEventMessageReceived;
   [Constants.CallMessage]: NativeCallMessageInfo;
 }
-
-export type NativeCallInviteEvents = NativeCallInviteMessageReceivedEvent;
-
-export type NativeCallInviteEventType = Constants.CallEventMessageReceived;
 
 export type NativeCallInviteEvent =
   | NativeCallInviteNotificationTappedEvent
   | NativeCallInviteAcceptedEvent
   | NativeCallInviteRejectedEvent
-  | NativeCallInviteCancelledEvent;
+  | NativeCallInviteCancelledEvent
+  | NativeCallInviteMessageReceivedEvent;

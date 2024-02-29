@@ -258,18 +258,11 @@ export namespace Call {
 
 // @public
 export interface CallInvite {
-    addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
-    addListener(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
-    // @internal (undocumented)
-    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
-    // @internal (undocumented)
-    emit(callInviteEvent: CallInvite.Event, ...args: any[]): boolean;
-    on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
-    on(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
     addListener(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
     addListener(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
     addListener(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
     addListener(cancelledEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
+    addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
     // @internal (undocumented)
     emit(acceptedEvent: CallInvite.Event.Accepted, call: Call): boolean;
     // @internal (undocumented)
@@ -278,10 +271,13 @@ export interface CallInvite {
     emit(cancelledEvent: CallInvite.Event.Cancelled, error?: TwilioError): boolean;
     // @internal (undocumented)
     emit(notificationTappedEvent: CallInvite.Event.NotificationTapped): boolean;
+    // @internal (undocumented)
+    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
     on(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
     on(acceptedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
     on(acceptedEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
     on(acceptedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
+    on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
 }
 
 // @public
@@ -299,11 +295,8 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-<<<<<<< HEAD
     sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
-=======
     updateCallerHandle(newHandle: string): Promise<void>;
->>>>>>> main
 }
 
 // @public
@@ -311,25 +304,16 @@ export namespace CallInvite {
     export interface AcceptOptions {
     }
     export enum Event {
-<<<<<<< HEAD
-        'MessageReceived' = "messageReceived"
-    }
-    export namespace Listener {
-        export type Generic = (...args: any[]) => void;
-        export type MessageReceived = (callMessage: CallMessage) => void;
-    }
-    export enum State {
-        // (undocumented)
-=======
->>>>>>> main
         Accepted = "accepted",
         Cancelled = "cancelled",
+        MessageReceived = "messageReceived",
         NotificationTapped = "notificationTapped",
         Rejected = "rejected"
     }
     export namespace Listener {
         export type Accepted = (call: Call) => void;
         export type Cancelled = (error?: TwilioError) => void;
+        export type MessageReceived = (callMessage: CallMessage) => void;
         export type NotificationTapped = () => void;
         export type Rejected = () => void;
     }
@@ -359,7 +343,6 @@ export namespace CallKit {
 }
 
 // @public
-<<<<<<< HEAD
 export class CallMessage extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
     //
@@ -386,19 +369,6 @@ export namespace CallMessage {
 }
 
 // @public
-export class CancelledCallInvite {
-    // Warning: (ae-forgotten-export) The symbol "NativeCancelledCallInviteInfo" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    constructor({ callSid, from, to }: NativeCancelledCallInviteInfo);
-    getCallSid(): string;
-    getFrom(): string;
-    getTo(): string;
-}
-
-// @public
-=======
->>>>>>> main
 namespace ClientErrors {
     class AddressIncomplete extends TwilioError {
         constructor(message: string);
