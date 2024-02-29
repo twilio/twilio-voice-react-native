@@ -53,12 +53,8 @@ CancelledCallInviteInfoFrom=from
 CancelledCallInviteInfoTo=to
 CancelledCallInviteInfoCustomParameters=customParameters
 
-// Call Invite
-VoiceEventCallInvite=voiceEventCallInvite
-VoiceEventCallInviteAccepted=voiceEventCallInviteAccepted
-VoiceEventCallInviteNotificationTapped=voiceEventCallInviteNotificationTapped
-VoiceEventCallInviteRejected=voiceEventCallInviteRejected
-VoiceEventCallInviteCancelled=voiceEventCallInviteCancelled
+// Incoming Call Invite event
+VoiceEventTypeValueIncomingCallInvite=voiceEventTypeValueIncomingCallInvite
 
 // Call Message
 VoiceEventSid=voiceEventSid
@@ -82,6 +78,14 @@ AudioDeviceKeySelectedDevice=selectedDevice
 AudioDeviceKeyEarpiece=earpiece
 AudioDeviceKeySpeaker=speaker
 AudioDeviceKeyBluetooth=bluetooth
+
+// CallInvite events
+CallInviteEventKeyType=type
+CallInviteEventTypeValueAccepted=callInviteEventTypeValueCallInviteAccepted
+CallInviteEventTypeValueNotificationTapped=callInviteEventTypeValueCallInviteNotificationTapped
+CallInviteEventTypeValueRejected=callInviteEventTypeValueCallInviteRejected
+CallInviteEventTypeValueCancelled=callInviteEventTypeValueCallInviteCancelled
+CallInviteEventKeyCallSid=callSid
 
 // Call events
 // State

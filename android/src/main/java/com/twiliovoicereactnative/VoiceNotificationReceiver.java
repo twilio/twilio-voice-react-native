@@ -1,14 +1,18 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.CommonConstants.CallInviteInfoCallSid;
+import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
 import static com.twiliovoicereactnative.Constants.JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInvite;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteAccepted;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteCancelled;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteNotificationTapped;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventCallInviteRejected;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventTypeValueIncomingCallInvite;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventKeyType;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventKeyCallSid;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValueAccepted;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValueRejected;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValueCancelled;
+import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValueNotificationTapped;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
 import static com.twiliovoicereactnative.Constants.ACTION_ACCEPT_CALL;
@@ -121,8 +125,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     Notification notification = NotificationUtility.createIncomingCallNotification(
       context.getApplicationContext(),
       callRecord,
-      VOICE_CHANNEL_HIGH_IMPORTANCE,
-      true);
+      VOICE_CHANNEL_HIGH_IMPORTANCE);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // play ringer sound
@@ -131,8 +134,9 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // trigger JS layer
     sendJSEvent(
+      ScopeVoice,
       constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventCallInvite),
+        new Pair<>(VoiceEventType, VoiceEventTypeValueIncomingCallInvite),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
@@ -169,8 +173,10 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
+      ScopeCallInvite,
       constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventCallInviteAccepted),
+        new Pair<>(CallInviteEventKeyType, CallInviteEventTypeValueAccepted),
+        new Pair<>(CallInviteEventKeyCallSid, callRecord.getCallSid()),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
@@ -198,8 +204,10 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
+      ScopeCallInvite,
       constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventCallInviteRejected),
+        new Pair<>(CallInviteEventKeyType, CallInviteEventTypeValueRejected),
+        new Pair<>(CallInviteEventKeyCallSid, callRecord.getCallSid()),
         new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
   }
 
@@ -218,8 +226,10 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
+      ScopeCallInvite,
       constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventCallInviteCancelled),
+        new Pair<>(CallInviteEventKeyType, CallInviteEventTypeValueCancelled),
+        new Pair<>(CallInviteEventKeyCallSid, callRecord.getCallSid()),
         new Pair<>(JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO, serializeCancelledCallInvite(callRecord)),
         new Pair<>(VoiceErrorKeyError, serializeCallException(callRecord))));
   }
@@ -272,8 +282,7 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
     Notification notification = NotificationUtility.createIncomingCallNotification(
       context.getApplicationContext(),
       callRecord,
-      VOICE_CHANNEL_DEFAULT_IMPORTANCE,
-      false);
+      VOICE_CHANNEL_DEFAULT_IMPORTANCE);
     createOrReplaceNotification(context, callRecord.getNotificationId(), notification);
 
     // stop active sound (if any)
@@ -281,12 +290,14 @@ public class VoiceNotificationReceiver extends BroadcastReceiver {
 
     // notify JS layer
     sendJSEvent(
+      ScopeCallInvite,
       constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventCallInviteNotificationTapped)));
+        new Pair<>(CallInviteEventKeyType, CallInviteEventTypeValueNotificationTapped),
+        new Pair<>(CallInviteEventKeyCallSid, callRecord.getCallSid())));
   }
 
-  private static void sendJSEvent(@NonNull WritableMap event) {
-    getJSEventEmitter().sendEvent(ScopeVoice, event);
+  private static void sendJSEvent(@NonNull String scope, @NonNull WritableMap event) {
+    getJSEventEmitter().sendEvent(scope, event);
   }
 
   private static void createOrReplaceNotification(Context context,

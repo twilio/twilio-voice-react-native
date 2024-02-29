@@ -1,5 +1,6 @@
 import { device, element, by, waitFor } from 'detox';
 import twilio from 'twilio';
+import { expect as jestExpect } from 'expect';
 
 const DEFAULT_TIMEOUT = 10000;
 
@@ -47,50 +48,133 @@ describe('call', () => {
   }
 
   if (device.getPlatform() === 'android') {
-    it('should make an outgoing call and then disconnect', async () => {
-      await element(by.text('CONNECT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+    describe('outgoing call', () => {
+      it('should make an outgoing call and then disconnect', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-    });
-
-    it('should receive an incoming call and then disconnect', async () => {
-      await register();
-
-      const testCall = await twilioClient.calls.create({
-        twiml:
-          '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
-        to: `client:${clientId}`,
-        from: 'detox',
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
       });
 
-      console.log(
-        `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
-      );
+      it('should log a constant-audio-input-level quality warning', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
 
-      await waitFor(element(by.text('ACCEPT')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-      await element(by.text('ACCEPT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        // Let the call go for 15 seconds
+        await new Promise((r) => setTimeout(r, 15000));
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+        const eventLogAttr = await element(by.id('event_log')).getAttributes();
+        if (!('label' in eventLogAttr) || !eventLogAttr.label) {
+          throw new Error('cannot parse event log label');
+        }
+        const searchString =
+          'qualityWarningsChanged\n' +
+          JSON.stringify(
+            [['constant-audio-input-level'], []],
+            null,
+            2
+          );
+        jestExpect(eventLogAttr.label.includes(searchString)).toBeTruthy();
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
+    });
+
+    describe('incoming call', () => {
+      it('should reject an incoming call', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('REJECT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('REJECT')).tap();
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
+
+      it('should let an incoming call timeout', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="10" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(60000);
+      });
+
+      it('should accept an incoming call', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text('ACCEPT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('ACCEPT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
+
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
     });
   }
 });
