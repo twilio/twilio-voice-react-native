@@ -22,15 +22,6 @@ class JSEventEmitter {
   private static final SDKLog logger = new SDKLog(JSEventEmitter.class);
   private WeakReference<ReactApplicationContext> context = new WeakReference<>(null);
 
-  private static class JSEventRecord {
-    public JSEventRecord(String eventName, WritableMap params) {
-      this.eventName = eventName;
-      this.params = params;
-    }
-    public final String eventName;
-    public final WritableMap params;
-  }
-
   public void setContext(ReactApplicationContext context) {
     this.context = new WeakReference<>(context);
   }
