@@ -14,9 +14,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.lang.ref.WeakReference;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
 class JSEventEmitter {
   private static final SDKLog logger = new SDKLog(JSEventEmitter.class);
