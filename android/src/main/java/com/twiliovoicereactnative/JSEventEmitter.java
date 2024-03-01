@@ -35,7 +35,7 @@ class JSEventEmitter {
     } else {
       logger.warning(
         String.format(
-          "attempt to flush events without context {%s} or Catalyst instance not active",
+          "attempt to sendEvent events without context {%s} or Catalyst instance not active",
           context.get()));
     }
   }
