@@ -2,7 +2,6 @@ package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Objects;
 
