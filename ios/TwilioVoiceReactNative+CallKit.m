@@ -184,6 +184,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
     TVOCallInvite *callInvite = self.callInviteMap[uuid.UUIDString];
     TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:callInvite block:^(TVOAcceptOptionsBuilder *builder) {
         builder.uuid = uuid;
+        builder.callMessageDelegate = self;
     }];
 
     TVOCall *call = [callInvite acceptWithOptions:acceptOptions delegate:self];
