@@ -84,6 +84,10 @@ describe('call', () => {
             null,
             2
           );
+        console.log('attempting to find the search string within the log', {
+          searchString,
+          log: eventLogAttr.label,
+        });
         jestExpect(eventLogAttr.label.includes(searchString)).toBeTruthy();
 
         await element(by.text('DISCONNECT')).tap();
