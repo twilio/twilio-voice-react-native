@@ -71,7 +71,7 @@ describe('call', () => {
           .withTimeout(DEFAULT_TIMEOUT);
 
         // Let the call go for 15 seconds
-        await new Promise((r) => setTimeout(r, 15000));
+        await new Promise((r) => setTimeout(r, 30000));
 
         const eventLogAttr = await element(by.id('event_log')).getAttributes();
         if (!('label' in eventLogAttr) || !eventLogAttr.label) {
