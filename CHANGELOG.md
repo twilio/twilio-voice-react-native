@@ -31,6 +31,23 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 
   Please see the `CallInvite` class API documentation [here](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.callinvite_class.md) for details.
 
+- Call Notifications can be customized on Android.
+  
+  The following features regarding a call notificaiton can now be modified
+  - incoming/outgoing/answered call notification trey icon
+  - name of caller/or recipient
+  
+  The incoming/outgoing/answered call notification try icon can be changed by adding a drawable resources with the following id to your application
+  - `incoming_call_small_icon` for incoming call notifications
+  - `answered_call_small_icon` for answered call notifications
+  - `outgoing_call_small_icon` for outgoing call notifications
+  
+  The name of the caller/or recipient of a call in the notificaition can be set by adding the following string resources with the following ids to your application.
+  - `incoming_call_caller_name_text` for incoming call notifications
+  - `outgoing_call_caller_name_text` for outgoing call notifications
+  - `answered_call_caller_name_text` for answered call notifications
+  NOTE: For `incoming_call_caller_name_text` & `answered_call_caller_name_text`, the substring `[%from]` will be replaced with the caller and for `outgoing_call_caller_name_text`, the substring `[%to]` will be replaced with teh recipient of the call (if available, defaulting to "unknown").
+
 ### Platform Specific Changes
 
 #### Android
