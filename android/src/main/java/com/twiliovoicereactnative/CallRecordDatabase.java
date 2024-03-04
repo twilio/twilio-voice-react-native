@@ -26,6 +26,7 @@ class CallRecordDatabase  {
     private Date timestamp = null;
     private int notificationId = -1;
     private Call voiceCall = null;
+    private String callRecipient = "";
     private CallInvite callInvite = null;
     private CallInviteState callInviteState = NONE;
     private CancelledCallInvite cancelledCallInvite = null;
@@ -45,10 +46,11 @@ class CallRecordDatabase  {
       this.callInvite = callInvite;
       this.callInviteState = ACTIVE;
     }
-    public CallRecord(final UUID uuid, final Call call) {
+    public CallRecord(final UUID uuid, final Call call, final String recipient) {
       this.uuid = uuid;
       this.callSid = call.getSid();
       this.voiceCall = call;
+      this.callRecipient = recipient;
     }
     public final UUID getUuid() {
       return uuid;
@@ -83,6 +85,7 @@ class CallRecordDatabase  {
     public CallException getCallException() {
       return this.callException;
     }
+    public String getCallRecipient() { return this.callRecipient; }
     public void setNotificationId(int notificationId) {
       this.notificationId = notificationId;
     }

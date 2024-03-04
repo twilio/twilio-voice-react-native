@@ -11,8 +11,6 @@ import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.net.Uri;
@@ -35,6 +33,50 @@ import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 class NotificationUtility {
   private static final SecureRandom secureRandom = new SecureRandom();
+  private static class NotificationResource {
+    private final Context ctx;
+    private final String smallIconId;
+    private final String contentTextId;
+    public NotificationResource(Context context, String smallIconId, String contentTextId) {
+      ctx = context;
+      this.smallIconId = smallIconId;
+      this.contentTextId = contentTextId;
+    }
+    int getSmallIconId() {
+      return getDrawableResourceId(smallIconId);
+    }
+    public String getContent(CallInvite callInvite) {
+      final String from = (null != callInvite) ? getDisplayName(callInvite) : "";
+      return ctx.getString(getTextResourceId(contentTextId))
+        .replaceAll("\\[%from\\]", from);
+    }
+    public String getContent(String to) {
+      return ctx.getString(getTextResourceId(contentTextId))
+        .replaceAll("\\[%to\\]", to);
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private int getDrawableResourceId(String id) {
+      return ctx.getResources().getIdentifier(id, "drawable", ctx.getPackageName());
+    }
+    @SuppressLint("DiscouragedApi")
+    private int getTextResourceId(String id) {
+      return ctx.getResources().getIdentifier(id, "string", ctx.getPackageName());
+    }
+    private static String getDisplayName(@NonNull CallInvite callInvite) {
+      final String title = callInvite.getFrom();
+      Map<String, String> customParameters = callInvite.getCustomParameters();
+      // If "displayName" is passed as a custom parameter in the TwiML application,
+      // it will be used as the caller name.
+      if (customParameters.get(Constants.DISPLAY_NAME) != null) {
+        return URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME)
+          .replaceAll("\\+", "%20"));
+      } else if (title.startsWith("client:")) {
+        return title.replaceFirst("client:", "");
+      }
+      return title;
+    }
+  }
 
   public static int createNotificationIdentifier() {
     return (secureRandom.nextInt() & 0x7FFFFFFF) + 1; // prevent 0 as an id
@@ -43,10 +85,13 @@ class NotificationUtility {
   public static Notification createIncomingCallNotification(@NonNull Context context,
                                                             @NonNull final CallRecord callRecord,
                                                             @NonNull final String channelImportance) {
-    final int smallIconResId = getSmallIconResource(context);
-    final Bitmap icon = constructBitmap(context, R.drawable.ic_call_end_white_24dp);
+    final NotificationResource notificationResource = new NotificationResource(
+      context,
+      "incoming_call_small_icon",
+      "incoming_call_caller_name_text");
+
     final Person incomingCaller = new Person.Builder()
-      .setName(getDisplayName(callRecord.getCallInvite()))
+      .setName(notificationResource.getContent(callRecord.getCallInvite()))
       .build();
 
     Intent foregroundIntent = constructMessage(
@@ -71,8 +116,7 @@ class NotificationUtility {
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
     return constructNotificationBuilder(context, channelImportance)
-      .setSmallIcon(smallIconResId)
-      .setLargeIcon(icon)
+      .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(true)
       .setContentIntent(piForegroundIntent)
@@ -85,9 +129,13 @@ class NotificationUtility {
 
   public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
                                                                              @NonNull final CallRecord callRecord) {
-    final int smallIconResId = getSmallIconResource(context);
+    final NotificationResource notificationResource = new NotificationResource(
+      context,
+      "answered_call_small_icon",
+      "answered_call_caller_name_text");
+
     final Person activeCaller = new Person.Builder()
-      .setName(getDisplayName(callRecord.getCallInvite()))
+      .setName(notificationResource.getContent(callRecord.getCallInvite()))
       .build();
 
     Intent foregroundIntent = constructMessage(
@@ -105,7 +153,7 @@ class NotificationUtility {
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
-      .setSmallIcon(smallIconResId)
+      .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
       .setContentIntent(piForegroundIntent)
@@ -118,9 +166,13 @@ class NotificationUtility {
 
   public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
                                                                              @NonNull final CallRecord callRecord) {
-    final int smallIconResId = getSmallIconResource(context);
+    final NotificationResource notificationResource = new NotificationResource(
+      context,
+      "outgoing_call_small_icon",
+      "outgoing_call_caller_name_text");
+
     final Person activeCaller = new Person.Builder()
-      .setName("outgoing call")
+      .setName(notificationResource.getContent(callRecord.getCallRecipient()))
       .build();
 
     Intent foregroundIntent = constructMessage(
@@ -138,7 +190,7 @@ class NotificationUtility {
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
-      .setSmallIcon(smallIconResId)
+      .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
       .setContentIntent(piForegroundIntent)
@@ -209,23 +261,6 @@ class NotificationUtility {
     return voiceChannelId;
   }
 
-  private static String getDisplayName(@NonNull CallInvite callInvite) {
-    final String title = callInvite.getFrom();
-    Map<String, String> customParameters = callInvite.getCustomParameters();
-    // If "displayName" is passed as a custom parameter in the TwiML application,
-    // it will be used as the caller name.
-    if (customParameters.get(Constants.DISPLAY_NAME) != null) {
-      return URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME).replaceAll("\\+", "%20"));
-    } else if (title.startsWith("client:")) {
-      return title.replaceFirst("client:", "");
-    }
-    return title;
-  }
-
-  private static String getContentBanner(@NonNull Context context) {
-    return context.getString(R.string.app_name) + Constants.NOTIFICATION_BANNER;
-  }
-
   private static PendingIntent constructPendingIntentForActivity(@NonNull Context context,
                                                                  @NonNull final Intent intent) {
     return PendingIntent.getActivity(
@@ -250,18 +285,6 @@ class NotificationUtility {
     return new NotificationCompat.Builder(context,
         getChannel(context.getApplicationContext(),
           channelImportance));
-  }
-
-  @SuppressLint("DiscouragedApi")
-  private static int getSmallIconResource(@NonNull Context context) {
-    return context.getResources().getIdentifier(
-      "ic_notification",
-      "drawable",
-      context.getPackageName());
-  }
-
-  private static Bitmap constructBitmap(@NonNull Context context, final int resId) {
-    return BitmapFactory.decodeResource(context.getResources(), resId);
   }
 
   static Uri provideResourceSilent_wav(@NonNull Context context) {
