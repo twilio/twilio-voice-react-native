@@ -79,9 +79,9 @@ public class VoiceActivityProxy {
     String action = intent.getAction();
     if ((null != action) && (!action.equals(Constants.ACTION_PUSH_APP_TO_FOREGROUND))) {
       Intent copiedIntent = new Intent(intent);
-      copiedIntent.setClass(context.getApplicationContext(), VoiceNotificationReceiver.class);
+      copiedIntent.setClass(context.getApplicationContext(), VoiceService.class);
       copiedIntent.setFlags(0);
-      context.getApplicationContext().sendBroadcast(copiedIntent);
+      context.getApplicationContext().startService(copiedIntent);
     }
   }
 
