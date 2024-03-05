@@ -1,6 +1,5 @@
 import { device, element, by, waitFor } from 'detox';
 import twilio from 'twilio';
-import { expect as jestExpect } from 'expect';
 
 const DEFAULT_TIMEOUT = 10000;
 
@@ -70,26 +69,44 @@ describe('call', () => {
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
 
-        // Let the call go for 15 seconds
-        await new Promise((r) => setTimeout(r, 15000));
+        // check the event log for the call quality warning
+        const checkLog = async () => {
+          await new Promise((r) => setTimeout(r, 5000));
 
-        const eventLogAttr = await element(by.id('event_log')).getAttributes();
-        if (!('label' in eventLogAttr) || !eventLogAttr.label) {
-          throw new Error('cannot parse event log label');
+          await element(by.id('event_log')).swipe('up');
+
+          const eventLogAttr = await element(by.id('event_log')).getAttributes();
+          if (!('label' in eventLogAttr) || !eventLogAttr.label) {
+            throw new Error('cannot parse event log label');
+          }
+
+          const searchString =
+            'qualityWarningsChanged\n' +
+            JSON.stringify([['constant-audio-input-level'], []], null, 2);
+
+          return eventLogAttr.label.includes(searchString);
         }
-        const searchString =
-          'qualityWarningsChanged\n' +
-          JSON.stringify(
-            [['constant-audio-input-level'], []],
-            null,
-            2
-          );
-        jestExpect(eventLogAttr.label.includes(searchString)).toBeTruthy();
 
+        // check the call quality warnings every 5 seconds
+        // for a total of 30 seconds
+        // ideally, the warning will be raised after approx 10 seconds
+        let wasCallQualityWarningRaised = false;
+        for (let i = 0; i < 6; i++) {
+          wasCallQualityWarningRaised = await checkLog();
+          if (wasCallQualityWarningRaised) {
+            break;
+          }
+        }
+
+        // we want to tear down the call regardless of success
         await element(by.text('DISCONNECT')).tap();
         await waitFor(element(by.text('Call State: disconnected')))
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
+
+        if (!wasCallQualityWarningRaised) {
+          throw new Error('call quality warning was not raised');
+        }
       });
     });
 
