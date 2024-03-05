@@ -23,7 +23,7 @@ class JSEventEmitter {
     this.context = new WeakReference<>(context);
   }
   public void sendEvent(String eventName, @Nullable WritableMap params) {
-    logger.debug("sendEvent " + eventName + " params " + params);
+    logger.log("sendEvent " + eventName + " params " + params);
     if ((null != context.get()) &&
         context.get().hasActiveReactInstance()) {
       context.get()
