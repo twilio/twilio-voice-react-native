@@ -70,8 +70,8 @@ describe('call', () => {
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
 
-        // Let the call go for 15 seconds
-        await new Promise((r) => setTimeout(r, 30000));
+        // Let the call go for 3 minutes
+        await new Promise((r) => setTimeout(r, 1000 * 60 * 3));
 
         const eventLogAttr = await element(by.id('event_log')).getAttributes();
         if (!('label' in eventLogAttr) || !eventLogAttr.label) {
