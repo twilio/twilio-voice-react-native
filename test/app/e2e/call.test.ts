@@ -70,25 +70,42 @@ describe('call', () => {
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
 
-        // Let the call go for 3 minutes
-        await new Promise((r) => setTimeout(r, 1000 * 60 * 3));
+        const createTimer =
+          async () => await new Promise((r) => setTimeout(r, 30000));
 
-        const eventLogAttr = await element(by.id('event_log')).getAttributes();
-        if (!('label' in eventLogAttr) || !eventLogAttr.label) {
-          throw new Error('cannot parse event log label');
+        const checkForQualityWarning = async () => {
+          const eventLogAttr = await element(by.id('event_log')).getAttributes();
+          if (!('label' in eventLogAttr) || !eventLogAttr.label) {
+            throw new Error('cannot parse event log label');
+          }
+          const searchString =
+            'qualityWarningsChanged\n' +
+            JSON.stringify(
+              [['constant-audio-input-level'], []],
+              null,
+              2
+            );
+          console.log('attempting to find the search string within the log', {
+            searchString,
+            log: eventLogAttr.label,
+          });
+          return eventLogAttr.label.includes(searchString);
+        };
+
+        // try for a total of 3 minutes
+        let didSucceed = false;
+        for (let i = 0; i < 6; i++) {
+          await createTimer();
+          didSucceed = await checkForQualityWarning();
+          if (didSucceed) {
+            break;
+          }
         }
-        const searchString =
-          'qualityWarningsChanged\n' +
-          JSON.stringify(
-            [['constant-audio-input-level'], []],
-            null,
-            2
-          );
-        console.log('attempting to find the search string within the log', {
-          searchString,
-          log: eventLogAttr.label,
-        });
-        jestExpect(eventLogAttr.label.includes(searchString)).toBeTruthy();
+
+        // if no success within 3 minutes, then throw the failure
+        if (!didSucceed) {
+          throw new Error('quality warning not raised');
+        }
 
         await element(by.text('DISCONNECT')).tap();
         await waitFor(element(by.text('Call State: disconnected')))
