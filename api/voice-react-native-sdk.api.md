@@ -261,7 +261,7 @@ export interface CallInvite {
     addListener(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
     addListener(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
     addListener(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
-    addListener(cancelledEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
+    addListener(notificationTappedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
     addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
     // @internal (undocumented)
     emit(acceptedEvent: CallInvite.Event.Accepted, call: Call): boolean;
@@ -274,10 +274,10 @@ export interface CallInvite {
     // @internal (undocumented)
     emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
     on(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
-    on(acceptedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
-    on(acceptedEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
-    on(acceptedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
-    on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
+    on(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
+    on(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
+    on(notificationTappedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
+    on(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
 }
 
 // @public

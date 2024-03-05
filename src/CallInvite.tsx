@@ -127,7 +127,7 @@ export declare interface CallInvite {
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:2)} */
   on(
-    acceptedEvent: CallInvite.Event.Rejected,
+    rejectedEvent: CallInvite.Event.Rejected,
     listener: CallInvite.Listener.Rejected
   ): this;
 
@@ -156,7 +156,7 @@ export declare interface CallInvite {
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:3)} */
   on(
-    acceptedEvent: CallInvite.Event.Cancelled,
+    cancelledEvent: CallInvite.Event.Cancelled,
     listener: CallInvite.Listener.Cancelled
   ): this;
 
@@ -176,18 +176,18 @@ export declare interface CallInvite {
    * @remarks
    * This API is Android specific.
    *
-   * @param cancelledEvent - The raised event string.
+   * @param notificationTappedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
    * @returns - The call invite object.
    */
   addListener(
-    cancelledEvent: CallInvite.Event.NotificationTapped,
+    notificationTappedEvent: CallInvite.Event.NotificationTapped,
     listener: CallInvite.Listener.NotificationTapped
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:4)} */
   on(
-    acceptedEvent: CallInvite.Event.NotificationTapped,
+    notificationTappedEvent: CallInvite.Event.NotificationTapped,
     listener: CallInvite.Listener.NotificationTapped
   ): this;
 
@@ -195,9 +195,11 @@ export declare interface CallInvite {
    * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
    * @example
    * ```typescript
-   * callInvite.addListener(CallInvite.Event.MessageReceived, (message) => {
-   *    // callMessage received
-   * })
+   * voice.on(Voice.Event.CallInvite, (callInvite) => {
+   *   callInvite.addListener(CallInvite.Event.MessageReceived, (message) => {
+   *      // callMessage received
+   *   });
+   * });
    * ```
    *
    * @param messageReceivedEvent - The raised event string.
@@ -211,7 +213,7 @@ export declare interface CallInvite {
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:5)} */
   on(
-    callMessageEvent: CallInvite.Event.MessageReceived,
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
     listener: CallInvite.Listener.MessageReceived
   ): this;
 }
@@ -696,7 +698,7 @@ export namespace CallInvite {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:1)}.
+     * See {@link (CallInvite:interface).(addListener:1)}.
      */
     export type Accepted = (call: Call) => void;
 
@@ -706,7 +708,7 @@ export namespace CallInvite {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:2)}.
+     * See {@link (CallInvite:interface).(addListener:2)}.
      */
     export type Rejected = () => void;
 
@@ -716,7 +718,7 @@ export namespace CallInvite {
      * {@link (CallInvite:namespace).Event.Cancelled} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:3)}.
+     * See {@link (CallInvite:interface).(addListener:3)}.
      */
     export type Cancelled = (error?: TwilioError) => void;
 
@@ -726,7 +728,7 @@ export namespace CallInvite {
      * {@link (CallInvite:namespace).Event.NotificationTapped} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:4)}.
+     * See {@link (CallInvite:interface).(addListener:4)}.
      */
     export type NotificationTapped = () => void;
 
