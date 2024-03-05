@@ -34,7 +34,7 @@ Twilio Voice React Native SDK has now reached milestone `beta.5`. Included in th
 - Call Notifications can be customized on Android.
   
   The following features regarding a call notificaiton can now be modified
-  - incoming/outgoing/answered call notification trey icon
+  - incoming/outgoing/answered call notification tray icon
   - name of caller/or recipient
   
   The incoming/outgoing/answered call notification try icon can be changed by adding a drawable resources with the following id to your application
