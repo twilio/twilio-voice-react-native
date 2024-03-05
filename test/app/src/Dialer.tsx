@@ -4,6 +4,9 @@ import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNoOp } from './hook';
 import type { BoundCallMethod, BoundCallInfo, BoundCallInvite } from './type';
 import Grid from './Grid';
+import CallMessageComponent, {
+  CallMessageContext,
+} from './components/CallMessage';
 
 interface DialerProps {
   callInfo: BoundCallInfo | null;
@@ -22,6 +25,7 @@ export default function Dialer({
   const [outgoingTo, setOutgoingTo] = React.useState<string>('');
 
   const sendDigitsNoOp = useNoOp('send digits');
+  const sendMessageNoOp = useNoOp('send messsage');
   const disconnectNoOp = useNoOp('disconnect');
   const muteNoOp = useNoOp('mute');
   const holdNoOp = useNoOp('hold');
@@ -85,6 +89,13 @@ export default function Dialer({
           onPress={callMethod?.getStats || getStatsNoOp}
         />,
       ],
+      [
+        <CallMessageComponent
+          context={CallMessageContext.Call}
+          callMethod={callMethod}
+          sendMessageNoOp={sendMessageNoOp}
+        />,
+      ],
     ],
     [
       callInfo?.isMuted,
@@ -97,6 +108,7 @@ export default function Dialer({
       muteNoOp,
       postFeedbackNoOp,
       sendDigitsNoOp,
+      sendMessageNoOp,
     ]
   );
 
@@ -112,8 +124,15 @@ export default function Dialer({
           onPress={recentCallInvite?.reject || rejectNoOp}
         />,
       ],
+      [
+        <CallMessageComponent
+          context={CallMessageContext.CallInvite}
+          recentCallInvite={recentCallInvite}
+          sendMessageNoOp={sendMessageNoOp}
+        />,
+      ],
     ],
-    [acceptNoOp, rejectNoOp, recentCallInvite?.accept, recentCallInvite?.reject]
+    [acceptNoOp, rejectNoOp, recentCallInvite, sendMessageNoOp]
   );
 
   if (activeCall) {
