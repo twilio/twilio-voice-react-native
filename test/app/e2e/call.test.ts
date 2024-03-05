@@ -70,13 +70,16 @@ describe('call', () => {
           .withTimeout(DEFAULT_TIMEOUT);
 
         const createTimer =
-          async () => await new Promise((r) => setTimeout(r, 30000));
+          async () => await new Promise((r) => setTimeout(r, 10000));
 
         const checkForQualityWarning = async () => {
+          await element(by.id('event_log')).swipe('up');
+
           const eventLogAttr = await element(by.id('event_log')).getAttributes();
           if (!('label' in eventLogAttr) || !eventLogAttr.label) {
             throw new Error('cannot parse event log label');
           }
+
           const searchString =
             'qualityWarningsChanged\n' +
             JSON.stringify(
@@ -84,16 +87,18 @@ describe('call', () => {
               null,
               2
             );
+
           console.log('attempting to find the search string within the log', {
             searchString,
             log: eventLogAttr.label,
           });
+
           return eventLogAttr.label.includes(searchString);
         };
 
         // try for a total of 3 minutes
         let didSucceed = false;
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 18; i++) {
           await createTimer();
           didSucceed = await checkForQualityWarning();
           if (didSucceed) {
