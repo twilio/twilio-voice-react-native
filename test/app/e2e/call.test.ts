@@ -1,6 +1,5 @@
 import { device, element, by, waitFor } from 'detox';
 import twilio from 'twilio';
-import { expect as jestExpect } from 'expect';
 
 const DEFAULT_TIMEOUT = 10000;
 
