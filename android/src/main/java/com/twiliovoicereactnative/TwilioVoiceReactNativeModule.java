@@ -197,9 +197,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     // connect & create call record
     final UUID uuid = UUID.randomUUID();
-    final String callRecipient = parsedTwimlParams.containsKey("to")
-      ? parsedTwimlParams.get("to")
-      : getReactApplicationContext().getString(R.string.unknown_call_recipient);
+    final String callRecipient =
+      (parsedTwimlParams.containsKey("to") && !(parsedTwimlParams.get("to").isBlank()))
+        ? parsedTwimlParams.get("to")
+        : getReactApplicationContext().getString(R.string.unknown_call_recipient);
     ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
       .enableDscp(true)
       .params(parsedTwimlParams)
