@@ -1,12 +1,11 @@
 package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
-import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 import android.os.PowerManager;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -63,7 +62,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
     final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
     getCallRecordDatabase().add(callRecord);
-    sendMessage(this, Constants.ACTION_INCOMING_CALL, callRecord.getUuid());
+    getVoiceServiceApi().incomingCall(callRecord);
   }
 
   @Override
@@ -74,6 +73,6 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
 
     callRecord.setCancelledCallInvite(cancelledCallInvite);
     callRecord.setCallException(callException);
-    sendMessage(this, Constants.ACTION_CANCEL_CALL, callRecord.getUuid());
+    getVoiceServiceApi().cancelCall(callRecord);
   }
 }

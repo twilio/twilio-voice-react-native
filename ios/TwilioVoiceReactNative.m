@@ -863,87 +863,100 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
     }];
 }
 
-RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:callInviteUuiid]];
+    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:callInviteUuid]];
     resolve(nil);
 }
 
-RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     resolve(@(YES));
 }
 
-RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInviteMap[callInviteUuiid]) {
-        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+    if (self.callInviteMap[callInviteUuid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.callSid);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
-RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInviteMap[callInviteUuiid]) {
-        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+    if (self.callInviteMap[callInviteUuid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.from);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
-RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuiid
+RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.callInviteMap[callInviteUuiid]) {
-        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuiid];
+    if (self.callInviteMap[callInviteUuid]) {
+        TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.to);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
     }
 }
 
-RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuiid
+RCT_EXPORT_METHOD(callInvite_updateCallerHandle:(NSString *)callInviteUuid
+                  handle:(NSString *)handle
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
-        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+    if (self.callInviteMap[callInviteUuid]) {
+        [self updateCall:callInviteUuid callerHandle:handle];
+        resolve(nil);
+    } else {
+        reject(kTwilioVoiceReactNativeVoiceError, @"No matching call invite", nil);
+    }
+}
+
+RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInviteUuid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.callSid);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);
     }
 }
 
-RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUuiid
+RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
-        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.from);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);
     }
 }
 
-RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuiid
+RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.cancelledCallInviteMap[cancelledCallInviteUuiid]) {
-        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuiid];
+    if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
+        TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.to);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, @"No matching cancelled call invite", nil);

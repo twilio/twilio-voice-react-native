@@ -647,7 +647,9 @@ export class Call extends EventEmitter {
 
     this._update(nativeCallEvent);
 
-    const { currentWarnings, previousWarnings } = nativeCallEvent;
+    const currentWarnings = nativeCallEvent[Constants.CallEventCurrentWarnings];
+    const previousWarnings =
+      nativeCallEvent[Constants.CallEventPreviousWarnings];
 
     this.emit(
       Call.Event.QualityWarningsChanged,

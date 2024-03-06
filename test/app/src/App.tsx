@@ -133,7 +133,11 @@ export default function App() {
       <View style={composedStyles.events}>
         <Text>Events</Text>
         <View style={composedStyles.eventsList}>
-          <FlatList data={events} renderItem={eventLogItemRender} />
+          <FlatList
+            testID="event_log"
+            data={events}
+            renderItem={eventLogItemRender}
+          />
         </View>
       </View>
       <View style={styles.padded}>

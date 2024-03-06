@@ -47,50 +47,151 @@ describe('call', () => {
   }
 
   if (device.getPlatform() === 'android') {
-    it('should make an outgoing call and then disconnect', async () => {
-      await element(by.text('CONNECT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+    describe('outgoing call', () => {
+      it('should make an outgoing call and then disconnect', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-    });
-
-    it('should receive an incoming call and then disconnect', async () => {
-      await register();
-
-      const testCall = await twilioClient.calls.create({
-        twiml:
-          '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
-        to: `client:${clientId}`,
-        from: 'detox',
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
       });
 
-      console.log(
-        `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
-      );
+      it('should log a constant-audio-input-level quality warning', async () => {
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
 
-      await waitFor(element(by.text('ACCEPT')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
-      await element(by.text('ACCEPT')).tap();
-      await waitFor(element(by.text('Call State: connected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+        // check the event log for the call quality warning
+        const checkLog = async () => {
+          await new Promise((r) => setTimeout(r, 5000));
 
-      // Let the call go for 5 seconds
-      await new Promise((r) => setTimeout(r, 5000));
+          await element(by.id('event_log')).swipe('up');
 
-      await element(by.text('DISCONNECT')).tap();
-      await waitFor(element(by.text('Call State: disconnected')))
-        .toBeVisible()
-        .withTimeout(DEFAULT_TIMEOUT);
+          const eventLogAttr = await element(by.id('event_log')).getAttributes();
+          if (!('label' in eventLogAttr) || !eventLogAttr.label) {
+            throw new Error('cannot parse event log label');
+          }
+
+          const searchString =
+            'qualityWarningsChanged\n' +
+            JSON.stringify([['constant-audio-input-level'], []], null, 2);
+
+          return eventLogAttr.label.includes(searchString);
+        }
+
+        // check the call quality warnings every 5 seconds
+        // for a total of 30 seconds
+        // ideally, the warning will be raised after approx 10 seconds
+        let wasCallQualityWarningRaised = false;
+        for (let i = 0; i < 6; i++) {
+          wasCallQualityWarningRaised = await checkLog();
+          if (wasCallQualityWarningRaised) {
+            break;
+          }
+        }
+
+        // we want to tear down the call regardless of success
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        if (!wasCallQualityWarningRaised) {
+          throw new Error('call quality warning was not raised');
+        }
+      });
+    });
+
+    describe('incoming call', () => {
+      it('should reject an incoming call', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('REJECT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('REJECT')).tap();
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
+
+      it('should let an incoming call timeout', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="10" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text(`Call Invite To: client:${clientId}`)))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        await waitFor(element(by.text('Call Invite To: undefined')))
+          .toBeVisible()
+          .withTimeout(60000);
+      });
+
+      it('should accept an incoming call', async () => {
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text('ACCEPT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('ACCEPT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
+
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+      });
     });
   }
 });

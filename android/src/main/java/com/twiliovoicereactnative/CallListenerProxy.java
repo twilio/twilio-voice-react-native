@@ -27,7 +27,7 @@ import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordData
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getAudioSwitchManager;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getMediaPlayerManager;
-import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
@@ -60,7 +60,7 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // take down notification
-    sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
+    getVoiceServiceApi().cancelNotification(callRecord);
 
     // serialize and notify JS
     sendJSEvent(
@@ -81,7 +81,7 @@ class CallListenerProxy implements Call.Listener {
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
     getAudioSwitchManager().getAudioSwitch().activate();
     getMediaPlayerManager().play(MediaPlayerManager.SoundTable.RINGTONE);
-    sendMessage(context, Constants.ACTION_RAISE_OUTGOING_CALL_NOTIFICATION, callRecord.getUuid());
+    getVoiceServiceApi().raiseOutgoingCallNotification(callRecord);
 
     // notify JS layer
     sendJSEvent(
@@ -147,7 +147,7 @@ class CallListenerProxy implements Call.Listener {
     getMediaPlayerManager().stop();
     getMediaPlayerManager().play(MediaPlayerManager.SoundTable.DISCONNECT);
     getAudioSwitchManager().getAudioSwitch().deactivate();
-    sendMessage(context, Constants.ACTION_CANCEL_NOTIFICATION, callRecord.getUuid());
+    getVoiceServiceApi().cancelNotification(callRecord);
 
     // notify JS layer
     sendJSEvent(

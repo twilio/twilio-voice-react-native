@@ -32,6 +32,7 @@ export const NativeModule = {
   callInvite_accept: jest.fn().mockResolvedValue(createNativeCallInfo()),
   callInvite_isValid: jest.fn().mockResolvedValue(false),
   callInvite_reject: jest.fn().mockResolvedValue(undefined),
+  callInvite_updateCallerHandle: jest.fn().mockResolvedValue(undefined),
 
   /**
    * Voice Mocks

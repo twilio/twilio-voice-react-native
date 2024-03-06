@@ -258,14 +258,26 @@ export namespace Call {
 
 // @public
 export interface CallInvite {
+    addListener(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
+    addListener(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
+    addListener(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
+    addListener(notificationTappedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
     addListener(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
-    addListener(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
+    // @internal (undocumented)
+    emit(acceptedEvent: CallInvite.Event.Accepted, call: Call): boolean;
+    // @internal (undocumented)
+    emit(rejectedEvent: CallInvite.Event.Rejected): boolean;
+    // @internal (undocumented)
+    emit(cancelledEvent: CallInvite.Event.Cancelled, error?: TwilioError): boolean;
+    // @internal (undocumented)
+    emit(notificationTappedEvent: CallInvite.Event.NotificationTapped): boolean;
     // @internal (undocumented)
     emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
-    // @internal (undocumented)
-    emit(callInviteEvent: CallInvite.Event, ...args: any[]): boolean;
-    on(callMessageEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
-    on(callInviteEvent: CallInvite.Event, listener: CallInvite.Listener.Generic): this;
+    on(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
+    on(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
+    on(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
+    on(notificationTappedEvent: CallInvite.Event.NotificationTapped, listener: CallInvite.Listener.NotificationTapped): this;
+    on(messageReceivedEvent: CallInvite.Event.MessageReceived, listener: CallInvite.Listener.MessageReceived): this;
 }
 
 // @public
@@ -284,6 +296,7 @@ export class CallInvite extends EventEmitter {
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
     sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
+    updateCallerHandle(newHandle: string): Promise<void>;
 }
 
 // @public
@@ -291,18 +304,23 @@ export namespace CallInvite {
     export interface AcceptOptions {
     }
     export enum Event {
-        'MessageReceived' = "messageReceived"
+        Accepted = "accepted",
+        Cancelled = "cancelled",
+        MessageReceived = "messageReceived",
+        NotificationTapped = "notificationTapped",
+        Rejected = "rejected"
     }
     export namespace Listener {
-        export type Generic = (...args: any[]) => void;
+        export type Accepted = (call: Call) => void;
+        export type Cancelled = (error?: TwilioError) => void;
         export type MessageReceived = (callMessage: CallMessage) => void;
+        export type NotificationTapped = () => void;
+        export type Rejected = () => void;
     }
     export enum State {
-        // (undocumented)
         Accepted = "accepted",
-        // (undocumented)
+        Cancelled = "cancelled",
         Pending = "pending",
-        // (undocumented)
         Rejected = "rejected"
     }
 }
@@ -348,17 +366,6 @@ export namespace CallMessage {
         // (undocumented)
         'UserDefinedMessage' = "user-defined-message"
     }
-}
-
-// @public
-export class CancelledCallInvite {
-    // Warning: (ae-forgotten-export) The symbol "NativeCancelledCallInviteInfo" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    constructor({ callSid, from, to }: NativeCancelledCallInviteInfo);
-    getCallSid(): string;
-    getFrom(): string;
-    getTo(): string;
 }
 
 // @public
@@ -463,9 +470,6 @@ namespace ClientErrors {
 
 // @public
 export type CustomParameters = Record<string, string>;
-
-// @internal (undocumented)
-const errorsByCode: ReadonlyMap<number, typeof TwilioError>;
 
 // @public
 namespace ForbiddenErrors {
@@ -921,8 +925,7 @@ declare namespace TwilioErrors {
         ServerErrors,
         SignalingErrors,
         SIPServerErrors,
-        TwiMLErrors,
-        errorsByCode
+        TwiMLErrors
     }
 }
 export { TwilioErrors }
@@ -952,10 +955,6 @@ class UnsupportedPlatformError extends TwilioError {
 export interface Voice {
     addListener(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     addListener(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
-    addListener(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
-    addListener(callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped, listener: Voice.Listener.CallInviteNotificationTapped): this;
-    addListener(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
-    addListener(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
     addListener(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
     addListener(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
     addListener(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
@@ -964,14 +963,6 @@ export interface Voice {
     emit(voiceEvent: Voice.Event.AudioDevicesUpdated, audioDevices: AudioDevice[], selectedDevice?: AudioDevice): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.CallInvite, callInvite: CallInvite): boolean;
-    // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CallInviteAccepted, callInvite: CallInvite, call: Call): boolean;
-    // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CallInviteNotificationTapped): boolean;
-    // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CallInviteRejected, callInvite: CallInvite): boolean;
-    // @internal (undocumented)
-    emit(voiceEvent: Voice.Event.CancelledCallInvite, cancelledCallInvite: CancelledCallInvite, error?: TwilioError): boolean;
     // @internal (undocumented)
     emit(voiceEvent: Voice.Event.Error, error: TwilioError): boolean;
     // @internal (undocumented)
@@ -982,10 +973,6 @@ export interface Voice {
     emit(voiceEvent: Voice.Event, ...args: any[]): boolean;
     on(audioDevicesUpdatedEvent: Voice.Event.AudioDevicesUpdated, listener: Voice.Listener.AudioDevicesUpdated): this;
     on(callInviteEvent: Voice.Event.CallInvite, listener: Voice.Listener.CallInvite): this;
-    on(callInviteAcceptedEvent: Voice.Event.CallInviteAccepted, listener: Voice.Listener.CallInviteAccepted): this;
-    on(callInviteNotificationTappedEvent: Voice.Event.CallInviteNotificationTapped, listener: Voice.Listener.CallInviteNotificationTapped): this;
-    on(callInviteRejectedEvent: Voice.Event.CallInviteRejected, listener: Voice.Listener.CallInviteRejected): this;
-    on(cancelledCallInviteEvent: Voice.Event.CancelledCallInvite, listener: Voice.Listener.CancelledCallInvite): this;
     on(errorEvent: Voice.Event.Error, listener: Voice.Listener.Error): this;
     on(registeredEvent: Voice.Event.Registered, listener: Voice.Listener.Registered): this;
     on(unregisteredEvent: Voice.Event.Unregistered, listener: Voice.Listener.Unregistered): this;
@@ -1020,10 +1007,6 @@ export namespace Voice {
     export enum Event {
         'AudioDevicesUpdated' = "audioDevicesUpdated",
         'CallInvite' = "callInvite",
-        'CallInviteAccepted' = "callInviteAccepted",
-        'CallInviteNotificationTapped' = "callInviteNotificationTapped",
-        'CallInviteRejected' = "callInviteRejected",
-        'CancelledCallInvite' = "cancelledCallInvite",
         'Error' = "error",
         'Registered' = "registered",
         'Unregistered' = "unregistered"
@@ -1031,10 +1014,6 @@ export namespace Voice {
     export namespace Listener {
         export type AudioDevicesUpdated = (audioDevices: AudioDevice[], selectedDevice?: AudioDevice) => void;
         export type CallInvite = (callInvite: CallInvite) => void;
-        export type CallInviteAccepted = (callInvite: CallInvite, call: Call) => void;
-        export type CallInviteNotificationTapped = () => void;
-        export type CallInviteRejected = (callInvite: CallInvite) => void;
-        export type CancelledCallInvite = (cancelledCallInvite: CancelledCallInvite, error?: TwilioError) => void;
         export type Error = (error: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
         export type Registered = () => void;

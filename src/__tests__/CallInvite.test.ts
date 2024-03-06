@@ -1,15 +1,17 @@
-import { CallInvite } from '../CallInvite';
-import { CallMessage } from '../CallMessage';
-import { OutgoingCallMessage } from '../OutgoingCallMessage';
-import type { NativeCallInviteEventType } from '../type/CallInvite';
 import { createNativeCallInfo } from '../__mocks__/Call';
 import {
   createNativeCallInviteInfo,
-  mockCallInviteNativeEvents,
+  createMockNativeCallInviteEvents,
 } from '../__mocks__/CallInvite';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
-import { NativeModule, NativeEventEmitter } from '../common';
+import { Call } from '../Call';
+import { CallInvite } from '../CallInvite';
+import { CallMessage } from '../CallMessage';
+import { OutgoingCallMessage } from '../OutgoingCallMessage';
+import { TwilioError } from '../error/TwilioError';
+import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
+import type { NativeCallInviteEvent } from '../type/CallInvite';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -27,6 +29,7 @@ jest.mock('../error/InvalidStateError', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  MockNativeEventEmitter.removeAllListeners();
 });
 
 describe('CallInvite class', () => {
@@ -62,18 +65,6 @@ describe('CallInvite class', () => {
       }
     );
 
-    it('contains an entry for every CallInvite event', () => {
-      const callInvite = new CallInvite(
-        createNativeCallInviteInfo(),
-        CallInvite.State.Pending
-      );
-      /* eslint-disable-next-line dot-notation */
-      const nativeEventHandler = callInvite['_nativeEventHandler'];
-      [Constants.CallEventMessageReceived].forEach((event: string) => {
-        expect(event in nativeEventHandler).toBe(true);
-      });
-    });
-
     it('binds to the native event emitter', () => {
       const callInvite = new CallInvite(
         createNativeCallInviteInfo(),
@@ -81,8 +72,182 @@ describe('CallInvite class', () => {
       );
       expect(MockNativeEventEmitter.addListener.mock.calls).toEqual([
         // eslint-disable-next-line dot-notation
-        [Constants.ScopeCallInvite, callInvite['_handleNativeEvent']],
+        [Constants.ScopeCallInvite, callInvite['_handleNativeCallInviteEvent']],
       ]);
+    });
+  });
+
+  describe('when a native call invite event occurs', () => {
+    const mockNativeCallInviteEvents = createMockNativeCallInviteEvents();
+
+    describe('when the call sid matches', () => {
+      const eventTest = (nativeEvent: NativeCallInviteEvent, event: any) => {
+        const callInvite = new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        );
+        const spy = jest.fn();
+        callInvite.on(event, spy);
+        MockNativeEventEmitter.emit(Constants.ScopeCallInvite, nativeEvent);
+        return { callInvite, spy };
+      };
+
+      describe(mockNativeCallInviteEvents.accepted.type, () => {
+        it('emits a call', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.accepted,
+            CallInvite.Event.Accepted
+          );
+          expect(spy.mock.calls).toHaveLength(1);
+          expect(spy.mock.calls[0]).toHaveLength(1);
+          const [[call]] = spy.mock.calls;
+          expect(call).toBeInstanceOf(Call);
+        });
+
+        it('sets the call invite state to accepted', () => {
+          const { callInvite } = eventTest(
+            mockNativeCallInviteEvents.accepted,
+            CallInvite.Event.Accepted
+          );
+          expect(callInvite.getState()).toEqual(CallInvite.State.Accepted);
+        });
+      });
+
+      describe(mockNativeCallInviteEvents.cancelled.type, () => {
+        it('re-emits the event', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.cancelled,
+            CallInvite.Event.Cancelled
+          );
+          expect(spy.mock.calls).toEqual([[]]);
+        });
+
+        it('emits an error when present', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.cancelledWithError,
+            CallInvite.Event.Cancelled
+          );
+          expect(spy.mock.calls).toHaveLength(1);
+          expect(spy.mock.calls[0]).toHaveLength(1);
+          const [[error]] = spy.mock.calls;
+          expect(error).toBeInstanceOf(TwilioError);
+          expect(error.code).toEqual(0);
+          expect(error.message).toEqual('mock-error-message');
+        });
+
+        it('sets the state to cancelled', () => {
+          const { callInvite } = eventTest(
+            mockNativeCallInviteEvents.cancelled,
+            CallInvite.Event.Cancelled
+          );
+          expect(callInvite.getState()).toEqual(CallInvite.State.Cancelled);
+        });
+      });
+
+      describe(mockNativeCallInviteEvents.notificationTapped.type, () => {
+        it('re-emits a valid event', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.notificationTapped,
+            CallInvite.Event.NotificationTapped
+          );
+          expect(spy.mock.calls).toEqual([[]]);
+        });
+      });
+
+      describe(mockNativeCallInviteEvents.rejected.type, () => {
+        it('re-emits a valid event', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.rejected,
+            CallInvite.Event.Rejected
+          );
+          expect(spy.mock.calls).toEqual([[]]);
+        });
+
+        it('sets the state to rejected', () => {
+          const { callInvite } = eventTest(
+            mockNativeCallInviteEvents.rejected,
+            CallInvite.Event.Rejected
+          );
+          expect(callInvite.getState()).toEqual(CallInvite.State.Rejected);
+        });
+      });
+
+      describe(mockNativeCallInviteEvents.messageReceived.type, () => {
+        it('constructs and emits a call message', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.messageReceived,
+            CallInvite.Event.MessageReceived
+          );
+          expect(spy.mock.calls).toHaveLength(1);
+          const [[callMessage]] = spy.mock.calls;
+          expect(callMessage).toBeInstanceOf(CallMessage);
+        });
+      });
+    });
+
+    describe('when the call sid does not match', () => {
+      it('does nothing', () => {
+        const callInvite = new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        );
+        const spy = jest.fn();
+        callInvite.on(CallInvite.Event.Accepted, spy);
+        const mockCallSid = 'foobar';
+        const nativeEvent = {
+          type: Constants.CallInviteEventTypeValueAccepted,
+          callSid: mockCallSid,
+          callInvite: {
+            uuid: 'mock uuid',
+            callSid: mockCallSid,
+            from: 'mock from',
+            to: 'mock to',
+          },
+        };
+        MockNativeEventEmitter.emit(Constants.ScopeCallInvite, nativeEvent);
+        expect(spy.mock.calls).toEqual([]);
+      });
+    });
+
+    describe('when the event is invalid', () => {
+      it('should throw an error containing the event type', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, {
+            type: 'foo',
+            callSid: 'mock-nativecallinviteinfo-callsid',
+          })
+        ).toThrowError('Unknown event type "foo" reached call invite.');
+      });
+
+      it('should throw if the event is not an object', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, 'foobar')
+        ).toThrowError('Received a "string" native call invite event.');
+      });
+
+      it('should throw if the event is null', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, null)
+        ).toThrowError('Received a null native call invite event.');
+      });
+
+      it('should throw if the event does not have a callsid', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, {
+            type: 'foo',
+          })
+        ).toThrowError(
+          'Received a native call invite event without a call SID.'
+        );
+      });
     });
   });
 
@@ -335,70 +500,11 @@ describe('CallInvite class', () => {
     });
   });
 
-  describe('on receiving a valid native event', () => {
-    /**
-     * Test cases that apply to all callInvite events.
-     */
-    const listenerCalledWithMessageReceived = (listenerMock: jest.Mock) => {
-      expect(listenerMock).toHaveBeenCalledTimes(1);
-      const args = listenerMock.mock.calls[0];
-
-      const [callMessage] = args;
-      expect(callMessage).toBeInstanceOf(CallMessage);
-    };
-
-    (
-      [
-        // Example test case configuration:
-        // [
-        //   native event received by the callInvite object,
-        //   call event emitted by the callInvite object,
-        //   assertion to perform on the listener
-        // ],
-        [
-          mockCallInviteNativeEvents.messageReceived,
-          CallInvite.Event.MessageReceived,
-          listenerCalledWithMessageReceived,
-        ],
-      ] as const
-    ).forEach(([{ name, nativeEvent }, callInviteEvent, assertion]) => {
-      describe(name, () => {
-        it('re-emits the native event', () => {
-          const callInvite = new CallInvite(
-            createNativeCallInviteInfo(),
-            CallInvite.State.Pending
-          );
-          const listenerMock = jest.fn();
-          callInvite.on(callInviteEvent, listenerMock);
-
-          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, nativeEvent);
-
-          assertion(listenerMock);
-        });
-
-        it('invokes the correct event handler', () => {
-          const call = new CallInvite(
-            createNativeCallInviteInfo(),
-            CallInvite.State.Pending
-          );
-          const spy = jest.spyOn(
-            call['_nativeEventHandler'], // eslint-disable-line dot-notation
-            nativeEvent.type as NativeCallInviteEventType
-          );
-
-          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, nativeEvent);
-
-          expect(spy).toHaveBeenCalledTimes(1);
-        });
-      });
-    });
-  });
-
   describe('private methods', () => {
     /**
      * Invalid event tests.
      */
-    ['_handleNativeEvent', '_handleMessageReceivedEvent'].forEach(
+    ['_handleNativeCallInviteEvent', '_handleMessageReceivedEvent'].forEach(
       (privateMethodKey) => {
         describe(`.${privateMethodKey}`, () => {
           it('throws an error for an invalid event', () => {
@@ -416,6 +522,48 @@ describe('CallInvite class', () => {
         });
       }
     );
+  });
+
+  describe('.updateCallerHandle()', () => {
+    it('should resolve on ios platforms', async () => {
+      const platformSpy = jest
+        .spyOn(Platform, 'OS', 'get')
+        .mockReturnValue('ios');
+      const nativeMethodSpy = jest.spyOn(
+        NativeModule,
+        'callInvite_updateCallerHandle'
+      );
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).updateCallerHandle('foobar')
+      ).resolves.toBeUndefined();
+      expect(platformSpy.mock.calls).toEqual([[]]);
+      expect(nativeMethodSpy.mock.calls).toEqual([
+        ['mock-nativecallinviteinfo-uuid', 'foobar'],
+      ]);
+    });
+
+    it('should reject on android platforms', async () => {
+      const platformSpy = jest
+        .spyOn(Platform, 'OS', 'get')
+        .mockReturnValue('android');
+      const nativeMethodSpy = jest.spyOn(
+        NativeModule,
+        'callInvite_updateCallerHandle'
+      );
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).updateCallerHandle('foobar')
+      ).rejects.toThrowError(
+        'Unsupported platform "android". This method is only supported on iOS.'
+      );
+      expect(platformSpy.mock.calls).toEqual([[], []]);
+      expect(nativeMethodSpy.mock.calls).toEqual([]);
+    });
   });
 });
 

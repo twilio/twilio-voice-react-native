@@ -1,8 +1,6 @@
 import { createNativeAudioDevicesInfo } from '../__mocks__/AudioDevice';
 import { createNativeCallInviteInfo } from '../__mocks__/CallInvite';
-import { createNativeCancelledCallInviteInfo } from '../__mocks__/CancelledCallInvite';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
-import { createNativeErrorInfo } from '../__mocks__/Error';
 import { mockVoiceNativeEvents } from '../__mocks__/Voice';
 import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
@@ -18,7 +16,6 @@ const MockNativeModule = jest.mocked(NativeModule);
 let MockAudioDevice: jest.Mock;
 let MockCall: jest.Mock;
 let MockCallInvite: jest.Mock & { State: typeof CallInvite.State };
-let MockCancelledCallInvite: jest.Mock;
 let MockTwilioError: jest.Mock;
 let mockConstructTwilioError: jest.Mock;
 
@@ -35,11 +32,9 @@ jest.mock('../CallInvite', () => ({
       Pending: 'pending' as CallInvite.State.Pending,
       Accepted: 'accepted' as CallInvite.State.Accepted,
       Rejected: 'rejected' as CallInvite.State.Rejected,
+      Cancelled: 'cancelled' as CallInvite.State.Cancelled,
     },
   })),
-}));
-jest.mock('../CancelledCallInvite', () => ({
-  CancelledCallInvite: (MockCancelledCallInvite = jest.fn()),
 }));
 jest.mock('../error/utility', () => {
   MockTwilioError = jest.fn();
@@ -71,11 +66,7 @@ describe('Voice class', () => {
         const nativeEventHandler = voice['_nativeEventHandler'];
         [
           Constants.VoiceEventAudioDevicesUpdated,
-          Constants.VoiceEventCallInvite,
-          Constants.VoiceEventCallInviteAccepted,
-          Constants.VoiceEventCallInviteCancelled,
-          Constants.VoiceEventCallInviteNotificationTapped,
-          Constants.VoiceEventCallInviteRejected,
+          Constants.VoiceEventTypeValueIncomingCallInvite,
           Constants.VoiceEventError,
           Constants.VoiceEventRegistered,
           Constants.VoiceEventUnregistered,
@@ -183,7 +174,7 @@ describe('Voice class', () => {
       });
     });
 
-    describe(Constants.VoiceEventCallInvite, () => {
+    describe(Constants.VoiceEventTypeValueIncomingCallInvite, () => {
       it('constructs a pending CallInvite', () => {
         new Voice(); // eslint-disable-line no-new
 
@@ -206,152 +197,6 @@ describe('Voice class', () => {
         MockNativeEventEmitter.emit(
           Constants.ScopeVoice,
           mockVoiceNativeEvents.callInvite.nativeEvent
-        );
-
-        expect(listenerMock).toHaveBeenCalledTimes(1);
-        expect(listenerMock.mock.calls[0]).toHaveLength(1);
-        const [callInvite] = listenerMock.mock.calls[0];
-        expect(callInvite).toBeInstanceOf(MockCallInvite);
-      });
-    });
-
-    describe(Constants.VoiceEventCallInviteAccepted, () => {
-      it('constructs an accepted Callinvite and a Call', () => {
-        new Voice(); // eslint-disable-line no-new
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.callInviteAccepted.nativeEvent
-        );
-
-        const callInviteInfo = createNativeCallInviteInfo();
-        const callInfo = {
-          uuid: callInviteInfo.uuid,
-          customParameters: callInviteInfo.customParameters,
-          sid: callInviteInfo.callSid,
-          from: callInviteInfo.from,
-          to: callInviteInfo.to,
-        };
-
-        expect(MockCallInvite.mock.instances).toHaveLength(1);
-        expect(MockCallInvite.mock.calls).toEqual([
-          [callInviteInfo, MockCallInvite.State.Accepted],
-        ]);
-
-        expect(MockCall.mock.instances).toHaveLength(1);
-        expect(MockCall.mock.calls).toEqual([[callInfo]]);
-      });
-
-      it('emits a Callinvite and a Call', () => {
-        const voice = new Voice();
-        const listenerMock = jest.fn();
-        voice.on(Voice.Event.CallInviteAccepted, listenerMock);
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.callInviteAccepted.nativeEvent
-        );
-
-        expect(listenerMock).toHaveBeenCalledTimes(1);
-        expect(listenerMock.mock.calls[0]).toHaveLength(2);
-        const [callInvite, call] = listenerMock.mock.calls[0];
-        expect(callInvite).toBeInstanceOf(MockCallInvite);
-        expect(call).toBeInstanceOf(MockCall);
-      });
-    });
-
-    describe(Constants.VoiceEventCallInviteCancelled, () => {
-      it('constructs a CancelledCallInvite', () => {
-        new Voice(); // eslint-disable-line no-new
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.cancelledCallInvite.nativeEvent
-        );
-
-        expect(MockCancelledCallInvite.mock.instances).toHaveLength(1);
-        expect(MockCancelledCallInvite.mock.calls).toEqual([
-          [createNativeCancelledCallInviteInfo()],
-        ]);
-
-        expect(MockTwilioError.mock.instances).toHaveLength(1);
-        expect(MockTwilioError.mock.calls).toEqual([
-          [createNativeErrorInfo().message, createNativeErrorInfo().code],
-        ]);
-      });
-
-      it('constructs an error', () => {
-        new Voice(); // eslint-disable-line no-new
-        const errorEvent = {
-          type: Constants.VoiceEventCallInviteCancelled,
-          cancelledCallInvite: createNativeCancelledCallInviteInfo(),
-          error: { code: 99999, message: 'foobar' },
-        };
-        MockNativeEventEmitter.emit(Constants.ScopeVoice, errorEvent);
-
-        expect(MockTwilioError.mock.calls).toEqual([['foobar', 99999]]);
-        expect(MockTwilioError.mock.calls).toHaveLength(
-          MockTwilioError.mock.instances.length
-        );
-      });
-
-      it('emits a CancelledCallInvite and an error', () => {
-        const voice = new Voice();
-        const listenerMock = jest.fn();
-        voice.on(Voice.Event.CancelledCallInvite, listenerMock);
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.cancelledCallInvite.nativeEvent
-        );
-
-        expect(listenerMock).toHaveBeenCalledTimes(1);
-        expect(listenerMock.mock.calls[0]).toHaveLength(2);
-        const [cancelledCallInvite, error] = listenerMock.mock.calls[0];
-        expect(cancelledCallInvite).toBeInstanceOf(MockCancelledCallInvite);
-        expect(error).toBeInstanceOf(MockTwilioError);
-      });
-    });
-
-    describe(Constants.VoiceEventCallInviteNotificationTapped, () => {
-      it('emits CallInviteNotificationTapped', () => {
-        const voice = new Voice();
-        const listenerMock = jest.fn();
-        voice.on(Voice.Event.CallInviteNotificationTapped, listenerMock);
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.callInviteNotificationTapped.nativeEvent
-        );
-
-        expect(listenerMock).toHaveBeenCalledTimes(1);
-        expect(listenerMock.mock.calls[0]).toHaveLength(0);
-      });
-    });
-
-    describe(Constants.VoiceEventCallInviteRejected, () => {
-      it('constructs a rejected CallInvite', () => {
-        new Voice(); // eslint-disable-line no-new
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.callInviteRejected.nativeEvent
-        );
-
-        expect(MockCallInvite.mock.instances).toHaveLength(1);
-        expect(MockCallInvite.mock.calls).toEqual([
-          [createNativeCallInviteInfo(), MockCallInvite.State.Rejected],
-        ]);
-      });
-
-      it('emits a CallInvite', () => {
-        const voice = new Voice();
-        const listenerMock = jest.fn();
-        voice.on(Voice.Event.CallInviteRejected, listenerMock);
-
-        MockNativeEventEmitter.emit(
-          Constants.ScopeVoice,
-          mockVoiceNativeEvents.callInviteRejected.nativeEvent
         );
 
         expect(listenerMock).toHaveBeenCalledTimes(1);
@@ -900,10 +745,6 @@ describe('Voice class', () => {
       '_handleNativeEvent',
       '_handleAudioDevicesUpdated',
       '_handleCallInvite',
-      '_handleCallInviteAccepted',
-      '_handleCallInviteNotificationTapped',
-      '_handleCallInviteRejected',
-      '_handleCancelledCallInvite',
       '_handleError',
       '_handleRegistered',
       '_handleUnregistered',
