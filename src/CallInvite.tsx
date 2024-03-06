@@ -77,7 +77,7 @@ export declare interface CallInvite {
    * @example
    * ```ts
    * voice.on(Voice.Event.CallInvite, (callInvite) => {
-   *   callInvite.on(CallInvite.Event.Accepted, () => {
+   *   callInvite.on(CallInvite.Event.Accepted, (call) => {
    *     // the call invite was accepted through either the native layer
    *     // or the js layer
    *   });
@@ -137,7 +137,7 @@ export declare interface CallInvite {
    * @example
    * ```ts
    * voice.on(Voice.Event.CallInvite, (callInvite) => {
-   *   callInvite.on(CallInvite.Event.Cancelled, () => {
+   *   callInvite.on(CallInvite.Event.Cancelled, (error) => {
    *     // the call invite was cancelled
    *   });
    * });
