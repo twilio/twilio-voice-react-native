@@ -43,7 +43,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
-import static com.twiliovoicereactnative.VoiceNotificationReceiver.sendMessage;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import android.annotation.SuppressLint;
@@ -206,11 +206,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .build();
     CallRecord callRecord = new CallRecord(
       uuid,
-      Voice.connect(
-        getReactApplicationContext(),
+      getVoiceServiceApi().connect(
         connectOptions,
-        new CallListenerProxy(uuid, reactContext))
-    );
+        new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())));
     getCallRecordDatabase().add(callRecord);
 
     // notify JS layer
@@ -341,7 +339,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     final CallRecord callRecord = validateCallRecord(reactContext, UUID.fromString(uuid), promise);
 
     if (null != callRecord) {
-      callRecord.getVoiceCall().disconnect();
+      getVoiceServiceApi().disconnect(callRecord);
       promise.resolve(uuid);
     }
   }
@@ -493,7 +491,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       callRecord.setCallAcceptedPromise(promise);
 
       // Send Event to service
-      sendMessage(getReactApplicationContext(), Constants.ACTION_ACCEPT_CALL, callRecord.getUuid());
+      getVoiceServiceApi().acceptCall(callRecord);
     }
   }
 
@@ -509,7 +507,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       callRecord.setCallRejectedPromise(promise);
 
       // Send Event to service
-      sendMessage(getReactApplicationContext(), Constants.ACTION_REJECT_CALL, callRecord.getUuid());
+      getVoiceServiceApi().rejectCall(callRecord);
     }
   }
 

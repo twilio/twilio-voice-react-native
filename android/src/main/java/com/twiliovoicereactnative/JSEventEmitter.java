@@ -17,15 +17,15 @@ import java.lang.ref.WeakReference;
 
 class JSEventEmitter {
   private static final SDKLog logger = new SDKLog(JSEventEmitter.class);
-  private WeakReference<ReactApplicationContext> context;
+  private WeakReference<ReactApplicationContext> context = new WeakReference<>(null);
 
   public void setContext(ReactApplicationContext context) {
     this.context = new WeakReference<>(context);
   }
   public void sendEvent(String eventName, @Nullable WritableMap params) {
     logger.debug("sendEvent " + eventName + " params " + params);
-
-    if ((null != context.get() && context.get().hasActiveReactInstance())) {
+    if ((null != context.get()) &&
+        context.get().hasActiveReactInstance()) {
       context.get()
         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
         .emit(eventName, params);
@@ -36,6 +36,7 @@ class JSEventEmitter {
           context.get()));
     }
   }
+
   public static WritableArray constructJSArray(@NonNull Object...entries) {
     WritableArray params = Arguments.createArray();
     for (Object entry: entries) {

@@ -4,7 +4,6 @@ import java.net.URLDecoder;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -17,7 +16,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.net.Uri;
-import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationChannelCompat;
@@ -31,7 +29,7 @@ import com.twilio.voice.CallInvite;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
-import static com.twiliovoicereactnative.VoiceNotificationReceiver.constructMessage;
+import static com.twiliovoicereactnative.VoiceService.constructMessage;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
@@ -61,9 +59,9 @@ class NotificationUtility {
     Intent rejectIntent = constructMessage(
       context,
       Constants.ACTION_REJECT_CALL,
-      VoiceNotificationReceiver.class,
+      VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piRejectIntent = constructPendingIntentForReceiver(context, rejectIntent);
+    PendingIntent piRejectIntent = constructPendingIntentForService(context, rejectIntent);
 
     Intent acceptIntent = constructMessage(
       context,
@@ -102,9 +100,9 @@ class NotificationUtility {
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
-      VoiceNotificationReceiver.class,
+      VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(smallIconResId)
@@ -135,9 +133,9 @@ class NotificationUtility {
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
-      VoiceNotificationReceiver.class,
+      VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForReceiver(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(smallIconResId)
@@ -237,9 +235,9 @@ class NotificationUtility {
       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
   }
 
-  private static PendingIntent constructPendingIntentForReceiver(@NonNull Context context,
-                                                                 @NonNull final Intent intent) {
-    return PendingIntent.getBroadcast(
+  private static PendingIntent constructPendingIntentForService(@NonNull Context context,
+                                                                @NonNull final Intent intent) {
+    return PendingIntent.getService(
       context.getApplicationContext(),
       0,
       intent,
