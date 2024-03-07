@@ -7,10 +7,6 @@ export interface BaseNativeCallInviteEvent {
   callSid: string;
 }
 
-export interface BaseNativeCallInviteEvent {
-  callSid: string;
-}
-
 export interface NativeCallInviteInfo {
   uuid: Uuid;
   callSid: string;
