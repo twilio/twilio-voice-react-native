@@ -5,6 +5,7 @@ ReactNativeVoiceSDKVer=1.0.0-dev
 // Scope names
 ScopeVoice=scopeVoice
 ScopeCall=scopeCall
+ScopeCallMessage=scopeCallMessage
 ScopeCallInvite=scopeCallInvite
 
 // Voice events
@@ -55,6 +56,16 @@ CancelledCallInviteInfoCustomParameters=customParameters
 // Incoming Call Invite event
 VoiceEventTypeValueIncomingCallInvite=voiceEventTypeValueIncomingCallInvite
 
+// Call Message
+VoiceEventSid=voiceEventSid
+CallMessage=callMessage
+CallMessageContent=content
+CallMessageContentType=contentType
+CallMessageMessageType=messageType
+JSEventKeyCallMessageInfo=callMessage
+UserDefinedMessage=user-defined-message
+ApplicationJson=application/json
+
 // Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated
 
@@ -89,6 +100,11 @@ CallEventRinging=callEventRinging
 CallEventQualityWarningsChanged=callEventQualityWarningsChanged
 CallEventCurrentWarnings=callEventCurrentWarnings
 CallEventPreviousWarnings=callEventPreviousWarnings
+
+// Call message events
+CallEventMessageFailure=callEventMessageFailure
+CallEventMessageReceived=callEventMessageReceived
+CallEventMessageSent=callEventMessageSent
 
 // Post feedback
 Score=score

@@ -1,6 +1,7 @@
 import type { Constants } from '../constants';
 import type { CustomParameters, Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
+import type { NativeCallMessageInfo } from './CallMessage';
 
 export interface BaseNativeCallInviteEvent {
   callSid: string;
@@ -44,8 +45,15 @@ export interface NativeCancelledCallInviteInfo {
   to: string;
 }
 
+export interface NativeCallInviteMessageReceivedEvent
+  extends BaseNativeCallInviteEvent {
+  type: Constants.CallEventMessageReceived;
+  [Constants.CallMessage]: NativeCallMessageInfo;
+}
+
 export type NativeCallInviteEvent =
   | NativeCallInviteNotificationTappedEvent
   | NativeCallInviteAcceptedEvent
   | NativeCallInviteRejectedEvent
-  | NativeCallInviteCancelledEvent;
+  | NativeCallInviteCancelledEvent
+  | NativeCallInviteMessageReceivedEvent;

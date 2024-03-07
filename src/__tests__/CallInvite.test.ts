@@ -6,6 +6,8 @@ import {
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { Call } from '../Call';
 import { CallInvite } from '../CallInvite';
+import { CallMessage } from '../CallMessage';
+import { OutgoingCallMessage } from '../OutgoingCallMessage';
 import { TwilioError } from '../error/TwilioError';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
@@ -62,6 +64,17 @@ describe('CallInvite class', () => {
         expect(callInvite['_state']).toEqual(callInviteState);
       }
     );
+
+    it('binds to the native event emitter', () => {
+      const callInvite = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      );
+      expect(MockNativeEventEmitter.addListener.mock.calls).toEqual([
+        // eslint-disable-next-line dot-notation
+        [Constants.ScopeCallInvite, callInvite['_handleNativeCallInviteEvent']],
+      ]);
+    });
   });
 
   describe('when a native call invite event occurs', () => {
@@ -158,6 +171,18 @@ describe('CallInvite class', () => {
           expect(callInvite.getState()).toEqual(CallInvite.State.Rejected);
         });
       });
+
+      describe(mockNativeCallInviteEvents.messageReceived.type, () => {
+        it('constructs and emits a call message', () => {
+          const { spy } = eventTest(
+            mockNativeCallInviteEvents.messageReceived,
+            CallInvite.Event.MessageReceived
+          );
+          expect(spy.mock.calls).toHaveLength(1);
+          const [[callMessage]] = spy.mock.calls;
+          expect(callMessage).toBeInstanceOf(CallMessage);
+        });
+      });
     });
 
     describe('when the call sid does not match', () => {
@@ -184,8 +209,8 @@ describe('CallInvite class', () => {
       });
     });
 
-    describe('when the type is invalid', () => {
-      it('should throw an error', () => {
+    describe('when the event is invalid', () => {
+      it('should throw an error containing the event type', () => {
         // eslint-disable-next-line no-new
         new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
         expect(() =>
@@ -194,6 +219,34 @@ describe('CallInvite class', () => {
             callSid: 'mock-nativecallinviteinfo-callsid',
           })
         ).toThrowError('Unknown event type "foo" reached call invite.');
+      });
+
+      it('should throw if the event is not an object', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, 'foobar')
+        ).toThrowError('Received a "string" native call invite event.');
+      });
+
+      it('should throw if the event is null', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, null)
+        ).toThrowError('Received a null native call invite event.');
+      });
+
+      it('should throw if the event does not have a callsid', () => {
+        // eslint-disable-next-line no-new
+        new CallInvite(createNativeCallInviteInfo(), CallInvite.State.Pending);
+        expect(() =>
+          MockNativeEventEmitter.emit(Constants.ScopeCallInvite, {
+            type: 'foo',
+          })
+        ).toThrowError(
+          'Received a native call invite event without a call SID.'
+        );
       });
     });
   });
@@ -397,6 +450,80 @@ describe('CallInvite class', () => {
     });
   });
 
+  describe('.sendMessage()', () => {
+    const content = { key1: 'hello world' };
+    const contentType = CallMessage.ContentType.ApplicationJson;
+    const messageType = CallMessage.MessageType.UserDefinedMessage;
+
+    it('invokes the native module', async () => {
+      const message = new CallMessage({
+        content,
+        contentType,
+        messageType,
+      });
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage(message);
+
+      expect(jest.mocked(MockNativeModule.call_sendMessage).mock.calls).toEqual(
+        [
+          [
+            'mock-nativecallinviteinfo-uuid',
+            JSON.stringify(content),
+            contentType,
+            messageType,
+          ],
+        ]
+      );
+    });
+
+    it('returns a Promise<OutgoingCallMessage>', async () => {
+      const message = new CallMessage({
+        content,
+        contentType,
+        messageType,
+      });
+      const sendMessagePromise = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage(message);
+      const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
+        content,
+        contentType,
+        messageType,
+        voiceEventSid: 'mock-nativemodule-tracking-id',
+      });
+      const result = await sendMessagePromise;
+      expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
+    });
+  });
+
+  describe('private methods', () => {
+    /**
+     * Invalid event tests.
+     */
+    ['_handleNativeCallInviteEvent', '_handleMessageReceivedEvent'].forEach(
+      (privateMethodKey) => {
+        describe(`.${privateMethodKey}`, () => {
+          it('throws an error for an invalid event', () => {
+            const handler = (
+              new CallInvite(
+                createNativeCallInviteInfo(),
+                CallInvite.State.Pending
+              ) as any
+            )[privateMethodKey];
+            expect(typeof handler).toBe('function');
+            expect(() => {
+              handler({ type: 'not-a-real-event' });
+            }).toThrow();
+          });
+        });
+      }
+    );
+  });
+
   describe('.updateCallerHandle()', () => {
     it('should resolve on ios platforms', async () => {
       const platformSpy = jest
@@ -445,6 +572,10 @@ describe('CallInvite namespace', () => {
     it('State', () => {
       expect(CallInvite.State).toBeDefined();
       expect(typeof CallInvite.State).toBe('object');
+    });
+    it('Event', () => {
+      expect(CallInvite.Event).toBeDefined();
+      expect(typeof CallInvite.Event).toBe('object');
     });
   });
 });

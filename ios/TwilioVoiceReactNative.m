@@ -134,7 +134,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return;
     } else if ([type isEqualToString:kTwilioVoicePushRegistryNotificationIncomingPushReceived]) {
         NSDictionary *payload = eventBody[kTwilioVoicePushRegistryNotificationIncomingPushPayload];
-        [TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil];
+        [TwilioVoiceSDK handleNotification:payload delegate:self delegateQueue:nil callMessageDelegate:self];
     }
 }
 
@@ -405,7 +405,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall, kTwilioVoiceReactNativeScopeCallInvite];
+    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall, kTwilioVoiceReactNativeScopeCallInvite, kTwilioVoiceReactNativeScopeCallMessage];
 }
 
 + (BOOL)requiresMainQueueSetup
@@ -808,6 +808,28 @@ RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
             NSArray *statsReportJson = [TwilioVoiceStatsReport jsonWithStatsReportsArray:statsReports];
             resolve(statsReportJson);
         }];
+    } else {
+        reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
+    }
+}
+
+RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
+                  content:(NSString *)content
+                  contentType:(NSString *)contentType
+                  messageType:(NSString *)messageType
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    TVOCallInvite *callInvite = self.callInviteMap[uuid];
+    TVOCall *call = self.callMap[uuid];
+    if (call) {
+        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        NSString *voiceEventSid = [call sendMessage:callMessage];
+        resolve(voiceEventSid);
+    } else if (callInvite) {
+        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        NSString *voiceEventSid = [callInvite sendMessage:callMessage];
+        resolve(voiceEventSid);
     } else {
         reject(kTwilioVoiceReactNativeVoiceError, [NSString stringWithFormat:@"Call with %@ not found", uuid], nil);
     }

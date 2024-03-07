@@ -20,7 +20,7 @@ NSString * const kTwilioVoicePushRegistryNotificationDeviceToken = @"deviceToken
 NSString * const kTwilioVoicePushRegistryNotificationIncomingPushReceived = @"incomingPushReceived";
 NSString * const kTwilioVoicePushRegistryNotificationIncomingPushPayload = @"incomingPushPayload";
 
-@interface TwilioVoicePushRegistry () <PKPushRegistryDelegate, TVONotificationDelegate>
+@interface TwilioVoicePushRegistry () <PKPushRegistryDelegate>
 
 @property (nonatomic, strong) PKPushRegistry *voipRegistry;
 @property (nonatomic, copy) NSString *callInviteUuid;

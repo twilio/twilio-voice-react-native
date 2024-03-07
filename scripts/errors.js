@@ -48,6 +48,7 @@ const USED_ERRORS = [
    */
   'AuthorizationErrors.AuthorizationError', // 31201
   'AuthorizationErrors.RateExceededError', // 31206
+  'AuthorizationErrors.PayloadSizeExceededError', // 31209
 
   /**
    * RegistrationErrors

@@ -50,7 +50,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
 
     // Check if message contains a data payload.
     if (remoteMessage.getData().size() > 0) {
-      if (!Voice.handleMessage(this, remoteMessage.getData(), this)) {
+      if (!Voice.handleMessage(this, remoteMessage.getData(), this, new CallMessageListenerProxy())) {
         logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
       }
