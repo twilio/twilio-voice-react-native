@@ -48,11 +48,11 @@ class NotificationUtility {
     public String getContent(CallInvite callInvite) {
       final String from = (null != callInvite) ? getDisplayName(callInvite) : "";
       return ctx.getString(getTextResourceId(contentTextId))
-        .replaceAll("\\[%from\\]", from);
+        .replaceAll("\\$\\{from\\}", from);
     }
     public String getContent(String to) {
       return ctx.getString(getTextResourceId(contentTextId))
-        .replaceAll("\\[%to\\]", to);
+        .replaceAll("\\$\\{to\\}", to);
     }
 
     @SuppressLint("DiscouragedApi")
