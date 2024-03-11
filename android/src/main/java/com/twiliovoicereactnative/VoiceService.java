@@ -215,6 +215,9 @@ public class VoiceService extends Service {
   private void rejectCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("rejectCall: " + callRecord.getUuid());
 
+    // remove call record
+    getCallRecordDatabase().remove(callRecord);
+
     // take down notification
     removeNotification();
 
