@@ -126,7 +126,7 @@ class CallListenerProxy implements Call.Listener {
     debug("onReconnected");
 
     // find & remove call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
+    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
 
     // notify JS layer
     sendJSEvent(
@@ -140,7 +140,7 @@ class CallListenerProxy implements Call.Listener {
     debug("onDisconnected");
 
     // find & update call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
 
     // stop audio & cancel notification
     getMediaPlayerManager().stop();
