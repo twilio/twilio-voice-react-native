@@ -1,3 +1,5 @@
+import { CallMessage } from '../CallMessage';
+import { OutgoingCallMessage } from '../OutgoingCallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createNativeErrorInfo } from '../__mocks__/Error';
@@ -49,6 +51,7 @@ describe('Call class', () => {
         Constants.CallEventReconnecting,
         Constants.CallEventRinging,
         Constants.CallEventQualityWarningsChanged,
+        Constants.CallEventMessageReceived,
       ].forEach((event: string) => {
         expect(event in nativeEventHandler).toBe(true);
       });
@@ -162,6 +165,14 @@ describe('Call class', () => {
       expect(Array.isArray(previousWarnings)).toBe(true);
     };
 
+    const listenerCalledWithMessageReceived = (listenerMock: jest.Mock) => {
+      expect(listenerMock).toHaveBeenCalledTimes(1);
+      const args = listenerMock.mock.calls[0];
+
+      const [callMessage] = args;
+      expect(callMessage).toBeInstanceOf(CallMessage);
+    };
+
     (
       [
         // Example test case configuration:
@@ -209,6 +220,11 @@ describe('Call class', () => {
           mockCallNativeEvents.qualityWarningsChanged,
           Call.Event.QualityWarningsChanged,
           listenerCalledWithQualityWarnings,
+        ],
+        [
+          mockCallNativeEvents.messageReceived,
+          Call.Event.MessageReceived,
+          listenerCalledWithMessageReceived,
         ],
       ] as const
     ).forEach(([{ name, nativeEvent }, callEvent, assertion]) => {
@@ -536,6 +552,52 @@ describe('Call class', () => {
         await expect(postFeedbackPromise).resolves.toBe(undefined);
       });
     });
+
+    describe('.sendMesssage', () => {
+      const content = { key1: 'hello world' };
+      const contentType = CallMessage.ContentType.ApplicationJson;
+      const messageType = CallMessage.MessageType.UserDefinedMessage;
+
+      it('invokes the native module', async () => {
+        const message = new CallMessage({
+          content,
+          contentType,
+          messageType,
+        });
+
+        await new Call(createNativeCallInfo()).sendMessage(message);
+
+        expect(
+          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+        ).toEqual([
+          [
+            'mock-nativecallinfo-uuid',
+            JSON.stringify(content),
+            contentType,
+            messageType,
+          ],
+        ]);
+      });
+
+      it('returns a Promise<OutgoingCallMessage>', async () => {
+        const message = new CallMessage({
+          content,
+          contentType,
+          messageType,
+        });
+        const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
+          message
+        );
+        const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
+          content,
+          contentType,
+          messageType,
+          voiceEventSid: 'mock-nativemodule-tracking-id',
+        });
+        const result = await sendMessagePromise;
+        expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
+      });
+    });
   });
 
   describe('private methods', () => {
@@ -589,6 +651,7 @@ describe('Call class', () => {
       '_handleReconnectedEvent',
       '_handleRingingEvent',
       '_handleQualityWarningsChangedEvent',
+      '_handleMessageReceivedEvent',
     ].forEach((privateMethodKey) => {
       describe(`.${privateMethodKey}`, () => {
         it('throws an error for an invalid event', () => {

@@ -16,4 +16,9 @@
   <string name="missing_audiodevice_uuid">No such "audioDevice" object exists with UUID %s</string>
   <string name="missing_call_uuid">No such "call" object exists with UUID %s</string>
   <string name="missing_callinvite_uuid">No such "callInvite" object exists with UUID %s</string>
+  <string name="invalid_notification_type">Invalid notificaiton type %s</string>
+  <string name="unknown_call_recipient">Unknown</string>
+  <string name="incoming_call_caller_name_text">${from}</string>
+  <string name="outgoing_call_caller_name_text">${to}</string>
+  <string name="answered_call_caller_name_text">${from}</string>
 </resources>

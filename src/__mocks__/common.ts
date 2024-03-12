@@ -22,6 +22,9 @@ export const NativeModule = {
   call_mute: jest.fn((_uuid: Uuid, mute: boolean) => Promise.resolve(mute)),
   call_postFeedback: jest.fn().mockResolvedValue(undefined),
   call_sendDigits: jest.fn().mockResolvedValue(undefined),
+  call_sendMessage: jest
+    .fn()
+    .mockResolvedValue('mock-nativemodule-tracking-id'),
 
   /**
    * Call Invite Mocks

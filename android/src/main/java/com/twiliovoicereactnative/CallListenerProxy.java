@@ -96,6 +96,7 @@ class CallListenerProxy implements Call.Listener {
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    callRecord.setCall(call);
     callRecord.setTimestamp(new Date());
     getMediaPlayerManager().stop();
 

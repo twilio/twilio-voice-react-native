@@ -7,22 +7,35 @@
 
 import { EventEmitter } from 'eventemitter3';
 import { Call } from './Call';
-import { NativeModule, NativeEventEmitter, Platform } from './common';
-import { Constants } from './constants';
-import { constructTwilioError } from './error/utility';
+import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { InvalidStateError } from './error/InvalidStateError';
-import type { TwilioError } from './error/TwilioError';
+import { TwilioError } from './error/TwilioError';
+import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
+import { constructTwilioError } from './error/utility';
 import type {
   NativeCallInviteInfo,
   NativeCallInviteEvent,
   NativeCallInviteAcceptedEvent,
   NativeCallInviteCancelledEvent,
+  NativeCallInviteMessageReceivedEvent,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
+import { CallMessage } from './CallMessage';
+import { OutgoingCallMessage } from './OutgoingCallMessage';
+import { Constants } from './constants';
 
 /**
- * Call invite event types.
+ * Defines strict typings for all events emitted by {@link (CallInvite:class)
+ * | CallInvite objects}.
+ *
+ * @remarks
+ * Note that the `on` function is an alias for the `addListener` function.
+ * They share identical functionality and either may be used interchangeably.
+ *
+ * - See also the {@link (CallInvite:class) | CallInvite class}.
+ * - See also the {@link (CallInvite:namespace) | CallInvite namespace}.
+ *
+ * @public
  */
 export declare interface CallInvite {
   /**
@@ -46,6 +59,12 @@ export declare interface CallInvite {
   /** @internal */
   emit(notificationTappedEvent: CallInvite.Event.NotificationTapped): boolean;
 
+  /** @internal */
+  emit(
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
+    callMessage: CallMessage
+  ): boolean;
+
   /**
    * ----------------
    * Listener Typings
@@ -58,7 +77,7 @@ export declare interface CallInvite {
    * @example
    * ```ts
    * voice.on(Voice.Event.CallInvite, (callInvite) => {
-   *   callInvite.on(CallInvite.Event.Accepted, () => {
+   *   callInvite.on(CallInvite.Event.Accepted, (call) => {
    *     // the call invite was accepted through either the native layer
    *     // or the js layer
    *   });
@@ -108,7 +127,7 @@ export declare interface CallInvite {
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:2)} */
   on(
-    acceptedEvent: CallInvite.Event.Rejected,
+    rejectedEvent: CallInvite.Event.Rejected,
     listener: CallInvite.Listener.Rejected
   ): this;
 
@@ -118,7 +137,7 @@ export declare interface CallInvite {
    * @example
    * ```ts
    * voice.on(Voice.Event.CallInvite, (callInvite) => {
-   *   callInvite.on(CallInvite.Event.Cancelled, () => {
+   *   callInvite.on(CallInvite.Event.Cancelled, (error) => {
    *     // the call invite was cancelled
    *   });
    * });
@@ -137,7 +156,7 @@ export declare interface CallInvite {
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:3)} */
   on(
-    acceptedEvent: CallInvite.Event.Cancelled,
+    cancelledEvent: CallInvite.Event.Cancelled,
     listener: CallInvite.Listener.Cancelled
   ): this;
 
@@ -157,19 +176,45 @@ export declare interface CallInvite {
    * @remarks
    * This API is Android specific.
    *
-   * @param cancelledEvent - The raised event string.
+   * @param notificationTappedEvent - The raised event string.
    * @param listener - A listener function that will be invoked when the event
    * is raised.
    * @returns - The call invite object.
    */
   addListener(
-    cancelledEvent: CallInvite.Event.NotificationTapped,
+    notificationTappedEvent: CallInvite.Event.NotificationTapped,
     listener: CallInvite.Listener.NotificationTapped
   ): this;
   /** {@inheritDoc (CallInvite:interface).(addListener:4)} */
   on(
-    acceptedEvent: CallInvite.Event.NotificationTapped,
+    notificationTappedEvent: CallInvite.Event.NotificationTapped,
     listener: CallInvite.Listener.NotificationTapped
+  ): this;
+
+  /**
+   * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
+   * @example
+   * ```typescript
+   * voice.on(Voice.Event.CallInvite, (callInvite) => {
+   *   callInvite.addListener(CallInvite.Event.MessageReceived, (message) => {
+   *      // callMessage received
+   *   });
+   * });
+   * ```
+   *
+   * @param messageReceivedEvent - The raised event string.
+   * @param listener - A listener function that will be invoked when the event
+   * is raised.
+   * @returns - The callMessage object
+   */
+  addListener(
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
+    listener: CallInvite.Listener.MessageReceived
+  ): this;
+  /** {@inheritDoc (CallInvite:interface).(addListener:5)} */
+  on(
+    messageReceivedEvent: CallInvite.Event.MessageReceived,
+    listener: CallInvite.Listener.MessageReceived
   ): this;
 }
 
@@ -258,6 +303,18 @@ export class CallInvite extends EventEmitter {
   }
 
   /**
+   * This helper function serves as both a runtime-check error log and a
+   * compile-time type-guard. If the switch-case statement below is non-
+   * exhaustive, then the type passed to this function will _not_ have type
+   * `never`.
+   */
+  private _handleUnexpectedCallInviteEventType(event: never) {
+    throw new TwilioError(
+      `Unknown event type "${(event as any)?.type}" reached call invite.`
+    );
+  }
+
+  /**
    * This intermediate native call invite event handler acts as a "gate", only
    * executing the actual call invite event handler (such as `Accepted`) if
    * this call invite object matches the `Uuid` of the call invite that had an
@@ -268,6 +325,22 @@ export class CallInvite extends EventEmitter {
   private _handleNativeCallInviteEvent = (
     nativeCallInviteEvent: NativeCallInviteEvent
   ) => {
+    if (typeof nativeCallInviteEvent !== 'object') {
+      throw new TwilioError(
+        `Received a "${typeof nativeCallInviteEvent}" native call invite event.`
+      );
+    }
+
+    if (nativeCallInviteEvent === null) {
+      throw new TwilioError('Received a null native call invite event.');
+    }
+
+    if (typeof nativeCallInviteEvent.callSid !== 'string') {
+      throw new TwilioError(
+        'Received a native call invite event without a call SID.'
+      );
+    }
+
     if (nativeCallInviteEvent.callSid !== this._callSid) {
       return;
     }
@@ -281,18 +354,25 @@ export class CallInvite extends EventEmitter {
         return this._handleCallInviteCancelled(nativeCallInviteEvent);
       case Constants.CallInviteEventTypeValueNotificationTapped:
         return this._handleCallInviteNotificationTapped();
+      case Constants.CallEventMessageReceived:
+        return this._handleMessageReceivedEvent(nativeCallInviteEvent);
       default:
-        /**
-         * Note(mhuynh): We need to typecast "as any" below because the compiler
-         * will narrow the type of the nativeCallInviteEvent all the way down to
-         * `never`, and therefore remove the `type` member off of the object.
-         */
-        throw new Error(
-          `Unknown event type "${
-            (nativeCallInviteEvent as any).type
-          }" reached call invite.`
-        );
+        return this._handleUnexpectedCallInviteEventType(nativeCallInviteEvent);
     }
+  };
+
+  /**
+   * Handler for the {@link (CallInvite:namespace).Event.MessageReceived} event.
+   * @param nativeCallEvent - The native call event.
+   */
+  private _handleMessageReceivedEvent = (
+    nativeCallInviteEvent: NativeCallInviteMessageReceivedEvent
+  ) => {
+    const { callMessage: callMessageInfo } = nativeCallInviteEvent;
+
+    const callMessage = new CallMessage(callMessageInfo);
+
+    this.emit(CallInvite.Event.MessageReceived, callMessage);
   };
 
   /**
@@ -446,6 +526,59 @@ export class CallInvite extends EventEmitter {
   }
 
   /**
+   * Send {@link (CallMessage:class)}.
+   *
+   * @example
+   * To send a user-defined-message
+   * ```typescript
+   * const message = new CallMessage({
+   *    content: { key1: 'This is a messsage from the parent call' },
+   *    contentType: CallMessage.ContentType.ApplicationJson,
+   *    messageType: CallMessage.MessageType.UserDefinedMessage
+   * })
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
+   *
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
+   *    // outgoingCallMessage failed, handle error
+   * });
+   *
+   * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
+   *    // outgoingCallMessage sent
+   * })
+   * ```
+   *
+   * @param content - The message content
+   * @param contentType - The MIME type for the message. See {@link (CallMessage:namespace).ContentType}.
+   * @param messageType - The message type. See {@link (CallMessage:namespace).MessageType}.
+   *
+   * @returns
+   *  A `Promise` that
+   *    - Resolves with the OutgoingCallMessage object.
+   *    - Rejects when the message is unable to be sent.
+   */
+  async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    const content = message.getContent();
+    const contentType = message.getContentType();
+    const messageType = message.getMessageType();
+
+    const voiceEventSid = await NativeModule.call_sendMessage(
+      this._uuid,
+      JSON.stringify(content),
+      contentType,
+      messageType
+    );
+
+    const outgoingCallMessage = new OutgoingCallMessage({
+      content,
+      contentType,
+      messageType,
+      voiceEventSid,
+    });
+
+    return outgoingCallMessage;
+  }
+
+  /**
    * Update the caller name displayed in the iOS system incoming call screen.
    *
    * @param newHandle - The new value of the caller's name.
@@ -546,6 +679,12 @@ export namespace CallInvite {
      * See {@link (CallInvite:interaface).(addListener:4)}.
      */
     NotificationTapped = 'notificationTapped',
+
+    /**
+     * Event string for the `MessageReceived` event.
+     * See {@link (CallInvite:interface).(addListener:5)}
+     */
+    MessageReceived = 'messageReceived',
   }
 
   /**
@@ -559,7 +698,7 @@ export namespace CallInvite {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:1)}.
+     * See {@link (CallInvite:interface).(addListener:1)}.
      */
     export type Accepted = (call: Call) => void;
 
@@ -569,7 +708,7 @@ export namespace CallInvite {
      * event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:2)}.
+     * See {@link (CallInvite:interface).(addListener:2)}.
      */
     export type Rejected = () => void;
 
@@ -579,7 +718,7 @@ export namespace CallInvite {
      * {@link (CallInvite:namespace).Event.Cancelled} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:3)}.
+     * See {@link (CallInvite:interface).(addListener:3)}.
      */
     export type Cancelled = (error?: TwilioError) => void;
 
@@ -589,8 +728,17 @@ export namespace CallInvite {
      * {@link (CallInvite:namespace).Event.NotificationTapped} event.
      *
      * @remarks
-     * See {@link (Call:interface).(addListener:4)}.
+     * See {@link (CallInvite:interface).(addListener:4)}.
      */
     export type NotificationTapped = () => void;
+
+    /**
+     * CallInviteMessage received event listener. This should be the function signature of
+     * any event listener bound to the {@link (CallInvite:namespace).Event.MessageReceived} event.
+     *
+     * @remarks
+     * See {@link (CallInvite:interface).(addListener:5)}.
+     */
+    export type MessageReceived = (callMessage: CallMessage) => void;
   }
 }

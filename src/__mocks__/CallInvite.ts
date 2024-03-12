@@ -4,6 +4,7 @@ import type {
 } from '../type/CallInvite';
 import { Constants } from '../constants';
 import { createNativeErrorInfo } from './Error';
+import { createNativeCallMessageInfo } from './CallMessage';
 
 export function createNativeCallInviteInfo(): NativeCallInviteInfo {
   return {
@@ -28,6 +29,9 @@ export function createNativeCancelledCallInviteInfo(): NativeCancelledCallInvite
   };
 }
 
+/**
+ * Reusable default native callInvite events.
+ */
 export function createMockNativeCallInviteEvents() {
   return {
     accepted: {
@@ -65,6 +69,12 @@ export function createMockNativeCallInviteEvents() {
         'mock-nativecallinviteinfo-callsid',
       cancelledCallInvite: createNativeCancelledCallInviteInfo(),
       error: createNativeErrorInfo(),
+    },
+    messageReceived: {
+      [Constants.CallInviteEventKeyType]: Constants.CallEventMessageReceived,
+      [Constants.CallInviteEventKeyCallSid]:
+        'mock-nativecallinviteinfo-callsid',
+      callMessage: createNativeCallMessageInfo(),
     },
   } as const;
 }
