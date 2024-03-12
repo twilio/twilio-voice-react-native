@@ -56,8 +56,8 @@ class CallListenerProxy implements Call.Listener {
     getMediaPlayerManager().stop();
     getAudioSwitchManager().getAudioSwitch().deactivate();
 
-    // find call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    // find call record & remove
+    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
 
     // take down notification
     getVoiceServiceApi().cancelNotification(callRecord);
@@ -140,8 +140,8 @@ class CallListenerProxy implements Call.Listener {
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     debug("onDisconnected");
 
-    // find & update call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    // find & remove call record
+    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
 
     // stop audio & cancel notification
     getMediaPlayerManager().stop();

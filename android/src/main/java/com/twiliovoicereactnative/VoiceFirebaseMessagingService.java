@@ -49,7 +49,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
     }
 
     // Check if message contains a data payload.
-    if (remoteMessage.getData().size() > 0) {
+    if (!remoteMessage.getData().isEmpty()) {
       if (!Voice.handleMessage(this, remoteMessage.getData(), this, new CallMessageListenerProxy())) {
         logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
@@ -69,7 +69,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
   public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
                                     @Nullable CallException callException) {
     CallRecord callRecord = Objects.requireNonNull(
-      getCallRecordDatabase().get(new CallRecord(cancelledCallInvite.getCallSid())));
+      getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
 
     callRecord.setCancelledCallInvite(cancelledCallInvite);
     callRecord.setCallException(callException);

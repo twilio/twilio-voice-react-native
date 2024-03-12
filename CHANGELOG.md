@@ -83,6 +83,7 @@ call.addListener(Call.Event.MessageReceived, (message: CallMessage) => {
 #### Android
 - Call timestamp now in simplified ISO-8601 format, not stored as a double from epoch.
 - Uses system provided notification styles for incoming & ongoing calls. This insures visual consistency between devices.
+- Fixed issue where call records were not being removed after call was ended.
 
 
 #### iOS
