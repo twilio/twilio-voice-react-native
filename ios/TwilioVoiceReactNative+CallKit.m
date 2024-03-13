@@ -12,7 +12,6 @@
 #import "TwilioVoiceReactNativeConstants.h"
 
 NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native";
-NSString * const kCustomParametersKeyDisplayName = @"displayName";
 
 @interface TwilioVoiceReactNative (CallKit) <CXProviderDelegate, TVOCallDelegate, AVAudioPlayerDelegate>
 
@@ -68,15 +67,7 @@ NSString * const kCustomParametersKeyDisplayName = @"displayName";
 }
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
-    // If "displayName" is passed as a custom parameter in the TwiML application,
-    // it will be used as the caller name.
     NSString *handleName = callInvite.from;
-    NSDictionary *customParams = callInvite.customParameters;
-    if (customParams[kCustomParametersKeyDisplayName]) {
-        NSString *callerDisplayName = customParams[kCustomParametersKeyDisplayName];
-        callerDisplayName = [callerDisplayName stringByReplacingOccurrencesOfString:@"+" withString:@" "];
-        handleName = callerDisplayName;
-    }
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
