@@ -1,6 +1,5 @@
 package com.twiliovoicereactnative;
 
-import java.net.URLDecoder;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
@@ -65,13 +64,7 @@ class NotificationUtility {
     }
     private static String getDisplayName(@NonNull CallInvite callInvite) {
       final String title = callInvite.getFrom();
-      Map<String, String> customParameters = callInvite.getCustomParameters();
-      // If "displayName" is passed as a custom parameter in the TwiML application,
-      // it will be used as the caller name.
-      if (customParameters.get(Constants.DISPLAY_NAME) != null) {
-        return URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME)
-          .replaceAll("\\+", "%20"));
-      } else if (title.startsWith("client:")) {
+      if (title.startsWith("client:")) {
         return title.replaceFirst("client:", "");
       }
       return title;
