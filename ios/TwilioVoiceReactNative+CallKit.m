@@ -68,6 +68,9 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     NSString *handleName = callInvite.from;
+    if (handleName == nil) {
+        handleName = @"Unknown Caller";
+    }
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
