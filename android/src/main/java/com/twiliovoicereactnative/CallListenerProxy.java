@@ -76,6 +76,7 @@ class CallListenerProxy implements Call.Listener {
 
     // find call record
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    callRecord.setCall(call);
 
     // create notification & sound
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
