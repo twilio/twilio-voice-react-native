@@ -871,6 +871,9 @@ export class Call extends EventEmitter {
   }
 
   /**
+   * CallMessage API is in beta.
+   * @beta
+   *
    * Send {@link (CallMessage:class)}.
    *
    * @example
@@ -1003,6 +1006,9 @@ export namespace Call {
     'QualityWarningsChanged' = 'qualityWarningsChanged',
 
     /**
+     * CallMessage API is in beta.
+     * @beta
+     *
      * Event string for the `MessageReceived` event.
      * See {@link (Call:interface).(addListener:8)}
      */
@@ -1265,6 +1271,9 @@ export namespace Call {
     ) => void;
 
     /**
+     * CallMessage API is in beta.
+     * @beta
+     *
      * CallMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (Call:namespace).Event.MessageReceived} event.
      *
