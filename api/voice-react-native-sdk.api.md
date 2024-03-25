@@ -193,7 +193,6 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    // @beta
     sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
 }
 
@@ -203,7 +202,6 @@ export namespace Call {
         'Connected' = "connected",
         'ConnectFailure' = "connectFailure",
         'Disconnected' = "disconnected",
-        // @beta
         'MessageReceived' = "messageReceived",
         'QualityWarningsChanged' = "qualityWarningsChanged",
         'Reconnected' = "reconnected",
@@ -228,7 +226,6 @@ export namespace Call {
         export type ConnectFailure = (error: TwilioError) => void;
         export type Disconnected = (error?: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
-        // @beta
         export type MessageReceived = (callMessage: CallMessage) => void;
         export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
         export type Reconnected = () => void;
@@ -298,7 +295,6 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    // @beta
     sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
     updateCallerHandle(newHandle: string): Promise<void>;
 }
@@ -310,7 +306,6 @@ export namespace CallInvite {
     export enum Event {
         Accepted = "accepted",
         Cancelled = "cancelled",
-        // @beta
         MessageReceived = "messageReceived",
         NotificationTapped = "notificationTapped",
         Rejected = "rejected"
@@ -318,7 +313,6 @@ export namespace CallInvite {
     export namespace Listener {
         export type Accepted = (call: Call) => void;
         export type Cancelled = (error?: TwilioError) => void;
-        // @beta
         export type MessageReceived = (callMessage: CallMessage) => void;
         export type NotificationTapped = () => void;
         export type Rejected = () => void;

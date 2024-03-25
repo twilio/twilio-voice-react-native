@@ -128,7 +128,6 @@ export declare interface OutgoingCallMessage {
 
 /**
  * CallMessage API is in beta.
- * @beta
  *
  * Provides access to information about a outgoingCallMessage, including the call
  * message content, contentType, messageType, and voiceEventSid
