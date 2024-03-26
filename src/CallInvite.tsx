@@ -526,6 +526,8 @@ export class CallInvite extends EventEmitter {
   }
 
   /**
+   * CallMessage API is in beta.
+   *
    * Send {@link (CallMessage:class)}.
    *
    * @example
@@ -681,6 +683,8 @@ export namespace CallInvite {
     NotificationTapped = 'notificationTapped',
 
     /**
+     * CallMessage API is in beta.
+     *
      * Event string for the `MessageReceived` event.
      * See {@link (CallInvite:interface).(addListener:5)}
      */
@@ -733,6 +737,8 @@ export namespace CallInvite {
     export type NotificationTapped = () => void;
 
     /**
+     * CallMessage API is in beta.
+     *
      * CallInviteMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (CallInvite:namespace).Event.MessageReceived} event.
      *

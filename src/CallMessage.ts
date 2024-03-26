@@ -13,6 +13,8 @@ import type { NativeCallMessageInfo } from './type/CallMessage';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
 
 /**
+ * CallMessage API is in beta.
+ *
  * Provides access to information about a callMessage, including the call
  * message content, contentType, messageType, and voiceEventSid
  *
