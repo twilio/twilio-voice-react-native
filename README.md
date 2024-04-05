@@ -13,6 +13,8 @@ Please check out the following if you are new to Twilio's Programmable Voice or 
 - [Programmable Voice](https://www.twilio.com/docs/voice/sdks)
 - [React Native](https://reactnative.dev/docs/getting-started)
 
+Please note that we do not officially support Expo. Our officially supported use case is a bare React Native application that targets iOS and Android. When following the React Native environment setup guide, please select "React Native CLI".
+
 ## Issues and Support
 Please check out our [common issues](COMMON_ISSUES.md) page or file any issues you find here on Github. For general inquiries related to the Voice SDK you can file a support ticket. Please ensure that you are not sharing any [Personally Identifiable Information(PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information (API keys, credentials, etc.) when reporting an issue.
 
@@ -27,6 +29,10 @@ The package is available through [npm](https://www.npmjs.com/package/@twilio/voi
 ```sh
 yarn add @twilio/voice-react-native-sdk
 ```
+
+## Getting Started
+
+Please see this document on getting set up for your target platform: [Getting Started](docs/getting-started.md).
 
 ## Usage
 
