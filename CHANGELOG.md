@@ -1,5 +1,7 @@
 1.0.1 (In Development)
 ====================
+
+## Features
 ### Platform Specific Features
 
 #### Android
