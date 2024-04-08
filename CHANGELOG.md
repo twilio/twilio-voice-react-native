@@ -1,3 +1,11 @@
+1.0.1 (In Development)
+====================
+### Platform Specific Features
+
+#### Android
+- Added support for Android 34
+
+
 1.0.0 (Mar 25, 2024)
 ====================
 
