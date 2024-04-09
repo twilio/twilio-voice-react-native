@@ -1,5 +1,12 @@
 # Getting started with the Twilio Voice React Native SDK
 
+Please check out the following if you are new to Twilio's Programmable Voice or React Native.
+
+- [Programmable Voice](https://www.twilio.com/docs/voice/sdks)
+- [React Native](https://reactnative.dev/docs/getting-started)
+
+When following the React Native environment setup guide, please ensure that "React Native CLI" is selected.
+
 ## Android
 To get started on Android, you will need a Firebase project and a `google-services.json` file generated for that project. Place this file in the `android/app/` folder of your React Native project.
 
