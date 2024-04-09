@@ -28,6 +28,10 @@ The package is available through [npm](https://www.npmjs.com/package/@twilio/voi
 yarn add @twilio/voice-react-native-sdk
 ```
 
+## Getting Started
+
+Please see this document on getting set up for your target platform: [Getting Started](docs/getting-started.md).
+
 ## Usage
 
 The following example demonstrates how to make and receive calls. You will need to implement your own `getAccessToken()` method for it to work properly. Please see [Access Tokens](#access-tokens) section for more details or check out the [iOS](https://github.com/twilio/voice-quickstart-ios) and [Android](https://github.com/twilio/voice-quickstart-android) quickstart for examples on how to generate the tokens.
