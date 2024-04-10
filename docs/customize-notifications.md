@@ -35,6 +35,8 @@ The following is an example:
 
 The default location of this file in a bare React Native project is `android/app/src/main/res/values/`.
 
+This [folder](https://github.com/twilio/twilio-voice-react-native/tree/latest/test/app/android/app/src/main/res/values) would be where we would add or edit the `strings.xml` file for this feature in the SDK's built-in Test App.
+
 #### Templating Notifcation Titles
 When displaying the title, the SDK will perform special string templating behavior for certain keywords. For incoming and in-progress calls, the value `${from}` will be replaced with the `Call`/`CallInvite`'s `.from` value. For example:
 
@@ -69,6 +71,8 @@ The icons for each notification can also be customized. Adding a drawable resour
 
 For example, if you add a `incoming_call_small_icon.png` file to the folder `android/app/src/main/res/drawable/`, then that image will be used as the icon of the incoming call notification.
 
+This [folder](https://github.com/twilio/twilio-voice-react-native/tree/latest/test/app/android/app/src/main/res/drawable) would be where we would place icons for customizing the SDK's Test App.
+
 ## iOS
 Notifications on iOS are handled by the built-in CallKit framework. There are a few APIs that the SDK exposes to customize the notifications.
 
@@ -83,3 +87,5 @@ voice.on(Voice.Event.CallInvite, (callInvite) => {
 ```
 
 When an incoming call arrives, it will set the CallKit handle to "Foo: alice" if the "from" value was "alice". This handle will apply for the duration of the call.
+
+Please see the [API docs](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.callinvite_class.updatecallerhandle_method.md) for more information.
