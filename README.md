@@ -66,6 +66,7 @@ To use a custom ringtone for outgoing calls, please see the documentation locate
 ## Examples
 
 - [Play outgoing call ringback tone](docs/play-outgoing-call-ringback-tone.md)
+- [Customize the appearance of notifications](docs/customize-notifications.md)
 
 ## License
 
