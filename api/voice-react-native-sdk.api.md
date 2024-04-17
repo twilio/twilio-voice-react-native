@@ -349,23 +349,9 @@ export class CallMessage extends EventEmitter {
     // @internal
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
     getContent(): any;
-    getContentType(): CallMessage.ContentType;
-    getMessageType(): CallMessage.MessageType;
+    getContentType(): string;
+    getMessageType(): string;
     getSid(): string | undefined;
-}
-
-// @public
-export namespace CallMessage {
-    // (undocumented)
-    export enum ContentType {
-        // (undocumented)
-        'ApplicationJson' = "application/json"
-    }
-    // (undocumented)
-    export enum MessageType {
-        // (undocumented)
-        'UserDefinedMessage' = "user-defined-message"
-    }
 }
 
 // @public

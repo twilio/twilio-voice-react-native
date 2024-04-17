@@ -41,8 +41,8 @@ describe('CallMessage class', () => {
     });
 
     const content = { key1: 'hello world' };
-    const contentType = CallMessage.ContentType.ApplicationJson;
-    const messageType = CallMessage.MessageType.UserDefinedMessage;
+    const contentType = 'mock-contenttype';
+    const messageType = 'mock-messagetype';
 
     it('throws an error if "content" is undefined', () => {
       expect(
@@ -56,32 +56,26 @@ describe('CallMessage class', () => {
       ).toThrowError('"content" is empty');
     });
 
-    it('throws an error if "contentType" is not a valid enum', () => {
+    it('throws an error if "contentType" is not a string', () => {
       expect(
         () =>
           new CallMessage({
             content,
-            //@ts-ignore
-            contentType: CallMessage.ContentType.InvalidContentType,
+            contentType: 100 as any,
             messageType,
           })
-      ).toThrowError(
-        '"contentType" must be valid enum of CallMessage.ContentType'
-      );
+      ).toThrowError('"contentType" must be of type "string"');
     });
 
-    it('throws an error if "messageType" is not a valid enum', () => {
+    it('throws an error if "messageType" is not a string', () => {
       expect(
         () =>
           new CallMessage({
             content,
             contentType,
-            //@ts-ignore
-            messageType: CallMessage.ContentType.InvalidMessageType,
+            messageType: 100 as any,
           })
-      ).toThrowError(
-        '"messageType" must be valid enum of CallMessage.MessageType'
-      );
+      ).toThrowError('"messageType" must be of type "string"');
     });
   });
 

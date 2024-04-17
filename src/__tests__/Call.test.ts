@@ -555,8 +555,8 @@ describe('Call class', () => {
 
     describe('.sendMesssage', () => {
       const content = { key1: 'hello world' };
-      const contentType = CallMessage.ContentType.ApplicationJson;
-      const messageType = CallMessage.MessageType.UserDefinedMessage;
+      const contentType = 'mock-contenttype';
+      const messageType = 'mock-messagetype';
 
       it('invokes the native module', async () => {
         const message = new CallMessage({

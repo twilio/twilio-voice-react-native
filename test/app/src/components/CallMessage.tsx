@@ -29,8 +29,8 @@ export default function CallMessageComponent({
       : 'This is a message from a Call Invite';
   const callMessage = new CallMessage({
     content: messageContent,
-    contentType: CallMessage.ContentType.ApplicationJson,
-    messageType: CallMessage.MessageType.UserDefinedMessage,
+    contentType: 'application/json',
+    messageType: 'user-defined-message',
   });
   const handleSendMessage = () => {
     context === CallMessageContext.Call
@@ -40,8 +40,8 @@ export default function CallMessageComponent({
 
   const callMessageInvalidContent = new CallMessage({
     content: invalidContent,
-    contentType: CallMessage.ContentType.ApplicationJson,
-    messageType: CallMessage.MessageType.UserDefinedMessage,
+    contentType: 'application/json',
+    messageType: 'user-defined-message',
   });
   const handleTriggerError = () => {
     context === CallMessageContext.Call
