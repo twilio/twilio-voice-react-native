@@ -561,12 +561,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   private String validateContentTypeFromString (String contentType, Promise promise) {
-    if (contentType.equals(CommonConstants.ApplicationJson)) {
-      return CommonConstants.ApplicationJson;
+    if (contentType.length() == 0) {
+      logger.log("String \"contentType\" has 0 length.");
+      promise.reject("String \"contentType\" has 0 length.");
+      return null;
     }
-    logger.log("No such ContentType exists for the CallMessage class");
-    promise.reject("No such ContentType exists for the CallMessage class");
-    return null;
+    return contentType;
   }
 
   private static CallRecord validateCallRecord(@NonNull final Context context,
