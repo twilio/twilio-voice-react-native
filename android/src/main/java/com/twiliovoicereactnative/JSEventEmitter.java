@@ -50,8 +50,10 @@ class JSEventEmitter {
         params.pushBoolean((Boolean) entry);
       } else if (entry instanceof Integer) {
         params.pushInt((Integer) entry);
+      } else if (entry instanceof Float) {
+        params.pushDouble((Float) entry);
       } else if (entry instanceof Double) {
-        params.pushDouble((Double)entry);
+        params.pushDouble((Double) entry);
       }
     }
     return params;
@@ -70,8 +72,10 @@ class JSEventEmitter {
         params.putBoolean(entry.first, (Boolean) entry.second);
       } else if (entry.second instanceof Integer) {
         params.putInt(entry.first, (Integer) entry.second);
+      } else if (entry.second instanceof Float) {
+        params.putDouble(entry.first, (Float) entry.second);
       } else if (entry.second instanceof Double) {
-        params.putDouble(entry.first, (Double)entry.second);
+        params.putDouble(entry.first, (Double) entry.second);
       }
     }
     return params;
