@@ -551,7 +551,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return Call.Issue.NOT_REPORTED;
   }
 
-  private CallMessage.MessageType validateMessageTypeFromString (String messageType, Promise promise) {
+  private CallMessage.MessageType validateMessageTypeFromString(String messageType, Promise promise) {
     if (messageType.equals(CommonConstants.UserDefinedMessage)) {
       return CallMessage.MessageType.UserDefinedMessage;
     }
@@ -560,7 +560,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return null;
   }
 
-  private String validateContentTypeFromString (String contentType, Promise promise) {
+  private String validateContentTypeFromString(String contentType, Promise promise) {
     if (contentType.length() == 0) {
       logger.log("String \"contentType\" has 0 length.");
       promise.reject("String \"contentType\" has 0 length.");

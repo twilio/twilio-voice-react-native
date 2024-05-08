@@ -63,6 +63,8 @@ CallMessageContent=content
 CallMessageContentType=contentType
 CallMessageMessageType=messageType
 JSEventKeyCallMessageInfo=callMessage
+UserDefinedMessage=user-defined-message
+ApplicationJson=application/json
 
 // Audio Devices Updated Event
 VoiceEventAudioDevicesUpdated=voiceEventAudioDevicesUpdated
