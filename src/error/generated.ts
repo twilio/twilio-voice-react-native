@@ -5,9 +5,9 @@
 import { TwilioError } from './TwilioError';
 
 /**
-* @public
-* Authorization errors.
-*/
+ * @public
+ * Authorization errors.
+ */
 export namespace AuthorizationErrors {
   /**
    * @public
@@ -526,9 +526,9 @@ export namespace AuthorizationErrors {
 }
 
 /**
-* @public
-* Forbidden errors.
-*/
+ * @public
+ * Forbidden errors.
+ */
 export namespace ForbiddenErrors {
   /**
    * @public
@@ -571,9 +571,9 @@ export namespace ForbiddenErrors {
 }
 
 /**
-* @public
-* Client errors.
-*/
+ * @public
+ * Client errors.
+ */
 export namespace ClientErrors {
   /**
    * @public
@@ -1057,9 +1057,9 @@ export namespace ClientErrors {
 }
 
 /**
-* @public
-* Server errors.
-*/
+ * @public
+ * Server errors.
+ */
 export namespace ServerErrors {
   /**
    * @public
@@ -1258,9 +1258,9 @@ export namespace ServerErrors {
 }
 
 /**
-* @public
-* SIPServer errors.
-*/
+ * @public
+ * SIPServer errors.
+ */
 export namespace SIPServerErrors {
   /**
    * @public
@@ -1381,9 +1381,9 @@ export namespace SIPServerErrors {
 }
 
 /**
-* @public
-* TwiML errors.
-*/
+ * @public
+ * TwiML errors.
+ */
 export namespace TwiMLErrors {
   /**
    * @public
@@ -1426,9 +1426,9 @@ export namespace TwiMLErrors {
 }
 
 /**
-* @public
-* General errors.
-*/
+ * @public
+ * General errors.
+ */
 export namespace GeneralErrors {
   /**
    * @public
@@ -1551,9 +1551,9 @@ export namespace GeneralErrors {
 }
 
 /**
-* @public
-* MalformedRequest errors.
-*/
+ * @public
+ * MalformedRequest errors.
+ */
 export namespace MalformedRequestErrors {
   /**
    * @public
@@ -1600,9 +1600,9 @@ export namespace MalformedRequestErrors {
 }
 
 /**
-* @public
-* Registration errors.
-*/
+ * @public
+ * Registration errors.
+ */
 export namespace RegistrationErrors {
   /**
    * @public
@@ -1688,9 +1688,9 @@ export namespace RegistrationErrors {
 }
 
 /**
-* @public
-* Signaling errors.
-*/
+ * @public
+ * Signaling errors.
+ */
 export namespace SignalingErrors {
   /**
    * @public
@@ -1737,9 +1737,9 @@ export namespace SignalingErrors {
 }
 
 /**
-* @public
-* Media errors.
-*/
+ * @public
+ * Media errors.
+ */
 export namespace MediaErrors {
   /**
    * @public
@@ -2074,8 +2074,8 @@ export namespace MediaErrors {
 }
 
 /**
-* @internal
-*/
+ * @internal
+ */
 export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [20101, AuthorizationErrors.AccessTokenInvalid],
   [20102, AuthorizationErrors.AccessTokenHeaderInvalid],

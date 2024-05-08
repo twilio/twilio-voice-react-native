@@ -61,9 +61,9 @@ const generateDefinition = ([code, subclassName, errorName, error]) => `\
   }`;
 
 const generateNamespace = (name, contents) => `/**
-* @public
-* ${name} errors.
-*/
+ * @public
+ * ${name} errors.
+ */
 export namespace ${name}Errors {
 ${contents}
 }\n\n`;
@@ -108,8 +108,8 @@ for (const [subclassName, definitions] of namespaceDefinitions.entries()) {
 }
 
 output += `/**
-* @internal
-*/
+ * @internal
+ */
 export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   ${mapEntries.sort(sorter).map(generateMapEntry).join(',\n  ')},
 ]);
