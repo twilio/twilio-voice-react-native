@@ -5,9 +5,9 @@
 import { TwilioError } from './TwilioError';
 
 /**
- * @public
- * Authorization errors.
- */
+* @public
+* Authorization errors.
+*/
 export namespace AuthorizationErrors {
   /**
    * @public
@@ -406,11 +406,9 @@ export namespace AuthorizationErrors {
    */
   export class RateExceededError extends TwilioError {
     /**
-     * Message payload size limit exceeded.
      * Rate limit exceeded.
      */
     causes: string[] = [
-      'Message payload size limit exceeded.',
       'Rate limit exceeded.',
     ];
     /**
@@ -426,17 +424,58 @@ export namespace AuthorizationErrors {
      */
     name: string = 'RateExceededError';
     /**
-     * Ensure the message payload does not exceed size limits.
      * Ensure message send rate does not exceed authorized limits.
      */
     solutions: string[] = [
-      'Ensure the message payload does not exceed size limits.',
       'Ensure message send rate does not exceed authorized limits.',
     ];
 
     constructor(message: string) {
       super(message, 31206);
       Object.setPrototypeOf(this, AuthorizationErrors.RateExceededError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
+   * AuthorizationErrors.PayloadSizeExceededError error.
+   * Error code `31209`.
+   */
+  export class PayloadSizeExceededError extends TwilioError {
+    /**
+     * The payload size of Call Message Event exceeds the authorized limit.
+     */
+    causes: string[] = [
+      'The payload size of Call Message Event exceeds the authorized limit.',
+    ];
+    /**
+     * Call Message Event Payload size exceeded authorized limit.
+     */
+    description: string = 'Call Message Event Payload size exceeded authorized limit.';
+    /**
+     * The request performed to send a Call Message Event exceeds the payload size authorized limit
+     */
+    explanation: string = 'The request performed to send a Call Message Event exceeds the payload size authorized limit';
+    /**
+     * PayloadSizeExceededError
+     */
+    name: string = 'PayloadSizeExceededError';
+    /**
+     * Reduce payload size of Call Message Event to be within the authorized limit and try again.
+     */
+    solutions: string[] = [
+      'Reduce payload size of Call Message Event to be within the authorized limit and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31209);
+      Object.setPrototypeOf(this, AuthorizationErrors.PayloadSizeExceededError.prototype);
 
       const msg: string = typeof message === 'string'
         ? message
@@ -487,9 +526,9 @@ export namespace AuthorizationErrors {
 }
 
 /**
- * @public
- * Forbidden errors.
- */
+* @public
+* Forbidden errors.
+*/
 export namespace ForbiddenErrors {
   /**
    * @public
@@ -532,9 +571,9 @@ export namespace ForbiddenErrors {
 }
 
 /**
- * @public
- * Client errors.
- */
+* @public
+* Client errors.
+*/
 export namespace ClientErrors {
   /**
    * @public
@@ -1018,9 +1057,9 @@ export namespace ClientErrors {
 }
 
 /**
- * @public
- * Server errors.
- */
+* @public
+* Server errors.
+*/
 export namespace ServerErrors {
   /**
    * @public
@@ -1219,9 +1258,9 @@ export namespace ServerErrors {
 }
 
 /**
- * @public
- * SIPServer errors.
- */
+* @public
+* SIPServer errors.
+*/
 export namespace SIPServerErrors {
   /**
    * @public
@@ -1342,9 +1381,9 @@ export namespace SIPServerErrors {
 }
 
 /**
- * @public
- * TwiML errors.
- */
+* @public
+* TwiML errors.
+*/
 export namespace TwiMLErrors {
   /**
    * @public
@@ -1387,9 +1426,9 @@ export namespace TwiMLErrors {
 }
 
 /**
- * @public
- * General errors.
- */
+* @public
+* General errors.
+*/
 export namespace GeneralErrors {
   /**
    * @public
@@ -1512,9 +1551,9 @@ export namespace GeneralErrors {
 }
 
 /**
- * @public
- * MalformedRequest errors.
- */
+* @public
+* MalformedRequest errors.
+*/
 export namespace MalformedRequestErrors {
   /**
    * @public
@@ -1523,18 +1562,10 @@ export namespace MalformedRequestErrors {
    */
   export class MalformedRequestError extends TwilioError {
     /**
-     * No CallSid in the message object.
-     * No VoiceEventSid in the message object.
-     * No payload in the message object.
-     * Invalid or missing payload in the message object.
-     * No message type in the message object.
+     * Invalid content or MessageType passed to sendMessage method.
      */
     causes: string[] = [
-      'No CallSid in the message object.',
-      'No VoiceEventSid in the message object.',
-      'No payload in the message object.',
-      'Invalid or missing payload in the message object.',
-      'No message type in the message object.',
+      'Invalid content or MessageType passed to sendMessage method.',
     ];
     /**
      * The request had malformed syntax.
@@ -1549,16 +1580,10 @@ export namespace MalformedRequestErrors {
      */
     name: string = 'MalformedRequestError';
     /**
-     * Ensure the message object contains a valid CallSid.
-     * Ensure the message object contains a valid VoiceEventSid.
-     * Ensure the message object has a valid payload.
-     * Ensure the message object has a valid message type.
+     * Ensure content and MessageType passed to sendMessage method are valid.
      */
     solutions: string[] = [
-      'Ensure the message object contains a valid CallSid.',
-      'Ensure the message object contains a valid VoiceEventSid.',
-      'Ensure the message object has a valid payload.',
-      'Ensure the message object has a valid message type.',
+      'Ensure content and MessageType passed to sendMessage method are valid.',
     ];
 
     constructor(message: string) {
@@ -1575,9 +1600,9 @@ export namespace MalformedRequestErrors {
 }
 
 /**
- * @public
- * Registration errors.
- */
+* @public
+* Registration errors.
+*/
 export namespace RegistrationErrors {
   /**
    * @public
@@ -1663,9 +1688,9 @@ export namespace RegistrationErrors {
 }
 
 /**
- * @public
- * Signaling errors.
- */
+* @public
+* Signaling errors.
+*/
 export namespace SignalingErrors {
   /**
    * @public
@@ -1712,9 +1737,9 @@ export namespace SignalingErrors {
 }
 
 /**
- * @public
- * Media errors.
- */
+* @public
+* Media errors.
+*/
 export namespace MediaErrors {
   /**
    * @public
@@ -2049,8 +2074,8 @@ export namespace MediaErrors {
 }
 
 /**
- * @internal
- */
+* @internal
+*/
 export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [20101, AuthorizationErrors.AccessTokenInvalid],
   [20102, AuthorizationErrors.AccessTokenHeaderInvalid],
@@ -2069,6 +2094,7 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31100, MalformedRequestErrors.MalformedRequestError],
   [31201, AuthorizationErrors.AuthorizationError],
   [31206, AuthorizationErrors.RateExceededError],
+  [31209, AuthorizationErrors.PayloadSizeExceededError],
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],
