@@ -6,6 +6,7 @@
 
 #### Android
 - Added support for Android 34
+- Fix audio device switch
 
 
 1.0.0 (Mar 25, 2024)
