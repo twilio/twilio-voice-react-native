@@ -115,6 +115,14 @@ namespace AuthorizationErrors {
         name: string;
         solutions: string[];
     }
+    class CallMessageEventTypeInvalidError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
     class ExpirationTimeExceedsMaxTimeAllowed extends TwilioError {
         constructor(message: string);
         causes: string[];

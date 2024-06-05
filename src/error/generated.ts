@@ -487,6 +487,49 @@ export namespace AuthorizationErrors {
 
   /**
    * @public
+   * AuthorizationErrors.CallMessageEventTypeInvalidError error.
+   * Error code `31210`.
+   */
+  export class CallMessageEventTypeInvalidError extends TwilioError {
+    /**
+     * The Call Message Event Type is invalid and is not understood by Twilio Voice.
+     */
+    causes: string[] = [
+      'The Call Message Event Type is invalid and is not understood by Twilio Voice.',
+    ];
+    /**
+     * Call Message Event Type is invalid.
+     */
+    description: string = 'Call Message Event Type is invalid.';
+    /**
+     * The Call Message Event Type is invalid and is not understood by Twilio Voice.
+     */
+    explanation: string = 'The Call Message Event Type is invalid and is not understood by Twilio Voice.';
+    /**
+     * CallMessageEventTypeInvalidError
+     */
+    name: string = 'CallMessageEventTypeInvalidError';
+    /**
+     * Ensure the Call Message Event Type is Valid and understood by Twilio Voice and try again.
+     */
+    solutions: string[] = [
+      'Ensure the Call Message Event Type is Valid and understood by Twilio Voice and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31210);
+      Object.setPrototypeOf(this, AuthorizationErrors.CallMessageEventTypeInvalidError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
    * AuthorizationErrors.AccessTokenRejected error.
    * Error code `51007`.
    */
@@ -2095,6 +2138,7 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31201, AuthorizationErrors.AuthorizationError],
   [31206, AuthorizationErrors.RateExceededError],
   [31209, AuthorizationErrors.PayloadSizeExceededError],
+  [31210, AuthorizationErrors.CallMessageEventTypeInvalidError],
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],
