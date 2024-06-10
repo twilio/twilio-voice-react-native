@@ -880,8 +880,8 @@ export class Call extends EventEmitter {
    * ```typescript
    * const message = new CallMessage({
    *    content: { key1: 'This is a messsage from the parent call' },
-   *    contentType: CallMessage.ContentType.ApplicationJson,
-   *    messageType: CallMessage.MessageType.UserDefinedMessage
+   *    contentType: 'application/json',
+   *    messageType: 'user-defined-message'
    * })
    * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
    *
@@ -895,8 +895,8 @@ export class Call extends EventEmitter {
    * ```
    *
    * @param content - The message content
-   * @param contentType - The MIME type for the message. See {@link (CallMessage:namespace).ContentType}.
-   * @param messageType - The message type. See {@link (CallMessage:namespace).MessageType}.
+   * @param contentType - The MIME type for the message.
+   * @param messageType - The message type.
    *
    * @returns
    *  A `Promise` that
