@@ -2,10 +2,26 @@
 ====================
 
 ## Features
+
 ### Platform Specific Features
 
 #### Android
 - Added support for Android 34
+
+## Changes
+
+### Call Message Events (Beta)
+
+- Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
+  Instead, those types have been replaced by `string`. The following is an example of the updated API:
+  ```ts
+  const call = await voice.connect(...);
+  call.sendMessage(new CallMessage({
+    content: { foo: 'bar' },
+    contentType: 'application/json',
+    messageType: 'user-defined-message',
+  }));
+  ```
 
 
 1.0.0 (Mar 25, 2024)
