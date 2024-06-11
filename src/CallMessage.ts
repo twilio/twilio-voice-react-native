@@ -12,8 +12,8 @@ import { InvalidArgumentError } from './error/InvalidArgumentError';
 /**
  * CallMessage API is in beta.
  *
- * Provides access to information about a callMessage, including the call
- * message content, contentType, messageType, and voiceEventSid
+ * Provides access to information about a CallMessage, including the call
+ * message content, content type, message type, and voice event SID.
  *
  * @public
  */
@@ -50,36 +50,21 @@ export class CallMessage extends EventEmitter {
    *
    * @internal
    */
-  constructor({
-    content,
-    contentType,
-    messageType,
-    voiceEventSid,
-  }: NativeCallMessageInfo) {
+  constructor(callMessageInfo: NativeCallMessageInfo) {
     super();
 
-    if (typeof content === 'undefined' || content === null) {
-      throw new InvalidArgumentError('"content" is empty');
-    }
-
-    if (typeof contentType !== 'string') {
-      throw new InvalidArgumentError('"contentType" must be of type "string"');
-    }
-
-    if (typeof messageType !== 'string') {
-      throw new InvalidArgumentError('"messageType" must be of type "string"');
-    }
+    const { content, contentType, messageType } =
+      parseCallMessageOptions(callMessageInfo);
 
     this._content = content;
     this._contentType = contentType;
     this._messageType = messageType;
-    this._voiceEventSid = voiceEventSid;
+    this._voiceEventSid = callMessageInfo.voiceEventSid;
   }
 
   /**
    * Get the content body of the message.
-   * @returns
-   * - A string representing the content body of the message.
+   * @returns the content body of the message.
    */
   getContent(): any {
     return this._content;
@@ -110,5 +95,76 @@ export class CallMessage extends EventEmitter {
    */
   getSid(): string | undefined {
     return this._voiceEventSid;
+  }
+}
+
+/**
+ * Parse CallMessage options. Used when constructing a CallMessage from the
+ * native layer, or by the Call and CallInvite classes when sending a
+ * CallMessage.
+ *
+ * @param options the CallMessage details.
+ *
+ * @internal
+ */
+export function parseCallMessageOptions(options: CallMessage.Options) {
+  const content = options.content;
+  const messageType = options.messageType;
+
+  let contentType = options.contentType;
+
+  if (typeof contentType === 'undefined') {
+    contentType = 'application/json';
+  }
+
+  if (typeof contentType !== 'string') {
+    throw new InvalidArgumentError(
+      'If "contentType" is present, it must of type "string".'
+    );
+  }
+
+  if (typeof messageType !== 'string') {
+    throw new InvalidArgumentError('"messageType" must be of type "string".');
+  }
+
+  if (typeof content === 'undefined' || content === null) {
+    throw new InvalidArgumentError('"content" must be defined and not "null".');
+  }
+
+  return { content, contentType, messageType };
+}
+
+/**
+ * Namespace defining CallMessage types.
+ */
+export namespace CallMessage {
+  /**
+   * Interface defining possible options when sending a CallMessage.
+   */
+  export interface Options {
+    /**
+     * The content of the CallMessage. This value must match the passsed
+     * `contentType`. See {@link CallMessage.Options['contentType']} for more
+     * information.
+     */
+    content: any;
+
+    /**
+     * The content type of the CallMessage. This value must accurately describe
+     * the content passed. Currently, the only accepted values are:
+     *
+     * - "application/json"
+     *
+     * If this value is not passed, the default will be "application/json".
+     */
+    contentType?: string;
+
+    /**
+     * The message type of the CallMessage. Currently, the only accepted values
+     * are:
+     *
+     * - "user-defined-message"
+     */
+    messageType: string;
   }
 }

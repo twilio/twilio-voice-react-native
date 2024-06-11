@@ -17,7 +17,7 @@ import type {
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
-import { CallMessage } from './CallMessage';
+import { CallMessage, parseCallMessageOptions } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 
 /**
@@ -873,40 +873,38 @@ export class Call extends EventEmitter {
   /**
    * CallMessage API is in beta.
    *
-   * Send {@link (CallMessage:class)}.
+   * Send a CallMessage.
    *
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const message = new CallMessage({
-   *    content: { key1: 'This is a messsage from the parent call' },
-   *    contentType: 'application/json',
-   *    messageType: 'user-defined-message'
-   * })
-   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage({
+   *   content: { key1: 'This is a messsage from the parent call' },
+   *   contentType: 'application/json',
+   *   messageType: 'user-defined-message'
+   * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
-   *    // outgoingCallMessage failed, handle error
+   *   // outgoingCallMessage failed, handle error
    * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
-   *    // outgoingCallMessage sent
-   * })
+   *   // outgoingCallMessage sent
+   * });
    * ```
    *
-   * @param content - The message content
-   * @param contentType - The MIME type for the message.
-   * @param messageType - The message type.
+   * @param options The details of the CallMessage to send.
    *
    * @returns
    *  A `Promise` that
    *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
-  async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
-    const content = message.getContent();
-    const contentType = message.getContentType();
-    const messageType = message.getMessageType();
+  async sendMessage(
+    options: CallMessage.Options
+  ): Promise<OutgoingCallMessage> {
+    const { content, contentType, messageType } =
+      parseCallMessageOptions(options);
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,

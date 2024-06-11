@@ -1,28 +1,36 @@
-1.0.1 (In Development)
-====================
+1.1.0 (In Development)
+======================
 
 ## Features
 
 ### Platform Specific Features
 
 #### Android
+
 - Added support for Android 34
 
 ## Changes
 
-### Call Message Events (Beta)
+### Call Message Events
 
-- Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
-  Instead, those types have been replaced by `string`. The following is an example of the updated API:
-  ```ts
-  const call = await voice.connect(...);
-  call.sendMessage(new CallMessage({
-    content: { foo: 'bar' },
-    contentType: 'application/json',
-    messageType: 'user-defined-message',
-  }));
-  ```
+The Call Message Events feature, which was originally released under Beta in `1.0.0` of the SDK, is now promoted to Generally Available (GA).
+This release includes the following changes:
 
+- **(Breaking)** Changed the API of `Call.sendMessage` and `CallInvite.sendMessage`.
+  Instead of constructing a `CallMessage` object, a plain JS object is passed to the methods.
+
+- **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
+  Instead, those types have been replaced by `string`.
+
+The following is an example of the updated API:
+```ts
+const call = await voice.connect(...);
+call.sendMessage({
+  content: { foo: 'bar' },
+  contentType: 'application/json',
+  messageType: 'user-defined-message',
+});
+```
 
 1.0.0 (Mar 25, 2024)
 ====================
