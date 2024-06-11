@@ -119,7 +119,7 @@ export function parseCallMessageOptions(options: CallMessage.Options) {
 
   if (typeof contentType !== 'string') {
     throw new InvalidArgumentError(
-      'If "contentType" is present, it must of type "string".'
+      'If "contentType" is present, it must be of type "string".'
     );
   }
 

@@ -138,7 +138,7 @@ export function useCall(logEvent: (event: string) => void) {
         postFeedback: (_score: Call.Score, _issue: Call.Issue) => () =>
           call.postFeedback(_score, _issue),
         sendDigits: (_digits: string) => () => call.sendDigits(_digits),
-        sendMessage: async (_message: CallMessage) => {
+        sendMessage: async (_message) => {
           const outgoingCallMessage: OutgoingCallMessage =
             await call.sendMessage(_message);
           outgoingCallMessage.addListener(
@@ -264,7 +264,7 @@ export function useCallInvites(
             removeCallInvite(callInvite.getCallSid());
             await callInvite.reject();
           },
-          sendMessage: async (_message: CallMessage) => {
+          sendMessage: async (_message) => {
             const outgoingCallMessage: OutgoingCallMessage =
               await callInvite.sendMessage(_message);
             outgoingCallMessage.addListener(

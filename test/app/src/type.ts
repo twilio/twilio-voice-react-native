@@ -7,7 +7,7 @@ export interface BoundCallMethod {
   mute: () => void;
   postFeedback: (score: Call.Score, issue: Call.Issue) => () => void;
   sendDigits: (digits: string) => void;
-  sendMessage: (message: CallMessage) => void;
+  sendMessage: (message: CallMessage.Options) => void;
 }
 
 export interface BoundCallInfo {
@@ -28,7 +28,7 @@ export interface BoundCallInvite {
   from: string;
   to: string;
   reject: () => void;
-  sendMessage: (message: CallMessage) => void;
+  sendMessage: (message: CallMessage.Options) => void;
 }
 
 export interface EventLogItem {

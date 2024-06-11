@@ -193,7 +193,7 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
+    sendMessage(options: CallMessage.Options): Promise<OutgoingCallMessage>;
 }
 
 // @public
@@ -295,7 +295,7 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
+    sendMessage(options: CallMessage.Options): Promise<OutgoingCallMessage>;
     updateCallerHandle(newHandle: string): Promise<void>;
 }
 
@@ -347,11 +347,20 @@ export class CallMessage extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
+    constructor(callMessageInfo: NativeCallMessageInfo);
     getContent(): any;
     getContentType(): string;
     getMessageType(): string;
     getSid(): string | undefined;
+}
+
+// @public
+export namespace CallMessage {
+    export interface Options {
+        content: any;
+        contentType?: string;
+        messageType: string;
+    }
 }
 
 // @public

@@ -47,13 +47,13 @@ describe('CallMessage class', () => {
     it('throws an error if "content" is undefined', () => {
       expect(
         () => new CallMessage({ content: undefined, contentType, messageType })
-      ).toThrowError('"content" is empty');
+      ).toThrowError('"content" must be defined and not "null".');
     });
 
     it('throws an error if "content" is null', () => {
       expect(
         () => new CallMessage({ content: null, contentType, messageType })
-      ).toThrowError('"content" is empty');
+      ).toThrowError('"content" must be defined and not "null".');
     });
 
     it('throws an error if "contentType" is not a valid string', () => {
@@ -64,7 +64,9 @@ describe('CallMessage class', () => {
             contentType: 10 as any,
             messageType,
           })
-      ).toThrowError('"contentType" must be of type "string"');
+      ).toThrowError(
+        'If "contentType" is present, it must be of type "string".'
+      );
     });
 
     it('throws an error if "messageType" is not a valid string', () => {

@@ -559,13 +559,11 @@ describe('Call class', () => {
       const messageType = 'user-defined-message';
 
       it('invokes the native module', async () => {
-        const message = new CallMessage({
+        await new Call(createNativeCallInfo()).sendMessage({
           content,
           contentType,
           messageType,
         });
-
-        await new Call(createNativeCallInfo()).sendMessage(message);
 
         expect(
           jest.mocked(MockNativeModule.call_sendMessage).mock.calls
@@ -580,13 +578,12 @@ describe('Call class', () => {
       });
 
       it('returns a Promise<OutgoingCallMessage>', async () => {
-        const message = new CallMessage({
-          content,
-          contentType,
-          messageType,
-        });
         const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
-          message
+          {
+            content,
+            contentType,
+            messageType,
+          }
         );
         const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
           content,
