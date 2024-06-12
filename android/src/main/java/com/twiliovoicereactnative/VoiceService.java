@@ -10,6 +10,7 @@ import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValu
 import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventTypeValueIncomingCallInvite;
 import static com.twiliovoicereactnative.Constants.ACTION_ACCEPT_CALL;
@@ -30,6 +31,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallException;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCancelledCallInvite;
+import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeError;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 
@@ -107,6 +109,7 @@ public class VoiceService extends Service {
         try {
           acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
         } catch (SecurityException e) {
+          sendPermissionsError();
           logger.warning(e, "Cannot accept call, lacking necessary permissions");
         }
         break;
@@ -324,6 +327,7 @@ public class VoiceService extends Service {
       try {
         startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
       } catch (Exception e) {
+        sendPermissionsError();
         logger.warning(e, "Failed to place notification due to lack of permissions");
       }
     } else {
@@ -338,5 +342,13 @@ public class VoiceService extends Service {
   }
   private static void sendJSEvent(@NonNull String scope, @NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(scope, event);
+  }
+  private static void sendPermissionsError() {
+    final String errorMessage = "Missing permissions.";
+    final int errorCode = 31208;
+    getJSEventEmitter().sendEvent(ScopeVoice, constructJSMap(
+      new Pair<>(VoiceEventType, VoiceEventError),
+      new Pair<>(VoiceEventError, serializeError(errorCode, errorMessage))
+    ));
   }
 }
