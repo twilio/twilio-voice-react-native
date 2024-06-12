@@ -20,7 +20,7 @@ import type {
   NativeCallInviteMessageReceivedEvent,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage, parseCallMessageOptions } from './CallMessage';
+import { CallMessage, validateCallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 
@@ -558,8 +558,7 @@ export class CallInvite extends EventEmitter {
   async sendMessage(
     options: CallMessage.Options
   ): Promise<OutgoingCallMessage> {
-    const { content, contentType, messageType } =
-      parseCallMessageOptions(options);
+    const { content, contentType, messageType } = validateCallMessage(options);
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,

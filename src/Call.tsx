@@ -17,7 +17,7 @@ import type {
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
-import { CallMessage, parseCallMessageOptions } from './CallMessage';
+import { CallMessage, validateCallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 
 /**
@@ -903,8 +903,7 @@ export class Call extends EventEmitter {
   async sendMessage(
     options: CallMessage.Options
   ): Promise<OutgoingCallMessage> {
-    const { content, contentType, messageType } =
-      parseCallMessageOptions(options);
+    const { content, contentType, messageType } = validateCallMessage(options);
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,

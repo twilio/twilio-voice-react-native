@@ -54,7 +54,7 @@ export class CallMessage extends EventEmitter {
     super();
 
     const { content, contentType, messageType } =
-      parseCallMessageOptions(callMessageInfo);
+      validateCallMessage(callMessageInfo);
 
     this._content = content;
     this._contentType = contentType;
@@ -107,7 +107,7 @@ export class CallMessage extends EventEmitter {
  *
  * @internal
  */
-export function parseCallMessageOptions(options: CallMessage.Options) {
+export function validateCallMessage(options: CallMessage.Options) {
   const content = options.content;
   const messageType = options.messageType;
 
@@ -136,6 +136,8 @@ export function parseCallMessageOptions(options: CallMessage.Options) {
 
 /**
  * Namespace defining CallMessage types.
+ *
+ * NOTE(mhuynh): This should be refactored as part of VBLOCKS-3134.
  */
 export namespace CallMessage {
   /**
