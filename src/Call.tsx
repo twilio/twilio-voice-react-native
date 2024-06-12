@@ -878,10 +878,12 @@ export class Call extends EventEmitter {
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage({
-   *   content: { key1: 'This is a messsage from the parent call' },
-   *   contentType: 'application/json',
-   *   messageType: 'user-defined-message'
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(
+   *   new CallMessage({
+   *     content: { key1: 'This is a messsage from the parent call' },
+   *     contentType: 'application/json',
+   *     messageType: 'user-defined-message'
+   *   })
    * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
