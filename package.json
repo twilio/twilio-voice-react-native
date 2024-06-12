@@ -150,7 +150,7 @@
     ]
   },
   "dependencies": {
-    "@twilio/voice-errors": "1.5.0",
+    "@twilio/voice-errors": "1.6.0",
     "eventemitter3": "^4.0.7"
   }
 }
