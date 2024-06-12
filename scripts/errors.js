@@ -41,6 +41,7 @@ const ERRORS = [
   'AuthorizationErrors.RateExceededError', // 31206
   'AuthorizationErrors.PayloadSizeExceededError', // 31209
   'AuthorizationErrors.CallMessageEventTypeInvalidError', // 31210
+  'AuthorizationErrors.CallMessageUnexpectedStateError', // 31211
 
   /**
    * RegistrationErrors

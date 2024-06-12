@@ -530,6 +530,49 @@ export namespace AuthorizationErrors {
 
   /**
    * @public
+   * AuthorizationErrors.CallMessageUnexpectedStateError error.
+   * Error code `31211`.
+   */
+  export class CallMessageUnexpectedStateError extends TwilioError {
+    /**
+     * The Call should be at least in the ringing state to subscribe and send Call Message.
+     */
+    causes: string[] = [
+      'The Call should be at least in the ringing state to subscribe and send Call Message.',
+    ];
+    /**
+     * Call is not in the expected state.
+     */
+    description: string = 'Call is not in the expected state.';
+    /**
+     * The Call should be at least in the ringing state to send Call Message.
+     */
+    explanation: string = 'The Call should be at least in the ringing state to send Call Message.';
+    /**
+     * CallMessageUnexpectedStateError
+     */
+    name: string = 'CallMessageUnexpectedStateError';
+    /**
+     * Ensure the Call is at least in the ringing state and the subscription is successful and try again.
+     */
+    solutions: string[] = [
+      'Ensure the Call is at least in the ringing state and the subscription is successful and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31211);
+      Object.setPrototypeOf(this, AuthorizationErrors.CallMessageUnexpectedStateError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
    * AuthorizationErrors.AccessTokenRejected error.
    * Error code `51007`.
    */
@@ -2139,6 +2182,7 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31206, AuthorizationErrors.RateExceededError],
   [31209, AuthorizationErrors.PayloadSizeExceededError],
   [31210, AuthorizationErrors.CallMessageEventTypeInvalidError],
+  [31211, AuthorizationErrors.CallMessageUnexpectedStateError],
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],

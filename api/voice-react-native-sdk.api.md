@@ -123,6 +123,14 @@ namespace AuthorizationErrors {
         name: string;
         solutions: string[];
     }
+    class CallMessageUnexpectedStateError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
     class ExpirationTimeExceedsMaxTimeAllowed extends TwilioError {
         constructor(message: string);
         causes: string[];
