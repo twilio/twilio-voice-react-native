@@ -79,6 +79,14 @@ describe('CallMessage class', () => {
           })
       ).toThrowError('"messageType" must be of type "string"');
     });
+
+    it('defaults the content type to "applicaton/json"', () => {
+      const message = new CallMessage({
+        content: { foo: 'bar' },
+        messageType: 'user-defined-message',
+      } as any);
+      expect(message.getContentType()).toStrictEqual('application/json');
+    });
   });
 
   describe('.getContent()', () => {
