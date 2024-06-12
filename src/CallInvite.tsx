@@ -20,7 +20,7 @@ import type {
   NativeCallInviteMessageReceivedEvent,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage, validateCallMessage } from './CallMessage';
+import { CallMessage } from './CallMessage';
 import { OutgoingCallMessage } from './OutgoingCallMessage';
 import { Constants } from './constants';
 
@@ -548,17 +548,17 @@ export class CallInvite extends EventEmitter {
    * });
    * ```
    *
-   * @param options The details of the CallMessage to send.
+   * @param message The call message to send.
    *
    * @returns
    *  A `Promise` that
    *    - Resolves with the OutgoingCallMessage object.
    *    - Rejects when the message is unable to be sent.
    */
-  async sendMessage(
-    options: CallMessage.Options
-  ): Promise<OutgoingCallMessage> {
-    const { content, contentType, messageType } = validateCallMessage(options);
+  async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
+    const content = message.getContent();
+    const contentType = message.getContentType();
+    const messageType = message.getMessageType();
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,

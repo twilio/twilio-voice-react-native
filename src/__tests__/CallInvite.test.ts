@@ -456,14 +456,16 @@ describe('CallInvite class', () => {
     const messageType = 'user-defined-message';
 
     it('invokes the native module', async () => {
-      await new CallInvite(
-        createNativeCallInviteInfo(),
-        CallInvite.State.Pending
-      ).sendMessage({
+      const message = new CallMessage({
         content,
         contentType,
         messageType,
       });
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage(message);
 
       expect(jest.mocked(MockNativeModule.call_sendMessage).mock.calls).toEqual(
         [
@@ -478,14 +480,16 @@ describe('CallInvite class', () => {
     });
 
     it('returns a Promise<OutgoingCallMessage>', async () => {
-      const sendMessagePromise = new CallInvite(
-        createNativeCallInviteInfo(),
-        CallInvite.State.Pending
-      ).sendMessage({
+      const message = new CallMessage({
         content,
         contentType,
         messageType,
       });
+
+      const sendMessagePromise = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage(message);
       const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
         content,
         contentType,

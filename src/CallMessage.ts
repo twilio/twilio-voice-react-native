@@ -99,19 +99,23 @@ export class CallMessage extends EventEmitter {
 }
 
 /**
- * Parse CallMessage options. Used when constructing a CallMessage from the
+ * Parse CallMessage values. Used when constructing a CallMessage from the
  * native layer, or by the Call and CallInvite classes when sending a
  * CallMessage.
  *
- * @param options the CallMessage details.
+ * @param message the CallMessage details.
  *
  * @internal
  */
-export function validateCallMessage(options: CallMessage.Options) {
-  const content = options.content;
-  const messageType = options.messageType;
+export function validateCallMessage(message: {
+  content: any;
+  contentType?: string;
+  messageType: string;
+}) {
+  const content = message.content;
+  const messageType = message.messageType;
 
-  let contentType = options.contentType;
+  let contentType = message.contentType;
 
   if (typeof contentType === 'undefined') {
     contentType = 'application/json';
@@ -132,41 +136,4 @@ export function validateCallMessage(options: CallMessage.Options) {
   }
 
   return { content, contentType, messageType };
-}
-
-/**
- * Namespace defining CallMessage types.
- *
- * NOTE(mhuynh): This should be refactored as part of VBLOCKS-3134.
- */
-export namespace CallMessage {
-  /**
-   * Interface defining possible options when sending a CallMessage.
-   */
-  export interface Options {
-    /**
-     * The content of the CallMessage. This value must match the passsed
-     * `contentType`. See {@link CallMessage.Options['contentType']} for more
-     * information.
-     */
-    content: any;
-
-    /**
-     * The content type of the CallMessage. This value must accurately describe
-     * the content passed. Currently, the only accepted values are:
-     *
-     * - "application/json"
-     *
-     * If this value is not passed, the default will be "application/json".
-     */
-    contentType?: string;
-
-    /**
-     * The message type of the CallMessage. Currently, the only accepted values
-     * are:
-     *
-     * - "user-defined-message"
-     */
-    messageType: string;
-  }
 }

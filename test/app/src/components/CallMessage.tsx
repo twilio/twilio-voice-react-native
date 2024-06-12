@@ -1,3 +1,4 @@
+import { CallMessage } from '@twilio/voice-react-native-sdk';
 import * as React from 'react';
 import { Button } from 'react-native';
 import Grid from '../Grid';
@@ -26,22 +27,22 @@ export default function CallMessageComponent({
     context === CallMessageContext.Call
       ? 'This is a message from a Call'
       : 'This is a message from a Call Invite';
-  const callMessage = {
+  const callMessage = new CallMessage({
     content: messageContent,
     contentType: 'application/json',
     messageType: 'user-defined-message',
-  };
+  });
   const handleSendMessage = () => {
     context === CallMessageContext.Call
       ? callMethod?.sendMessage(callMessage)
       : recentCallInvite?.sendMessage(callMessage);
   };
 
-  const callMessageInvalidContent = {
+  const callMessageInvalidContent = new CallMessage({
     content: invalidContent,
     contentType: 'application/json',
     messageType: 'user-defined-message',
-  };
+  });
   const handleTriggerError = () => {
     context === CallMessageContext.Call
       ? callMethod?.sendMessage(callMessageInvalidContent)

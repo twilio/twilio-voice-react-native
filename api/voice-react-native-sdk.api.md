@@ -193,7 +193,7 @@ export class Call extends EventEmitter {
     mute(mute: boolean): Promise<boolean>;
     postFeedback(score: Call.Score, issue: Call.Issue): Promise<void>;
     sendDigits(digits: string): Promise<void>;
-    sendMessage(options: CallMessage.Options): Promise<OutgoingCallMessage>;
+    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
 }
 
 // @public
@@ -295,7 +295,7 @@ export class CallInvite extends EventEmitter {
     // @alpha
     isValid(): Promise<boolean>;
     reject(): Promise<void>;
-    sendMessage(options: CallMessage.Options): Promise<OutgoingCallMessage>;
+    sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
     updateCallerHandle(newHandle: string): Promise<void>;
 }
 
@@ -352,15 +352,6 @@ export class CallMessage extends EventEmitter {
     getContentType(): string;
     getMessageType(): string;
     getSid(): string | undefined;
-}
-
-// @public
-export namespace CallMessage {
-    export interface Options {
-        content: any;
-        contentType?: string;
-        messageType: string;
-    }
 }
 
 // @public
