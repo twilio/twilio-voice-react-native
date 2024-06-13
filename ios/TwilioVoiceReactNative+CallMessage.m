@@ -67,20 +67,10 @@
         kTwilioVoiceReactNativeVoiceEventSid: callMessage.voiceEventSid,
         kTwilioVoiceReactNativeCallMessageContent: callMessage.content,
         kTwilioVoiceReactNativeCallMessageContentType: callMessage.contentType,
-        kTwilioVoiceReactNativeCallMessageMessageType: [self callMessageTypeString:callMessage.messageType]
+        kTwilioVoiceReactNativeCallMessageMessageType: callMessage.messageType
     };
     
     return callMessageInfoObject;
-}
-
-- (NSString *)callMessageTypeString:(TVOCallMessageType)callMessageType {
-    switch (callMessageType) {
-        case TVOCallMessageUserDefinedMessage:
-            return kTwilioVoiceReactNativeUserDefinedMessage;
-            
-        default:
-            return kTwilioVoiceReactNativeUserDefinedMessage;
-    }
 }
 
 @end

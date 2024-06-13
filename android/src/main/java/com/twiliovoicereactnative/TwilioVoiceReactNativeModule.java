@@ -406,17 +406,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void call_sendMessage(String uuid, String content, String contentType, String messageType, Promise promise) {
     final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(UUID.fromString(uuid)));
 
-    final CallMessage.MessageType _messageType = validateMessageTypeFromString(messageType, promise);
-    if (_messageType == null) {
-      return;
-    }
-    final String _contentType = validateContentTypeFromString(contentType, promise);
-    if(_contentType == null) {
-      return;
-    }
-
-    final CallMessage callMessage = new CallMessage.Builder(_messageType)
-      .contentType(_contentType).content(content).build();
+    final CallMessage callMessage = new CallMessage.Builder(messageType)
+      .contentType(contentType).content(content).build();
 
     promise.resolve((CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState())
       ? callRecord.getCallInvite().sendMessage(callMessage)
@@ -549,24 +540,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       return Call.Issue.NOISY_CALL;
     }
     return Call.Issue.NOT_REPORTED;
-  }
-
-  private CallMessage.MessageType validateMessageTypeFromString (String messageType, Promise promise) {
-    if (messageType.equals(CommonConstants.UserDefinedMessage)) {
-      return CallMessage.MessageType.UserDefinedMessage;
-    }
-    logger.log("No such MessageType exists for the CallMessage class");
-    promise.reject("No such MessageType exists for the CallMessage class");
-    return null;
-  }
-
-  private String validateContentTypeFromString (String contentType, Promise promise) {
-    if (contentType.equals(CommonConstants.ApplicationJson)) {
-      return CommonConstants.ApplicationJson;
-    }
-    logger.log("No such ContentType exists for the CallMessage class");
-    promise.reject("No such ContentType exists for the CallMessage class");
-    return null;
   }
 
   private static CallRecord validateCallRecord(@NonNull final Context context,
