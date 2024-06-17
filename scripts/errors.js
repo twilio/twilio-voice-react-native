@@ -39,7 +39,12 @@ const ERRORS = [
    */
   'AuthorizationErrors.AuthorizationError', // 31201
   'AuthorizationErrors.RateExceededError', // 31206
-  'AuthorizationErrors.PayloadSizeExceededError', // 31209
+  /**
+   * Note(mhuynh): This error code has collision with a different error,
+   * Reconnect attempt is not authorized. Do not generate this error for now,
+   * fix with VBLOCKS-3144.
+   */
+  // 'AuthorizationErrors.PayloadSizeExceededError', // 31209
   'AuthorizationErrors.CallMessageEventTypeInvalidError', // 31210
   'AuthorizationErrors.CallMessageUnexpectedStateError', // 31211
 

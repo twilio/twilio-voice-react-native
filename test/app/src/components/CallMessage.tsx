@@ -55,6 +55,30 @@ export default function CallMessageComponent({
       : recentCallInvite?.sendMessage(largeMessage);
   };
 
+  const invalidContentTypeMessage = new CallMessage({
+    content: { foo: 'bar' },
+    contentType: 'not a real content type foobar',
+    messageType: 'user-defined-message',
+  });
+
+  const handleSendInvalidContentType = () => {
+    context === CallMessageContext.Call
+      ? callMethod?.sendMessage(invalidContentTypeMessage)
+      : recentCallInvite?.sendMessage(invalidContentTypeMessage);
+  };
+
+  const invalidMessageTypeMessage = new CallMessage({
+    content: { foo: 'bar' },
+    contentType: 'application/json',
+    messageType: 'not a real message type foobar',
+  });
+
+  const handleSendInvalidMessageType = () => {
+    context === CallMessageContext.Call
+      ? callMethod?.sendMessage(invalidMessageTypeMessage)
+      : recentCallInvite?.sendMessage(invalidMessageTypeMessage);
+  };
+
   return (
     <Grid
       gridComponents={[
@@ -66,6 +90,16 @@ export default function CallMessageComponent({
           <Button
             title="Send Large Message"
             onPress={handleSendLargeMessage || sendMessageNoOp}
+          />,
+        ],
+        [
+          <Button
+            title="Send Invalid Content Type"
+            onPress={handleSendInvalidContentType || sendMessageNoOp}
+          />,
+          <Button
+            title="Send Invalid Message Type"
+            onPress={handleSendInvalidMessageType || sendMessageNoOp}
           />,
         ],
       ]}
