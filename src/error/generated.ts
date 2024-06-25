@@ -444,49 +444,6 @@ export namespace AuthorizationErrors {
 
   /**
    * @public
-   * AuthorizationErrors.PayloadSizeExceededError error.
-   * Error code `31209`.
-   */
-  export class PayloadSizeExceededError extends TwilioError {
-    /**
-     * The payload size of Call Message Event exceeds the authorized limit.
-     */
-    causes: string[] = [
-      'The payload size of Call Message Event exceeds the authorized limit.',
-    ];
-    /**
-     * Call Message Event Payload size exceeded authorized limit.
-     */
-    description: string = 'Call Message Event Payload size exceeded authorized limit.';
-    /**
-     * The request performed to send a Call Message Event exceeds the payload size authorized limit
-     */
-    explanation: string = 'The request performed to send a Call Message Event exceeds the payload size authorized limit';
-    /**
-     * PayloadSizeExceededError
-     */
-    name: string = 'PayloadSizeExceededError';
-    /**
-     * Reduce payload size of Call Message Event to be within the authorized limit and try again.
-     */
-    solutions: string[] = [
-      'Reduce payload size of Call Message Event to be within the authorized limit and try again.',
-    ];
-
-    constructor(message: string) {
-      super(message, 31209);
-      Object.setPrototypeOf(this, AuthorizationErrors.PayloadSizeExceededError.prototype);
-
-      const msg: string = typeof message === 'string'
-        ? message
-        : this.explanation;
-
-      this.message = `${this.name} (${this.code}): ${msg}`;
-    }
-  }
-
-  /**
-   * @public
    * AuthorizationErrors.CallMessageEventTypeInvalidError error.
    * Error code `31210`.
    */
@@ -2180,7 +2137,6 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31100, MalformedRequestErrors.MalformedRequestError],
   [31201, AuthorizationErrors.AuthorizationError],
   [31206, AuthorizationErrors.RateExceededError],
-  [31209, AuthorizationErrors.PayloadSizeExceededError],
   [31210, AuthorizationErrors.CallMessageEventTypeInvalidError],
   [31211, AuthorizationErrors.CallMessageUnexpectedStateError],
   [31301, RegistrationErrors.RegistrationError],

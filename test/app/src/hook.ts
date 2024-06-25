@@ -229,26 +229,6 @@ export function useCallInvites(
 
   const callInviteHandler = React.useCallback(
     async (callInvite: CallInvite) => {
-      console.log('trying to send message as soon as the callinvite comes in');
-
-      const test = await callInvite.sendMessage(
-        new CallMessage({
-          content: { foo: 'bar' },
-          contentType: 'application/json',
-          messageType: 'user-defined-message',
-        })
-      );
-
-      test.on(OutgoingCallMessage.Event.Sent, () => {
-        console.log('outgoing message successfully sent');
-      });
-
-      test.on(OutgoingCallMessage.Event.Failure, (error) => {
-        console.log('outgoing message failed to send', error);
-      });
-
-      console.log(test);
-
       const callSid = callInvite.getCallSid();
       const from = callInvite.getFrom();
       const to = callInvite.getTo();
@@ -365,26 +345,8 @@ export function useVoice(token: string) {
         params: {
           answerOnBridge: 'true',
           recipientType: 'client',
-          to: 'client-web',
+          to,
         },
-      });
-
-      console.log('ringing: trying to send message');
-
-      const message = await call.sendMessage(
-        new CallMessage({
-          content: { foo: 'bar' },
-          contentType: 'application/json',
-          messageType: 'user-defined-message',
-        })
-      );
-
-      message.on(OutgoingCallMessage.Event.Sent, () => {
-        console.log('ringing: sent message');
-      });
-
-      message.on(OutgoingCallMessage.Event.Failure, (error) => {
-        console.log('ringing: failed to send message', error);
       });
 
       callHandler(call);
