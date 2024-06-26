@@ -65,7 +65,9 @@ describe('call', () => {
   beforeEach(async () => {
     await device.reloadReactNative();
 
-    await toggleLogFormat();
+    if (device.getPlatform() !== 'ios') {
+      await toggleLogFormat();
+    }
   });
 
   if (device.getPlatform() === 'ios') {
