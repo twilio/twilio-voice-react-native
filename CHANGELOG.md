@@ -9,6 +9,14 @@
 
 - Added support for Android 34
 
+## Fixes
+
+### Platform Specific Fixes
+
+#### iOS
+
+- Fixed Call Messages not being built with the passed `contentType` or `messageType`.
+
 ## Changes
 
 ### Call Message Events
