@@ -77,4 +77,6 @@ temp/
 
 # e2e tests
 test/app/src/e2e-tests-token.ts
+test/app/src/e2e-tests-token.android.ts
+test/app/src/e2e-tests-token.ios.ts
 coverage/

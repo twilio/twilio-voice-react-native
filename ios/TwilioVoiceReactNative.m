@@ -823,11 +823,23 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
     TVOCallInvite *callInvite = self.callInviteMap[uuid];
     TVOCall *call = self.callMap[uuid];
     if (call) {
-        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        TVOCallMessage *callMessage = [
+            TVOCallMessage messageWithContent:content
+            messageType:messageType
+            block:^(TVOCallMessageBuilder *builder) {
+                builder.contentType = contentType;
+            }
+        ];
         NSString *voiceEventSid = [call sendMessage:callMessage];
         resolve(voiceEventSid);
     } else if (callInvite) {
-        TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content];
+        TVOCallMessage *callMessage = [
+            TVOCallMessage messageWithContent:content
+            messageType:messageType
+            block:^(TVOCallMessageBuilder *builder) {
+                builder.contentType = contentType;
+            }
+        ];
         NSString *voiceEventSid = [callInvite sendMessage:callMessage];
         resolve(voiceEventSid);
     } else {
