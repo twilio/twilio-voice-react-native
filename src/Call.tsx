@@ -17,8 +17,12 @@ import type {
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
 import { constructTwilioError } from './error/utility';
-import { CallMessage } from './CallMessage';
-import { OutgoingCallMessage } from './OutgoingCallMessage';
+import {
+  CallMessage,
+  validateCallMessage,
+} from './CallMessage/BaseCallMessage';
+import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
+import { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -74,11 +78,8 @@ export declare interface Call {
   /** @internal */
   emit(
     messageReceivedEvent: Call.Event.MessageReceived,
-    callMessage: CallMessage
+    incomingCallMessage: IncomingCallMessage
   ): boolean;
-
-  /** @internal */
-  emit(callEvent: Call.Event, ...args: any[]): boolean;
 
   /**
    * ----------------
@@ -674,9 +675,9 @@ export class Call extends EventEmitter {
 
     const { callMessage: callMessageInfo } = nativeCallEvent;
 
-    const callMessage = new CallMessage(callMessageInfo);
+    const incomingCallMessage = new IncomingCallMessage(callMessageInfo);
 
-    this.emit(Call.Event.MessageReceived, callMessage);
+    this.emit(Call.Event.MessageReceived, incomingCallMessage);
   };
 
   /**
@@ -903,9 +904,7 @@ export class Call extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
-    const content = message.getContent();
-    const contentType = message.getContentType();
-    const messageType = message.getMessageType();
+    const { content, contentType, messageType } = validateCallMessage(message);
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
@@ -1276,7 +1275,9 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:8)}.
      */
-    export type MessageReceived = (callMessage: CallMessage) => void;
+    export type MessageReceived = (
+      incomingCallMessage: IncomingCallMessage
+    ) => void;
 
     /**
      * Generic event listener. This should be the function signature of any
