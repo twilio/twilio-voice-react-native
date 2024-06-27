@@ -29,8 +29,6 @@ describe('call', () => {
   };
 
   const getLog = async () => {
-    // await element(by.id('event_log')).swipe('up');
-
     const eventLogAttr = await element(by.id('event_log')).getAttributes();
     if (!('label' in eventLogAttr) || !eventLogAttr.label) {
       throw new Error('cannot parse event log label');

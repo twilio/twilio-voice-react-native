@@ -37,6 +37,12 @@ call.sendMessage(new CallMessage({
 }));
 ```
 
+- Added new error codes. See the following table for details:
+  | Error Code | Description |
+  | --- | --- |
+  | 31210 | Raised when a Call Message is sent with an invalid message type. |
+  | 31211 | Raised when a Call Message is sent when the call is not yet ready to send messages. This can typically happen when the Call/CallInvite is not yet in a ringing state. |
+
 1.0.0 (Mar 25, 2024)
 ====================
 
