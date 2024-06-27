@@ -406,11 +406,9 @@ export namespace AuthorizationErrors {
    */
   export class RateExceededError extends TwilioError {
     /**
-     * Message payload size limit exceeded.
      * Rate limit exceeded.
      */
     causes: string[] = [
-      'Message payload size limit exceeded.',
       'Rate limit exceeded.',
     ];
     /**
@@ -426,17 +424,101 @@ export namespace AuthorizationErrors {
      */
     name: string = 'RateExceededError';
     /**
-     * Ensure the message payload does not exceed size limits.
      * Ensure message send rate does not exceed authorized limits.
      */
     solutions: string[] = [
-      'Ensure the message payload does not exceed size limits.',
       'Ensure message send rate does not exceed authorized limits.',
     ];
 
     constructor(message: string) {
       super(message, 31206);
       Object.setPrototypeOf(this, AuthorizationErrors.RateExceededError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
+   * AuthorizationErrors.CallMessageEventTypeInvalidError error.
+   * Error code `31210`.
+   */
+  export class CallMessageEventTypeInvalidError extends TwilioError {
+    /**
+     * The Call Message Event Type is invalid and is not understood by Twilio Voice.
+     */
+    causes: string[] = [
+      'The Call Message Event Type is invalid and is not understood by Twilio Voice.',
+    ];
+    /**
+     * Call Message Event Type is invalid.
+     */
+    description: string = 'Call Message Event Type is invalid.';
+    /**
+     * The Call Message Event Type is invalid and is not understood by Twilio Voice.
+     */
+    explanation: string = 'The Call Message Event Type is invalid and is not understood by Twilio Voice.';
+    /**
+     * CallMessageEventTypeInvalidError
+     */
+    name: string = 'CallMessageEventTypeInvalidError';
+    /**
+     * Ensure the Call Message Event Type is Valid and understood by Twilio Voice and try again.
+     */
+    solutions: string[] = [
+      'Ensure the Call Message Event Type is Valid and understood by Twilio Voice and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31210);
+      Object.setPrototypeOf(this, AuthorizationErrors.CallMessageEventTypeInvalidError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
+   * AuthorizationErrors.CallMessageUnexpectedStateError error.
+   * Error code `31211`.
+   */
+  export class CallMessageUnexpectedStateError extends TwilioError {
+    /**
+     * The Call should be at least in the ringing state to subscribe and send Call Message.
+     */
+    causes: string[] = [
+      'The Call should be at least in the ringing state to subscribe and send Call Message.',
+    ];
+    /**
+     * Call is not in the expected state.
+     */
+    description: string = 'Call is not in the expected state.';
+    /**
+     * The Call should be at least in the ringing state to send Call Message.
+     */
+    explanation: string = 'The Call should be at least in the ringing state to send Call Message.';
+    /**
+     * CallMessageUnexpectedStateError
+     */
+    name: string = 'CallMessageUnexpectedStateError';
+    /**
+     * Ensure the Call is at least in the ringing state and the subscription is successful and try again.
+     */
+    solutions: string[] = [
+      'Ensure the Call is at least in the ringing state and the subscription is successful and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31211);
+      Object.setPrototypeOf(this, AuthorizationErrors.CallMessageUnexpectedStateError.prototype);
 
       const msg: string = typeof message === 'string'
         ? message
@@ -1523,18 +1605,10 @@ export namespace MalformedRequestErrors {
    */
   export class MalformedRequestError extends TwilioError {
     /**
-     * No CallSid in the message object.
-     * No VoiceEventSid in the message object.
-     * No payload in the message object.
-     * Invalid or missing payload in the message object.
-     * No message type in the message object.
+     * Invalid content or MessageType passed to sendMessage method.
      */
     causes: string[] = [
-      'No CallSid in the message object.',
-      'No VoiceEventSid in the message object.',
-      'No payload in the message object.',
-      'Invalid or missing payload in the message object.',
-      'No message type in the message object.',
+      'Invalid content or MessageType passed to sendMessage method.',
     ];
     /**
      * The request had malformed syntax.
@@ -1549,16 +1623,10 @@ export namespace MalformedRequestErrors {
      */
     name: string = 'MalformedRequestError';
     /**
-     * Ensure the message object contains a valid CallSid.
-     * Ensure the message object contains a valid VoiceEventSid.
-     * Ensure the message object has a valid payload.
-     * Ensure the message object has a valid message type.
+     * Ensure content and MessageType passed to sendMessage method are valid.
      */
     solutions: string[] = [
-      'Ensure the message object contains a valid CallSid.',
-      'Ensure the message object contains a valid VoiceEventSid.',
-      'Ensure the message object has a valid payload.',
-      'Ensure the message object has a valid message type.',
+      'Ensure content and MessageType passed to sendMessage method are valid.',
     ];
 
     constructor(message: string) {
@@ -2069,6 +2137,8 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31100, MalformedRequestErrors.MalformedRequestError],
   [31201, AuthorizationErrors.AuthorizationError],
   [31206, AuthorizationErrors.RateExceededError],
+  [31210, AuthorizationErrors.CallMessageEventTypeInvalidError],
+  [31211, AuthorizationErrors.CallMessageUnexpectedStateError],
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],

@@ -3129,10 +3129,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@twilio/voice-errors@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@twilio/voice-errors/-/voice-errors-1.2.2.tgz#9f15b3652a381fd5ce9cf46546be1cf5a71ab622"
-  integrity sha512-SalA0eaJp/8aZOcWn+hkZL5VDH2jM8S/ltPliahEoqYt/7VxD4hL25OyEs2A8evj+Hvcl+ledNE70JALvY/LLw==
+"@twilio/voice-errors@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@twilio/voice-errors/-/voice-errors-1.6.0.tgz#5711a9e12dbe1653a078fdc229e54ff9348b36d1"
+  integrity sha512-T1Fbllo27UPRYWUqBXGwYz8PQgSTbL2wcMKpyNXj7aloQBtA4hxIiEnZ0+oDc3CLz8RlHdYtQktUg9Ezo9huiA==
 
 "@types/argparse@1.0.38":
   version "1.0.38"

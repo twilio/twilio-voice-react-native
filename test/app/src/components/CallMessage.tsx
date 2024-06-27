@@ -3,7 +3,6 @@ import * as React from 'react';
 import { Button } from 'react-native';
 import Grid from '../Grid';
 import type { BoundCallMethod, BoundCallInvite } from '../type';
-import { invalidContent } from '../constants';
 
 export enum CallMessageContext {
   Call = 'Call',
@@ -17,36 +16,67 @@ interface CallMessageComponentProps {
   sendMessageNoOp: () => void;
 }
 
+const MESSAGE_CONTENT_EXCEEDING_MAX_PAYLOAD_SIZE = Array(10000)
+  .fill('foobar')
+  .join('');
+
 export default function CallMessageComponent({
   context,
   callMethod,
   recentCallInvite,
   sendMessageNoOp,
 }: CallMessageComponentProps) {
-  const messageContent =
+  const validMessageContent =
     context === CallMessageContext.Call
       ? 'This is a message from a Call'
       : 'This is a message from a Call Invite';
-  const callMessage = new CallMessage({
-    content: messageContent,
+
+  const validMessage = new CallMessage({
+    content: validMessageContent,
     contentType: 'application/json',
     messageType: 'user-defined-message',
   });
-  const handleSendMessage = () => {
+
+  const handleSendValidMessage = () => {
     context === CallMessageContext.Call
-      ? callMethod?.sendMessage(callMessage)
-      : recentCallInvite?.sendMessage(callMessage);
+      ? callMethod?.sendMessage(validMessage)
+      : recentCallInvite?.sendMessage(validMessage);
   };
 
-  const callMessageInvalidContent = new CallMessage({
-    content: invalidContent,
+  const largeMessage = new CallMessage({
+    content: MESSAGE_CONTENT_EXCEEDING_MAX_PAYLOAD_SIZE,
     contentType: 'application/json',
     messageType: 'user-defined-message',
   });
-  const handleTriggerError = () => {
+
+  const handleSendLargeMessage = () => {
     context === CallMessageContext.Call
-      ? callMethod?.sendMessage(callMessageInvalidContent)
-      : recentCallInvite?.sendMessage(callMessageInvalidContent);
+      ? callMethod?.sendMessage(largeMessage)
+      : recentCallInvite?.sendMessage(largeMessage);
+  };
+
+  const invalidContentTypeMessage = new CallMessage({
+    content: { foo: 'bar' },
+    contentType: 'not a real content type foobar',
+    messageType: 'user-defined-message',
+  });
+
+  const handleSendInvalidContentType = () => {
+    context === CallMessageContext.Call
+      ? callMethod?.sendMessage(invalidContentTypeMessage)
+      : recentCallInvite?.sendMessage(invalidContentTypeMessage);
+  };
+
+  const invalidMessageTypeMessage = new CallMessage({
+    content: { foo: 'bar' },
+    contentType: 'application/json',
+    messageType: 'not a real message type foobar',
+  });
+
+  const handleSendInvalidMessageType = () => {
+    context === CallMessageContext.Call
+      ? callMethod?.sendMessage(invalidMessageTypeMessage)
+      : recentCallInvite?.sendMessage(invalidMessageTypeMessage);
   };
 
   return (
@@ -54,12 +84,22 @@ export default function CallMessageComponent({
       gridComponents={[
         [
           <Button
-            title={`Send: "${messageContent}"`}
-            onPress={handleSendMessage || sendMessageNoOp}
+            title="Send Valid Message"
+            onPress={handleSendValidMessage || sendMessageNoOp}
           />,
           <Button
-            title={`Trigger ${context} SendMessage Error`}
-            onPress={handleTriggerError || sendMessageNoOp}
+            title="Send Large Message"
+            onPress={handleSendLargeMessage || sendMessageNoOp}
+          />,
+        ],
+        [
+          <Button
+            title="Send Invalid Content Type"
+            onPress={handleSendInvalidContentType || sendMessageNoOp}
+          />,
+          <Button
+            title="Send Invalid Message Type"
+            onPress={handleSendInvalidMessageType || sendMessageNoOp}
           />,
         ],
       ]}

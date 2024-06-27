@@ -89,6 +89,8 @@ export default function App() {
     []
   );
 
+  const [eventLogFormat, setEventLogFormat] = React.useState(true);
+
   const getOngoingButtons = React.useMemo(
     () => [
       <Button title={'Get Calls'} onPress={getCallsHandler} />,
@@ -131,13 +133,25 @@ export default function App() {
         {callInviteComponent}
       </View>
       <View style={composedStyles.events}>
-        <Text>Events</Text>
-        <View style={composedStyles.eventsList}>
-          <FlatList
-            testID="event_log"
-            data={events}
-            renderItem={eventLogItemRender}
+        <View style={styles.eventsButtons}>
+          <Text>Events</Text>
+          <Button
+            title="Toggle Log Format"
+            onPress={() => setEventLogFormat((_f) => !_f)}
           />
+        </View>
+        <View style={composedStyles.eventsList}>
+          {eventLogFormat ? (
+            <FlatList
+              testID="event_log"
+              data={events}
+              renderItem={eventLogItemRender}
+            />
+          ) : (
+            <Text testID="event_log" style={styles.eventLog}>
+              {JSON.stringify(events)}
+            </Text>
+          )}
         </View>
       </View>
       <View style={styles.padded}>
@@ -171,6 +185,14 @@ const styles = StyleSheet.create({
   },
   padded: {
     padding: 5,
+  },
+  eventsButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  eventLog: {
+    fontSize: 9,
   },
 });
 

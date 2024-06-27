@@ -144,13 +144,16 @@ export function useCall(logEvent: (event: string) => void) {
           outgoingCallMessage.addListener(
             OutgoingCallMessage.Event.Failure,
             (error) => {
-              logEvent(error.message);
+              const errorInfo = `${error.name}(${error.code}): ${error.message}`;
+              const msg = `call message failure ${outgoingCallMessage.getSid()}: ${errorInfo}`;
+              logEvent(msg);
             }
           );
           outgoingCallMessage.addListener(
             OutgoingCallMessage.Event.Sent,
             () => {
-              logEvent(`Call: Successfully sent message`);
+              const msg = `call message sent ${outgoingCallMessage.getSid()}`;
+              logEvent(msg);
             }
           );
         },
@@ -270,13 +273,16 @@ export function useCallInvites(
             outgoingCallMessage.addListener(
               OutgoingCallMessage.Event.Failure,
               (error) => {
-                logEvent(error.message);
+                const errorInfo = `${error.name}(${error.code}): ${error.message}`;
+                const msg = `call message failure ${outgoingCallMessage.getSid()}: ${errorInfo}`;
+                logEvent(msg);
               }
             );
             outgoingCallMessage.addListener(
               OutgoingCallMessage.Event.Sent,
               () => {
-                logEvent(`CallInvite: Successfully sent message`);
+                const msg = `call invite message sent ${outgoingCallMessage.getSid()}`;
+                logEvent(msg);
               }
             );
           },
@@ -348,6 +354,7 @@ export function useVoice(token: string) {
           to,
         },
       });
+
       callHandler(call);
     },
     [callHandler, token, voice]

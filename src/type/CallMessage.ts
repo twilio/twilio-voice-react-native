@@ -8,15 +8,18 @@ export interface NativeCallMessageInfo {
   [Constants.VoiceEventSid]?: string;
 }
 
-export interface NativeCallMessageFailureEvent {
-  type: Constants.CallEventMessageFailure;
+export interface NativeCallMessageEventBase {
   [Constants.VoiceEventSid]: string;
+}
+
+export interface NativeCallMessageFailureEvent
+  extends NativeCallMessageEventBase {
+  type: Constants.CallEventMessageFailure;
   error: NativeErrorInfo;
 }
 
-export interface NativeCallMessageSentEvent {
+export interface NativeCallMessageSentEvent extends NativeCallMessageEventBase {
   type: Constants.CallEventMessageSent;
-  [Constants.VoiceEventSid]: string;
 }
 
 export type NativeCallMessageEvent =
