@@ -290,7 +290,9 @@ export declare interface Call {
   ): this;
 
   /**
-   * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
+   * MessageReceived event. Raised when a {@link IncomingCallMessage} is
+   * received.
+   *
    * @example
    * ```typescript
    * call.addListener(Call.Event.MessageReceived, (message) => {

@@ -196,7 +196,9 @@ export declare interface CallInvite {
   ): this;
 
   /**
-   * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
+   * MessageReceived event. Raised when a {@link IncomingCallMessage} is
+   * received.
+   *
    * @example
    * ```typescript
    * voice.on(Voice.Event.CallInvite, (callInvite) => {

@@ -43,8 +43,8 @@ export class IncomingCallMessage extends EventEmitter {
   private _voiceEventSid?: string;
 
   /**
-   * Constructor for the {@link (CallMessage:class) | CallMessage class}. This
-   * should not be invoked by third-party code.
+   * Constructor for the {@link IncomingCallMessage} class. This should not be
+   * invoked by third-party code.
    *
    * @param NativeCallMessageInfo - An object containing all of the data from
    * the native layer necessary to fully describe a call message, as well as
@@ -65,24 +65,27 @@ export class IncomingCallMessage extends EventEmitter {
   }
 
   /**
-   * Get the content body of the message.
-   * @returns the content body of the message.
+   * {@inheritdoc CallMessage.content}
+   *
+   * @returns the content of the call message.
    */
   getContent(): any {
     return this._content;
   }
 
   /**
-   * Get the MIME type for the message.
-   * @returns a string representing the content type of the message.
+   * {@inheritdoc CallMessage.contentType}
+   *
+   * @returns the content type of the call message.
    */
   getContentType(): string {
     return this._contentType;
   }
 
   /**
-   * Get the message type.
-   * @returns a string representing the message type.
+   * {@inheritdoc CallMessage.messageType}
+   *
+   * @returns the message type of the call message.
    */
   getMessageType(): string {
     return this._messageType;

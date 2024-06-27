@@ -2,12 +2,12 @@ import {
   createNativeCallMessageInfo,
   createNativeCallMessageInfoSid,
   mockCallMessageNativeEvents,
-} from '../__mocks__/CallMessage';
-import { OutgoingCallMessage } from '../OutgoingCallMessage';
-import { NativeEventEmitter } from '../common';
-import { Constants } from '../constants';
-import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
-import type { NativeCallMessageEventType } from '../type/CallMessage';
+} from '../../__mocks__/CallMessage';
+import { OutgoingCallMessage } from '../../CallMessage/OutgoingCallMessage';
+import { NativeEventEmitter } from '../../common';
+import { Constants } from '../../constants';
+import type { NativeEventEmitter as MockNativeEventEmitterType } from '../../__mocks__/common';
+import type { NativeCallMessageEventType } from '../../type/CallMessage';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;

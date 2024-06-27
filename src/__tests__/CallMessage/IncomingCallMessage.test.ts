@@ -1,7 +1,7 @@
-import { createNativeCallMessageInfo } from '../__mocks__/CallMessage';
-import { CallMessage } from '../CallMessage';
-import { NativeEventEmitter } from '../common';
-import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
+import { createNativeCallMessageInfo } from '../../__mocks__/CallMessage';
+import { IncomingCallMessage } from '../../CallMessage/IncomingCallMessage';
+import { NativeEventEmitter } from '../../common';
+import type { NativeEventEmitter as MockNativeEventEmitterType } from '../../__mocks__/common';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -24,19 +24,21 @@ beforeEach(() => {
   MockNativeEventEmitter.reset();
 });
 
-describe('CallMessage class', () => {
+describe('IncomingCallMessage class', () => {
   describe('constructor', () => {
     it('uses the passed CallMessage info', () => {
-      const callMessage = new CallMessage(createNativeCallMessageInfo());
+      const incomingCallMessage = new IncomingCallMessage(
+        createNativeCallMessageInfo()
+      );
       expect({
         // eslint-disable-next-line dot-notation
-        content: callMessage['_content'],
+        content: incomingCallMessage['_content'],
         // eslint-disable-next-line dot-notation
-        contentType: callMessage['_contentType'],
+        contentType: incomingCallMessage['_contentType'],
         // eslint-disable-next-line dot-notation
-        messageType: callMessage['_messageType'],
+        messageType: incomingCallMessage['_messageType'],
         // eslint-disable-next-line dot-notation
-        voiceEventSid: callMessage['_voiceEventSid'],
+        voiceEventSid: incomingCallMessage['_voiceEventSid'],
       }).toEqual(createNativeCallMessageInfo());
     });
 
@@ -46,20 +48,26 @@ describe('CallMessage class', () => {
 
     it('throws an error if "content" is undefined', () => {
       expect(
-        () => new CallMessage({ content: undefined, contentType, messageType })
+        () =>
+          new IncomingCallMessage({
+            content: undefined,
+            contentType,
+            messageType,
+          })
       ).toThrowError('"content" must be defined and not "null".');
     });
 
     it('throws an error if "content" is null', () => {
       expect(
-        () => new CallMessage({ content: null, contentType, messageType })
+        () =>
+          new IncomingCallMessage({ content: null, contentType, messageType })
       ).toThrowError('"content" must be defined and not "null".');
     });
 
     it('throws an error if "contentType" is not a valid string', () => {
       expect(
         () =>
-          new CallMessage({
+          new IncomingCallMessage({
             content,
             contentType: 10 as any,
             messageType,
@@ -72,7 +80,7 @@ describe('CallMessage class', () => {
     it('throws an error if "messageType" is not a valid string', () => {
       expect(
         () =>
-          new CallMessage({
+          new IncomingCallMessage({
             content,
             contentType,
             messageType: 10 as any,
@@ -81,7 +89,7 @@ describe('CallMessage class', () => {
     });
 
     it('defaults the content type to "applicaton/json"', () => {
-      const message = new CallMessage({
+      const message = new IncomingCallMessage({
         content: { foo: 'bar' },
         messageType: 'user-defined-message',
       } as any);
@@ -91,7 +99,7 @@ describe('CallMessage class', () => {
 
   describe('.getContent()', () => {
     it('returns the content value', () => {
-      const content = new CallMessage(
+      const content = new IncomingCallMessage(
         createNativeCallMessageInfo()
       ).getContent();
       expect(content).toEqual(createNativeCallMessageInfo().content);
@@ -100,7 +108,7 @@ describe('CallMessage class', () => {
 
   describe('.getContentType()', () => {
     it('returns the contentType value', () => {
-      const contentType = new CallMessage(
+      const contentType = new IncomingCallMessage(
         createNativeCallMessageInfo()
       ).getContentType();
       expect(typeof contentType).toBe('string');
@@ -110,7 +118,7 @@ describe('CallMessage class', () => {
 
   describe('.getMessageType()', () => {
     it('returns the messageType value', () => {
-      const messageType = new CallMessage(
+      const messageType = new IncomingCallMessage(
         createNativeCallMessageInfo()
       ).getMessageType();
       expect(typeof messageType).toBe('string');
@@ -120,7 +128,7 @@ describe('CallMessage class', () => {
 
   describe('.getSid()', () => {
     it('returns the voiceEventSid value', () => {
-      const voiceEventSid = new CallMessage(
+      const voiceEventSid = new IncomingCallMessage(
         createNativeCallMessageInfo()
       ).getSid();
       expect(typeof voiceEventSid).toBe('string');

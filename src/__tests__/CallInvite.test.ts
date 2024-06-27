@@ -6,8 +6,8 @@ import {
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { Call } from '../Call';
 import { CallInvite } from '../CallInvite';
-import { CallMessage } from '../CallMessage';
-import { OutgoingCallMessage } from '../OutgoingCallMessage';
+import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
+import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
 import { TwilioError } from '../error/TwilioError';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
@@ -180,7 +180,7 @@ describe('CallInvite class', () => {
           );
           expect(spy.mock.calls).toHaveLength(1);
           const [[callMessage]] = spy.mock.calls;
-          expect(callMessage).toBeInstanceOf(CallMessage);
+          expect(callMessage).toBeInstanceOf(IncomingCallMessage);
         });
       });
     });
@@ -456,11 +456,11 @@ describe('CallInvite class', () => {
     const messageType = 'user-defined-message';
 
     it('invokes the native module', async () => {
-      const message = new CallMessage({
+      const message = {
         content,
         contentType,
         messageType,
-      });
+      };
 
       await new CallInvite(
         createNativeCallInviteInfo(),
@@ -480,11 +480,11 @@ describe('CallInvite class', () => {
     });
 
     it('returns a Promise<OutgoingCallMessage>', async () => {
-      const message = new CallMessage({
+      const message = {
         content,
         contentType,
         messageType,
-      });
+      };
 
       const sendMessagePromise = new CallInvite(
         createNativeCallInviteInfo(),

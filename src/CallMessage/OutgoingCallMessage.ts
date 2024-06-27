@@ -17,15 +17,16 @@ import { constructTwilioError } from '../error/utility';
 import { IncomingCallMessage } from './IncomingCallMessage';
 
 /**
- * Defines strict typings for all events emitted by {@link (OutgoingCallMessage:class)
- * | OutgoingCallMessage objects}.
+ * Defines strict typings for all events emitted by
+ * {@link (OutgoingCallMessage:class) | OutgoingCallMessage objects}.
  *
  * @remarks
  * Note that the `on` function is an alias for the `addListener` function.
  * They share identical functionality and either may be used interchangeably.
  *
- * - See also the {@link (CallMessage:class) | CallMessage class}.
- * - See also the {@link (OutgoingCallMessage:namespace) | OutgoingCallMessage namespace}.
+ * - See also the {@link CallMessage} interface.
+ * - See also the {@link IncomingCallMessage} class.
+ * - See also the {@link (OutgoingCallMessage:namespace)} namespace.
  *
  * @public
  */

@@ -19,7 +19,7 @@ export interface CallMessage {
    *
    * See {@link CallMessage.contentType} for more information.
    */
-  content: string;
+  content: any;
 
   /**
    * The content type of the message. This value should accurately describe
