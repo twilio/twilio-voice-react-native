@@ -115,6 +115,22 @@ namespace AuthorizationErrors {
         name: string;
         solutions: string[];
     }
+    class CallMessageEventTypeInvalidError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
+    class CallMessageUnexpectedStateError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
     class ExpirationTimeExceedsMaxTimeAllowed extends TwilioError {
         constructor(message: string);
         causes: string[];
@@ -347,25 +363,11 @@ export class CallMessage extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
+    constructor(callMessageInfo: NativeCallMessageInfo);
     getContent(): any;
-    getContentType(): CallMessage.ContentType;
-    getMessageType(): CallMessage.MessageType;
+    getContentType(): string;
+    getMessageType(): string;
     getSid(): string | undefined;
-}
-
-// @public
-export namespace CallMessage {
-    // (undocumented)
-    export enum ContentType {
-        // (undocumented)
-        'ApplicationJson' = "application/json"
-    }
-    // (undocumented)
-    export enum MessageType {
-        // (undocumented)
-        'UserDefinedMessage' = "user-defined-message"
-    }
 }
 
 // @public

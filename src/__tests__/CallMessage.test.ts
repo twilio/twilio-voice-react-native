@@ -41,47 +41,51 @@ describe('CallMessage class', () => {
     });
 
     const content = { key1: 'hello world' };
-    const contentType = CallMessage.ContentType.ApplicationJson;
-    const messageType = CallMessage.MessageType.UserDefinedMessage;
+    const contentType = 'application/json';
+    const messageType = 'user-defined-message';
 
     it('throws an error if "content" is undefined', () => {
       expect(
         () => new CallMessage({ content: undefined, contentType, messageType })
-      ).toThrowError('"content" is empty');
+      ).toThrowError('"content" must be defined and not "null".');
     });
 
     it('throws an error if "content" is null', () => {
       expect(
         () => new CallMessage({ content: null, contentType, messageType })
-      ).toThrowError('"content" is empty');
+      ).toThrowError('"content" must be defined and not "null".');
     });
 
-    it('throws an error if "contentType" is not a valid enum', () => {
+    it('throws an error if "contentType" is not a valid string', () => {
       expect(
         () =>
           new CallMessage({
             content,
-            //@ts-ignore
-            contentType: CallMessage.ContentType.InvalidContentType,
+            contentType: 10 as any,
             messageType,
           })
       ).toThrowError(
-        '"contentType" must be valid enum of CallMessage.ContentType'
+        'If "contentType" is present, it must be of type "string".'
       );
     });
 
-    it('throws an error if "messageType" is not a valid enum', () => {
+    it('throws an error if "messageType" is not a valid string', () => {
       expect(
         () =>
           new CallMessage({
             content,
             contentType,
-            //@ts-ignore
-            messageType: CallMessage.ContentType.InvalidMessageType,
+            messageType: 10 as any,
           })
-      ).toThrowError(
-        '"messageType" must be valid enum of CallMessage.MessageType'
-      );
+      ).toThrowError('"messageType" must be of type "string"');
+    });
+
+    it('defaults the content type to "applicaton/json"', () => {
+      const message = new CallMessage({
+        content: { foo: 'bar' },
+        messageType: 'user-defined-message',
+      } as any);
+      expect(message.getContentType()).toStrictEqual('application/json');
     });
   });
 

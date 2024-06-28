@@ -452,8 +452,8 @@ describe('CallInvite class', () => {
 
   describe('.sendMessage()', () => {
     const content = { key1: 'hello world' };
-    const contentType = CallMessage.ContentType.ApplicationJson;
-    const messageType = CallMessage.MessageType.UserDefinedMessage;
+    const contentType = 'application/json';
+    const messageType = 'user-defined-message';
 
     it('invokes the native module', async () => {
       const message = new CallMessage({
@@ -485,6 +485,7 @@ describe('CallInvite class', () => {
         contentType,
         messageType,
       });
+
       const sendMessagePromise = new CallInvite(
         createNativeCallInviteInfo(),
         CallInvite.State.Pending

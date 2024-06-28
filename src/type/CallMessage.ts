@@ -1,23 +1,25 @@
 import type { Constants } from '../constants';
 import type { NativeErrorInfo } from './Error';
-import type { CallMessage } from '../CallMessage';
 
 export interface NativeCallMessageInfo {
   [Constants.CallMessageContent]: any;
-  [Constants.CallMessageContentType]: CallMessage.ContentType;
-  [Constants.CallMessageMessageType]: CallMessage.MessageType;
+  [Constants.CallMessageContentType]: string;
+  [Constants.CallMessageMessageType]: string;
   [Constants.VoiceEventSid]?: string;
 }
 
-export interface NativeCallMessageFailureEvent {
-  type: Constants.CallEventMessageFailure;
+export interface NativeCallMessageEventBase {
   [Constants.VoiceEventSid]: string;
+}
+
+export interface NativeCallMessageFailureEvent
+  extends NativeCallMessageEventBase {
+  type: Constants.CallEventMessageFailure;
   error: NativeErrorInfo;
 }
 
-export interface NativeCallMessageSentEvent {
+export interface NativeCallMessageSentEvent extends NativeCallMessageEventBase {
   type: Constants.CallEventMessageSent;
-  [Constants.VoiceEventSid]: string;
 }
 
 export type NativeCallMessageEvent =

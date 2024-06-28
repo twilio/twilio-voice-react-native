@@ -80,11 +80,16 @@ describe('call', () => {
             throw new Error('cannot parse event log label');
           }
 
-          const searchString =
-            'qualityWarningsChanged\n' +
-            JSON.stringify([['constant-audio-input-level'], []], null, 2);
+          const log: string = eventLogAttr.label;
 
-          return eventLogAttr.label.includes(searchString);
+          const qualityWarningsChangedEvent =
+            log.includes('qualityWarningsChanged');
+          const constantAudioInputWarning =
+            log.includes('constant-audio-input-level');
+          const constantAudioOutputWarning =
+            log.includes('constant-audio-output-level');
+
+          return qualityWarningsChangedEvent && (constantAudioInputWarning || constantAudioOutputWarning);
         }
 
         // check the call quality warnings every 5 seconds

@@ -873,30 +873,29 @@ export class Call extends EventEmitter {
   /**
    * CallMessage API is in beta.
    *
-   * Send {@link (CallMessage:class)}.
+   * Send a CallMessage.
    *
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const message = new CallMessage({
-   *    content: { key1: 'This is a messsage from the parent call' },
-   *    contentType: CallMessage.ContentType.ApplicationJson,
-   *    messageType: CallMessage.MessageType.UserDefinedMessage
-   * })
-   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(message)
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(
+   *   new CallMessage({
+   *     content: { key1: 'This is a messsage from the parent call' },
+   *     contentType: 'application/json',
+   *     messageType: 'user-defined-message'
+   *   })
+   * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
-   *    // outgoingCallMessage failed, handle error
+   *   // outgoingCallMessage failed, handle error
    * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Sent, () => {
-   *    // outgoingCallMessage sent
-   * })
+   *   // outgoingCallMessage sent
+   * });
    * ```
    *
-   * @param content - The message content
-   * @param contentType - The MIME type for the message. See {@link (CallMessage:namespace).ContentType}.
-   * @param messageType - The message type. See {@link (CallMessage:namespace).MessageType}.
+   * @param message The call message to send.
    *
    * @returns
    *  A `Promise` that
