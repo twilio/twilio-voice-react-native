@@ -345,7 +345,7 @@ public class VoiceService extends Service {
   }
   private static void sendPermissionsError() {
     final String errorMessage = "Missing permissions.";
-    final int errorCode = 31208;
+    final int errorCode = 31401;
     getJSEventEmitter().sendEvent(ScopeVoice, constructJSMap(
       new Pair<>(VoiceEventType, VoiceEventError),
       new Pair<>(VoiceEventError, serializeError(errorCode, errorMessage))
