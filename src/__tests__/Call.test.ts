@@ -1,5 +1,5 @@
-import { CallMessage } from '../CallMessage';
-import { OutgoingCallMessage } from '../OutgoingCallMessage';
+import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
+import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createNativeErrorInfo } from '../__mocks__/Error';
@@ -170,7 +170,7 @@ describe('Call class', () => {
       const args = listenerMock.mock.calls[0];
 
       const [callMessage] = args;
-      expect(callMessage).toBeInstanceOf(CallMessage);
+      expect(callMessage).toBeInstanceOf(IncomingCallMessage);
     };
 
     (
@@ -559,11 +559,11 @@ describe('Call class', () => {
       const messageType = 'user-defined-message';
 
       it('invokes the native module', async () => {
-        const message = new CallMessage({
+        const message = {
           content,
           contentType,
           messageType,
-        });
+        };
 
         await new Call(createNativeCallInfo()).sendMessage(message);
 
@@ -580,11 +580,11 @@ describe('Call class', () => {
       });
 
       it('returns a Promise<OutgoingCallMessage>', async () => {
-        const message = new CallMessage({
+        const message = {
           content,
           contentType,
           messageType,
-        });
+        };
 
         const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
           message

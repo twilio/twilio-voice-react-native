@@ -27,14 +27,16 @@ This release includes the following changes:
 - **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
   Instead, those types have been replaced by `string`.
 
-The following is an example of the updated API:
+- **(Breaking)** Simplified the `Call` and `CallInvite` API for sending call messages. `Call.sendMessage` and `CallInvite.sendMessage` now take a plain-JS object, or interface, as a parameter.
+
+The following is an example of the updated API considering the above changes.
 ```ts
 const call = await voice.connect(...);
-call.sendMessage(new CallMessage({
+const outgoingCallMessage = await call.sendMessage({
   content: { foo: 'bar' },
   contentType: 'application/json',
   messageType: 'user-defined-message',
-}));
+});
 ```
 
 - Added new error codes. See the following table for details:
