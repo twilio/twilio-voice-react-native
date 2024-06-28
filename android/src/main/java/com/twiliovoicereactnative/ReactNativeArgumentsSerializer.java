@@ -16,6 +16,8 @@ import static com.twiliovoicereactnative.CommonConstants.CallInfoIsOnHold;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageContent;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageContentType;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageMessageType;
+import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventSid;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
@@ -32,6 +34,7 @@ import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfo
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
 import java.text.SimpleDateFormat;
@@ -231,6 +234,16 @@ class ReactNativeArgumentsSerializer {
     return (null != callRecord.getCallException())
       ? serializeVoiceException(callRecord.getCallException())
       : null;
+  }
+
+  public static WritableMap serializeError(int code, String message) {
+    if (null != message) {
+      return constructJSMap(
+        new Pair<>(VoiceErrorKeyCode, code),
+        new Pair<>(VoiceErrorKeyMessage, message)
+      );
+    }
+    return null;
   }
 
   public static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {

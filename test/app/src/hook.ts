@@ -345,19 +345,39 @@ export function useVoice(token: string) {
     callHandler
   );
 
+  const logVoiceErrorHandler = React.useCallback<Voice.Listener.Error>(
+    (error) => {
+      const msg = {
+        causes: error.causes,
+        code: error.code,
+        description: error.description,
+        explanation: error.explanation,
+        message: error.message,
+        name: error.name,
+        solutions: error.solutions,
+      };
+      logEvent(JSON.stringify(msg, null, 2));
+    },
+    [logEvent]
+  );
+
   const connectHandler = React.useCallback(
     async (to: string) => {
-      const call = await voice.connect(token, {
-        params: {
-          answerOnBridge: 'true',
-          recipientType: 'client',
-          to,
-        },
-      });
-
-      callHandler(call);
+      try {
+        const call = await voice.connect(token, {
+          params: {
+            answerOnBridge: 'true',
+            recipientType: 'client',
+            to,
+          },
+        });
+        callHandler(call);
+      } catch (err) {
+        console.log(err.userInfo);
+        logEvent(`connect rejected: ${err.userInfo}`);
+      }
     },
-    [callHandler, token, voice]
+    [callHandler, token, voice, logEvent]
   );
 
   const registerHandler = React.useCallback(() => {
@@ -463,12 +483,20 @@ export function useVoice(token: string) {
 
     voice.on(Voice.Event.CallInvite, callInviteHandler);
     voice.on(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
+    voice.on(Voice.Event.Error, logVoiceErrorHandler);
 
     return () => {
       voice.off(Voice.Event.CallInvite, callInviteHandler);
       voice.off(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
+      voice.off(Voice.Event.Error, logVoiceErrorHandler);
     };
-  }, [audioDevicesUpdateHandler, callHandler, callInviteHandler, voice]);
+  }, [
+    audioDevicesUpdateHandler,
+    callHandler,
+    callInviteHandler,
+    logVoiceErrorHandler,
+    voice,
+  ]);
 
   return {
     registered,

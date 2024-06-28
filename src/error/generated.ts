@@ -1732,6 +1732,63 @@ export namespace RegistrationErrors {
 
 /**
  * @public
+ * UserMedia errors.
+ */
+export namespace UserMediaErrors {
+  /**
+   * @public
+   * UserMediaErrors.PermissionDeniedError error.
+   * Error code `31401`.
+   */
+  export class PermissionDeniedError extends TwilioError {
+    /**
+     * The user denied the getUserMedia request.
+     * The browser denied the getUserMedia request.
+     * The application has not been configured with the proper permissions.
+     */
+    causes: string[] = [
+      'The user denied the getUserMedia request.',
+      'The browser denied the getUserMedia request.',
+      'The application has not been configured with the proper permissions.',
+    ];
+    /**
+     * UserMedia Permission Denied Error
+     */
+    description: string = 'UserMedia Permission Denied Error';
+    /**
+     * The browser or end-user denied permissions to user media. Therefore we were unable to acquire input audio.
+     */
+    explanation: string = 'The browser or end-user denied permissions to user media. Therefore we were unable to acquire input audio.';
+    /**
+     * PermissionDeniedError
+     */
+    name: string = 'PermissionDeniedError';
+    /**
+     * The user should accept the request next time prompted. If the browser saved the deny, the user should change that permission in their browser.
+     * The user should to verify that the browser has permission to access the microphone at this address.
+     * The user should ensure that the proper permissions have been granted in the mobile device OS.
+     */
+    solutions: string[] = [
+      'The user should accept the request next time prompted. If the browser saved the deny, the user should change that permission in their browser.',
+      'The user should to verify that the browser has permission to access the microphone at this address.',
+      'The user should ensure that the proper permissions have been granted in the mobile device OS.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31401);
+      Object.setPrototypeOf(this, UserMediaErrors.PermissionDeniedError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+}
+
+/**
+ * @public
  * Signaling errors.
  */
 export namespace SignalingErrors {
@@ -2142,6 +2199,7 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],
+  [31401, UserMediaErrors.PermissionDeniedError],
   [31403, ClientErrors.Forbidden],
   [31404, ClientErrors.NotFound],
   [31408, ClientErrors.RequestTimeout],

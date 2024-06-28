@@ -43,6 +43,14 @@ call.sendMessage(new CallMessage({
   | 31210 | Raised when a Call Message is sent with an invalid message type. |
   | 31211 | Raised when a Call Message is sent when the call is not yet ready to send messages. This can typically happen when the Call/CallInvite is not yet in a ringing state. |
 
+### Platform Specific Changes
+
+#### Android
+
+- When permissions are not available, the SDK will now raise a new
+  `PermissionsError` with code `31401` when attempting to make an outgoing call
+  or when trying to accept an incoming call.
+
 1.0.0 (Mar 25, 2024)
 ====================
 
