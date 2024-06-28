@@ -355,7 +355,7 @@ export function useVoice(token: string) {
         message: error.message,
         name: error.name,
         solutions: error.solutions,
-      }
+      };
       logEvent(JSON.stringify(msg, null, 2));
     },
     [logEvent]
@@ -486,7 +486,13 @@ export function useVoice(token: string) {
       voice.off(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
       voice.off(Voice.Event.Error, logVoiceErrorHandler);
     };
-  }, [audioDevicesUpdateHandler, callHandler, callInviteHandler, voice]);
+  }, [
+    audioDevicesUpdateHandler,
+    callHandler,
+    callInviteHandler,
+    logVoiceErrorHandler,
+    voice,
+  ]);
 
   return {
     registered,
