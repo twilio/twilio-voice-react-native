@@ -363,17 +363,21 @@ export function useVoice(token: string) {
 
   const connectHandler = React.useCallback(
     async (to: string) => {
-      const call = await voice.connect(token, {
-        params: {
-          answerOnBridge: 'true',
-          recipientType: 'client',
-          to,
-        },
-      });
-
-      callHandler(call);
+      try {
+        const call = await voice.connect(token, {
+          params: {
+            answerOnBridge: 'true',
+            recipientType: 'client',
+            to,
+          },
+        });
+        callHandler(call);
+      } catch (err) {
+        console.log(err.userInfo);
+        logEvent(`connect rejected: ${err.userInfo}`);
+      }
     },
-    [callHandler, token, voice]
+    [callHandler, token, voice, logEvent]
   );
 
   const registerHandler = React.useCallback(() => {
