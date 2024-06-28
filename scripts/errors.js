@@ -108,6 +108,11 @@ const ERRORS = [
   'MediaErrors.NoSupportedCodec', // 53404
   'MediaErrors.ConnectionError', // 53405
   'MediaErrors.MediaDtlsTransportFailedError', // 53407
+
+  /**
+   * UserMediaErrors
+   */
+  'UserMediaErrors.PermissionDeniedError', // 31401
 ];
 
 module.exports = {

@@ -1,11 +1,14 @@
 /**
  * =============================================================================
- * NOTE(mhuynh): if errors fail in this file, ensure that errors have been
+ * NOTE(mhuynh): if tests fail in this file, ensure that errors have been
  * generated. Try `yarn run build:errors`.
  * =============================================================================
  */
 
-import * as GeneratedErrors from '../../error/generated';
+import { errorsByCode } from '../../error/generated';
+import { TwilioErrors } from '../../index';
+
+jest.mock('../../common');
 
 /**
  * NOTE(mhuynh): We can import the USED_ERRORS array from the generation script
@@ -18,9 +21,43 @@ import * as GeneratedErrors from '../../error/generated';
 import { ERRORS } from '../../../scripts/errors.js';
 const TYPED_ERRORS = ERRORS as string[];
 
+const getNamesFromExport = () => {
+  return Object.values(TwilioErrors).reduce<{
+    namespaced: string[];
+    nonNamespaced: string[];
+  }>(
+    (reduction, errorOrNamespace) => {
+      switch (typeof errorOrNamespace) {
+        case 'function':
+          return {
+            ...reduction,
+            nonNamespaced: [...reduction.nonNamespaced, errorOrNamespace.name],
+          };
+        case 'object':
+          const errorNames = Object.values(errorOrNamespace).map(
+            (errorConstructorOrConstant) => {
+              switch (typeof errorConstructorOrConstant) {
+                case 'function':
+                  return errorConstructorOrConstant.name;
+              }
+            }
+          );
+          return {
+            ...reduction,
+            namespaced: [...reduction.namespaced, ...errorNames],
+          };
+      }
+    },
+    {
+      nonNamespaced: [],
+      namespaced: [],
+    }
+  );
+};
+
 describe('generated errors', () => {
   it('contains all the expected error classes', () => {
-    const ErrorNamespaces = Object.entries(GeneratedErrors).filter(([k]) => {
+    const ErrorNamespaces = Object.entries(TwilioErrors).filter(([k]) => {
       return k !== 'errorsByCode';
     });
 
@@ -35,7 +72,7 @@ describe('generated errors', () => {
     expect(generatedErrorNames.sort()).toStrictEqual(TYPED_ERRORS.sort());
   });
 
-  for (const [code, ErrorClass] of GeneratedErrors.errorsByCode.entries()) {
+  for (const [code, ErrorClass] of errorsByCode.entries()) {
     describe(`${ErrorClass.name} - ${code}`, () => {
       it('constructs', () => {
         expect(() => new ErrorClass('foobar')).not.toThrow();
@@ -56,10 +93,20 @@ describe('generated errors', () => {
 
 describe('errorsByCode', () => {
   it('is a Map', () => {
-    expect(GeneratedErrors.errorsByCode).toBeInstanceOf(Map);
+    expect(errorsByCode).toBeInstanceOf(Map);
   });
 
   it('contains "undefined" for an error code that does not exist', () => {
-    expect(GeneratedErrors.errorsByCode.get(999999)).toBeUndefined();
+    expect(errorsByCode.get(999999)).toBeUndefined();
+  });
+
+  it('contains an entry for every exported error', () => {
+    const namesFromMap = Array.from(errorsByCode.values()).map(
+      (errorConstructor) => errorConstructor.name
+    );
+
+    expect(namesFromMap.sort()).toStrictEqual(
+      getNamesFromExport().namespaced.sort()
+    );
   });
 });
