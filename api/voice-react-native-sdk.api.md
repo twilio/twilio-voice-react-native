@@ -175,9 +175,7 @@ export interface Call {
     // @internal (undocumented)
     emit(qualityWarningsChangedEvent: Call.Event.QualityWarningsChanged, currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]): boolean;
     // @internal (undocumented)
-    emit(messageReceivedEvent: Call.Event.MessageReceived, callMessage: CallMessage): boolean;
-    // @internal (undocumented)
-    emit(callEvent: Call.Event, ...args: any[]): boolean;
+    emit(messageReceivedEvent: Call.Event.MessageReceived, incomingCallMessage: IncomingCallMessage): boolean;
     on(connectedEvent: Call.Event.Connected, listener: Call.Listener.Connected): this;
     on(connectFailureEvent: Call.Event.ConnectFailure, listener: Call.Listener.ConnectFailure): this;
     on(reconnectingEvent: Call.Event.Reconnecting, listener: Call.Listener.Reconnecting): this;
@@ -242,7 +240,7 @@ export namespace Call {
         export type ConnectFailure = (error: TwilioError) => void;
         export type Disconnected = (error?: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
-        export type MessageReceived = (callMessage: CallMessage) => void;
+        export type MessageReceived = (incomingCallMessage: IncomingCallMessage) => void;
         export type QualityWarningsChanged = (currentQualityWarnings: Call.QualityWarning[], previousQualityWarnings: Call.QualityWarning[]) => void;
         export type Reconnected = () => void;
         export type Reconnecting = (error: TwilioError) => void;
@@ -288,7 +286,7 @@ export interface CallInvite {
     // @internal (undocumented)
     emit(notificationTappedEvent: CallInvite.Event.NotificationTapped): boolean;
     // @internal (undocumented)
-    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, callMessage: CallMessage): boolean;
+    emit(messageReceivedEvent: CallInvite.Event.MessageReceived, incomingCallMessage: IncomingCallMessage): boolean;
     on(acceptedEvent: CallInvite.Event.Accepted, listener: CallInvite.Listener.Accepted): this;
     on(rejectedEvent: CallInvite.Event.Rejected, listener: CallInvite.Listener.Rejected): this;
     on(cancelledEvent: CallInvite.Event.Cancelled, listener: CallInvite.Listener.Cancelled): this;
@@ -329,7 +327,7 @@ export namespace CallInvite {
     export namespace Listener {
         export type Accepted = (call: Call) => void;
         export type Cancelled = (error?: TwilioError) => void;
-        export type MessageReceived = (callMessage: CallMessage) => void;
+        export type MessageReceived = (incomingCallMessage: IncomingCallMessage) => void;
         export type NotificationTapped = () => void;
         export type Rejected = () => void;
     }
@@ -359,15 +357,10 @@ export namespace CallKit {
 }
 
 // @public
-export class CallMessage extends EventEmitter {
-    // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    constructor(callMessageInfo: NativeCallMessageInfo);
-    getContent(): any;
-    getContentType(): string;
-    getMessageType(): string;
-    getSid(): string | undefined;
+export interface CallMessage {
+    content: any;
+    contentType?: string;
+    messageType: string;
 }
 
 // @public
@@ -514,6 +507,18 @@ namespace GeneralErrors {
 }
 
 // @public
+export class IncomingCallMessage extends EventEmitter {
+    // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor(callMessageInfo: NativeCallMessageInfo);
+    getContent(): any;
+    getContentType(): string;
+    getMessageType(): string;
+    getSid(): string | undefined;
+}
+
+// @public
 class InvalidArgumentError extends TwilioError {
     constructor(message: string);
     // (undocumented)
@@ -612,15 +617,13 @@ export interface OutgoingCallMessage {
     emit(failureEvent: OutgoingCallMessage.Event.Failure, error: TwilioError): boolean;
     // @internal (undocumented)
     emit(sentEvent: OutgoingCallMessage.Event.Sent): boolean;
-    // @internal (undocumented)
-    emit(outgoingCallMessageEvent: OutgoingCallMessage.Event, ...args: any[]): boolean;
     on(failureEvent: OutgoingCallMessage.Event.Failure, listener: OutgoingCallMessage.Listener.Failure): this;
     on(sentEvent: OutgoingCallMessage.Event.Sent, listener: OutgoingCallMessage.Listener.Sent): this;
     on(outgoingCallMessageEvent: OutgoingCallMessage.Event, listener: OutgoingCallMessage.Listener.Generic): this;
 }
 
 // @public
-export class OutgoingCallMessage extends CallMessage {
+export class OutgoingCallMessage extends IncomingCallMessage {
     constructor({ content, contentType, messageType, voiceEventSid, }: NativeCallMessageInfo);
 }
 

@@ -14,8 +14,8 @@ const MockNativeEventEmitter =
 let MockTwilioError: jest.Mock;
 let mockConstructTwilioError: jest.Mock;
 
-jest.mock('../common');
-jest.mock('../error/utility', () => {
+jest.mock('../../common');
+jest.mock('../../error/utility', () => {
   MockTwilioError = jest.fn();
   mockConstructTwilioError = jest.fn((mesage, code) => {
     return new MockTwilioError(mesage, code);
