@@ -55,6 +55,8 @@ import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -102,7 +104,11 @@ public class VoiceService extends Service {
         incomingCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
         break;
       case ACTION_ACCEPT_CALL:
-        acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+        try {
+          acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+        } catch (SecurityException e) {
+          logger.warning(e, "Cannot accept call, lacking necessary permissions");
+        }
         break;
       case ACTION_REJECT_CALL:
         rejectCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
@@ -193,6 +199,7 @@ public class VoiceService extends Service {
       .enableDscp(true)
       .callMessageListener(new CallMessageListenerProxy())
       .build();
+
     callRecord.setCall(
       callRecord.getCallInvite().accept(
         VoiceService.this,
@@ -314,7 +321,11 @@ public class VoiceService extends Service {
   }
   private void foregroundNotification(int id, Notification notification) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      try {
+        startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      } catch (Exception e) {
+        logger.warning(e, "Failed to place notification due to lack of permissions");
+      }
     } else {
       startForeground(id, notification);
     }
