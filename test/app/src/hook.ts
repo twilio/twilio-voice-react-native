@@ -373,8 +373,11 @@ export function useVoice(token: string) {
         });
         callHandler(call);
       } catch (err) {
-        console.log(err.userInfo);
-        logEvent(`connect rejected: ${err.userInfo}`);
+        const message = err.message;
+        const code = err.code;
+        logEvent(
+          `connect rejected: ${JSON.stringify({ message, code }, null, 2)}`
+        );
       }
     },
     [callHandler, token, voice, logEvent]
