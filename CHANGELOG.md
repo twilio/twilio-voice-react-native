@@ -30,12 +30,25 @@ This release includes the following changes:
 - **(Breaking)** Simplified the `Call` and `CallInvite` API for sending call messages. `Call.sendMessage` and `CallInvite.sendMessage` now take a plain-JS object, or interface, as a parameter.
 
 The following is an example of the updated API considering the above changes.
+
+For outgoing calls:
 ```ts
 const call = await voice.connect(...);
 const outgoingCallMessage = await call.sendMessage({
   content: { foo: 'bar' },
   contentType: 'application/json',
   messageType: 'user-defined-message',
+});
+```
+
+For call invites:
+```ts
+voice.on(Voice.Event.CallInvite, (callInvite) => {
+  const outgoingCallMessage = await callInvite.sendMessage({
+    content: { foo: 'bar' },
+    contentType: 'application/json',
+    messageType: 'user-defined-message',
+  });
 });
 ```
 
