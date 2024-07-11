@@ -15,7 +15,7 @@ export { Voice } from './Voice';
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';
 export { CallInvite } from './CallInvite';
-export { CallMessage } from './CallMessage/BaseCallMessage';
+export { CallMessage } from './CallMessage/CallMessage';
 export { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 export { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 export { CustomParameters } from './type/common';

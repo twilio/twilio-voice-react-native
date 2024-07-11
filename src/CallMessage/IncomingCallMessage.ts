@@ -7,7 +7,7 @@
 
 import { EventEmitter } from 'eventemitter3';
 import type { NativeCallMessageInfo } from '../type/CallMessage';
-import { validateCallMessage } from './BaseCallMessage';
+import { validateCallMessage } from './CallMessage';
 
 /**
  * CallMessage API is in beta.

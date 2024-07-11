@@ -1,4 +1,4 @@
-import { validateCallMessage } from '../../CallMessage/BaseCallMessage';
+import { validateCallMessage } from '../../CallMessage/CallMessage';
 
 describe('validateCallMessage', () => {
   it('should return a valid message', () => {
