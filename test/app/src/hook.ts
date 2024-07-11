@@ -257,7 +257,15 @@ export function useCallInvites(
         {
           accept: async () => {
             removeCallInvite(callInvite.getCallSid());
-            await callInvite.accept();
+            try {
+              await callInvite.accept();
+            } catch (err) {
+              const message = err.message;
+              const code = err.code;
+              logEvent(
+                `accept rejected: ${JSON.stringify({ message, code }, null, 2)}`
+              );
+            }
           },
           callSid,
           customParameters: callInvite.getCustomParameters(),
