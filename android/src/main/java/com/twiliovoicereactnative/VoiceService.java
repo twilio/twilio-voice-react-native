@@ -348,7 +348,7 @@ public class VoiceService extends Service {
     final int errorCode = 31401;
     getJSEventEmitter().sendEvent(ScopeVoice, constructJSMap(
       new Pair<>(VoiceEventType, VoiceEventError),
-      new Pair<>(VoiceEventError, serializeError(errorCode, errorMessage))
+      new Pair<>(VoiceErrorKeyError, serializeError(errorCode, errorMessage))
     ));
   }
 }
