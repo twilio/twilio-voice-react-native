@@ -5,27 +5,28 @@
  * See LICENSE in the project root for license information.
  */
 
-import type { TwilioError } from './error';
+import type { TwilioError } from '../error';
 import type {
   NativeCallMessageEvent,
   NativeCallMessageEventType,
   NativeCallMessageInfo,
-} from './type/CallMessage';
-import { Constants } from './constants';
-import { NativeEventEmitter } from './common';
-import { constructTwilioError } from './error/utility';
-import { CallMessage } from './CallMessage';
+} from '../type/CallMessage';
+import { Constants } from '../constants';
+import { NativeEventEmitter } from '../common';
+import { constructTwilioError } from '../error/utility';
+import { IncomingCallMessage } from './IncomingCallMessage';
 
 /**
- * Defines strict typings for all events emitted by {@link (OutgoingCallMessage:class)
- * | OutgoingCallMessage objects}.
+ * Defines strict typings for all events emitted by
+ * {@link (OutgoingCallMessage:class) | OutgoingCallMessage objects}.
  *
  * @remarks
  * Note that the `on` function is an alias for the `addListener` function.
  * They share identical functionality and either may be used interchangeably.
  *
- * - See also the {@link (CallMessage:class) | CallMessage class}.
- * - See also the {@link (OutgoingCallMessage:namespace) | OutgoingCallMessage namespace}.
+ * - See also the {@link CallMessage} interface.
+ * - See also the {@link IncomingCallMessage} class.
+ * - See also the {@link (OutgoingCallMessage:namespace)} namespace.
  *
  * @public
  */
@@ -44,12 +45,6 @@ export declare interface OutgoingCallMessage {
 
   /** @internal */
   emit(sentEvent: OutgoingCallMessage.Event.Sent): boolean;
-
-  /** @internal */
-  emit(
-    outgoingCallMessageEvent: OutgoingCallMessage.Event,
-    ...args: any[]
-  ): boolean;
 
   /**
    * ----------------
@@ -152,7 +147,7 @@ export declare interface OutgoingCallMessage {
  *
  * @public
  */
-export class OutgoingCallMessage extends CallMessage {
+export class OutgoingCallMessage extends IncomingCallMessage {
   /**
    * Handlers for native OutgoingCallMessage events. Set upon construction so we can
    * dynamically bind events to handlers.

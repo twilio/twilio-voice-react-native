@@ -5,6 +5,7 @@ import {
   Call,
   CallInvite,
   CallMessage,
+  IncomingCallMessage,
   OutgoingCallMessage,
   Voice,
   TwilioErrors,
@@ -95,7 +96,7 @@ export function useCall(logEvent: (event: string) => void) {
 
           call.addListener(
             Call.Event.MessageReceived,
-            (_message: CallMessage) => {
+            (_message: IncomingCallMessage) => {
               logEvent(`Call Message Received: ${_message.getContent()}`);
             }
           );
@@ -291,7 +292,7 @@ export function useCallInvites(
 
       callInvite.addListener(
         CallInvite.Event.MessageReceived,
-        (message: CallMessage) => {
+        (message: IncomingCallMessage) => {
           logEvent(`Call Invite Message Received: ${message.getContent()}`);
         }
       );

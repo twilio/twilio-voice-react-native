@@ -20,8 +20,9 @@ import type {
   NativeCallInviteMessageReceivedEvent,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
-import { CallMessage } from './CallMessage';
-import { OutgoingCallMessage } from './OutgoingCallMessage';
+import { CallMessage, validateCallMessage } from './CallMessage/CallMessage';
+import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
+import { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 import { Constants } from './constants';
 
 /**
@@ -62,7 +63,7 @@ export declare interface CallInvite {
   /** @internal */
   emit(
     messageReceivedEvent: CallInvite.Event.MessageReceived,
-    callMessage: CallMessage
+    incomingCallMessage: IncomingCallMessage
   ): boolean;
 
   /**
@@ -192,7 +193,9 @@ export declare interface CallInvite {
   ): this;
 
   /**
-   * MessageReceived event. Raised when {@link (CallMessage:class)} is received.
+   * MessageReceived event. Raised when a {@link IncomingCallMessage} is
+   * received.
+   *
    * @example
    * ```typescript
    * voice.on(Voice.Event.CallInvite, (callInvite) => {
@@ -370,7 +373,7 @@ export class CallInvite extends EventEmitter {
   ) => {
     const { callMessage: callMessageInfo } = nativeCallInviteEvent;
 
-    const callMessage = new CallMessage(callMessageInfo);
+    const callMessage = new IncomingCallMessage(callMessageInfo);
 
     this.emit(CallInvite.Event.MessageReceived, callMessage);
   };
@@ -558,9 +561,7 @@ export class CallInvite extends EventEmitter {
    *    - Rejects when the message is unable to be sent.
    */
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
-    const content = message.getContent();
-    const contentType = message.getContentType();
-    const messageType = message.getMessageType();
+    const { content, contentType, messageType } = validateCallMessage(message);
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
@@ -744,6 +745,8 @@ export namespace CallInvite {
      * @remarks
      * See {@link (CallInvite:interface).(addListener:5)}.
      */
-    export type MessageReceived = (callMessage: CallMessage) => void;
+    export type MessageReceived = (
+      incomingCallMessage: IncomingCallMessage
+    ) => void;
   }
 }

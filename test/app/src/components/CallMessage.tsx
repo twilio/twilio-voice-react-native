@@ -1,4 +1,3 @@
-import { CallMessage } from '@twilio/voice-react-native-sdk';
 import * as React from 'react';
 import { Button } from 'react-native';
 import Grid from '../Grid';
@@ -31,11 +30,11 @@ export default function CallMessageComponent({
       ? 'This is a message from a Call'
       : 'This is a message from a Call Invite';
 
-  const validMessage = new CallMessage({
+  const validMessage = {
     content: validMessageContent,
     contentType: 'application/json',
     messageType: 'user-defined-message',
-  });
+  };
 
   const handleSendValidMessage = () => {
     context === CallMessageContext.Call
@@ -43,11 +42,11 @@ export default function CallMessageComponent({
       : recentCallInvite?.sendMessage(validMessage);
   };
 
-  const largeMessage = new CallMessage({
+  const largeMessage = {
     content: MESSAGE_CONTENT_EXCEEDING_MAX_PAYLOAD_SIZE,
     contentType: 'application/json',
     messageType: 'user-defined-message',
-  });
+  };
 
   const handleSendLargeMessage = () => {
     context === CallMessageContext.Call
@@ -55,11 +54,11 @@ export default function CallMessageComponent({
       : recentCallInvite?.sendMessage(largeMessage);
   };
 
-  const invalidContentTypeMessage = new CallMessage({
+  const invalidContentTypeMessage = {
     content: { foo: 'bar' },
     contentType: 'not a real content type foobar',
     messageType: 'user-defined-message',
-  });
+  };
 
   const handleSendInvalidContentType = () => {
     context === CallMessageContext.Call
@@ -67,11 +66,11 @@ export default function CallMessageComponent({
       : recentCallInvite?.sendMessage(invalidContentTypeMessage);
   };
 
-  const invalidMessageTypeMessage = new CallMessage({
+  const invalidMessageTypeMessage = {
     content: { foo: 'bar' },
     contentType: 'application/json',
     messageType: 'not a real message type foobar',
-  });
+  };
 
   const handleSendInvalidMessageType = () => {
     context === CallMessageContext.Call

@@ -2,20 +2,20 @@ import {
   createNativeCallMessageInfo,
   createNativeCallMessageInfoSid,
   mockCallMessageNativeEvents,
-} from '../__mocks__/CallMessage';
-import { OutgoingCallMessage } from '../OutgoingCallMessage';
-import { NativeEventEmitter } from '../common';
-import { Constants } from '../constants';
-import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
-import type { NativeCallMessageEventType } from '../type/CallMessage';
+} from '../../__mocks__/CallMessage';
+import { OutgoingCallMessage } from '../../CallMessage/OutgoingCallMessage';
+import { NativeEventEmitter } from '../../common';
+import { Constants } from '../../constants';
+import type { NativeEventEmitter as MockNativeEventEmitterType } from '../../__mocks__/common';
+import type { NativeCallMessageEventType } from '../../type/CallMessage';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
 let MockTwilioError: jest.Mock;
 let mockConstructTwilioError: jest.Mock;
 
-jest.mock('../common');
-jest.mock('../error/utility', () => {
+jest.mock('../../common');
+jest.mock('../../error/utility', () => {
   MockTwilioError = jest.fn();
   mockConstructTwilioError = jest.fn((mesage, code) => {
     return new MockTwilioError(mesage, code);
