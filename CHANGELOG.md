@@ -9,6 +9,20 @@
 
 - Added support for Android 34
 
+- Missing Android microphone permissions will now be gracefully handled.
+
+  When using the JS API, `callInvite.accept()` and `voice.connect()` will now reject the returned Promise with error `31401`.
+
+  When accepting an incoming call through the native notification, the analogous `31401` error can be caught by attaching a listener to `voice.on(Voice.Event.Error, ...)`. See the following example:
+  ```ts
+  voice.on(Voice.Event.Error, (error) => {
+    // handle error
+    if (error.code === 31401) {
+      // show the end-user that they did not give the app the proper permissions
+    }
+  });
+  ```
+
 ## Fixes
 
 ### Platform Specific Fixes
