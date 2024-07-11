@@ -163,6 +163,16 @@ public class VoiceService extends Service {
   private void incomingCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("incomingCall: " + callRecord.getUuid());
 
+    // verify that mic permissions have been granted and if not, throw a error
+    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) &&
+      ActivityCompat.checkSelfPermission(VoiceService.this,
+        Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+
+      // report an error to logger
+      logger.warning("WARNING: Incoming call cannot be handled, microphone permission not granted");
+      return;
+    }
+
     // put up notification
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
     Notification notification = NotificationUtility.createIncomingCallNotification(
@@ -185,7 +195,7 @@ public class VoiceService extends Service {
   private void acceptCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("acceptCall: " + callRecord.getUuid());
 
-    // verify that mic permissions have been granted and if not, throw a warning
+    // verify that mic permissions have been granted and if not, throw a error
     if (ActivityCompat.checkSelfPermission(VoiceService.this,
       Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
       // cancel incoming call notification
