@@ -185,6 +185,21 @@ public class VoiceService extends Service {
   private void acceptCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("acceptCall: " + callRecord.getUuid());
 
+    // verify that mic permissions have been granted and if not, throw a warning
+    if (ActivityCompat.checkSelfPermission(VoiceService.this,
+      Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+      // cancel incoming call notification
+      removeNotification();
+
+      // stop ringer sound
+      VoiceApplicationProxy.getMediaPlayerManager().stop();
+      VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
+
+      // report an error to logger
+      logger.warning("WARNING: Call not accepted, microphone permission not granted");
+      return;
+    }
+
     // cancel existing notification & put up in call
     Notification notification = NotificationUtility.createCallAnsweredNotificationWithLowImportance(
       VoiceService.this,
