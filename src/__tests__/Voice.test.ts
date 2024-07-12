@@ -224,7 +224,7 @@ describe('Voice class', () => {
         expect(typeof error).toBe('object');
       });
 
-      describe('constructs an error', () => {
+      it('constructs an error', () => {
         new Voice(); // eslint-disable-line no-new
 
         const errorEvent = {
@@ -421,13 +421,22 @@ describe('Voice class', () => {
 
         it('rejects when the native layer rejects', async () => {
           const someMockErrorMessage = 'some mock error message';
-          const someMockError = new Error(someMockErrorMessage);
+          const someMockErrorCode = 31401;
+          const someMockError = {
+            userInfo: {
+              code: someMockErrorCode,
+              message: someMockErrorMessage,
+            },
+          };
+
           jest
             .mocked(MockNativeModule.voice_connect_android)
             .mockRejectedValueOnce(someMockError);
-          await expect(() => new Voice().connect(token)).rejects.toThrow(
-            someMockErrorMessage
-          );
+
+          expect.assertions(1);
+          await new Voice().connect(token).catch((error) => {
+            expect(error).toBeInstanceOf(MockTwilioError);
+          });
         });
 
         it('defaults params to "{}" when not passed', async () => {

@@ -449,11 +449,24 @@ export class CallInvite extends EventEmitter {
       );
     }
 
-    const callInfo = await NativeModule.callInvite_accept(this._uuid, options);
+    const acceptResult = await NativeModule.callInvite_accept(
+      this._uuid,
+      options
+    )
+      .then((callInfo) => {
+        return { type: 'ok', callInfo } as const;
+      })
+      .catch((error) => {
+        const code = error.userInfo.code;
+        const message = error.userInfo.message;
+        return { type: 'err', message, code } as const;
+      });
 
-    const call = new Call(callInfo);
+    if (acceptResult.type === 'err') {
+      throw constructTwilioError(acceptResult.message, acceptResult.code);
+    }
 
-    return call;
+    return new Call(acceptResult.callInfo);
   }
 
   /**

@@ -930,7 +930,8 @@ declare namespace TwilioErrors {
         ServerErrors,
         SignalingErrors,
         SIPServerErrors,
-        TwiMLErrors
+        TwiMLErrors,
+        UserMediaErrors
     }
 }
 export { TwilioErrors }
@@ -954,6 +955,18 @@ class UnsupportedPlatformError extends TwilioError {
     description: string;
     // (undocumented)
     explanation: string;
+}
+
+// @public
+namespace UserMediaErrors {
+    class PermissionDeniedError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
 }
 
 // @public

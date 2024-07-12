@@ -270,7 +270,7 @@ describe('CallInvite class', () => {
       await new CallInvite(
         createNativeCallInviteInfo(),
         CallInvite.State.Pending
-      ).accept();
+      ).accept(acceptOptions);
       expect(MockCall.mock.instances).toHaveLength(1);
       expect(MockCall.mock.calls).toEqual([[createNativeCallInfo()]]);
     });
@@ -279,8 +279,27 @@ describe('CallInvite class', () => {
       const callPromise = new CallInvite(
         createNativeCallInviteInfo(),
         CallInvite.State.Pending
-      ).accept();
+      ).accept(acceptOptions);
       await expect(callPromise).resolves.toBeInstanceOf(MockCall);
+    });
+
+    it('rejects when the native module rejects', async () => {
+      const callPromise = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      );
+
+      jest.mocked(NativeModule.callInvite_accept).mockRejectedValueOnce({
+        userInfo: {
+          code: 31401,
+          message: 'Missing permissions.',
+        },
+      });
+
+      expect.assertions(1);
+      await callPromise.accept(acceptOptions).catch((error) => {
+        expect(error).toBeInstanceOf(TwilioError);
+      });
     });
 
     (
@@ -372,7 +391,7 @@ describe('CallInvite class', () => {
     });
   });
 
-  describe('isValid()', () => {
+  describe('.isValid()', () => {
     it('invokes the native module', async () => {
       await new CallInvite(
         createNativeCallInviteInfo(),

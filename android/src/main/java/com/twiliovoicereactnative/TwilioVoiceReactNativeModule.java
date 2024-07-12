@@ -208,16 +208,19 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .params(parsedTwimlParams)
       .callMessageListener(new CallMessageListenerProxy())
       .build();
-    CallRecord callRecord = new CallRecord(
-      uuid,
-      getVoiceServiceApi().connect(
-        connectOptions,
-        new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())),
-      callRecipient);
-    getCallRecordDatabase().add(callRecord);
-
-    // notify JS layer
-    promise.resolve(serializeCall(callRecord));
+    try {
+      CallRecord callRecord = new CallRecord(
+        uuid,
+        getVoiceServiceApi().connect(
+          connectOptions,
+          new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())),
+        callRecipient);
+      getCallRecordDatabase().add(callRecord);
+      // notify JS layer
+      promise.resolve(serializeCall(callRecord));
+    } catch (SecurityException e) {
+      promise.reject(e, serializeError(31401, e.getMessage()));
+    }
   }
 
   @ReactMethod
@@ -487,7 +490,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       callRecord.setCallAcceptedPromise(promise);
 
       // Send Event to service
-      getVoiceServiceApi().acceptCall(callRecord);
+      try {
+        getVoiceServiceApi().acceptCall(callRecord);
+      } catch (SecurityException e) {
+        promise.reject(e, serializeError(31401, e.getMessage()));
+      }
     }
   }
 

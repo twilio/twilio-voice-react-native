@@ -10,6 +10,7 @@ import static com.twiliovoicereactnative.CommonConstants.CallInviteEventTypeValu
 import static com.twiliovoicereactnative.CommonConstants.ScopeCallInvite;
 import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError;
+import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventTypeValueIncomingCallInvite;
 import static com.twiliovoicereactnative.Constants.ACTION_ACCEPT_CALL;
@@ -30,6 +31,7 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializ
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallException;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCancelledCallInvite;
+import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeError;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 
@@ -55,6 +57,8 @@ import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -102,7 +106,12 @@ public class VoiceService extends Service {
         incomingCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
         break;
       case ACTION_ACCEPT_CALL:
-        acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+        try {
+          acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+        } catch (SecurityException e) {
+          sendPermissionsError();
+          logger.warning(e, "Cannot accept call, lacking necessary permissions");
+        }
         break;
       case ACTION_REJECT_CALL:
         rejectCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
@@ -157,6 +166,19 @@ public class VoiceService extends Service {
   private void incomingCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("incomingCall: " + callRecord.getUuid());
 
+    // verify that mic permissions have been granted and if not, throw a error
+    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) &&
+      ActivityCompat.checkSelfPermission(VoiceService.this,
+        Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+
+      // report to js layer lack of permissions issue
+      sendPermissionsError();
+
+      // report an error to logger
+      logger.warning("WARNING: Incoming call cannot be handled, microphone permission not granted");
+      return;
+    }
+
     // put up notification
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
     Notification notification = NotificationUtility.createIncomingCallNotification(
@@ -179,6 +201,24 @@ public class VoiceService extends Service {
   private void acceptCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("acceptCall: " + callRecord.getUuid());
 
+    // verify that mic permissions have been granted and if not, throw a error
+    if (ActivityCompat.checkSelfPermission(VoiceService.this,
+      Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+      // cancel incoming call notification
+      removeNotification();
+
+      // stop ringer sound
+      VoiceApplicationProxy.getMediaPlayerManager().stop();
+      VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
+
+      // report an error to JS layer
+      sendPermissionsError();
+
+      // report an error to logger
+      logger.warning("WARNING: Call not accepted, microphone permission not granted");
+      return;
+    }
+
     // cancel existing notification & put up in call
     Notification notification = NotificationUtility.createCallAnsweredNotificationWithLowImportance(
       VoiceService.this,
@@ -193,6 +233,7 @@ public class VoiceService extends Service {
       .enableDscp(true)
       .callMessageListener(new CallMessageListenerProxy())
       .build();
+
     callRecord.setCall(
       callRecord.getCallInvite().accept(
         VoiceService.this,
@@ -314,7 +355,12 @@ public class VoiceService extends Service {
   }
   private void foregroundNotification(int id, Notification notification) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      try {
+        startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+      } catch (Exception e) {
+        sendPermissionsError();
+        logger.warning(e, "Failed to place notification due to lack of permissions");
+      }
     } else {
       startForeground(id, notification);
     }
@@ -327,5 +373,13 @@ public class VoiceService extends Service {
   }
   private static void sendJSEvent(@NonNull String scope, @NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(scope, event);
+  }
+  private static void sendPermissionsError() {
+    final String errorMessage = "Missing permissions.";
+    final int errorCode = 31401;
+    getJSEventEmitter().sendEvent(ScopeVoice, constructJSMap(
+      new Pair<>(VoiceEventType, VoiceEventError),
+      new Pair<>(VoiceErrorKeyError, serializeError(errorCode, errorMessage))
+    ));
   }
 }
