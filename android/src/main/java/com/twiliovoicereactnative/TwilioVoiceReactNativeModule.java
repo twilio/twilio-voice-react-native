@@ -219,7 +219,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       // notify JS layer
       promise.resolve(serializeCall(callRecord));
     } catch (SecurityException e) {
-      promise.reject(e);
+      promise.reject(e, serializeError(31401, e.getMessage()));
     }
   }
 
@@ -493,7 +493,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       try {
         getVoiceServiceApi().acceptCall(callRecord);
       } catch (SecurityException e) {
-        promise.reject(e);
+        promise.reject(e, serializeError(31401, e.getMessage()));
       }
     }
   }

@@ -288,8 +288,24 @@ export class Voice extends EventEmitter {
    * Connect for devices on Android platforms.
    */
   private async _connect_android(token: string, params: CustomParameters) {
-    const callInfo = await NativeModule.voice_connect_android(token, params);
-    return new Call(callInfo);
+    const connectResult = await NativeModule.voice_connect_android(
+      token,
+      params
+    )
+      .then((callInfo) => {
+        return { type: 'ok', callInfo } as const;
+      })
+      .catch((error) => {
+        const code = error.userInfo.code;
+        const message = error.userInfo.message;
+        return { type: 'err', message, code } as const;
+      });
+
+    if (connectResult.type === 'err') {
+      throw constructTwilioError(connectResult.message, connectResult.code);
+    }
+
+    return new Call(connectResult.callInfo);
   }
 
   /**
