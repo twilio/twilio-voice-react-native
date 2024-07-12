@@ -171,6 +171,9 @@ public class VoiceService extends Service {
       ActivityCompat.checkSelfPermission(VoiceService.this,
         Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 
+      // report to js layer lack of permissions issue
+      sendPermissionsError();
+
       // report an error to logger
       logger.warning("WARNING: Incoming call cannot be handled, microphone permission not granted");
       return;
@@ -207,6 +210,9 @@ public class VoiceService extends Service {
       // stop ringer sound
       VoiceApplicationProxy.getMediaPlayerManager().stop();
       VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
+
+      // report an error to JS layer
+      sendPermissionsError();
 
       // report an error to logger
       logger.warning("WARNING: Call not accepted, microphone permission not granted");
