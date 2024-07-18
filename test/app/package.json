@@ -9,7 +9,8 @@
     "start": "react-native start",
     "test": "jest",
     "detox:build": "detox build",
-    "detox:test": "detox test"
+    "detox:test": "detox test",
+    "detox:relay-server": "node ./e2e/relay/server.js"
   },
   "dependencies": {
     "react": "18.2.0",

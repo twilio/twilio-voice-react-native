@@ -27,8 +27,8 @@ export default function CallMessageComponent({
 }: CallMessageComponentProps) {
   const validMessageContent =
     context === CallMessageContext.Call
-      ? 'This is a message from a Call'
-      : 'This is a message from a Call Invite';
+      ? { ahoy: 'This is a message from a Call' }
+      : { ahoy: 'This is a message from a Call Invite' };
 
   const validMessage = {
     content: validMessageContent,
