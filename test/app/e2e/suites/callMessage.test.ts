@@ -1,7 +1,10 @@
 import { device, element, by, waitFor } from 'detox';
-import type { EventLogItem } from '../src/type';
+import { expect as jestExpect } from 'expect';
+import type { EventLogItem } from '../../src/type';
+import axios from 'axios';
 
 const DEFAULT_TIMEOUT = 10000;
+const RELAY_SERVER_URL = 'http://localhost:4040'
 
 describe('call', () => {
   const connect = async () => {
@@ -28,7 +31,7 @@ describe('call', () => {
     await element(by.text('TOGGLE LOG FORMAT')).tap();
   };
 
-  const getLog = async () => {
+  const getLog = async (): Promise<Array<EventLogItem>> => {
     const eventLogAttr = await element(by.id('event_log')).getAttributes();
     if (!('label' in eventLogAttr) || !eventLogAttr.label) {
       throw new Error('cannot parse event log label');
@@ -85,6 +88,21 @@ describe('call', () => {
       });
 
       it('should make send a valid message', async () => {
+        let log = await getLog();
+        let CallSid;
+        for (const entry of log) {
+          const m = entry.content.match(/call event (CA.+): connected/);
+          if (m) {
+            CallSid = m[1];
+            break;
+          }
+        }
+
+        await axios.post(
+          `${RELAY_SERVER_URL}/create-subscription`,
+          { CallSid },
+        );
+
         await waitFor(element(by.text('SEND VALID MESSAGE')))
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
@@ -100,6 +118,32 @@ describe('call', () => {
         if (!success) {
           throw new Error('call message sent event not received');
         }
+
+        log = await getLog();
+        let voiceEventSid: string | undefined = undefined;
+        for (const entry of log) {
+          const m = entry.content.match(/call message sent (KX.+)/);
+          if (m) {
+            voiceEventSid = m[1];
+            break;
+          }
+        }
+
+        const receivedMessagesResponse = await axios.get(
+          `${RELAY_SERVER_URL}/get-received-messages/${CallSid}`,
+        );
+        const receivedMessages = receivedMessagesResponse.data;
+
+        jestExpect(Array.isArray(receivedMessages)).toBeTruthy();
+        jestExpect(receivedMessages).toHaveLength(1);
+
+        const [receivedMessage] = receivedMessages;
+        jestExpect(typeof receivedMessage).toStrictEqual('object');
+        jestExpect(receivedMessage.ContentType).toStrictEqual('application/json');
+        jestExpect(receivedMessage.Content).toStrictEqual(JSON.stringify({ ahoy: 'This is a message from a Call' }));
+        jestExpect(receivedMessage.SequenceNumber).toStrictEqual('1');
+        jestExpect(receivedMessage.CallSid).toStrictEqual(CallSid);
+        jestExpect(receivedMessage.Sid).toStrictEqual(voiceEventSid);
       });
 
       it('should send a large message', async () => {
