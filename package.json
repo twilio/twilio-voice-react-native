@@ -33,7 +33,7 @@
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check:api": "git diff --exit-code src/error/generated.ts api/",
-    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test",
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
