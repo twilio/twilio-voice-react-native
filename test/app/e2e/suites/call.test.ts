@@ -1,23 +1,8 @@
 import { device, element, by, waitFor } from 'detox';
-import twilio from 'twilio';
+import type twilio from 'twilio';
+import { bootstrapTwilioClient } from '../common/twilioClient';
 
 const DEFAULT_TIMEOUT = 10000;
-
-const bootstrap = () => {
-  const accountSid = process.env.ACCOUNT_SID;
-  const authToken = process.env.AUTH_TOKEN;
-  const mockClientId = process.env.CLIENT_IDENTITY;
-
-  if (
-    [accountSid, authToken, mockClientId].some((v) => typeof v !== 'string')
-  ) {
-    throw new Error('Missing env var.');
-  }
-
-  const twilioClient = twilio(accountSid, authToken);
-
-  return { twilioClient, clientId: mockClientId as string };
-};
 
 describe('call', () => {
   let twilioClient: ReturnType<typeof twilio>;
@@ -31,7 +16,7 @@ describe('call', () => {
   };
 
   beforeAll(async () => {
-    ({ twilioClient, clientId } = bootstrap());
+    ({ twilioClient, clientId } = bootstrapTwilioClient());
 
     await device.launchApp();
   });
