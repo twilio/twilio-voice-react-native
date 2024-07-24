@@ -173,7 +173,6 @@ describe('call', () => {
     await tapButton('SEND INVALID MESSAGE TYPE');
 
     const success = await pollValidateLog((log) => {
-      console.log(log);
       const found = log.some((item) => {
         const match = item.content.match(new RegExp(
           /call message failure (KX.+): /.source +
