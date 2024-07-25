@@ -8,6 +8,7 @@ import { Call } from '../Call';
 import { CallInvite } from '../CallInvite';
 import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
 import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
+import { InvalidArgumentError } from '../error/InvalidArgumentError';
 import { TwilioError } from '../error/TwilioError';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
@@ -252,6 +253,7 @@ describe('CallInvite class', () => {
   });
 
   describe.each([
+    [undefined, []],
     [{}, []],
     [{ eventList: [] }, []],
     [{ eventList: ['foo', 'bar'] }, ['foo', 'bar']],
@@ -339,6 +341,38 @@ describe('CallInvite class', () => {
       }
 
       it(testMessage, shouldPass ? shouldResolve : shouldReject);
+    });
+  });
+
+  describe('.accept', () => {
+    it('rejects when passed an invalid eventList', async () => {
+      const invalidEventListValues = [
+        {},
+        null,
+        false,
+        10,
+        'foobar',
+        [{}],
+        [null],
+        [undefined],
+        [false],
+        [10],
+      ] as any[];
+      expect.assertions(invalidEventListValues.length * 2);
+      for (const eventList of invalidEventListValues) {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        )
+          .accept({ eventList })
+          .catch((error) => {
+            expect(error).toBeInstanceOf(InvalidArgumentError);
+            expect(error.message).toStrictEqual(
+              'Optional argument "eventList" must of type "array" and contain only ' +
+                'elements of type "string".'
+            );
+          });
+      }
     });
   });
 
