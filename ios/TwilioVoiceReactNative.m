@@ -589,7 +589,7 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle];
+    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle callMessageEvents:<#create NSSet using method parameter#>];
     self.callPromiseResolver = resolve;
 }
 
@@ -851,6 +851,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
+         callMessageEvents:<#create NSSet using method parameter#>
                 completion:^(BOOL success) {
         if (success) {
             BOOL found = NO;

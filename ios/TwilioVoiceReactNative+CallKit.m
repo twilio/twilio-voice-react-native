@@ -93,8 +93,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)answerCallInvite:(NSUUID *)uuid
+       callMessageEvents:(NSSet *)callMessageEvents
               completion:(void(^)(BOOL success))completionHandler {
+    self.callMessageEvents = callMessageEvents;
     self.callKitCompletionCallback = completionHandler;
+    
     CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:answerCallAction];
 
@@ -122,9 +125,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
-                  contactHandle:(NSString *)contactHandle {
+                  contactHandle:(NSString *)contactHandle
+              callMessageEvents:(NSSet *)callMessageEvents {
     self.accessToken = accessToken;
     self.twimlParams = params;
+    self.callMessageEvents = callMessageEvents;
     
     NSString *handle = @"Default Contact";
     if ([contactHandle length] > 0) {
@@ -162,6 +167,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
         builder.params = self.twimlParams;
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
+        builder.callMessageEvents = self.callMessageEvents;
     }];
     TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     if (call) {
@@ -179,6 +185,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:callInvite block:^(TVOAcceptOptionsBuilder *builder) {
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
+        builder.callMessageEvents = self.callMessageEvents;
     }];
 
     TVOCall *call = [callInvite acceptWithOptions:acceptOptions delegate:self];
