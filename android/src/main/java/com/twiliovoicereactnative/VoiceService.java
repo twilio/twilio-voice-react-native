@@ -57,10 +57,9 @@ import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 public class VoiceService extends Service {
   private static final SDKLog logger = new SDKLog(VoiceService.class);
@@ -229,10 +228,16 @@ public class VoiceService extends Service {
     VoiceApplicationProxy.getMediaPlayerManager().stop();
 
     // accept call
-    AcceptOptions acceptOptions = new AcceptOptions.Builder()
+    AcceptOptions.Builder acceptOptionsBuilder = new AcceptOptions.Builder()
       .enableDscp(true)
-      .callMessageListener(new CallMessageListenerProxy())
-      .build();
+      .callMessageListener(new CallMessageListenerProxy());
+
+    List<String> eventList = callRecord.getEventList();
+    if (null != eventList) {
+      acceptOptionsBuilder.setCallMessageEvents(eventList);
+    }
+
+    AcceptOptions acceptOptions = acceptOptionsBuilder.build();
 
     callRecord.setCall(
       callRecord.getCallInvite().accept(

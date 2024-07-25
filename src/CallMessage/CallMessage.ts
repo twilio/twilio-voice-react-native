@@ -75,3 +75,39 @@ export function validateCallMessage(message: CallMessage) {
 
   return { content, contentType, messageType };
 }
+
+/**
+ * Invalid event list error message. To be used as the message when constructing
+ * the InvalidArgumentError that should be thrown when an invalid event list is
+ * passed to the SDK.
+ */
+export const invalidEventListErrorMessage =
+  'Optional argument "eventList" must of type "array" and contain only ' +
+  'elements of type "string".';
+
+/**
+ * Type-guard function that uses type predicates to ensure that a passed value
+ * is indeed an array of strings.
+ *
+ * @param eventList the parameter to type-guard on
+ *
+ * @returns a type-predicate boolean representing whether or not the value is an
+ * array of strings.
+ */
+export function validateEventList(eventList: any): eventList is string[] {
+  if (typeof eventList !== 'object') {
+    return false;
+  }
+
+  if (!Array.isArray(eventList)) {
+    return false;
+  }
+
+  for (const el of eventList) {
+    if (typeof el !== 'string') {
+      return false;
+    }
+  }
+
+  return true;
+}

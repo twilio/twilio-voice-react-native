@@ -1,6 +1,5 @@
 import type { NativeModulesStatic } from 'react-native';
 import type { Call } from '../Call';
-import type { CallInvite } from '../CallInvite';
 import type { NativeAudioDevicesInfo } from './AudioDevice';
 import type { NativeCallInfo } from './Call';
 import type { NativeCallInviteInfo } from './CallInvite';
@@ -44,7 +43,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    */
   callInvite_accept(
     callInviteUuid: Uuid,
-    acceptOptions: CallInvite.AcceptOptions
+    eventList: string[]
   ): Promise<NativeCallInfo>;
   callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): Promise<void>;
@@ -58,12 +57,14 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    */
   voice_connect_android(
     token: string,
-    twimlParams: Record<string, any>
+    twimlParams: Record<string, any>,
+    eventList: string[]
   ): Promise<NativeCallInfo>;
   voice_connect_ios(
     token: string,
     twimlParams: Record<string, any>,
-    contactHandle: string
+    contactHandle: string,
+    eventList: string[]
   ): Promise<NativeCallInfo>;
   voice_initializePushRegistry(): Promise<void>;
   voice_setCallKitConfiguration(
