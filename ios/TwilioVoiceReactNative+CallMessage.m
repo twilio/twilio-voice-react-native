@@ -53,11 +53,16 @@
 }
 
 - (void)messageFailedForCallSid:(NSString *)callSid voiceEventSid:(NSString *)voiceEventSid error:(NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
-                       body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageFailure,
-                              kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid,
-                              kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                                                                           kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+    // NOTE(mhuynh): We need a delay here to prevent race conditions where some errors are synchronously handled
+    // by the C++ SDK. For those synchronously handled errors, the JS layer is not given enough time to construct
+    // and bind event listeners for this event.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self sendEventWithName:kTwilioVoiceReactNativeScopeCallMessage
+                           body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventMessageFailure,
+                                  kTwilioVoiceReactNativeVoiceEventSid: voiceEventSid,
+                                  kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+                                                                               kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
+    });
 }
 
 #pragma mark - Utility
