@@ -255,8 +255,8 @@ describe('CallInvite class', () => {
   describe.each([
     [undefined, []],
     [{}, []],
-    [{ eventList: [] }, []],
-    [{ eventList: ['foo', 'bar'] }, ['foo', 'bar']],
+    [{ callMessageEvents: [] }, []],
+    [{ callMessageEvents: ['foo', 'bar'] }, ['foo', 'bar']],
   ])('.accept(%o)', (acceptOptions, expectation) => {
     it('invokes the native module', async () => {
       await new CallInvite(
@@ -345,8 +345,8 @@ describe('CallInvite class', () => {
   });
 
   describe('.accept', () => {
-    it('rejects when passed an invalid eventList', async () => {
-      const invalidEventListValues = [
+    it('rejects when passed an invalid callMessageEvents', async () => {
+      const invalidCallMessageEventsValues = [
         {},
         null,
         false,
@@ -358,18 +358,18 @@ describe('CallInvite class', () => {
         [false],
         [10],
       ] as any[];
-      expect.assertions(invalidEventListValues.length * 2);
-      for (const eventList of invalidEventListValues) {
+      expect.assertions(invalidCallMessageEventsValues.length * 2);
+      for (const callMessageEvents of invalidCallMessageEventsValues) {
         await new CallInvite(
           createNativeCallInviteInfo(),
           CallInvite.State.Pending
         )
-          .accept({ eventList })
+          .accept({ callMessageEvents })
           .catch((error) => {
             expect(error).toBeInstanceOf(InvalidArgumentError);
             expect(error.message).toStrictEqual(
-              'Optional argument "eventList" must of type "array" and contain only ' +
-                'elements of type "string".'
+              'Optional argument "callMessageEvents" must of type "array" ' +
+                'and contain only elements of type "string".'
             );
           });
       }

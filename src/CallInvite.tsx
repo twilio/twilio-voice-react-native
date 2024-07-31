@@ -8,8 +8,8 @@
 import { EventEmitter } from 'eventemitter3';
 import { Call } from './Call';
 import {
-  invalidEventListErrorMessage,
-  validateEventList,
+  invalidCallMessageEventsErrorMessage,
+  validateCallMessageEvents,
 } from './CallMessage/CallMessage';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
@@ -447,7 +447,7 @@ export class CallInvite extends EventEmitter {
    *    {@link (CallInvite:class)} has been created.
    */
   async accept({
-    eventList = [],
+    callMessageEvents = [],
   }: CallInvite.AcceptOptions = {}): Promise<Call> {
     if (this._state !== CallInvite.State.Pending) {
       throw new InvalidStateError(
@@ -456,13 +456,13 @@ export class CallInvite extends EventEmitter {
       );
     }
 
-    if (!validateEventList(eventList)) {
-      throw new InvalidArgumentError(invalidEventListErrorMessage);
+    if (!validateCallMessageEvents(callMessageEvents)) {
+      throw new InvalidArgumentError(invalidCallMessageEventsErrorMessage);
     }
 
     const acceptResult = await NativeModule.callInvite_accept(
       this._uuid,
-      eventList
+      callMessageEvents
     )
       .then((callInfo) => {
         return { type: 'ok', callInfo } as const;
@@ -654,7 +654,7 @@ export namespace CallInvite {
     /**
      * Opt-in to specific call message events.
      */
-    eventList?: string[];
+    callMessageEvents?: string[];
   }
 
   /**

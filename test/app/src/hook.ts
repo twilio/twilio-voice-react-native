@@ -93,18 +93,17 @@ export function useCall(logEvent: (event: string) => void) {
                 2
               );
           }
-
-          call.addListener(
-            Call.Event.MessageReceived,
-            (_message: IncomingCallMessage) => {
-              logEvent(`Call Message Received: ${_message.getContent()}`);
-            }
-          );
-
           logEvent(message);
           setCallInfo(_callInfo);
         });
       });
+
+      call.addListener(
+        Call.Event.MessageReceived,
+        (_message: IncomingCallMessage) => {
+          logEvent(`Call Message Received: ${_message.getContent()}`);
+        }
+      );
 
       setCallMethod({
         disconnect: () => call.disconnect(),
@@ -379,6 +378,7 @@ export function useVoice(token: string) {
             recipientType: 'client',
             to,
           },
+          callMessageEvents: ['user-defined-messages', 'call-progress-events'],
         });
         callHandler(call);
       } catch (err) {

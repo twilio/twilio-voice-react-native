@@ -300,7 +300,7 @@ export class CallInvite extends EventEmitter {
     //
     // @internal
     constructor({ uuid, callSid, customParameters, from, to }: NativeCallInviteInfo, state: CallInvite.State);
-    accept({ eventList, }?: CallInvite.AcceptOptions): Promise<Call>;
+    accept({ callMessageEvents, }?: CallInvite.AcceptOptions): Promise<Call>;
     getCallSid(): string;
     getCustomParameters(): CustomParameters;
     getFrom(): string;
@@ -316,7 +316,7 @@ export class CallInvite extends EventEmitter {
 // @public
 export namespace CallInvite {
     export interface AcceptOptions {
-        eventList?: string[];
+        callMessageEvents?: string[];
     }
     export enum Event {
         Accepted = "accepted",
@@ -1001,7 +1001,7 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    connect(token: string, { contactHandle, params, eventList, }?: Voice.ConnectOptions): Promise<Call>;
+    connect(token: string, { contactHandle, params, callMessageEvents, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
         selectedDevice?: AudioDevice;
@@ -1022,7 +1022,7 @@ export namespace Voice {
     export type ConnectOptions = {
         params?: Record<string, string>;
         contactHandle?: string;
-        eventList?: string[];
+        callMessageEvents?: string[];
     };
     export enum Event {
         'AudioDevicesUpdated' = "audioDevicesUpdated",

@@ -10,8 +10,8 @@ import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import {
-  invalidEventListErrorMessage,
-  validateEventList,
+  invalidCallMessageEventsErrorMessage,
+  validateCallMessageEvents,
 } from './CallMessage/CallMessage';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
@@ -294,12 +294,12 @@ export class Voice extends EventEmitter {
   private async _connect_android(
     token: string,
     params: CustomParameters,
-    eventList: string[]
+    callMessageEvents: string[]
   ) {
     const connectResult = await NativeModule.voice_connect_android(
       token,
       params,
-      eventList
+      callMessageEvents
     )
       .then((callInfo) => {
         return { type: 'ok', callInfo } as const;
@@ -324,7 +324,7 @@ export class Voice extends EventEmitter {
     token: string,
     params: CustomParameters,
     contactHandle: string,
-    eventList: string[]
+    callMessageEvents: string[]
   ) {
     const parsedContactHandle =
       contactHandle === '' ? 'Default Contact' : contactHandle;
@@ -332,7 +332,7 @@ export class Voice extends EventEmitter {
       token,
       params,
       parsedContactHandle,
-      eventList
+      callMessageEvents
     );
     return new Call(callInfo);
   }
@@ -487,7 +487,7 @@ export class Voice extends EventEmitter {
     {
       contactHandle = 'Default Contact',
       params = {},
-      eventList = [],
+      callMessageEvents = [],
     }: Voice.ConnectOptions = {}
   ): Promise<Call> {
     if (typeof token !== 'string') {
@@ -517,15 +517,20 @@ export class Voice extends EventEmitter {
       }
     }
 
-    if (!validateEventList(eventList)) {
-      throw new InvalidArgumentError(invalidEventListErrorMessage);
+    if (!validateCallMessageEvents(callMessageEvents)) {
+      throw new InvalidArgumentError(invalidCallMessageEventsErrorMessage);
     }
 
     switch (Platform.OS) {
       case 'ios':
-        return this._connect_ios(token, params, contactHandle, eventList);
+        return this._connect_ios(
+          token,
+          params,
+          contactHandle,
+          callMessageEvents
+        );
       case 'android':
-        return this._connect_android(token, params, eventList);
+        return this._connect_android(token, params, callMessageEvents);
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". Expected "android" or "ios".`
@@ -756,7 +761,7 @@ export namespace Voice {
      * Events to subscribe to. Please see the call message opt-in feature here:
      * TODO(mhuynh): link to docs
      */
-    eventList?: string[];
+    callMessageEvents?: string[];
   };
 
   /**

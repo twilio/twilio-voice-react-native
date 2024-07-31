@@ -287,7 +287,7 @@ describe('Voice class', () => {
       let options: {
         params?: Record<string, string>;
         contactHandle?: string;
-        eventList?: string[];
+        callMessageEvents?: string[];
       };
 
       beforeEach(() => {
@@ -298,7 +298,7 @@ describe('Voice class', () => {
             'mock-param-key-bar': 'mock-param-value-bar',
           },
           contactHandle: 'mock-contact-handle',
-          eventList: ['mock-event-list-value-foo'],
+          callMessageEvents: ['mock-event-list-value-foo'],
         };
       });
 
@@ -419,9 +419,9 @@ describe('Voice class', () => {
       });
 
       performPlatformAgnosticTest(
-        'throws when eventList is not an array containing only strings',
+        'throws when callMessageEvents is not an array containing only strings',
         async () => {
-          const invalidEventListValues = [
+          const invalidCallMessageEventsValues = [
             {},
             null,
             'foobar',
@@ -431,15 +431,15 @@ describe('Voice class', () => {
             [10],
             [undefined],
           ];
-          expect.assertions(invalidEventListValues.length * 2);
-          for (const eventList of invalidEventListValues) {
+          expect.assertions(invalidCallMessageEventsValues.length * 2);
+          for (const callMessageEvents of invalidCallMessageEventsValues) {
             await new Voice()
-              .connect(token, { eventList: eventList as any })
+              .connect(token, { callMessageEvents: callMessageEvents as any })
               .catch((error) => {
                 expect(error).toBeInstanceOf(InvalidArgumentError);
                 expect(error.message).toStrictEqual(
-                  'Optional argument "eventList" must of type "array" and ' +
-                    'contain only elements of type "string".'
+                  'Optional argument "callMessageEvents" must of type ' +
+                    '"array" and contain only elements of type "string".'
                 );
               });
           }
@@ -455,7 +455,7 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, options.params, options.eventList]]);
+          ).toEqual([[token, options.params, options.callMessageEvents]]);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([]);
@@ -486,7 +486,7 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, {}, options.eventList]]);
+          ).toEqual([[token, {}, options.callMessageEvents]]);
         });
 
         it('defaults params to "{}" when params is explicitly undefined', async () => {
@@ -494,19 +494,19 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, {}, options.eventList]]);
+          ).toEqual([[token, {}, options.callMessageEvents]]);
         });
 
-        it('defaults eventList to "[]" when not passed', async () => {
-          delete options.eventList;
+        it('defaults callMessageEvents to "[]" when not passed', async () => {
+          delete options.callMessageEvents;
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
           ).toEqual([[token, options.params, []]]);
         });
 
-        it('defaults eventList to "[]" when eventList is explicitly undefined', async () => {
-          options.eventList = undefined;
+        it('defaults callMessageEvents to "[]" when callMessageEvents is explicitly undefined', async () => {
+          options.callMessageEvents = undefined;
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
@@ -524,7 +524,12 @@ describe('Voice class', () => {
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([
-            [token, options.params, options.contactHandle, options.eventList],
+            [
+              token,
+              options.params,
+              options.contactHandle,
+              options.callMessageEvents,
+            ],
           ]);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
@@ -537,7 +542,12 @@ describe('Voice class', () => {
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([
-            [token, options.params, 'Default Contact', options.eventList],
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
           ]);
         });
 
@@ -547,7 +557,12 @@ describe('Voice class', () => {
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([
-            [token, options.params, 'Default Contact', options.eventList],
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
           ]);
         });
 
@@ -557,7 +572,12 @@ describe('Voice class', () => {
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([
-            [token, options.params, 'Default Contact', options.eventList],
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
           ]);
         });
 
@@ -577,7 +597,9 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-          ).toEqual([[token, {}, options.contactHandle, options.eventList]]);
+          ).toEqual([
+            [token, {}, options.contactHandle, options.callMessageEvents],
+          ]);
         });
 
         it('defaults params to "{}" when params is explicitly undefined', async () => {
@@ -585,19 +607,21 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-          ).toEqual([[token, {}, options.contactHandle, options.eventList]]);
+          ).toEqual([
+            [token, {}, options.contactHandle, options.callMessageEvents],
+          ]);
         });
 
-        it('defaults eventList to "[]" when not passed', async () => {
-          delete options.eventList;
+        it('defaults callMessageEvents to "[]" when not passed', async () => {
+          delete options.callMessageEvents;
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([[token, options.params, options.contactHandle, []]]);
         });
 
-        it('defaults eventList to "[]" when eventList is explicitly undefined', async () => {
-          options.eventList = undefined;
+        it('defaults callMessageEvents to "[]" when callMessageEvents is explicitly undefined', async () => {
+          options.callMessageEvents = undefined;
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls

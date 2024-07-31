@@ -43,7 +43,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    */
   callInvite_accept(
     callInviteUuid: Uuid,
-    eventList: string[]
+    callMessageEvents: string[]
   ): Promise<NativeCallInfo>;
   callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): Promise<void>;
@@ -58,13 +58,13 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_connect_android(
     token: string,
     twimlParams: Record<string, any>,
-    eventList: string[]
+    callMessageEvents: string[]
   ): Promise<NativeCallInfo>;
   voice_connect_ios(
     token: string,
     twimlParams: Record<string, any>,
     contactHandle: string,
-    eventList: string[]
+    callMessageEvents: string[]
   ): Promise<NativeCallInfo>;
   voice_initializePushRegistry(): Promise<void>;
   voice_setCallKitConfiguration(
