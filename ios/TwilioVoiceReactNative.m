@@ -586,10 +586,12 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
 RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle
+                  callMessageEvents:(NSArray *)callMessageEvents
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle];
+    NSSet *callMessageEventSet = [NSSet setWithArray:callMessageEvents];
+    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle callMessageEvents:callMessageEventSet];
     self.callPromiseResolver = resolve;
 }
 
@@ -846,11 +848,13 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
 #pragma mark - Bingings (Call Invite)
 
 RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
-                  acceptOptions:(NSDictionary *)acceptOptions
+                  callMessageEvents:(NSArray *)callMessageEvents
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    NSSet *callMessageEventSet = [NSSet setWithArray:callMessageEvents];
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
+         callMessageEvents:callMessageEventSet
                 completion:^(BOOL success) {
         if (success) {
             BOOL found = NO;
