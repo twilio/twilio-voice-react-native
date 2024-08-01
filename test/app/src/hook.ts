@@ -10,6 +10,7 @@ import {
   Voice,
   TwilioErrors,
 } from '@twilio/voice-react-native-sdk';
+import messaging from '@react-native-firebase/messaging';
 import type {
   BoundCallInfo,
   BoundCallInvite,
@@ -509,6 +510,15 @@ export function useVoice(token: string) {
     logVoiceErrorHandler,
     voice,
   ]);
+
+  React.useEffect(() => {
+    console.log('binding to the rn firebase messaging thingy');
+
+    messaging().onMessage((remoteMessage) => {
+      console.log('got a message');
+      console.log(JSON.stringify(remoteMessage, null, 2));
+    });
+  }, []);
 
   return {
     registered,
