@@ -345,7 +345,7 @@ describe('CallInvite class', () => {
   });
 
   describe('.accept', () => {
-    it('rejects when passed an invalid callMessageEvents', async () => {
+    it('rejects when passed invalid callMessageEvents', async () => {
       const invalidCallMessageEventsValues = [
         {},
         null,
@@ -368,7 +368,7 @@ describe('CallInvite class', () => {
           .catch((error) => {
             expect(error).toBeInstanceOf(InvalidArgumentError);
             expect(error.message).toStrictEqual(
-              'Optional argument "callMessageEvents" must of type "array" ' +
+              'Optional argument "callMessageEvents" must be of type "array" ' +
                 'and contain only elements of type "string".'
             );
           });

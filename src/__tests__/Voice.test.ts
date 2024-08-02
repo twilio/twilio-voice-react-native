@@ -438,7 +438,7 @@ describe('Voice class', () => {
               .catch((error) => {
                 expect(error).toBeInstanceOf(InvalidArgumentError);
                 expect(error.message).toStrictEqual(
-                  'Optional argument "callMessageEvents" must of type ' +
+                  'Optional argument "callMessageEvents" must be of type ' +
                     '"array" and contain only elements of type "string".'
                 );
               });

@@ -82,7 +82,7 @@ export function validateCallMessage(message: CallMessage) {
  * passed to the SDK.
  */
 export const invalidCallMessageEventsErrorMessage =
-  'Optional argument "callMessageEvents" must of type "array" and contain ' +
+  'Optional argument "callMessageEvents" must be of type "array" and contain ' +
   'only elements of type "string".';
 
 /**
