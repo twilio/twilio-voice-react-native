@@ -6,7 +6,7 @@ import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
-import { UnsupportedPlatformError } from '../error';
+import { InvalidArgumentError, UnsupportedPlatformError } from '../error';
 import type { NativeVoiceEventType } from '../type/Voice';
 import { Voice } from '../Voice';
 
@@ -284,7 +284,11 @@ describe('Voice class', () => {
   describe('public methods', () => {
     describe('.connect', () => {
       let token: string;
-      let options: { params?: Record<string, string>; contactHandle?: string };
+      let options: {
+        params?: Record<string, string>;
+        contactHandle?: string;
+        callMessageEvents?: string[];
+      };
 
       beforeEach(() => {
         token = 'mock-voice-token-foo';
@@ -294,19 +298,29 @@ describe('Voice class', () => {
             'mock-param-key-bar': 'mock-param-value-bar',
           },
           contactHandle: 'mock-contact-handle',
+          callMessageEvents: ['mock-event-list-value-foo'],
         };
       });
 
       const performPlatformAgnosticTest = (
         testTitle: string,
-        testFn: () => Promise<void>
+        testFn: () => Promise<void>,
+        { only = false, skip = false } = {}
       ) => {
         (['android', 'ios'] as const).forEach((os) => {
           describe(`${os} platform`, () => {
             beforeEach(() => {
               jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os);
             });
-            it(testTitle, testFn);
+            if (only) {
+              // eslint-disable-next-line jest/no-focused-tests
+              it.only(testTitle, testFn);
+            } else if (skip) {
+              // eslint-disable-next-line jest/no-disabled-tests
+              it.skip(testTitle, testFn);
+            } else {
+              it(testTitle, testFn);
+            }
           });
         });
       };
@@ -404,6 +418,34 @@ describe('Voice class', () => {
         ).resolves.toBeInstanceOf(MockCall);
       });
 
+      performPlatformAgnosticTest(
+        'throws when callMessageEvents is not an array containing only strings',
+        async () => {
+          const invalidCallMessageEventsValues = [
+            {},
+            null,
+            'foobar',
+            10,
+            [{}],
+            [null],
+            [10],
+            [undefined],
+          ];
+          expect.assertions(invalidCallMessageEventsValues.length * 2);
+          for (const callMessageEvents of invalidCallMessageEventsValues) {
+            await new Voice()
+              .connect(token, { callMessageEvents: callMessageEvents as any })
+              .catch((error) => {
+                expect(error).toBeInstanceOf(InvalidArgumentError);
+                expect(error.message).toStrictEqual(
+                  'Optional argument "callMessageEvents" must be of type ' +
+                    '"array" and contain only elements of type "string".'
+                );
+              });
+          }
+        }
+      );
+
       describe('android platform', () => {
         beforeEach(() => {
           jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android');
@@ -413,7 +455,7 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, options.params]]);
+          ).toEqual([[token, options.params, options.callMessageEvents]]);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
           ).toEqual([]);
@@ -444,7 +486,7 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, {}]]);
+          ).toEqual([[token, {}, options.callMessageEvents]]);
         });
 
         it('defaults params to "{}" when params is explicitly undefined', async () => {
@@ -452,7 +494,23 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
-          ).toEqual([[token, {}]]);
+          ).toEqual([[token, {}, options.callMessageEvents]]);
+        });
+
+        it('defaults callMessageEvents to "[]" when not passed', async () => {
+          delete options.callMessageEvents;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_android).mock.calls
+          ).toEqual([[token, options.params, []]]);
+        });
+
+        it('defaults callMessageEvents to "[]" when callMessageEvents is explicitly undefined', async () => {
+          options.callMessageEvents = undefined;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_android).mock.calls
+          ).toEqual([[token, options.params, []]]);
         });
       });
 
@@ -465,46 +523,63 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-          ).toEqual([[token, options.params, options.contactHandle]]);
+          ).toEqual([
+            [
+              token,
+              options.params,
+              options.contactHandle,
+              options.callMessageEvents,
+            ],
+          ]);
           expect(
             jest.mocked(MockNativeModule.voice_connect_android).mock.calls
           ).toEqual([]);
         });
 
-        it(
-          'defaults to "Default Contact" if contactHandle is an empty ' +
-            'string',
-          async () => {
-            options.contactHandle = '';
-            await new Voice().connect(token, options);
-            expect(
-              jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-            ).toEqual([[token, options.params, 'Default Contact']]);
-          }
-        );
+        it('defaults to "Default Contact" if contactHandle is an empty string', async () => {
+          options.contactHandle = '';
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+          ).toEqual([
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
+          ]);
+        });
 
-        it(
-          'defaults to "Default Contact" if contactHandle is ' + 'not defined',
-          async () => {
-            delete options.contactHandle;
-            await new Voice().connect(token, options);
-            expect(
-              jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-            ).toEqual([[token, options.params, 'Default Contact']]);
-          }
-        );
+        it('defaults to "Default Contact" if contactHandle is not defined', async () => {
+          delete options.contactHandle;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+          ).toEqual([
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
+          ]);
+        });
 
-        it(
-          'defaults to "Default Contact" if contactHandle is ' +
-            'explicitly undefined',
-          async () => {
-            options.contactHandle = undefined;
-            await new Voice().connect(token, options);
-            expect(
-              jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-            ).toEqual([[token, options.params, 'Default Contact']]);
-          }
-        );
+        it('defaults to "Default Contact" if contactHandle is explicitly undefined', async () => {
+          options.contactHandle = undefined;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+          ).toEqual([
+            [
+              token,
+              options.params,
+              'Default Contact',
+              options.callMessageEvents,
+            ],
+          ]);
+        });
 
         it('rejects when the native layer rejects', async () => {
           const someMockErrorMessage = 'some mock error message';
@@ -522,7 +597,9 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-          ).toEqual([[token, {}, options.contactHandle]]);
+          ).toEqual([
+            [token, {}, options.contactHandle, options.callMessageEvents],
+          ]);
         });
 
         it('defaults params to "{}" when params is explicitly undefined', async () => {
@@ -530,7 +607,25 @@ describe('Voice class', () => {
           await new Voice().connect(token, options);
           expect(
             jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
-          ).toEqual([[token, {}, options.contactHandle]]);
+          ).toEqual([
+            [token, {}, options.contactHandle, options.callMessageEvents],
+          ]);
+        });
+
+        it('defaults callMessageEvents to "[]" when not passed', async () => {
+          delete options.callMessageEvents;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+          ).toEqual([[token, options.params, options.contactHandle, []]]);
+        });
+
+        it('defaults callMessageEvents to "[]" when callMessageEvents is explicitly undefined', async () => {
+          options.callMessageEvents = undefined;
+          await new Voice().connect(token, options);
+          expect(
+            jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+          ).toEqual([[token, options.params, options.contactHandle, []]]);
         });
       });
 

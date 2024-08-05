@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 
@@ -33,6 +34,7 @@ class CallRecordDatabase  {
     private Promise callAcceptedPromise = null;
     private Promise callRejectedPromise = null;
     private CallException callException = null;
+    private List<String> eventList = null;
     public CallRecord(final UUID uuid) {
       this.uuid = uuid;
     }
@@ -86,6 +88,7 @@ class CallRecordDatabase  {
       return this.callException;
     }
     public String getCallRecipient() { return this.callRecipient; }
+    public List<String> getEventList() { return this.eventList; }
     public void setNotificationId(int notificationId) {
       this.notificationId = notificationId;
     }
@@ -113,6 +116,9 @@ class CallRecordDatabase  {
     }
     public void setCallException(CallException callException) {
       this.callException = callException;
+    }
+    public void setEventList(List<String> eventList) {
+      this.eventList = eventList;
     }
     @Override
     public boolean equals(Object obj) {

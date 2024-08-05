@@ -7,6 +7,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
@@ -26,8 +27,11 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Vector;
 import java.util.UUID;
+import java.util.List;
+
+import java.security.InvalidParameterException;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDKVer;
@@ -172,7 +176,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
+  public void voice_connect_android(String accessToken, ReadableMap twimlParams, ReadableArray eventList, Promise promise) {
     logger.debug("Calling voice_connect_android");
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
@@ -203,11 +207,17 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       (parsedTwimlParams.containsKey("to") && !(parsedTwimlParams.get("to").isBlank()))
         ? parsedTwimlParams.get("to")
         : getReactApplicationContext().getString(R.string.unknown_call_recipient);
-    ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
+
+    ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
       .enableDscp(true)
       .params(parsedTwimlParams)
-      .callMessageListener(new CallMessageListenerProxy())
-      .build();
+      .callMessageListener(new CallMessageListenerProxy());
+
+    List<String> validatedEventList = validateEventList(eventList);
+    connectOptionsBuilder.setCallMessageEvents(validatedEventList);
+
+    ConnectOptions connectOptions = connectOptionsBuilder.build();
+
     try {
       CallRecord callRecord = new CallRecord(
         uuid,
@@ -480,7 +490,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   // CallInvite
 
   @ReactMethod
-  public void callInvite_accept(String callInviteUuid, ReadableMap options, Promise promise) {
+  public void callInvite_accept(String callInviteUuid, ReadableArray eventList, Promise promise) {
     logger.debug("callInvite_accept uuid" + callInviteUuid);
     final CallRecord callRecord =
       validateCallInviteRecord(reactContext, UUID.fromString(callInviteUuid), promise);
@@ -488,6 +498,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     if (null != callRecord) {
       // Store promise for callback
       callRecord.setCallAcceptedPromise(promise);
+
+      // Store eventList for accepting the call
+      callRecord.setEventList(validateEventList(eventList));
 
       // Send Event to service
       try {
@@ -573,5 +586,18 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
   private static void sendJSEvent(@NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(ScopeVoice, event);
+  }
+  private List<String> validateEventList(@NonNull ReadableArray eventList) {
+    List<String> parsedEvents = new Vector<String>();
+
+    for (int i = 0; i < eventList.size(); i++) {
+      if (eventList.getType(i) != ReadableType.String) {
+        throw new InvalidParameterException("Events in eventList must of type string");
+      }
+      String event = eventList.getString(i);
+      parsedEvents.add(event);
+    }
+
+    return parsedEvents;
   }
 }

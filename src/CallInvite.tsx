@@ -7,7 +7,12 @@
 
 import { EventEmitter } from 'eventemitter3';
 import { Call } from './Call';
+import {
+  invalidCallMessageEventsErrorMessage,
+  validateCallMessageEvents,
+} from './CallMessage/CallMessage';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 import { InvalidStateError } from './error/InvalidStateError';
 import { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
@@ -441,7 +446,9 @@ export class CallInvite extends EventEmitter {
    *  - Resolves when a {@link (Call:class) | Call object} associated with this
    *    {@link (CallInvite:class)} has been created.
    */
-  async accept(options: CallInvite.AcceptOptions = {}): Promise<Call> {
+  async accept({
+    callMessageEvents = [],
+  }: CallInvite.AcceptOptions = {}): Promise<Call> {
     if (this._state !== CallInvite.State.Pending) {
       throw new InvalidStateError(
         `Call in state "${this._state}", ` +
@@ -449,9 +456,13 @@ export class CallInvite extends EventEmitter {
       );
     }
 
+    if (!validateCallMessageEvents(callMessageEvents)) {
+      throw new InvalidArgumentError(invalidCallMessageEventsErrorMessage);
+    }
+
     const acceptResult = await NativeModule.callInvite_accept(
       this._uuid,
-      options
+      callMessageEvents
     )
       .then((callInfo) => {
         return { type: 'ok', callInfo } as const;
@@ -639,7 +650,12 @@ export namespace CallInvite {
   /**
    * Options to pass to the native layer when accepting the call.
    */
-  export interface AcceptOptions {}
+  export interface AcceptOptions {
+    /**
+     * Opt-in to specific call message events.
+     */
+    callMessageEvents?: string[];
+  }
 
   /**
    * An enumeration of {@link (CallInvite:class)} states.

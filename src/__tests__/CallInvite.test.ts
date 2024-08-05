@@ -8,6 +8,7 @@ import { Call } from '../Call';
 import { CallInvite } from '../CallInvite';
 import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
 import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
+import { InvalidArgumentError } from '../error/InvalidArgumentError';
 import { TwilioError } from '../error/TwilioError';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
@@ -252,9 +253,10 @@ describe('CallInvite class', () => {
   });
 
   describe.each([
-    [undefined, {}],
-    [{}, {}],
-    [{ foo: 'bar' }, { foo: 'bar' }],
+    [undefined, []],
+    [{}, []],
+    [{ callMessageEvents: [] }, []],
+    [{ callMessageEvents: ['foo', 'bar'] }, ['foo', 'bar']],
   ])('.accept(%o)', (acceptOptions, expectation) => {
     it('invokes the native module', async () => {
       await new CallInvite(
@@ -339,6 +341,38 @@ describe('CallInvite class', () => {
       }
 
       it(testMessage, shouldPass ? shouldResolve : shouldReject);
+    });
+  });
+
+  describe('.accept', () => {
+    it('rejects when passed invalid callMessageEvents', async () => {
+      const invalidCallMessageEventsValues = [
+        {},
+        null,
+        false,
+        10,
+        'foobar',
+        [{}],
+        [null],
+        [undefined],
+        [false],
+        [10],
+      ] as any[];
+      expect.assertions(invalidCallMessageEventsValues.length * 2);
+      for (const callMessageEvents of invalidCallMessageEventsValues) {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        )
+          .accept({ callMessageEvents })
+          .catch((error) => {
+            expect(error).toBeInstanceOf(InvalidArgumentError);
+            expect(error.message).toStrictEqual(
+              'Optional argument "callMessageEvents" must be of type "array" ' +
+                'and contain only elements of type "string".'
+            );
+          });
+      }
     });
   });
 
