@@ -1,3 +1,7 @@
+<!-- PLEASE NOTE -->
+<!-- If submitting an Issue to this repository, you agree to use and fill out this Issue Template. -->
+<!-- Issues that are submitted without using this template or filling out the template will be closed without warning. -->
+
 # Issue
 
 ## Pre-submission Checklist
