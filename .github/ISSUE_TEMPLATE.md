@@ -1,6 +1,6 @@
 <!-- PLEASE NOTE -->
 <!-- If submitting an Issue to this repository, you agree to use and fill out this Issue Template. -->
-<!-- Issues that are submitted without using this template or filling out the template will receive a warning, and if no remediation is performed, the Issue will be closed. -->
+<!-- Issues that are submitted without using this template or filling out the template will be closed. -->
 
 # Issue
 
