@@ -35,6 +35,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 @property (nonatomic, copy) NSDictionary *twimlParams;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL);
 @property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
+@property (nonatomic, copy) NSSet *callMessageEvents;
 
 // Indicates if the disconnect is triggered from app UI, instead of the system Call UI
 @property (nonatomic, assign) BOOL userInitiatedDisconnect;
@@ -58,11 +59,13 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (void)initializeCallKitWithConfiguration:(NSDictionary *)configuration;
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
-                  contactHandle:(NSString *)contactHandle;
+                  contactHandle:(NSString *)contactHandle
+              callMessageEvents:(NSSet *)callMessageEvents;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */
 - (void)answerCallInvite:(NSUUID *)uuid
+       callMessageEvents:(NSSet *)callMessageEvents
               completion:(void(^)(BOOL success))completionHandler;
 - (void)updateCall:(NSString *)uuid callerHandle:(NSString *)handle;
 
