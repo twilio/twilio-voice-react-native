@@ -33,7 +33,7 @@
 
 ## Changes
 
-### Call Message Events
+### Call Message Events (Beta)
 
 - **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
   Instead, those types have been replaced by `string`.
