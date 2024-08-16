@@ -35,9 +35,6 @@
 
 ### Call Message Events
 
-The Call Message Events feature, which was originally released under Beta in `1.0.0` of the SDK, is now promoted to Generally Available (GA).
-This release includes the following changes:
-
 - **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
   Instead, those types have been replaced by `string`.
 
