@@ -71,6 +71,7 @@ voice.on(Voice.Event.CallInvite, (callInvite) => {
   | --- | --- |
   | 31210 | Raised when a Call Message is sent with an invalid message type. |
   | 31211 | Raised when a Call Message is sent when the call is not yet ready to send messages. This can typically happen when the Call/CallInvite is not yet in a ringing state. |
+  | 31212 | Raised when attempting to send a Call Message with a payload size exceeding the limit. Currently, the maximum acceptable payload size is less than 10kb. |
 
 ### Platform Specific Changes
 
