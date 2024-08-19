@@ -31,6 +31,10 @@
 
 - Fixed Call Messages not being built with the passed `contentType` or `messageType`.
 
+#### Android
+
+- Fixed some RTCStats members not available on Android. Specifically, `mos`, `bytesSent`, and `bytesReceived`.
+
 ## Changes
 
 ### Call Message Events (Beta)
