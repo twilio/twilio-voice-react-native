@@ -56,13 +56,6 @@ class JSEventEmitter {
         params.pushDouble((Double) entry);
       } else if (entry instanceof Long) {
         params.pushDouble((Long) entry);
-      } else {
-        logger.warning(
-          String.format(
-            "constructJSArray: found unexpected type {%s}",
-            entry.getClass()
-          )
-        );
       }
     }
     return params;
@@ -87,15 +80,6 @@ class JSEventEmitter {
         params.putDouble(entry.first, (Double) entry.second);
       } else if (entry.second instanceof Long) {
         params.putDouble(entry.first, (Long) entry.second);
-      } else {
-        logger.warning(
-          String.format(
-            "constructJSMap: found unexpected type {%s}",
-            entry.second != null
-              ? entry.second.getClass()
-              : "null"
-          )
-        );
       }
     }
     return params;
