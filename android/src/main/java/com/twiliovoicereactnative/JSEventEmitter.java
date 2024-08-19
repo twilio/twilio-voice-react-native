@@ -56,6 +56,10 @@ class JSEventEmitter {
         params.pushDouble((Double) entry);
       } else if (entry instanceof Long) {
         params.pushDouble((Long) entry);
+      } else if (entry == null) {
+        logger.debug("constructJSArray: filtering null value");
+      } else {
+        logger.debug(String.format("constructJSArray: unexpected type %s", entry.getClass()));
       }
     }
     return params;
@@ -80,6 +84,13 @@ class JSEventEmitter {
         params.putDouble(entry.first, (Double) entry.second);
       } else if (entry.second instanceof Long) {
         params.putDouble(entry.first, (Long) entry.second);
+      } else if (entry.second == null) {
+        logger.debug("constructJSMap: filtering null value");
+      } else {
+        logger.debug(String.format(
+          "constructJSMap: unexpected type %s",
+          entry.second.getClass()
+        ));
       }
     }
     return params;
