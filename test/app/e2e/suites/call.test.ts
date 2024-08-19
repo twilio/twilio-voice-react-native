@@ -1,6 +1,8 @@
 import { device, element, by, waitFor } from 'detox';
 import type twilio from 'twilio';
 import { bootstrapTwilioClient } from '../common/twilioClient';
+import { getRegExpMatch } from '../common/logParser';
+import { validateRtcStats } from '../common/rtcStatsValidators';
 
 const DEFAULT_TIMEOUT = 10000;
 
@@ -98,6 +100,35 @@ describe('call', () => {
           throw new Error('call quality warning was not raised');
         }
       });
+
+      it('should get valid rtc stats', async () => {
+        await element(by.text('TOGGLE LOG FORMAT')).tap();
+
+        await element(by.text('CONNECT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
+
+        await element(by.text('GET STATS')).tap();
+
+        // we want to tear down the call regardless of success
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        const rtcStatsMessage = /call stats: ([\s\S]*)/;
+        const rtcStatsStr = await getRegExpMatch(rtcStatsMessage);
+        if (typeof rtcStatsStr !== 'string') {
+          throw new Error('unable to parse rtc stats');
+        }
+
+        const rtcStats = JSON.parse(rtcStatsStr);
+        validateRtcStats(rtcStats);
+      });
     });
 
     describe('incoming call', () => {
@@ -181,6 +212,50 @@ describe('call', () => {
         await waitFor(element(by.text('Call State: disconnected')))
           .toBeVisible()
           .withTimeout(DEFAULT_TIMEOUT);
+      });
+
+      it('should get valid rtc stats', async () => {
+        await element(by.text('TOGGLE LOG FORMAT')).tap();
+
+        await register();
+
+        const testCall = await twilioClient.calls.create({
+          twiml:
+            '<Response><Say>Ahoy, world!</Say><Pause length="60" /></Response>',
+          to: `client:${clientId}`,
+          from: 'detox',
+        });
+
+        console.log(
+          `Call created with SID: "${testCall.sid}" to identity "${clientId}".`
+        );
+
+        await waitFor(element(by.text('ACCEPT')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+        await element(by.text('ACCEPT')).tap();
+        await waitFor(element(by.text('Call State: connected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        // Let the call go for 5 seconds
+        await new Promise((r) => setTimeout(r, 5000));
+
+        await element(by.text('GET STATS')).tap();
+
+        await element(by.text('DISCONNECT')).tap();
+        await waitFor(element(by.text('Call State: disconnected')))
+          .toBeVisible()
+          .withTimeout(DEFAULT_TIMEOUT);
+
+        const rtcStatsMessage = /call stats: ([\s\S]*)/;
+        const rtcStatsStr = await getRegExpMatch(rtcStatsMessage);
+        if (typeof rtcStatsStr !== 'string') {
+          throw new Error('unable to parse rtc stats');
+        }
+
+        const rtcStats = JSON.parse(rtcStatsStr);
+        validateRtcStats(rtcStats);
       });
     });
   }
