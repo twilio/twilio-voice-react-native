@@ -1,5 +1,5 @@
-1.1.0 (In Development)
-======================
+1.1.0 (Aug 20, 2024)
+====================
 
 ## Features
 
@@ -7,12 +7,10 @@
 
 #### Android
 
-- Added support for Android 34
+- Added support for Android 34.
 
-- Missing Android microphone permissions will now be gracefully handled.
-
-  When using the JS API, `callInvite.accept()` and `voice.connect()` will now reject the returned Promise with error `31401`.
-
+- The SDK now gracefully handles missing microphone permissions on the Android platform.
+  When using the Javascript API, `callInvite.accept()` and `voice.connect()` will now reject with error `PermissionsError` and code `31401`.
   When accepting an incoming call through the native notification, the analogous `31401` error can be caught by attaching a listener to `voice.on(Voice.Event.Error, ...)`. See the following example:
   ```ts
   voice.on(Voice.Event.Error, (error) => {
@@ -29,7 +27,9 @@
 
 #### iOS
 
-- Fixed Call Messages not being built with the passed `contentType` or `messageType`.
+- Resolved an issue where Call Messages were not being constructed with the specified `contentType` or `messageType`.
+
+- Resolved an issue where some `OutgoingCallMessage.Event.Failure` events were not being raised due to a race condition.
 
 #### Android
 
@@ -39,10 +39,9 @@
 
 ### Call Message Events (Beta)
 
-- **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types.
-  Instead, those types have been replaced by `string`.
+- **(Breaking)** Removed `CallMessage.MessageType` and `CallMessage.ContentType` enumerations and types. These types have been replaced by `string`.
 
-- **(Breaking)** Simplified the `Call` and `CallInvite` API for sending call messages. `Call.sendMessage` and `CallInvite.sendMessage` now take a plain-JS object, or interface, as a parameter.
+- **(Breaking)** Simplified the `Call` and `CallInvite` APIs for sending call messages. `Call.sendMessage` and `CallInvite.sendMessage` now take a plain-JS object, or interface, as a parameter.
 
 The following is an example of the updated API considering the above changes.
 
@@ -71,15 +70,7 @@ voice.on(Voice.Event.CallInvite, (callInvite) => {
   | Error Code | Description |
   | --- | --- |
   | 31210 | Raised when a Call Message is sent with an invalid message type. |
-  | 31211 | Raised when a Call Message is sent when the call is not yet ready to send messages. This can typically happen when the Call/CallInvite is not yet in a ringing state. |
-
-### Platform Specific Changes
-
-#### Android
-
-- When permissions are not available, the SDK will now raise a new
-  `PermissionsError` with code `31401` when attempting to make an outgoing call
-  or when trying to accept an incoming call.
+  | 31211 | Raised when attempting to send a Call Message before the Call/CallInvite is ready to send messages. This can typically happen when the Call/CallInvite is not yet in a ringing state. |
 
 1.0.0 (Mar 25, 2024)
 ====================
