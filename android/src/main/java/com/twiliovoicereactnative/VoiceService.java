@@ -339,7 +339,7 @@ public class VoiceService extends Service {
     // only take down notification & stop any active sounds if one is active
     if (null != callRecord) {
       VoiceApplicationProxy.getMediaPlayerManager().stop();
-      removeForegroundNotification();
+      removeForegroundNotification(callRecord.getNotificationId());
     }
   }
   private void createOrReplaceNotification(final int notificationId,
@@ -358,11 +358,14 @@ public class VoiceService extends Service {
     }
   }
   private void removeNotification(final int notificationId) {
+    logger.debug("removeNotification");
     NotificationManager mNotificationManager =
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.cancel(notificationId);
   }
-  private void removeForegroundNotification() {
+  private void removeForegroundNotification(final int notificationId) {
+    logger.debug("removeForegroundNotification");
+    removeNotification(notificationId);
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
   }
   private void foregroundNotification(int id, Notification notification) {
