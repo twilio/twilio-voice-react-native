@@ -1,6 +1,14 @@
 1.1.1 (In Progress)
 ====================
 
+## Changes
+
+### Platform Specific Changes
+
+#### Android
+
+- Bumped `minSdkVersion` to `23` to match the latest versions of React Native.
+
 ## Fixes
 
 ### Platform Specific Fixes

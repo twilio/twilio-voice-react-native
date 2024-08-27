@@ -312,7 +312,7 @@ public class VoiceService extends Service {
       NotificationUtility.createOutgoingCallNotificationWithLowImportance(
         VoiceService.this,
         callRecord);
-    createOrReplaceNotification(callRecord.getNotificationId(), notification);
+    createOrReplaceForegroundNotification(callRecord.getNotificationId(), notification);
   }
   private void foregroundAndDeprioritizeIncomingCallNotification(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("foregroundAndDeprioritizeIncomingCallNotification: " + callRecord.getUuid());
@@ -358,11 +358,13 @@ public class VoiceService extends Service {
     }
   }
   private void removeNotification(final int notificationId) {
+    logger.debug("removeNotification");
     NotificationManager mNotificationManager =
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.cancel(notificationId);
   }
   private void removeForegroundNotification() {
+    logger.debug("removeForegroundNotification");
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
   }
   private void foregroundNotification(int id, Notification notification) {
