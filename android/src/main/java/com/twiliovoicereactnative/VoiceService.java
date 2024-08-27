@@ -312,7 +312,7 @@ public class VoiceService extends Service {
       NotificationUtility.createOutgoingCallNotificationWithLowImportance(
         VoiceService.this,
         callRecord);
-    createOrReplaceNotification(callRecord.getNotificationId(), notification);
+    createOrReplaceForegroundNotification(callRecord.getNotificationId(), notification);
   }
   private void foregroundAndDeprioritizeIncomingCallNotification(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("foregroundAndDeprioritizeIncomingCallNotification: " + callRecord.getUuid());
@@ -339,7 +339,7 @@ public class VoiceService extends Service {
     // only take down notification & stop any active sounds if one is active
     if (null != callRecord) {
       VoiceApplicationProxy.getMediaPlayerManager().stop();
-      removeForegroundNotification(callRecord.getNotificationId());
+      removeForegroundNotification();
     }
   }
   private void createOrReplaceNotification(final int notificationId,
@@ -363,9 +363,8 @@ public class VoiceService extends Service {
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.cancel(notificationId);
   }
-  private void removeForegroundNotification(final int notificationId) {
+  private void removeForegroundNotification() {
     logger.debug("removeForegroundNotification");
-    removeNotification(notificationId);
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
   }
   private void foregroundNotification(int id, Notification notification) {
