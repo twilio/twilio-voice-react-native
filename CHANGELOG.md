@@ -1,3 +1,14 @@
+1.1.1 (In Progress)
+====================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed crash issue on API 34 when activity is not running in background or foreground and an incoming call is received.
+
 1.1.0 (Aug 20, 2024)
 ====================
 

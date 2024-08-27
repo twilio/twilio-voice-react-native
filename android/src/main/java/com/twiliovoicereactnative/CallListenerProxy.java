@@ -60,7 +60,7 @@ class CallListenerProxy implements Call.Listener {
     CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
 
     // take down notification
-    getVoiceServiceApi().cancelNotification(callRecord);
+    getVoiceServiceApi().cancelActiveCallNotification(callRecord);
 
     // serialize and notify JS
     sendJSEvent(
@@ -148,7 +148,7 @@ class CallListenerProxy implements Call.Listener {
     getMediaPlayerManager().stop();
     getMediaPlayerManager().play(MediaPlayerManager.SoundTable.DISCONNECT);
     getAudioSwitchManager().getAudioSwitch().deactivate();
-    getVoiceServiceApi().cancelNotification(callRecord);
+    getVoiceServiceApi().cancelActiveCallNotification(callRecord);
 
     // notify JS layer
     sendJSEvent(
