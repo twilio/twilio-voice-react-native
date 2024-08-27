@@ -7,7 +7,7 @@ class Constants {
   public static final String VOICE_CHANNEL_DEFAULT_IMPORTANCE = "notification-channel-normal-importance";
   public static final String ACTION_ACCEPT_CALL = "ACTION_ACCEPT_CALL";
   public static final String ACTION_REJECT_CALL = "ACTION_REJECT_CALL";
-  public static final String ACTION_CANCEL_NOTIFICATION = "ACTION_CANCEL_NOTIFICATION";
+  public static final String ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION = "ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION";
   public static final String ACTION_INCOMING_CALL = "ACTION_INCOMING_CALL";
   public static final String ACTION_CANCEL_CALL = "ACTION_CANCEL_CALL";
   public static final String ACTION_CALL_DISCONNECT = "ACTION_CALL_DISCONNECT";

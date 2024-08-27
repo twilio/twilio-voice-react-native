@@ -16,7 +16,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventTypeValueInco
 import static com.twiliovoicereactnative.Constants.ACTION_ACCEPT_CALL;
 import static com.twiliovoicereactnative.Constants.ACTION_CALL_DISCONNECT;
 import static com.twiliovoicereactnative.Constants.ACTION_CANCEL_CALL;
-import static com.twiliovoicereactnative.Constants.ACTION_CANCEL_NOTIFICATION;
+import static com.twiliovoicereactnative.Constants.ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION;
 import static com.twiliovoicereactnative.Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION;
 import static com.twiliovoicereactnative.Constants.ACTION_INCOMING_CALL;
 import static com.twiliovoicereactnative.Constants.ACTION_PUSH_APP_TO_FOREGROUND;
@@ -37,6 +37,7 @@ import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -57,8 +58,6 @@ import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -88,8 +87,8 @@ public class VoiceService extends Service {
     public void raiseOutgoingCallNotification(final CallRecordDatabase.CallRecord callRecord) {
       VoiceService.this.raiseOutgoingCallNotification(callRecord);
     }
-    public void cancelNotification(final CallRecordDatabase.CallRecord callRecord) {
-      VoiceService.this.cancelNotification(callRecord);
+    public void cancelActiveCallNotification(final CallRecordDatabase.CallRecord callRecord) {
+      VoiceService.this.cancelActiveCallNotification(callRecord);
     }
     public void foregroundAndDeprioritizeIncomingCallNotification(final CallRecordDatabase.CallRecord callRecord) {
       VoiceService.this.foregroundAndDeprioritizeIncomingCallNotification(callRecord);
@@ -125,8 +124,8 @@ public class VoiceService extends Service {
       case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
         raiseOutgoingCallNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
         break;
-      case ACTION_CANCEL_NOTIFICATION:
-        cancelNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+      case ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION:
+        cancelActiveCallNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
         break;
       case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
         foregroundAndDeprioritizeIncomingCallNotification(
@@ -187,6 +186,8 @@ public class VoiceService extends Service {
       VOICE_CHANNEL_HIGH_IMPORTANCE);
     createOrReplaceNotification(callRecord.getNotificationId(), notification);
 
+
+
     // play ringer sound
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().activate();
     VoiceApplicationProxy.getMediaPlayerManager().play(MediaPlayerManager.SoundTable.INCOMING);
@@ -205,7 +206,7 @@ public class VoiceService extends Service {
     if (ActivityCompat.checkSelfPermission(VoiceService.this,
       Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
       // cancel incoming call notification
-      removeNotification();
+      removeNotification(callRecord.getNotificationId());
 
       // stop ringer sound
       VoiceApplicationProxy.getMediaPlayerManager().stop();
@@ -223,7 +224,7 @@ public class VoiceService extends Service {
     Notification notification = NotificationUtility.createCallAnsweredNotificationWithLowImportance(
       VoiceService.this,
       callRecord);
-    createOrReplaceNotification(callRecord.getNotificationId(), notification);
+    createOrReplaceForegroundNotification(callRecord.getNotificationId(), notification);
 
     // stop ringer sound
     VoiceApplicationProxy.getMediaPlayerManager().stop();
@@ -261,7 +262,7 @@ public class VoiceService extends Service {
     getCallRecordDatabase().remove(callRecord);
 
     // take down notification
-    removeNotification();
+    removeNotification(callRecord.getNotificationId());
 
     // stop ringer sound
     VoiceApplicationProxy.getMediaPlayerManager().stop();
@@ -288,7 +289,7 @@ public class VoiceService extends Service {
     logger.debug("CancelCall: " + callRecord.getUuid());
 
     // take down notification
-    removeNotification();
+    removeNotification(callRecord.getNotificationId());
 
     // stop ringer sound
     VoiceApplicationProxy.getMediaPlayerManager().stop();
@@ -333,16 +334,22 @@ public class VoiceService extends Service {
         new Pair<>(CallInviteEventKeyType, CallInviteEventTypeValueNotificationTapped),
         new Pair<>(CallInviteEventKeyCallSid, callRecord.getCallSid())));
   }
-  private void cancelNotification(final CallRecordDatabase.CallRecord callRecord) {
+  private void cancelActiveCallNotification(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("cancelNotification");
     // only take down notification & stop any active sounds if one is active
     if (null != callRecord) {
       VoiceApplicationProxy.getMediaPlayerManager().stop();
-      removeNotification();
+      removeForegroundNotification();
     }
   }
   private void createOrReplaceNotification(final int notificationId,
                                            final Notification notification) {
+    NotificationManager mNotificationManager =
+      (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    mNotificationManager.notify(notificationId, notification);
+  }
+  private void createOrReplaceForegroundNotification(final int notificationId,
+                                                     final Notification notification) {
     if (ActivityCompat.checkSelfPermission(VoiceService.this, Manifest.permission.POST_NOTIFICATIONS)
       == PackageManager.PERMISSION_GRANTED) {
       foregroundNotification(notificationId, notification);
@@ -350,7 +357,12 @@ public class VoiceService extends Service {
       logger.warning("WARNING: Notification not posted, permission not granted");
     }
   }
-  private void removeNotification() {
+  private void removeNotification(final int notificationId) {
+    NotificationManager mNotificationManager =
+      (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    mNotificationManager.cancel(notificationId);
+  }
+  private void removeForegroundNotification() {
     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
   }
   private void foregroundNotification(int id, Notification notification) {
