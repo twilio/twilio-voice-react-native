@@ -17,6 +17,8 @@
 
 - Fixed crash issue on API 34 when activity is not running in background or foreground and an incoming call is received.
 
+- Fixed some RTCStats members not available on Android. Specifically, `mos`, `bytesSent`, and `bytesReceived`.
+
 1.1.0 (Aug 20, 2024)
 ====================
 
@@ -49,10 +51,6 @@
 - Resolved an issue where Call Messages were not being constructed with the specified `contentType` or `messageType`.
 
 - Resolved an issue where some `OutgoingCallMessage.Event.Failure` events were not being raised due to a race condition.
-
-#### Android
-
-- Fixed some RTCStats members not available on Android. Specifically, `mos`, `bytesSent`, and `bytesReceived`.
 
 ## Changes
 
