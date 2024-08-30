@@ -139,6 +139,14 @@ namespace AuthorizationErrors {
         name: string;
         solutions: string[];
     }
+    class PayloadSizeExceededError extends TwilioError {
+        constructor(message: string);
+        causes: string[];
+        description: string;
+        explanation: string;
+        name: string;
+        solutions: string[];
+    }
     class RateExceededError extends TwilioError {
         constructor(message: string);
         causes: string[];
