@@ -115,10 +115,11 @@ describe('call', () => {
 
     const success = await pollValidateLog((log) => {
       const found = log.find((item) => {
-        return item.content.match(new RegExp(
-          /TwilioError\(31209\): Call Message Event Payload size /.source +
-          /exceeded authorized limit/.source
-        ));
+        return item.content.match(new RegExp([
+          /call message failure (KX\w+): PayloadSizeExceededError\(31212\): /,
+          /PayloadSizeExceededError \(31212\): Call Message Event Payload size/,
+          / exceeded authorized limit/,
+        ].map((r) => r.source).join('')));
       });
       return Boolean(found);
     });
