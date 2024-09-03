@@ -530,6 +530,49 @@ export namespace AuthorizationErrors {
 
   /**
    * @public
+   * AuthorizationErrors.PayloadSizeExceededError error.
+   * Error code `31212`.
+   */
+  export class PayloadSizeExceededError extends TwilioError {
+    /**
+     * The payload size of Call Message Event exceeds the authorized limit.
+     */
+    causes: string[] = [
+      'The payload size of Call Message Event exceeds the authorized limit.',
+    ];
+    /**
+     * Call Message Event Payload size exceeded authorized limit.
+     */
+    description: string = 'Call Message Event Payload size exceeded authorized limit.';
+    /**
+     * The request performed to send a Call Message Event exceeds the payload size authorized limit
+     */
+    explanation: string = 'The request performed to send a Call Message Event exceeds the payload size authorized limit';
+    /**
+     * PayloadSizeExceededError
+     */
+    name: string = 'PayloadSizeExceededError';
+    /**
+     * Reduce payload size of Call Message Event to be within the authorized limit and try again.
+     */
+    solutions: string[] = [
+      'Reduce payload size of Call Message Event to be within the authorized limit and try again.',
+    ];
+
+    constructor(message: string) {
+      super(message, 31212);
+      Object.setPrototypeOf(this, AuthorizationErrors.PayloadSizeExceededError.prototype);
+
+      const msg: string = typeof message === 'string'
+        ? message
+        : this.explanation;
+
+      this.message = `${this.name} (${this.code}): ${msg}`;
+    }
+  }
+
+  /**
+   * @public
    * AuthorizationErrors.AccessTokenRejected error.
    * Error code `51007`.
    */
@@ -2196,6 +2239,7 @@ export const errorsByCode: ReadonlyMap<number, typeof TwilioError> = new Map([
   [31206, AuthorizationErrors.RateExceededError],
   [31210, AuthorizationErrors.CallMessageEventTypeInvalidError],
   [31211, AuthorizationErrors.CallMessageUnexpectedStateError],
+  [31212, AuthorizationErrors.PayloadSizeExceededError],
   [31301, RegistrationErrors.RegistrationError],
   [31302, RegistrationErrors.UnsupportedCancelMessageError],
   [31400, ClientErrors.BadRequest],
