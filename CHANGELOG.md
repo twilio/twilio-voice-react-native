@@ -1,3 +1,24 @@
+1.2.0 (In Progress)
+===================
+
+## Changes
+
+### Call Message Events (GA)
+
+The Call Message Events feature in the Twilio Voice React Native SDK, previously released in `1.0.0` as Beta, is promoted to Generally Available (GA).
+
+- **(Breaking)** The error code for attempting to send a call message with a payload size exceeding maximum limits has changed from `31209` to `31212`.
+
+### Platform Specific Changes
+
+#### Android
+
+- Now pulling version `6.6.2` of the Twilio Voice Android SDK.
+
+#### iOS
+
+- Now pulling version `6.11.2` of the Twilio Voice iOS SDK.
+
 1.1.1 (Aug 28, 2024)
 ====================
 
