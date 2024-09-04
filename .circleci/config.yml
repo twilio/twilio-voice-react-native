@@ -4,7 +4,7 @@ version: 2.1
 # Orbs
 ###
 orbs:
-  android: circleci/android@2.3.0
+  android: circleci/android@2.5.0
 
 ###
 # Parameters
@@ -282,11 +282,13 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
-      tag: 2024.01.1
+      tag: 2024.04.1
     parameters:
       detox_configuration:
         type: string
     steps:
+      - android/change-java-version:
+          java-version: 17
       - checkout
       - install-dependencies
       - generate-client-identity
