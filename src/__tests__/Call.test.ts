@@ -584,7 +584,7 @@ describe('Call class', () => {
         ]);
       });
 
-      it('does not stringifys content that is a string', async () => {
+      it('does not stringify content that is a string', async () => {
         const message = {
           content: 'foo',
           contentType,
