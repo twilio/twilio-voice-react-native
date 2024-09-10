@@ -871,8 +871,6 @@ export class Call extends EventEmitter {
   }
 
   /**
-   * CallMessage API is in beta.
-   *
    * Send a CallMessage.
    *
    * @example
@@ -896,6 +894,9 @@ export class Call extends EventEmitter {
    * ```
    *
    * @param message The call message to send.
+   * Note that if `message.content` is of type `string`, it will be sent
+   * directly to Twilio as-is. If `message.content` is any other type, it will
+   * be processed using `JSON.stringify` before being sent to Twilio.
    *
    * @returns
    *  A `Promise` that
@@ -1005,8 +1006,6 @@ export namespace Call {
     'QualityWarningsChanged' = 'qualityWarningsChanged',
 
     /**
-     * CallMessage API is in beta.
-     *
      * Event string for the `MessageReceived` event.
      * See {@link (Call:interface).(addListener:8)}
      */
@@ -1269,8 +1268,6 @@ export namespace Call {
     ) => void;
 
     /**
-     * CallMessage API is in beta.
-     *
      * CallMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (Call:namespace).Event.MessageReceived} event.
      *
