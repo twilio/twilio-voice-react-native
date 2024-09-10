@@ -30,16 +30,28 @@ describe('IncomingCallMessage class', () => {
       const incomingCallMessage = new IncomingCallMessage(
         createNativeCallMessageInfo()
       );
-      expect({
-        // eslint-disable-next-line dot-notation
-        content: incomingCallMessage['_content'],
-        // eslint-disable-next-line dot-notation
-        contentType: incomingCallMessage['_contentType'],
-        // eslint-disable-next-line dot-notation
-        messageType: incomingCallMessage['_messageType'],
-        // eslint-disable-next-line dot-notation
-        voiceEventSid: incomingCallMessage['_voiceEventSid'],
-      }).toEqual(createNativeCallMessageInfo());
+
+      const callMessageInfo = createNativeCallMessageInfo();
+
+      // eslint-disable-next-line dot-notation
+      expect(incomingCallMessage['_content']).toStrictEqual(
+        JSON.stringify(callMessageInfo.content)
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(incomingCallMessage['_contentType']).toStrictEqual(
+        callMessageInfo.contentType
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(incomingCallMessage['_messageType']).toStrictEqual(
+        callMessageInfo.messageType
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(incomingCallMessage['_voiceEventSid']).toStrictEqual(
+        callMessageInfo.voiceEventSid
+      );
     });
 
     const content = { key1: 'hello world' };
@@ -102,7 +114,9 @@ describe('IncomingCallMessage class', () => {
       const content = new IncomingCallMessage(
         createNativeCallMessageInfo()
       ).getContent();
-      expect(content).toEqual(createNativeCallMessageInfo().content);
+      expect(content).toEqual(
+        JSON.stringify(createNativeCallMessageInfo().content)
+      );
     });
   });
 

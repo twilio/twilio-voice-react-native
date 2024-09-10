@@ -73,5 +73,8 @@ export function validateCallMessage(message: CallMessage) {
     throw new InvalidArgumentError('"content" must be defined and not "null".');
   }
 
-  return { content, contentType, messageType };
+  const contentStr =
+    typeof content === 'string' ? content : JSON.stringify(content);
+
+  return { content: contentStr, contentType, messageType };
 }

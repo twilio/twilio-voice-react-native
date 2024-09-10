@@ -578,7 +578,7 @@ export class CallInvite extends EventEmitter {
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
-      JSON.stringify(content),
+      content,
       contentType,
       messageType
     );

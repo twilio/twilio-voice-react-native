@@ -563,41 +563,39 @@ describe('Call class', () => {
       const contentType = 'application/json';
       const messageType = 'user-defined-message';
 
-      it('stringifys content that is not a string', async () => {
-        const message = {
-          content,
-          contentType,
-          messageType,
-        };
-
-        await new Call(createNativeCallInfo()).sendMessage(message);
-
-        expect(
-          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
-        ).toEqual([
-          [
-            'mock-nativecallinfo-uuid',
-            JSON.stringify(content),
+      describe('when invoking the native module', () => {
+        it('stringifys content that is not a string', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content,
             contentType,
             messageType,
-          ],
-        ]);
-      });
+          });
 
-      it('does not stringify content that is a string', async () => {
-        const message = {
-          content: 'foo',
-          contentType,
-          messageType,
-        };
+          expect(
+            jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+          ).toEqual([
+            [
+              'mock-nativecallinfo-uuid',
+              JSON.stringify(content),
+              contentType,
+              messageType,
+            ],
+          ]);
+        });
 
-        await new Call(createNativeCallInfo()).sendMessage(message);
+        it('does not stringify content that is a string', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content: 'foo',
+            contentType,
+            messageType,
+          });
 
-        expect(
-          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
-        ).toEqual([
-          ['mock-nativecallinfo-uuid', 'foo', contentType, messageType],
-        ]);
+          expect(
+            jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+          ).toEqual([
+            ['mock-nativecallinfo-uuid', 'foo', contentType, messageType],
+          ]);
+        });
       });
 
       it('returns a Promise<OutgoingCallMessage>', async () => {
@@ -616,24 +614,28 @@ describe('Call class', () => {
         expect(result instanceof MockOutgoingCallMessage).toStrictEqual(true);
       });
 
-      it('constructs an outgoing call message with the raw string content', async () => {
-        await new Call(createNativeCallInfo()).sendMessage({
-          content: 'foo',
-          messageType: 'user-defined-message',
+      describe('constructs an outgoing call message', () => {
+        it('with the raw string content', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content: 'foo',
+            messageType: 'user-defined-message',
+          });
+
+          const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+          expect(processedContent.content).toStrictEqual('foo');
         });
 
-        const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
-        expect(processedContent.content).toStrictEqual('foo');
-      });
+        it('with the processed content', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content,
+            messageType: 'user-defined-message',
+          });
 
-      it('constructs an outgoing call message with the processed content', async () => {
-        await new Call(createNativeCallInfo()).sendMessage({
-          content,
-          messageType: 'user-defined-message',
+          const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+          expect(processedContent.content).toStrictEqual(
+            JSON.stringify(content)
+          );
         });
-
-        const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
-        expect(processedContent.content).toStrictEqual(JSON.stringify(content));
       });
     });
   });

@@ -906,18 +906,15 @@ export class Call extends EventEmitter {
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
     const { content, contentType, messageType } = validateCallMessage(message);
 
-    const contentStr =
-      typeof content === 'string' ? content : JSON.stringify(content);
-
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
-      contentStr,
+      content,
       contentType,
       messageType
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
-      content: contentStr,
+      content,
       contentType,
       messageType,
       voiceEventSid,
