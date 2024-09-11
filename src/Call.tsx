@@ -871,19 +871,15 @@ export class Call extends EventEmitter {
   }
 
   /**
-   * CallMessage API is in beta.
-   *
    * Send a CallMessage.
    *
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage(
-   *   new CallMessage({
-   *     content: { key1: 'This is a messsage from the parent call' },
-   *     contentType: 'application/json',
-   *     messageType: 'user-defined-message'
-   *   })
+   * const outgoingCallMessage: OutgoingCallMessage = await call.sendMessage({
+   *   content: { key1: 'This is a messsage from the parent call' },
+   *   contentType: 'application/json',
+   *   messageType: 'user-defined-message'
    * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
@@ -907,7 +903,7 @@ export class Call extends EventEmitter {
 
     const voiceEventSid = await NativeModule.call_sendMessage(
       this._uuid,
-      JSON.stringify(content),
+      content,
       contentType,
       messageType
     );
@@ -1002,8 +998,6 @@ export namespace Call {
     'QualityWarningsChanged' = 'qualityWarningsChanged',
 
     /**
-     * CallMessage API is in beta.
-     *
      * Event string for the `MessageReceived` event.
      * See {@link (Call:interface).(addListener:8)}
      */
@@ -1266,8 +1260,6 @@ export namespace Call {
     ) => void;
 
     /**
-     * CallMessage API is in beta.
-     *
      * CallMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (Call:namespace).Event.MessageReceived} event.
      *

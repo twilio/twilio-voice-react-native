@@ -36,16 +36,28 @@ describe('OutgoingCallMessage class', () => {
       const outgoingCallMessage = new OutgoingCallMessage(
         createNativeCallMessageInfo()
       );
-      expect({
-        // eslint-disable-next-line dot-notation
-        content: outgoingCallMessage['_content'],
-        // eslint-disable-next-line dot-notation
-        contentType: outgoingCallMessage['_contentType'],
-        // eslint-disable-next-line dot-notation
-        messageType: outgoingCallMessage['_messageType'],
-        // eslint-disable-next-line dot-notation
-        voiceEventSid: outgoingCallMessage['_voiceEventSid'],
-      }).toEqual(createNativeCallMessageInfo());
+
+      const callMessageInfo = createNativeCallMessageInfo();
+
+      // eslint-disable-next-line dot-notation
+      expect(outgoingCallMessage['_content']).toStrictEqual(
+        JSON.stringify(callMessageInfo.content)
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(outgoingCallMessage['_contentType']).toStrictEqual(
+        callMessageInfo.contentType
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(outgoingCallMessage['_messageType']).toStrictEqual(
+        callMessageInfo.messageType
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(outgoingCallMessage['_voiceEventSid']).toStrictEqual(
+        callMessageInfo.voiceEventSid
+      );
     });
 
     it('contains an entry for every outgoingCallMessage event', () => {
@@ -78,7 +90,9 @@ describe('OutgoingCallMessage class', () => {
       const content = new OutgoingCallMessage(
         createNativeCallMessageInfo()
       ).getContent();
-      expect(content).toEqual(createNativeCallMessageInfo().content);
+      expect(content).toEqual(
+        JSON.stringify(createNativeCallMessageInfo().content)
+      );
     });
   });
 

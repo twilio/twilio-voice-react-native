@@ -1,5 +1,4 @@
 import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
-import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
 import { createNativeCallInfo, mockCallNativeEvents } from '../__mocks__/Call';
 import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
 import { createNativeErrorInfo } from '../__mocks__/Error';
@@ -14,6 +13,7 @@ const MockNativeEventEmitter =
 const MockNativeModule = jest.mocked(NativeModule);
 let MockTwilioError: jest.Mock;
 let mockConstructTwilioError: jest.Mock;
+let MockOutgoingCallMessage: jest.Mock;
 
 jest.mock('../common');
 jest.mock('../error/utility', () => {
@@ -23,6 +23,11 @@ jest.mock('../error/utility', () => {
   });
   return {
     constructTwilioError: mockConstructTwilioError,
+  };
+});
+jest.mock('../CallMessage/OutgoingCallMessage', () => {
+  return {
+    OutgoingCallMessage: (MockOutgoingCallMessage = jest.fn()),
   };
 });
 
@@ -558,25 +563,39 @@ describe('Call class', () => {
       const contentType = 'application/json';
       const messageType = 'user-defined-message';
 
-      it('invokes the native module', async () => {
-        const message = {
-          content,
-          contentType,
-          messageType,
-        };
-
-        await new Call(createNativeCallInfo()).sendMessage(message);
-
-        expect(
-          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
-        ).toEqual([
-          [
-            'mock-nativecallinfo-uuid',
-            JSON.stringify(content),
+      describe('when invoking the native module', () => {
+        it('stringifys content that is not a string', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content,
             contentType,
             messageType,
-          ],
-        ]);
+          });
+
+          expect(
+            jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+          ).toEqual([
+            [
+              'mock-nativecallinfo-uuid',
+              JSON.stringify(content),
+              contentType,
+              messageType,
+            ],
+          ]);
+        });
+
+        it('does not stringify content that is a string', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content: 'foo',
+            contentType,
+            messageType,
+          });
+
+          expect(
+            jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+          ).toEqual([
+            ['mock-nativecallinfo-uuid', 'foo', contentType, messageType],
+          ]);
+        });
       });
 
       it('returns a Promise<OutgoingCallMessage>', async () => {
@@ -589,14 +608,34 @@ describe('Call class', () => {
         const sendMessagePromise = new Call(createNativeCallInfo()).sendMessage(
           message
         );
-        const mockResult: OutgoingCallMessage = new OutgoingCallMessage({
-          content,
-          contentType,
-          messageType,
-          voiceEventSid: 'mock-nativemodule-tracking-id',
-        });
+        expect(sendMessagePromise instanceof Promise).toStrictEqual(true);
+
         const result = await sendMessagePromise;
-        expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
+        expect(result instanceof MockOutgoingCallMessage).toStrictEqual(true);
+      });
+
+      describe('constructs an outgoing call message', () => {
+        it('with the raw string content', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content: 'foo',
+            messageType: 'user-defined-message',
+          });
+
+          const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+          expect(processedContent.content).toStrictEqual('foo');
+        });
+
+        it('with the processed content', async () => {
+          await new Call(createNativeCallInfo()).sendMessage({
+            content,
+            messageType: 'user-defined-message',
+          });
+
+          const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+          expect(processedContent.content).toStrictEqual(
+            JSON.stringify(content)
+          );
+        });
       });
     });
   });

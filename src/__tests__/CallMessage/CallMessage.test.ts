@@ -8,7 +8,7 @@ describe('validateCallMessage', () => {
       messageType: 'user-defined-message',
     });
     expect(result).toStrictEqual({
-      content: { foo: 'bar' },
+      content: '{"foo":"bar"}',
       contentType: 'application/json',
       messageType: 'user-defined-message',
     });
@@ -46,6 +46,7 @@ describe('validateCallMessage', () => {
 
   it('should throw an error if the messageType is not a string', () => {
     const invalidMessageTypes = [undefined, 10, null, {}, true];
+    expect.assertions(invalidMessageTypes.length);
 
     const testMessageType = (messageType: any) => {
       const invalidMessage = {
@@ -76,5 +77,31 @@ describe('validateCallMessage', () => {
     };
 
     invalidContentTypes.forEach(testContentType);
+  });
+
+  it('should stringify content that is not a string', () => {
+    const nonStringContent = [
+      [{ foo: 'bar' }, '{"foo":"bar"}'],
+      [10, '10'],
+      [true, 'true'],
+    ];
+    expect.assertions(nonStringContent.length);
+
+    for (const [inputContent, expectedContent] of nonStringContent) {
+      const { content: validatedContent } = validateCallMessage({
+        content: inputContent,
+        messageType: 'foobar',
+      });
+
+      expect(validatedContent).toStrictEqual(expectedContent);
+    }
+  });
+
+  it('should not stringify content that is a string', () => {
+    const { content } = validateCallMessage({
+      content: 'foobar',
+      messageType: 'foobar',
+    });
+    expect(content).toStrictEqual('foobar');
   });
 });

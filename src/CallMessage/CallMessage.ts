@@ -29,6 +29,9 @@ export interface CallMessage {
    *
    * If no value is defined, then the default value of "application/json" will
    * be used.
+   *
+   * If the `contentType` of the message is "application/json", the content
+   * of the message may be a JS object.
    */
   contentType?: string;
 
@@ -73,5 +76,8 @@ export function validateCallMessage(message: CallMessage) {
     throw new InvalidArgumentError('"content" must be defined and not "null".');
   }
 
-  return { content, contentType, messageType };
+  const contentStr =
+    typeof content === 'string' ? content : JSON.stringify(content);
+
+  return { content: contentStr, contentType, messageType };
 }

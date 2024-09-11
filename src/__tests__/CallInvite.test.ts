@@ -18,6 +18,7 @@ const MockNativeEventEmitter =
 const MockNativeModule = jest.mocked(NativeModule);
 let MockInvalidStateError: jest.Mock;
 let MockCall: jest.Mock;
+let MockOutgoingCallMessage: jest.Mock;
 
 jest.mock('../common');
 jest.mock('../Call', () => ({
@@ -25,6 +26,9 @@ jest.mock('../Call', () => ({
 }));
 jest.mock('../error/InvalidStateError', () => ({
   InvalidStateError: (MockInvalidStateError = jest.fn()),
+}));
+jest.mock('../CallMessage/OutgoingCallMessage', () => ({
+  OutgoingCallMessage: (MockOutgoingCallMessage = jest.fn()),
 }));
 
 beforeEach(() => {
@@ -474,28 +478,45 @@ describe('CallInvite class', () => {
     const contentType = 'application/json';
     const messageType = 'user-defined-message';
 
-    it('invokes the native module', async () => {
-      const message = {
-        content,
-        contentType,
-        messageType,
-      };
+    describe('when invoking the native module', () => {
+      it('stringifys content that is not a string', async () => {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).sendMessage({
+          content,
+          contentType,
+          messageType,
+        });
 
-      await new CallInvite(
-        createNativeCallInviteInfo(),
-        CallInvite.State.Pending
-      ).sendMessage(message);
-
-      expect(jest.mocked(MockNativeModule.call_sendMessage).mock.calls).toEqual(
-        [
+        expect(
+          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+        ).toEqual([
           [
             'mock-nativecallinviteinfo-uuid',
             JSON.stringify(content),
             contentType,
             messageType,
           ],
-        ]
-      );
+        ]);
+      });
+
+      it('does not stringify content that is a string', async () => {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).sendMessage({
+          content: 'foo',
+          contentType,
+          messageType,
+        });
+
+        expect(
+          jest.mocked(MockNativeModule.call_sendMessage).mock.calls
+        ).toEqual([
+          ['mock-nativecallinviteinfo-uuid', 'foo', contentType, messageType],
+        ]);
+      });
     });
 
     it('returns a Promise<OutgoingCallMessage>', async () => {
@@ -517,6 +538,34 @@ describe('CallInvite class', () => {
       });
       const result = await sendMessagePromise;
       expect(JSON.stringify(result)).toEqual(JSON.stringify(mockResult));
+    });
+
+    describe('constructs an outgoing call message', () => {
+      it('with the raw string content', async () => {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).sendMessage({
+          content: 'foo',
+          messageType: 'user-defined-message',
+        });
+
+        const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+        expect(processedContent.content).toStrictEqual('foo');
+      });
+
+      it('with the processed content', async () => {
+        await new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).sendMessage({
+          content,
+          messageType: 'user-defined-message',
+        });
+
+        const [[processedContent]] = MockOutgoingCallMessage.mock.calls;
+        expect(processedContent.content).toStrictEqual(JSON.stringify(content));
+      });
     });
   });
 
