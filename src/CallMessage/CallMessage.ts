@@ -29,6 +29,9 @@ export interface CallMessage {
    *
    * If no value is defined, then the default value of "application/json" will
    * be used.
+   *
+   * If the `contentType` of the message is "application/json", the content
+   * of the message may be a JS object.
    */
   contentType?: string;
 

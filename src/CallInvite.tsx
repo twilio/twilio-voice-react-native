@@ -542,19 +542,15 @@ export class CallInvite extends EventEmitter {
   }
 
   /**
-   * CallMessage API is in beta.
-   *
    * Send a CallMessage.
    *
    * @example
    * To send a user-defined-message
    * ```typescript
-   * const outgoingCallMessage: OutgoingCallMessage = await callInvite.sendMessage(
-   *   new CallMessage({
-   *     content: { key1: 'This is a messsage from the parent call invite' },
-   *     contentType: 'application/json',
-   *     messageType: 'user-defined-message'
-   *   })
+   * const outgoingCallMessage: OutgoingCallMessage = await callInvite.sendMessage({
+   *   content: { key1: 'This is a messsage from the parent call invite' },
+   *   contentType: 'application/json',
+   *   messageType: 'user-defined-message'
    * });
    *
    * outgoingCallMessage.addListener(OutgoingCallMessage.Event.Failure, (error) => {
@@ -696,8 +692,6 @@ export namespace CallInvite {
     NotificationTapped = 'notificationTapped',
 
     /**
-     * CallMessage API is in beta.
-     *
      * Event string for the `MessageReceived` event.
      * See {@link (CallInvite:interface).(addListener:5)}
      */
@@ -750,8 +744,6 @@ export namespace CallInvite {
     export type NotificationTapped = () => void;
 
     /**
-     * CallMessage API is in beta.
-     *
      * CallInviteMessage received event listener. This should be the function signature of
      * any event listener bound to the {@link (CallInvite:namespace).Event.MessageReceived} event.
      *

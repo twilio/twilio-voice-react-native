@@ -9,7 +9,8 @@ The Call Message Events feature in the Twilio Voice React Native SDK, previously
 
 - **(Breaking)** The error code for attempting to send a call message with a payload size exceeding maximum limits has changed from `31209` to `31212`.
 
-- **(Breaking)** The behavior of `call.sendMessage` has now changed. When sending a message such that the value of `content` is type `string`, the content will no longer be processed through `JSON.stringify` before being sent to Twilio. If the value of `content` is any type other than `string`, it will behave as original.
+- The behavior of `call.sendMessage` has been changed to support future `contentType`s.
+  Please see the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.callmessage_interface.md) for more information.
 
 ### Platform Specific Changes
 
