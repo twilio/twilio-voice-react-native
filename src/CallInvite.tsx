@@ -562,7 +562,7 @@ export class CallInvite extends EventEmitter {
    * });
    * ```
    *
-   * @param message The call message to send.
+   * @param message - The call message to send.
    *
    * @returns
    *  A `Promise` that
@@ -681,13 +681,13 @@ export namespace CallInvite {
 
     /**
      * Event string for the `Cancelled` event.
-     * See {@link (CallInvite:interaface).(addListener:3)}.
+     * See {@link (CallInvite:interface).(addListener:3)}.
      */
     Cancelled = 'cancelled',
 
     /**
      * Event string for the `NotificationTapped` event.
-     * See {@link (CallInvite:interaface).(addListener:4)}.
+     * See {@link (CallInvite:interface).(addListener:4)}.
      */
     NotificationTapped = 'notificationTapped',
 
