@@ -35,7 +35,7 @@ export namespace CallKit {
      * Supported handle types.
      *
      * @remarks
-     * See {@link CallKitHandleType}.
+     * See {@link CallKit.HandleType}.
      */
     callKitSupportedHandleTypes: HandleType[];
   };

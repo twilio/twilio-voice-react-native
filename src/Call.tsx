@@ -891,7 +891,7 @@ export class Call extends EventEmitter {
    * });
    * ```
    *
-   * @param message The call message to send.
+   * @param message - The call message to send.
    *
    * @returns
    *  A `Promise` that

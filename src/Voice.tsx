@@ -663,7 +663,7 @@ export class Voice extends EventEmitter {
    * call push notifications will be surfaced to the users, especially when
    * the app is not running in the foreground.
    *
-   * @return
+   * @returns
    * A `Promise` that
    *  - Resolves when the initialization is done.
    */

@@ -130,7 +130,8 @@
     "node_modules/",
     "lib/",
     "test/app/e2e/",
-    "src/error/generated.ts"
+    "src/error/generated.ts",
+    "coverage/"
   ],
   "prettier": {
     "quoteProps": "consistent",
