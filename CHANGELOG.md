@@ -1,3 +1,13 @@
+1.2.1 (In Progress)
+====================
+
+### Bug Fixes
+
+#### Android
+
+- Fixed crash issue where system restarts service without an Intent (intent == null).
+
+
 1.2.0 (Sep 16, 2024)
 ====================
 
