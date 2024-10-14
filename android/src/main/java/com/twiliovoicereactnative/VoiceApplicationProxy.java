@@ -2,8 +2,10 @@ package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 
 import android.app.Application;
 import android.content.ComponentName;
@@ -35,6 +37,7 @@ public class VoiceApplicationProxy {
       voiceServiceApi = null;
     }
   };
+
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
     public VoiceReactNativeHost(Application application) {
       super(application);
@@ -55,6 +58,7 @@ public class VoiceApplicationProxy {
     instance = this;
     context = reactNativeHost.getAssociatedApplication();
   }
+
   public void onCreate() {
     logger.debug("onCreate(..) invoked");
     // construct JS event engine
@@ -71,6 +75,7 @@ public class VoiceApplicationProxy {
     mediaPlayerManager = new MediaPlayerManager(context);
     audioSwitchManager.start();
   }
+
   public void onTerminate() {
     logger.debug("onTerminate(..) invoked");
     // shutdown notificaiton channels
@@ -87,21 +92,40 @@ public class VoiceApplicationProxy {
     }
     callRecordDatabase.clear();
   }
+
   static CallRecordDatabase getCallRecordDatabase() {
     return VoiceApplicationProxy.instance.callRecordDatabase;
   }
+
   static AudioSwitchManager getAudioSwitchManager() {
     return VoiceApplicationProxy.instance.audioSwitchManager;
   }
+
   static MediaPlayerManager getMediaPlayerManager() {
     return VoiceApplicationProxy.instance.mediaPlayerManager;
   }
+
   static JSEventEmitter getJSEventEmitter() {
     return VoiceApplicationProxy.instance.jsEventEmitter;
   }
 
   static Context getApplicationContext() {
     return VoiceApplicationProxy.instance.context;
+  }
+
+  static Properties getApplicationConfiguration() {
+    Properties config = new Properties();
+    try {
+      config.load(
+        getApplicationContext().getAssets().open("config.properties"));
+    } catch (IOException exception) {
+      logger.warning("Failed to load properties file");
+      // set defaults
+      config.setProperty(
+        ConfigurationProperties.ENABLE_FIREBASE_MESSAGING_SERVICE,
+        String.valueOf(true));
+    }
+    return config;
   }
 
   static Class<?> getMainActivityClass() {
