@@ -1,7 +1,7 @@
 1.2.1 (In Progress)
 ====================
 
-### Bug Fixes
+## Bug Fixes
 
 #### Android
 
