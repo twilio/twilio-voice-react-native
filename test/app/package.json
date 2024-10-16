@@ -33,7 +33,8 @@
     "metro-react-native-babel-preset": "0.76.8",
     "prettier": "^2.4.1",
     "react-test-renderer": "18.2.0",
-    "typescript": "4.8.4"
+    "typescript": "4.8.4",
+    "webdriverio": "^9.2.1"
   },
   "engines": {
     "node": ">=16"
