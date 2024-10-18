@@ -584,13 +584,7 @@ export class Voice extends EventEmitter {
    * @remarks
    *
    * Note that this method only works on Android platforms, and will only work
-   * when the built-in Firebase messaging service as been opted-out. To opt-out
-   * of the built-in Firebase messaging service, add a `config.properties` file
-   * in your Android app's `app/src/main/assets/` folder with the following
-   * content:
-   * ```
-   * com.twiliovoicereactnative.firebasemessagingservice.enable=false
-   * ```
+   * when the built-in Firebase messaging service as been opted-out.
    *
    * Unsupported platforms:
    * - iOS
@@ -598,10 +592,10 @@ export class Voice extends EventEmitter {
    * @returns
    * A `Promise` that
    *  - Resolves with a boolean. This boolean is `true` if the Firebase message
-   *    was handled properly by the Twilio Voice SDK, `false` otherwise.
+   *    was handled properly, `false` otherwise.
    *  - Rejects if an error occurred when parsing the Firebase message, or if
-   *    the app is incorrectly configured and an attempt is made to use this
-   *    method. This method will also reject if used on an unsupported platform.
+   *    the app is incorrectly configured. This method will also reject if used
+   *    on an unsupported platform.
    */
   async handleFirebaseMessage(remoteMessage: Record<string, string>) {
     switch (Platform.OS) {
