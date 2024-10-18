@@ -1,4 +1,4 @@
-The functionality detailed in this document was added in `1.3.0` of the
+The functionality detailed in this document was added in `1.2.1` of the
 `@twilio/voice-react-native-sdk`.
 
 # Using an out-of-band Firebase Messaging service
@@ -15,13 +15,14 @@ Messaging service, and how to retain the SDK's incoming call functionality.
 
 ## Disabling the built-in Firebase Messaging service
 To disable the built-in Firebase Messaging service, you can add a
-`config.properties` file in the `src/main/assets/` folder within your
+`config.xml` file in the `src/main/res/values/` folder within your
 `android/app/` folder.
 Including the following content within this file will disable the built-in
 Firebase Messaging service:
 ```
-com.twiliovoicereactnative.firebasemessagingservice.enable=false
+<bool name="twiliovoicereactnative_firebasemessagingservice_enabled">false</bool>
 ```
+See [this file](/android/src/main/res/values/config.xml) for more details.
 
 With the built-in Firebase Messaging service disabled, any other Firebase
 Messaging service will be able to listen for Firebase messages.
