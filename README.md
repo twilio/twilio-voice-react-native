@@ -16,6 +16,8 @@ Please check out the following if you are new to Twilio's Programmable Voice or 
 ## Issues and Support
 Please check out our [common issues](COMMON_ISSUES.md) page or file any issues you find here on Github. For general inquiries related to the Voice SDK you can file a support ticket. Please ensure that you are not sharing any [Personally Identifiable Information(PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information (API keys, credentials, etc.) when reporting an issue.
 
+Please check out our [known issues](KNOWN_ISSUES.md) for known bugs and workarounds.
+
 ## Access Tokens
 
 An Access Token is required to make outgoing calls or receive incoming calls. Please check out this [page](https://www.twilio.com/docs/iam/access-tokens#create-an-access-token-for-voice) for more details on creating Access Tokens.
