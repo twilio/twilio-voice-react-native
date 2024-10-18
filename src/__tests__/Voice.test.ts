@@ -624,6 +624,56 @@ describe('Voice class', () => {
       });
     });
 
+    describe('.handleFirebaseMessage', () => {
+      const performTestForPlatforms = (
+        platforms: ('android' | 'ios')[],
+        testTitle: string,
+        testFn: () => Promise<void>
+      ) => {
+        platforms.forEach((os) => {
+          describe(`${os} platform`, () => {
+            beforeEach(() => {
+              jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os);
+            });
+            it(testTitle, testFn);
+          });
+        });
+      };
+
+      performTestForPlatforms(
+        ['android'],
+        'it invokes the native module',
+        async () => {
+          const remoteMessage = { foo: 'bar' };
+          await new Voice().handleFirebaseMessage(remoteMessage);
+          expect(
+            jest.mocked(MockNativeModule.voice_handleEvent).mock.calls
+          ).toEqual([[remoteMessage]]);
+        }
+      );
+
+      performTestForPlatforms(
+        ['android'],
+        'it returns a Promise<boolean>',
+        async () => {
+          const remoteMessage = { foo: 'bar' };
+          const result = new Voice().handleFirebaseMessage(remoteMessage);
+          await expect(result).resolves.toBe(true);
+        }
+      );
+
+      performTestForPlatforms(
+        ['ios'],
+        'it rejects with an UnsupportedPlatformError',
+        async () => {
+          expect.assertions(1);
+          const remoteMessage = { foo: 'bar' };
+          const result = new Voice().handleFirebaseMessage(remoteMessage);
+          await expect(result).rejects.toBeInstanceOf(UnsupportedPlatformError);
+        }
+      );
+    });
+
     describe('.register', () => {
       it('invokes the native module', async () => {
         await new Voice().register('mock-voice-token');
