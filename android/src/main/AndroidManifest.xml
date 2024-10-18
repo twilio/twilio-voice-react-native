@@ -14,7 +14,8 @@
     <service
       android:name=".VoiceFirebaseMessagingService"
       android:stopWithTask="false"
-      android:exported="true">
+      android:exported="true"
+      android:enabled="@bool/twiliovoicereactnative_firebasemessagingservice_enabled">
       <intent-filter>
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
       </intent-filter>

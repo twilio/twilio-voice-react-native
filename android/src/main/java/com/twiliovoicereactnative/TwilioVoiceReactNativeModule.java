@@ -480,9 +480,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod void voice_handleEvent(ReadableMap messageData, Promise promise) {
     // validate embedded firebase module is disabled
-    Properties config = VoiceApplicationProxy.getApplicationConfiguration();
-    if (Boolean.parseBoolean(
-      config.getProperty(ConfigurationProperties.ENABLE_FIREBASE_MESSAGING_SERVICE))) {
+    if (ConfigurationProperties.isFirebaseServiceEnabled(reactContext)) {
       final String errorMsg = reactContext.getString(R.string.method_invocation_invalid);
       logger.warning("Embedded firebase messaging enabled, handleEvent invocation invalid!");
       promise.reject(errorMsg);

@@ -27,6 +27,8 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   public static class MessageHandler implements MessageListener  {
     @Override
     public void onCallInvite(@NonNull CallInvite callInvite) {
+      logger.log(String.format("onCallInvite %s", callInvite.getCallSid()));
+
       final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
       getCallRecordDatabase().add(callRecord);
@@ -36,22 +38,14 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
                                       @Nullable CallException callException) {
+      logger.log(String.format("onCancelledCallInvite %s", cancelledCallInvite.getCallSid()));
+
       CallRecord callRecord = Objects.requireNonNull(
         getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
 
       callRecord.setCancelledCallInvite(cancelledCallInvite);
       callRecord.setCallException(callException);
       getVoiceServiceApi().cancelCall(callRecord);
-    }
-  }
-
-  @Override
-  public void onCreate() {
-    // disable service if configured to use external firebase messaging system
-    Properties config = VoiceApplicationProxy.getApplicationConfiguration();
-    if (!Boolean.parseBoolean(
-      config.getProperty(ConfigurationProperties.ENABLE_FIREBASE_MESSAGING_SERVICE))) {
-      stopSelf();
     }
   }
 

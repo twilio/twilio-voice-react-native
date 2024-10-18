@@ -113,21 +113,6 @@ public class VoiceApplicationProxy {
     return VoiceApplicationProxy.instance.context;
   }
 
-  static Properties getApplicationConfiguration() {
-    Properties config = new Properties();
-    try {
-      config.load(
-        getApplicationContext().getAssets().open("config.properties"));
-    } catch (IOException exception) {
-      logger.warning("Failed to load properties file");
-      // set defaults
-      config.setProperty(
-        ConfigurationProperties.ENABLE_FIREBASE_MESSAGING_SERVICE,
-        String.valueOf(true));
-    }
-    return config;
-  }
-
   static Class<?> getMainActivityClass() {
     Context context = VoiceApplicationProxy.instance.context;
     String packageName = context.getPackageName();
