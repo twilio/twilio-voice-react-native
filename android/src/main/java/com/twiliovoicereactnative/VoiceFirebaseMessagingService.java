@@ -18,7 +18,6 @@ import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
 
 import java.util.Objects;
-import java.util.Properties;
 import java.util.UUID;
 
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {

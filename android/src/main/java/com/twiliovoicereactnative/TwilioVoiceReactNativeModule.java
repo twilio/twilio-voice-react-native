@@ -26,8 +26,6 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;

@@ -2,10 +2,8 @@ package com.twiliovoicereactnative;
 
 import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
 
 import android.app.Application;
 import android.content.ComponentName;
