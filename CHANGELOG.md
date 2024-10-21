@@ -1,7 +1,18 @@
 1.2.1 (In Progress)
 ====================
 
-## Bug Fixes
+## Features
+
+### Platform Specific Features
+
+#### Android
+
+- Added opt-out functionality for the built-in Firebase Messaging service.
+  Please see [this document](/docs/out-of-band-firebase-messaging-service.md) for more details.
+
+## Fixes
+
+### Platform Specific Fixes
 
 #### Android
 

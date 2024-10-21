@@ -26,7 +26,6 @@ import com.twilio.voice.Voice;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -475,6 +474,33 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         UnregistrationListener unregistrationListener = createUnregistrationListener(promise);
         Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
       });
+  }
+
+  @ReactMethod void voice_handleEvent(ReadableMap messageData, Promise promise) {
+    // validate embedded firebase module is disabled
+    if (ConfigurationProperties.isFirebaseServiceEnabled(reactContext)) {
+      final String errorMsg = reactContext.getString(R.string.method_invocation_invalid);
+      logger.warning("Embedded firebase messaging enabled, handleEvent invocation invalid!");
+      promise.reject(errorMsg);
+      return;
+    }
+    // parse data to string map
+    final HashMap<String, String> parsedMessageData = new HashMap<>();
+    ReadableMapKeySetIterator iterator = messageData.keySetIterator();
+    while (iterator.hasNextKey()) {
+      String key = iterator.nextKey();
+      parsedMessageData.put(key, messageData.getString(key));
+    }
+    // attempt to parse message
+    if (Voice.handleMessage(
+      reactContext,
+      parsedMessageData,
+      new VoiceFirebaseMessagingService.MessageHandler(),
+      new CallMessageListenerProxy())) {
+      promise.resolve(true);
+    } else {
+      promise.resolve(false);
+    }
   }
 
   // CallInvite

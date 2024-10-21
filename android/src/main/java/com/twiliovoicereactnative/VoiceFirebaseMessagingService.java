@@ -20,8 +20,33 @@ import com.twilio.voice.Voice;
 import java.util.Objects;
 import java.util.UUID;
 
-public class VoiceFirebaseMessagingService extends FirebaseMessagingService implements MessageListener {
+public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
   private static final SDKLog logger = new SDKLog(VoiceFirebaseMessagingService.class);
+
+  public static class MessageHandler implements MessageListener  {
+    @Override
+    public void onCallInvite(@NonNull CallInvite callInvite) {
+      logger.log(String.format("onCallInvite %s", callInvite.getCallSid()));
+
+      final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
+
+      getCallRecordDatabase().add(callRecord);
+      getVoiceServiceApi().incomingCall(callRecord);
+    }
+
+    @Override
+    public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
+                                      @Nullable CallException callException) {
+      logger.log(String.format("onCancelledCallInvite %s", cancelledCallInvite.getCallSid()));
+
+      CallRecord callRecord = Objects.requireNonNull(
+        getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
+
+      callRecord.setCancelledCallInvite(cancelledCallInvite);
+      callRecord.setCallException(callException);
+      getVoiceServiceApi().cancelCall(callRecord);
+    }
+  }
 
   @Override
   public void onNewToken(@NonNull String token) {
@@ -50,29 +75,14 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService impl
 
     // Check if message contains a data payload.
     if (!remoteMessage.getData().isEmpty()) {
-      if (!Voice.handleMessage(this, remoteMessage.getData(), this, new CallMessageListenerProxy())) {
+      if (!Voice.handleMessage(
+        this,
+        remoteMessage.getData(),
+        new MessageHandler(),
+        new CallMessageListenerProxy())) {
         logger.error("The message was not a valid Twilio Voice SDK payload: " +
           remoteMessage.getData());
       }
     }
-  }
-
-  @Override
-  public void onCallInvite(@NonNull CallInvite callInvite) {
-    final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
-
-    getCallRecordDatabase().add(callRecord);
-    getVoiceServiceApi().incomingCall(callRecord);
-  }
-
-  @Override
-  public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
-                                    @Nullable CallException callException) {
-    CallRecord callRecord = Objects.requireNonNull(
-      getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
-
-    callRecord.setCancelledCallInvite(cancelledCallInvite);
-    callRecord.setCallException(callException);
-    getVoiceServiceApi().cancelCall(callRecord);
   }
 }
