@@ -35,7 +35,6 @@ public class VoiceApplicationProxy {
       voiceServiceApi = null;
     }
   };
-
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
     public VoiceReactNativeHost(Application application) {
       super(application);
@@ -56,7 +55,6 @@ public class VoiceApplicationProxy {
     instance = this;
     context = reactNativeHost.getAssociatedApplication();
   }
-
   public void onCreate() {
     logger.debug("onCreate(..) invoked");
     // construct JS event engine
@@ -73,7 +71,6 @@ public class VoiceApplicationProxy {
     mediaPlayerManager = new MediaPlayerManager(context);
     audioSwitchManager.start();
   }
-
   public void onTerminate() {
     logger.debug("onTerminate(..) invoked");
     // shutdown notificaiton channels
@@ -90,19 +87,15 @@ public class VoiceApplicationProxy {
     }
     callRecordDatabase.clear();
   }
-
   static CallRecordDatabase getCallRecordDatabase() {
     return VoiceApplicationProxy.instance.callRecordDatabase;
   }
-
   static AudioSwitchManager getAudioSwitchManager() {
     return VoiceApplicationProxy.instance.audioSwitchManager;
   }
-
   static MediaPlayerManager getMediaPlayerManager() {
     return VoiceApplicationProxy.instance.mediaPlayerManager;
   }
-
   static JSEventEmitter getJSEventEmitter() {
     return VoiceApplicationProxy.instance.jsEventEmitter;
   }
