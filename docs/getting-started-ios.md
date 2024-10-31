@@ -49,10 +49,11 @@ const token = getAccessToken(); // you will need to implement this method for yo
 const voice = new Voice();
 
 // Allow incoming calls
+await voice.initializePushRegistry(); // only necessary on ios
 await voice.register(token);
 
 // Handle incoming calls
-voice.on('callInvite', (callInvite) => {
+voice.on(Voice.Event.CallInvite, (callInvite) => {
   callInvite.accept();
 });
 

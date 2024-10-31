@@ -161,7 +161,7 @@ const voice = new Voice();
 await voice.register(token);
 
 // Handle incoming calls
-voice.on('callInvite', (callInvite) => {
+voice.on(Voice.Event.CallInvite, (callInvite) => {
   callInvite.accept();
 });
 
