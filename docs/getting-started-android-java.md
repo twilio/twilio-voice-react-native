@@ -1,5 +1,4 @@
-# Getting started with the Twilio Voice React Native SDK
-
+# Getting Started on Android
 Please check out the following if you are new to Twilio's Programmable Voice or React Native.
 
 - [Programmable Voice](https://www.twilio.com/docs/voice/sdks)
@@ -13,7 +12,7 @@ To get started on Android, you will need a Firebase project and a `google-servic
 For more information on Firebase and Push Credentials, please see the Twilio Programmable Voice Android Quickstart:
 https://github.com/twilio/voice-quickstart-android#quickstart
 
-### Native Code
+### Native Code (Java)
 The native Android layer of the SDK exposes several helper classes that will need to be invoked in your existing native Android code.
 
 Please reference this folder for our implementation:
@@ -37,16 +36,16 @@ public class MainActivity extends ReactActivity {
           Toast.LENGTH_LONG).show();
       } else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) &&
         Manifest.permission.BLUETOOTH_CONNECT.equals(permission)) {
-          Toast.makeText(
-            MainActivity.this,
-            "Bluetooth permissions needed. Please allow in your application settings.",
-            Toast.LENGTH_LONG).show();
+        Toast.makeText(
+          MainActivity.this,
+          "Bluetooth permissions needed. Please allow in your application settings.",
+          Toast.LENGTH_LONG).show();
       } else if ((Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) &&
         Manifest.permission.POST_NOTIFICATIONS.equals(permission)) {
-          Toast.makeText(
-            MainActivity.this,
-            "Notification permissions needed. Please allow in your application settings.",
-            Toast.LENGTH_LONG).show();
+        Toast.makeText(
+          MainActivity.this,
+          "Notification permissions needed. Please allow in your application settings.",
+          Toast.LENGTH_LONG).show();
       }
     });
 
@@ -97,7 +96,6 @@ Then you can construct the `VoiceApplicationProxy` and the `MainReactNativeHost`
 ```java
 public class MainApplication extends Application implements ReactApplication {
   private final VoiceApplicationProxy voiceApplicationProxy;
-
   private final MainReactNativeHost mReactNativeHost;
 
   public MainApplication() {
@@ -133,9 +131,6 @@ public class MainApplication extends Application implements ReactApplication {
     voiceApplicationProxy.onTerminate();
     super.onTerminate();
   }
-
-  // Excluded for brevity
-  ...
 }
 ```
 
@@ -143,21 +138,34 @@ The following lifecycle methods need to be hooked:
   - `onCreate`
   - `onTerminate`
 
-## iOS
-Please note that the Twilio Voice React Native SDK is tightly integrated with the iOS CallKit framework. This provides the best call and audio experience, and requires the application to be run on a physical device. The SDK will not work on an iOS simulator.
+## Wrapping Up
+Once the above native code has been implemented in your application, the Twilio Voice React Native SDK is ready for usage on Android platforms.
 
-Firstly, create a Bundle Identifier (Bundle ID) through the Apple Developer Portal. Then, create a Provisioning Profile for that Bundle ID and add physical devices to that profile. Those devices will also need to be registered to the developer account.
+### Access Tokens
+An Access Token is required to make outgoing calls or receive incoming calls. Please check out this [page](https://www.twilio.com/docs/iam/access-tokens#create-an-access-token-for-voice) for more details on creating Access Tokens.
 
-For incoming call push notifications, create a VoIP certificate through the Apple Developer Portal. Then, use the VoIP certificate to create a Push Credential in the Twilio Console. This Push Credential will be used as part of vending access tokens, and will enable a device to receive incoming calls.
+For more details on access tokens, please see the [iOS](https://github.com/twilio/voice-quickstart-ios) and [Android](https://github.com/twilio/voice-quickstart-android) quickstart for examples.
 
-For more information on Apple Push Notification Service, please see the Twilio Programmable Voice iOS Quickstart:
-https://github.com/twilio/voice-quickstart-ios
+### Usage
+The following example demonstrates how to make and receive calls. You will need to implement your own `getAccessToken()` method.
 
-### Capabilities
-In Xcode, your application will need to define the following capabilities in order to make outgoing calls and receive incoming calls.
+For more information on the Voice React Native SDK API, refer to the [API Docs](https://github.com/twilio/twilio-voice-react-native/blob/latest/docs/api/voice-react-native-sdk.md) or see our [Reference App](https://github.com/twilio/twilio-voice-react-native-app).
 
-- Background Modes
-  - Audio, AirPlay, and Picture in Picture
-  - Voice over IP
+```ts
+import { Voice } from '@twilio/voice-react-native-sdk';
 
-- Push Notifications
+const token = getAccessToken(); // you will need to implement this method for your use case
+
+const voice = new Voice();
+
+// Allow incoming calls
+await voice.register(token);
+
+// Handle incoming calls
+voice.on(Voice.Event.CallInvite, (callInvite) => {
+  callInvite.accept();
+});
+
+// Make an outgoing call
+const call = await voice.connect(token, params);
+```
