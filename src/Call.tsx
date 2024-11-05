@@ -16,6 +16,7 @@ import type {
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
+import { InvalidArgumentError } from './error/InvalidArgumentError';
 import { constructTwilioError } from './error/utility';
 import { CallMessage, validateCallMessage } from './CallMessage/CallMessage';
 import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
@@ -935,7 +936,19 @@ export class Call extends EventEmitter {
    *    - Resolves when the feedback has been posted.
    *    - Rejects when the feedback is unable to be sent.
    */
-  postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
+  async postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
+    if (!Object.values(Call.Score).includes(score)) {
+      throw new InvalidArgumentError(
+        '"score" parameter invalid. Must be a member of the `Call.Score` enum.'
+      );
+    }
+
+    if (!Object.values(Call.Issue).includes(issue)) {
+      throw new InvalidArgumentError(
+        '"issue" parameter invalid. Must be a member of the `Call.Issue` enum.'
+      );
+    }
+
     return NativeModule.call_postFeedback(this._uuid, score, issue);
   }
 }
@@ -1119,27 +1132,27 @@ export namespace Call {
     /**
      * An issue was not encountered or there is no desire to report said issue.
      */
-    NotReported = 0,
+    NotReported = Constants.CallFeedbackScoreNotReported,
     /**
      * An issue had severity approximately 1/5.
      */
-    One = 1,
+    One = Constants.CallFeedbackScoreOne,
     /**
      * An issue had severity approximately 2/5.
      */
-    Two = 2,
+    Two = Constants.CallFeedbackScoreTwo,
     /**
      * An issue had severity approximately 3/5.
      */
-    Three = 3,
+    Three = Constants.CallFeedbackScoreThree,
     /**
      * An issue had severity approximately 4/5.
      */
-    Four = 4,
+    Four = Constants.CallFeedbackScoreFour,
     /**
      * An issue had severity approximately 5/5.
      */
-    Five = 5,
+    Five = Constants.CallFeedbackScoreFive,
   }
 
   /**
@@ -1149,31 +1162,31 @@ export namespace Call {
     /**
      * No issue is reported.
      */
-    NotReported = 'not-reported',
+    NotReported = Constants.CallFeedbackIssueNotReported,
     /**
      * The call was dropped unexpectedly.
      */
-    DroppedCall = 'dropped-call',
+    DroppedCall = Constants.CallFeedbackIssueDroppedCall,
     /**
      * The call encountered significant audio latency.
      */
-    AudioLatency = 'audio-latency',
+    AudioLatency = Constants.CallFeedbackIssueAudioLatency,
     /**
      * One party of the call could not hear the other callee.
      */
-    OneWayAudio = 'one-way-audio',
+    OneWayAudio = Constants.CallFeedbackIssueOneWayAudio,
     /**
      * Call audio was choppy.
      */
-    ChoppyAudio = 'choppy-audio',
+    ChoppyAudio = Constants.CallFeedbackIssueChoppyAudio,
     /**
      * Call audio had significant noise.
      */
-    NoisyCall = 'noisy-call',
+    NoisyCall = Constants.CallFeedbackIssueNoisyCall,
     /**
      * Call audio had significant echo.
      */
-    Echo = 'echo',
+    Echo = Constants.CallFeedbackIssueEcho,
   }
 
   /**
