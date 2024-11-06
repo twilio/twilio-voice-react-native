@@ -545,7 +545,13 @@ describe('Call class', () => {
         await new Call(createNativeCallInfo()).postFeedback(score, issue);
         expect(
           jest.mocked(MockNativeModule.call_postFeedback).mock.calls
-        ).toEqual([['mock-nativecallinfo-uuid', score, issue]]);
+        ).toEqual([
+          [
+            'mock-nativecallinfo-uuid',
+            Constants.CallFeedbackScoreThree,
+            Constants.CallFeedbackIssueAudioLatency,
+          ],
+        ]);
       });
 
       it('rejects when passing an invalid score', async () => {
