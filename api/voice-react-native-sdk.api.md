@@ -231,18 +231,14 @@ export namespace Call {
         'Ringing' = "ringing"
     }
     export enum Issue {
-        AudioLatency = "callFeedbackIssueAudioLatency",
-        ChoppyAudio = "callFeedbackIssueChoppyAudio",
-        DroppedCall = "callFeedbackIssueDroppedCall",
-        Echo = "callFeedbackIssueEcho",
-        NoisyCall = "callFeedbackIssueNoisyCall",
-        NotReported = "callFeedbackIssueNotReported",
-        OneWayAudio = "callFeedbackIssueOneWayAudio"
+        'AudioLatency' = "audio-latency",
+        'ChoppyAudio' = "choppy-audio",
+        'DroppedCall' = "dropped-call",
+        'Echo' = "echo",
+        'NoisyCall' = "noisy-call",
+        'NotReported' = "not-reported",
+        'OneWayAudio' = "one-way-audio"
     }
-    const // Warning: (ae-forgotten-export) The symbol "NativeCallEventType" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    EventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>>;
     export namespace Listener {
         export type Connected = () => void;
         export type ConnectFailure = (error: TwilioError) => void;
@@ -255,19 +251,19 @@ export namespace Call {
         export type Ringing = () => void;
     }
     export enum QualityWarning {
-        ConstantAudioInputLevel = "constant-audio-input-level",
-        HighJitter = "high-jitter",
-        HighPacketLoss = "high-packet-loss",
-        HighRtt = "high-rtt",
-        LowMos = "low-mos"
+        'ConstantAudioInputLevel' = "constant-audio-input-level",
+        'HighJitter' = "high-jitter",
+        'HighPacketLoss' = "high-packet-loss",
+        'HighRtt' = "high-rtt",
+        'LowMos' = "low-mos"
     }
     export enum Score {
-        Five = "callFeedbackScoreFive",
-        Four = "callFeedbackScoreFour",
-        NotReported = "callFeedbackScoreNotReported",
-        One = "callFeedbackScoreOne",
-        Three = "callFeedbackScoreThree",
-        Two = "callFeedbackScoreTwo"
+        'Five' = "five",
+        'Four' = "four",
+        'NotReported' = "not-reported",
+        'One' = "one",
+        'Three' = "three",
+        'Two' = "two"
     }
     export enum State {
         'Connected' = "connected",

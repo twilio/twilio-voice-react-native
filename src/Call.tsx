@@ -13,6 +13,8 @@ import type {
   NativeCallEvent,
   NativeCallEventType,
   NativeCallInfo,
+  NativeCallFeedbackIssue,
+  NativeCallFeedbackScore,
 } from './type/Call';
 import type { CustomParameters, Uuid } from './type/common';
 import type { TwilioError } from './error/TwilioError';
@@ -507,7 +509,7 @@ export class Call extends EventEmitter {
     type,
     call: { from, initialConnectedTimestamp, sid, to },
   }: NativeCallEvent) {
-    const newState = Call.EventTypeStateMap[type];
+    const newState = eventTypeStateMap[type];
     if (typeof newState === 'string') {
       this._state = newState;
     }
@@ -949,7 +951,10 @@ export class Call extends EventEmitter {
       );
     }
 
-    return NativeModule.call_postFeedback(this._uuid, score, issue);
+    const nativeScore = scoreMap[score];
+    const nativeIssue = issueMap[issue];
+
+    return NativeModule.call_postFeedback(this._uuid, nativeScore, nativeIssue);
   }
 }
 
@@ -1076,52 +1081,29 @@ export namespace Call {
   }
 
   /**
-   * Mapping of {@link (Call:namespace).Event | Call events} to
-   * {@link (Call:namespace).State | Call states}.
-   *
-   * @remarks
-   * Note that this mapping is not a 1:1 bijection. Not every event coming from
-   * the native layer has a relevant state, and some events share a state.
-   * Therefore, this `Record` needs to be marked as `Partial` and
-   * undefined-checking logic is needed when using this mapping.
-   *
-   * @internal
-   */
-  export const EventTypeStateMap: Partial<
-    Record<NativeCallEventType, Call.State>
-  > = {
-    [Constants.CallEventConnected]: Call.State.Connected,
-    [Constants.CallEventConnectFailure]: Call.State.Disconnected,
-    [Constants.CallEventDisconnected]: Call.State.Disconnected,
-    [Constants.CallEventReconnecting]: Call.State.Reconnecting,
-    [Constants.CallEventReconnected]: Call.State.Connected,
-    [Constants.CallEventRinging]: Call.State.Ringing,
-  };
-
-  /**
    * An enumeration of all call quality-warning types.
    */
   export enum QualityWarning {
     /**
      * Raised when the call detects constant audio input, such as silence.
      */
-    ConstantAudioInputLevel = 'constant-audio-input-level',
+    'ConstantAudioInputLevel' = 'constant-audio-input-level',
     /**
      * Raised when the network encounters high jitter.
      */
-    HighJitter = 'high-jitter',
+    'HighJitter' = 'high-jitter',
     /**
      * Raised when the network encounters high packet loss.
      */
-    HighPacketLoss = 'high-packet-loss',
+    'HighPacketLoss' = 'high-packet-loss',
     /**
      * Raised when the network encounters high packet round-trip-time.
      */
-    HighRtt = 'high-rtt',
+    'HighRtt' = 'high-rtt',
     /**
      * Raised when the call detects a low mean-opinion-score or MOS.
      */
-    LowMos = 'low-mos',
+    'LowMos' = 'low-mos',
   }
 
   /**
@@ -1132,27 +1114,27 @@ export namespace Call {
     /**
      * An issue was not encountered or there is no desire to report said issue.
      */
-    NotReported = Constants.CallFeedbackScoreNotReported,
+    'NotReported' = 'not-reported',
     /**
      * An issue had severity approximately 1/5.
      */
-    One = Constants.CallFeedbackScoreOne,
+    'One' = 'one',
     /**
      * An issue had severity approximately 2/5.
      */
-    Two = Constants.CallFeedbackScoreTwo,
+    'Two' = 'two',
     /**
      * An issue had severity approximately 3/5.
      */
-    Three = Constants.CallFeedbackScoreThree,
+    'Three' = 'three',
     /**
      * An issue had severity approximately 4/5.
      */
-    Four = Constants.CallFeedbackScoreFour,
+    'Four' = 'four',
     /**
      * An issue had severity approximately 5/5.
      */
-    Five = Constants.CallFeedbackScoreFive,
+    'Five' = 'five',
   }
 
   /**
@@ -1162,31 +1144,31 @@ export namespace Call {
     /**
      * No issue is reported.
      */
-    NotReported = Constants.CallFeedbackIssueNotReported,
+    'NotReported' = 'not-reported',
     /**
      * The call was dropped unexpectedly.
      */
-    DroppedCall = Constants.CallFeedbackIssueDroppedCall,
+    'DroppedCall' = 'dropped-call',
     /**
      * The call encountered significant audio latency.
      */
-    AudioLatency = Constants.CallFeedbackIssueAudioLatency,
+    'AudioLatency' = 'audio-latency',
     /**
      * One party of the call could not hear the other callee.
      */
-    OneWayAudio = Constants.CallFeedbackIssueOneWayAudio,
+    'OneWayAudio' = 'one-way-audio',
     /**
      * Call audio was choppy.
      */
-    ChoppyAudio = Constants.CallFeedbackIssueChoppyAudio,
+    'ChoppyAudio' = 'choppy-audio',
     /**
      * Call audio had significant noise.
      */
-    NoisyCall = Constants.CallFeedbackIssueNoisyCall,
+    'NoisyCall' = 'noisy-call',
     /**
      * Call audio had significant echo.
      */
-    Echo = Constants.CallFeedbackIssueEcho,
+    'Echo' = 'echo',
   }
 
   /**
@@ -1293,3 +1275,55 @@ export namespace Call {
     export type Generic = (...args: any[]) => void;
   }
 }
+
+/**
+ * Mapping of {@link (Call:namespace).Event | Call events} to
+ * {@link (Call:namespace).State | Call states}.
+ *
+ * @remarks
+ * Note that this mapping is not a 1:1 bijection. Not every event coming from
+ * the native layer has a relevant state, and some events share a state.
+ * Therefore, this `Record` needs to be marked as `Partial` and
+ * undefined-checking logic is needed when using this mapping.
+ *
+ * @internal
+ */
+const eventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>> = {
+  [Constants.CallEventConnected]: Call.State.Connected,
+  [Constants.CallEventConnectFailure]: Call.State.Disconnected,
+  [Constants.CallEventDisconnected]: Call.State.Disconnected,
+  [Constants.CallEventReconnecting]: Call.State.Reconnecting,
+  [Constants.CallEventReconnected]: Call.State.Connected,
+  [Constants.CallEventRinging]: Call.State.Ringing,
+};
+
+/**
+ * Mapping of the {@link (Call:namespace).Score | Call score} enum to
+ * cross-platform common constants.
+ *
+ * @internal
+ */
+const scoreMap: Record<Call.Score, NativeCallFeedbackScore> = {
+  [Call.Score.NotReported]: Constants.CallFeedbackScoreNotReported,
+  [Call.Score.One]: Constants.CallFeedbackScoreOne,
+  [Call.Score.Two]: Constants.CallFeedbackScoreTwo,
+  [Call.Score.Three]: Constants.CallFeedbackScoreThree,
+  [Call.Score.Four]: Constants.CallFeedbackScoreFour,
+  [Call.Score.Five]: Constants.CallFeedbackScoreFive,
+};
+
+/**
+ * Mapping of the {@link (Call:namespace).Issue | Call issue} enum to
+ * cross-platform common constants.
+ *
+ * @internal
+ */
+const issueMap: Record<Call.Issue, NativeCallFeedbackIssue> = {
+  [Call.Issue.AudioLatency]: Constants.CallFeedbackIssueAudioLatency,
+  [Call.Issue.ChoppyAudio]: Constants.CallFeedbackIssueChoppyAudio,
+  [Call.Issue.DroppedCall]: Constants.CallFeedbackIssueDroppedCall,
+  [Call.Issue.Echo]: Constants.CallFeedbackIssueEcho,
+  [Call.Issue.NoisyCall]: Constants.CallFeedbackIssueNoisyCall,
+  [Call.Issue.NotReported]: Constants.CallFeedbackIssueNotReported,
+  [Call.Issue.OneWayAudio]: Constants.CallFeedbackIssueOneWayAudio,
+};

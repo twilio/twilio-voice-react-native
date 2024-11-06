@@ -751,11 +751,6 @@ describe('Call namespace', () => {
       expect(typeof Call.State).toBe('object');
     });
 
-    it('EventTypeStateMap', () => {
-      expect(Call.EventTypeStateMap).toBeDefined();
-      expect(typeof Call.EventTypeStateMap).toBe('object');
-    });
-
     it('QualityWarning', () => {
       expect(Call.QualityWarning).toBeDefined();
       expect(typeof Call.QualityWarning).toBe('object');
