@@ -54,9 +54,36 @@ import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 @ReactModule(name = TwilioVoiceReactNativeModule.TAG)
 public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   static final String TAG = "TwilioVoiceReactNative";
+
   private static final SDKLog logger = new SDKLog(TwilioVoiceReactNativeModule.class);
   private static final String GLOBAL_ENV = "com.twilio.voice.env";
   private static final String SDK_VERSION = "com.twilio.voice.env.sdk.version";
+
+  /**
+   * Map of common constant score strings to the Call.Score enum.
+   */
+  private static final Map<String, Call.Score> scoreMap = Map.of(
+    CommonConstants.CallFeedbackScoreNotReported, Call.Score.NOT_REPORTED,
+    CommonConstants.CallFeedbackScoreOne, Call.Score.ONE,
+    CommonConstants.CallFeedbackScoreTwo, Call.Score.TWO,
+    CommonConstants.CallFeedbackScoreThree, Call.Score.THREE,
+    CommonConstants.CallFeedbackScoreFour, Call.Score.FOUR,
+    CommonConstants.CallFeedbackScoreFive, Call.Score.FIVE
+  );
+
+  /**
+   * Map of common constant issue strings to the Call.Issue enum.
+   */
+  private static final Map<String, Call.Issue> issueMap = Map.of(
+    CommonConstants.CallFeedbackIssueAudioLatency, Call.Issue.AUDIO_LATENCY,
+    CommonConstants.CallFeedbackIssueChoppyAudio, Call.Issue.CHOPPY_AUDIO,
+    CommonConstants.CallFeedbackIssueEcho, Call.Issue.ECHO,
+    CommonConstants.CallFeedbackIssueDroppedCall, Call.Issue.DROPPED_CALL,
+    CommonConstants.CallFeedbackIssueNoisyCall, Call.Issue.NOISY_CALL,
+    CommonConstants.CallFeedbackIssueNotReported, Call.Issue.NOT_REPORTED,
+    CommonConstants.CallFeedbackIssueOneWayAudio, Call.Issue.ONE_WAY_AUDIO
+  );
+
   private final ReactApplicationContext reactContext;
   private final AudioSwitchManager audioSwitchManager;
 
@@ -542,41 +569,16 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   /**
-   * Map of common constant score strings to the Call.Score enum.
-   */
-  private final Map<String, Call.Score> scoreMap = Map.of(
-    CommonConstants.CallFeedbackScoreNotReported, Call.Score.NOT_REPORTED,
-    CommonConstants.CallFeedbackScoreOne, Call.Score.ONE,
-    CommonConstants.CallFeedbackScoreTwo, Call.Score.TWO,
-    CommonConstants.CallFeedbackScoreThree, Call.Score.THREE,
-    CommonConstants.CallFeedbackScoreFour, Call.Score.FOUR,
-    CommonConstants.CallFeedbackScoreFive, Call.Score.FIVE
-  );
-
-  /**
    * Use the score map to get a Call.Score value from a string.
    * @param score The score as a string passed from the JS layer.
    * @return a Call.Score enum value. If the passed string is not in the enum, defaults to
    * Call.Score.NOT_REPORTED.
    */
-  Call.Score getScoreFromString(String score) {
+  private static Call.Score getScoreFromString(String score) {
     return scoreMap.containsKey(score)
       ? scoreMap.get(score)
       : Call.Score.NOT_REPORTED;
   }
-
-  /**
-   * Map of common constant issue strings to the Call.Issue enum.
-   */
-  private final Map<String, Call.Issue> issueMap = Map.of(
-    CommonConstants.CallFeedbackIssueAudioLatency, Call.Issue.AUDIO_LATENCY,
-    CommonConstants.CallFeedbackIssueChoppyAudio, Call.Issue.CHOPPY_AUDIO,
-    CommonConstants.CallFeedbackIssueEcho, Call.Issue.ECHO,
-    CommonConstants.CallFeedbackIssueDroppedCall, Call.Issue.DROPPED_CALL,
-    CommonConstants.CallFeedbackIssueNoisyCall, Call.Issue.NOISY_CALL,
-    CommonConstants.CallFeedbackIssueNotReported, Call.Issue.NOT_REPORTED,
-    CommonConstants.CallFeedbackIssueOneWayAudio, Call.Issue.ONE_WAY_AUDIO
-  );
 
   /**
    * Use the issue map to get a Call.Issue value from a string.
@@ -584,7 +586,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
    * @return a Call.Issue enum value. If the passed string is not in the enum, defaults to
    * Call.Issue.NOT_REPORTED.
    */
-  Call.Issue getIssueFromString(String issue) {
+  private static Call.Issue getIssueFromString(String issue) {
     return issueMap.containsKey(issue)
       ? issueMap.get(issue)
       : Call.Issue.NOT_REPORTED;
