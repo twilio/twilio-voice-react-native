@@ -997,20 +997,20 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
 }
 
 - (TVOCallFeedbackScore)scoreFromString:(NSString *)score {
-  if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreNotReported]) {
+    if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreNotReported]) {
+        return TVOCallFeedbackScoreNotReported;
+    } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreOne]) {
+        return TVOCallFeedbackScoreOnePoint;
+    } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreTwo]) {
+        return TVOCallFeedbackScoreTwoPoints;
+    } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreThree]) {
+        return TVOCallFeedbackScoreThreePoints;
+    } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreFour]) {
+        return TVOCallFeedbackScoreFourPoints;
+    } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreFive]) {
+        return TVOCallFeedbackScoreFivePoints;
+    }
     return TVOCallFeedbackScoreNotReported;
-  } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreOne]) {
-    return TVOCallFeedbackScoreOnePoint;
-  } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreTwo]) {
-    return TVOCallFeedbackScoreTwoPoints;
-  } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreThree]) {
-    return TVOCallFeedbackScoreThreePoints;
-  } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreFour]) {
-    return TVOCallFeedbackScoreFourPoints;
-  } else if ([score isEqualToString:kTwilioVoiceReactNativeCallFeedbackScoreFive]) {
-    return TVOCallFeedbackScoreFivePoints;
-  }
-  return TVOCallFeedbackScoreNotReported;
 }
 
 - (TVOCallFeedbackIssue)issueFromString:(NSString *)issue {
