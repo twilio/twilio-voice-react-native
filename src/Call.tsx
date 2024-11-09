@@ -1114,27 +1114,27 @@ export namespace Call {
     /**
      * An issue was not encountered or there is no desire to report said issue.
      */
-    'NotReported' = 'not-reported',
+    'NotReported' = 0,
     /**
      * An issue had severity approximately 1/5.
      */
-    'One' = 'one',
+    'One' = 1,
     /**
      * An issue had severity approximately 2/5.
      */
-    'Two' = 'two',
+    'Two' = 2,
     /**
      * An issue had severity approximately 3/5.
      */
-    'Three' = 'three',
+    'Three' = 3,
     /**
      * An issue had severity approximately 4/5.
      */
-    'Four' = 'four',
+    'Four' = 4,
     /**
      * An issue had severity approximately 5/5.
      */
-    'Five' = 'five',
+    'Five' = 5,
   }
 
   /**

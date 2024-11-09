@@ -258,12 +258,12 @@ export namespace Call {
         'LowMos' = "low-mos"
     }
     export enum Score {
-        'Five' = "five",
-        'Four' = "four",
-        'NotReported' = "not-reported",
-        'One' = "one",
-        'Three' = "three",
-        'Two' = "two"
+        'Five' = 5,
+        'Four' = 4,
+        'NotReported' = 0,
+        'One' = 1,
+        'Three' = 3,
+        'Two' = 2
     }
     export enum State {
         'Connected' = "connected",
