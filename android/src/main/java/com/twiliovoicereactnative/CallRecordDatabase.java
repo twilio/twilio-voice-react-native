@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 
@@ -33,6 +34,7 @@ class CallRecordDatabase  {
     private Promise callAcceptedPromise = null;
     private Promise callRejectedPromise = null;
     private CallException callException = null;
+    private Map<String, String> customParameters = null;
     public CallRecord(final UUID uuid) {
       this.uuid = uuid;
     }
@@ -46,11 +48,12 @@ class CallRecordDatabase  {
       this.callInvite = callInvite;
       this.callInviteState = ACTIVE;
     }
-    public CallRecord(final UUID uuid, final Call call, final String recipient) {
+    public CallRecord(final UUID uuid, final Call call, final String recipient, final Map<String, String> customParameters) {
       this.uuid = uuid;
       this.callSid = call.getSid();
       this.voiceCall = call;
       this.callRecipient = recipient;
+      this.customParameters = customParameters;
     }
     public final UUID getUuid() {
       return uuid;
@@ -66,6 +69,9 @@ class CallRecordDatabase  {
     }
     public Call getVoiceCall() {
       return this.voiceCall;
+    }
+    public final Map<String, String> getCustomParameters() {
+      return this.customParameters;
     }
     public CallInvite getCallInvite() {
       return this.callInvite;

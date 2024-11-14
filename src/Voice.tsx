@@ -738,7 +738,68 @@ export class Voice extends EventEmitter {
         );
     }
   }
+
+  /**
+   *
+   */
+  async setCallNotificationTitleTemplate(
+    templates: CallNotificationTitleTemplates
+  ): Promise<void> {
+    if (Platform.OS === 'android') {
+      if (typeof templates.android === 'undefined') {
+        return;
+      }
+
+      const { incoming, outgoing, answered } = templates.android;
+
+      if (incoming) {
+        await NativeModule.voice_setIncomingCallNotificationTitleTemplate_android(
+          incoming
+        );
+      }
+
+      if (outgoing) {
+        await NativeModule.voice_setOutgoingCallNotificationTitleTemplate_android(
+          outgoing
+        );
+      }
+
+      if (answered) {
+        await NativeModule.voice_setAnsweredCallNotificationTitleTemplate_android(
+          answered
+        );
+      }
+    }
+
+    if (Platform.OS === 'ios') {
+      if (typeof templates.ios === 'undefined') {
+        return;
+      }
+
+      const { incoming, outgoing } = templates.ios;
+
+      if (incoming) {
+        await NativeModule.voice_setIncomingCallerHandleTemplate_ios(incoming);
+      }
+
+      if (outgoing) {
+        await NativeModule.voice_setOutgoingCallerHandleTemplate_ios(outgoing);
+      }
+    }
+  }
 }
+
+type CallNotificationTitleTemplates = {
+  android?: {
+    incoming?: string;
+    outgoing?: string;
+    answered?: string;
+  };
+  ios?: {
+    incoming?: string;
+    outgoing?: string;
+  };
+};
 
 /**
  * Provides enumerations and types used by {@link (Voice:class)

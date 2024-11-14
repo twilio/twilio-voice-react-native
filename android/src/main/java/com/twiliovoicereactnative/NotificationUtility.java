@@ -1,8 +1,12 @@
 package com.twiliovoicereactnative;
 
 import java.security.SecureRandom;
+
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -31,24 +35,31 @@ import static com.twiliovoicereactnative.VoiceService.constructMessage;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 class NotificationUtility {
+  private static final SDKLog logger = new SDKLog(NotificationUtility.class);
+
   private static final SecureRandom secureRandom = new SecureRandom();
+
   private static class NotificationResource {
     private final Context ctx;
     private final String smallIconId;
     private final String contentTextId;
+
     public NotificationResource(Context context, String smallIconId, String contentTextId) {
       ctx = context;
       this.smallIconId = smallIconId;
       this.contentTextId = contentTextId;
     }
+
     int getSmallIconId() {
       return getDrawableResourceId(smallIconId);
     }
+
     public String getContent(CallInvite callInvite) {
       final String from = (null != callInvite) ? getDisplayName(callInvite) : "";
       return ctx.getString(getTextResourceId(contentTextId))
         .replaceAll("\\$\\{from\\}", from);
     }
+
     public String getContent(String to) {
       return ctx.getString(getTextResourceId(contentTextId))
         .replaceAll("\\$\\{to\\}", to);
@@ -58,10 +69,12 @@ class NotificationUtility {
     private int getDrawableResourceId(String id) {
       return ctx.getResources().getIdentifier(id, "drawable", ctx.getPackageName());
     }
+
     @SuppressLint("DiscouragedApi")
     private int getTextResourceId(String id) {
       return ctx.getResources().getIdentifier(id, "string", ctx.getPackageName());
     }
+
     private static String getDisplayName(@NonNull CallInvite callInvite) {
       final String title = callInvite.getFrom();
       if (title.startsWith("client:")) {
@@ -75,6 +88,41 @@ class NotificationUtility {
     return (secureRandom.nextInt() & 0x7FFFFFFF) + 1; // prevent 0 as an id
   }
 
+  public static String templateDisplayName(final String template, final Map<String, String> twimlParams) {
+    logger.debug(String.format("templateDisplayName: %s %s", template, twimlParams.toString()));
+
+    HashMap<String, String> replacements = new HashMap<>();
+
+    Pattern replacementTargetPattern = Pattern.compile("\\$\\{(.*?)\\}");
+    Matcher replacementTargetMatcher = replacementTargetPattern.matcher(template);
+
+    while (replacementTargetMatcher.find()) {
+      if (replacementTargetMatcher.groupCount() == 0) {
+        continue;
+      }
+
+      final String paramKey = replacementTargetMatcher.group(1);
+      if (!twimlParams.containsKey(paramKey)) {
+        continue;
+      }
+
+      final String paramValue = twimlParams.get(paramKey);
+
+      replacements.put(String.format("\\$\\{%s\\}", paramKey), paramValue);
+    }
+
+    logger.debug(String.format("replacements: %s", replacements));
+
+    String processedTemplate = template;
+    for (Map.Entry<String, String> e : replacements.entrySet()) {
+      processedTemplate = processedTemplate.replaceAll(e.getKey(), e.getValue());
+    }
+
+    logger.debug(String.format("processed template: %s", processedTemplate));
+
+    return processedTemplate;
+  }
+
   public static Notification createIncomingCallNotification(@NonNull Context context,
                                                             @NonNull final CallRecord callRecord,
                                                             @NonNull final String channelImportance) {
@@ -83,8 +131,15 @@ class NotificationUtility {
       "incoming_call_small_icon",
       "incoming_call_caller_name_text");
 
+    final String notificationTemplate = ConfigurationProperties.getIncomingNotificationTemplate();
+
+    final String notificationTitle = notificationTemplate == null
+      ? notificationResource.getContent(callRecord.getCallInvite())
+      : templateDisplayName(notificationTemplate, callRecord.getCallInvite().getCustomParameters());
+
+
     final Person incomingCaller = new Person.Builder()
-      .setName(notificationResource.getContent(callRecord.getCallInvite()))
+      .setName(notificationTitle)
       .build();
 
     Intent foregroundIntent = constructMessage(
@@ -127,8 +182,14 @@ class NotificationUtility {
       "answered_call_small_icon",
       "answered_call_caller_name_text");
 
+    final String notificationTemplate = ConfigurationProperties.getAnsweredNotificationTemplate();
+
+    final String notificationTitle = notificationTemplate == null
+      ? notificationResource.getContent(callRecord.getCallInvite())
+      : templateDisplayName(notificationTemplate, callRecord.getCallInvite().getCustomParameters());
+
     final Person activeCaller = new Person.Builder()
-      .setName(notificationResource.getContent(callRecord.getCallInvite()))
+      .setName(notificationTitle)
       .build();
 
     Intent foregroundIntent = constructMessage(
@@ -164,8 +225,14 @@ class NotificationUtility {
       "outgoing_call_small_icon",
       "outgoing_call_caller_name_text");
 
+    final String notificationTemplate = ConfigurationProperties.getOutgoingNotificationTemplate();
+
+    final String notificationTitle = notificationTemplate == null
+      ? notificationResource.getContent(callRecord.getCallRecipient())
+      : templateDisplayName(notificationTemplate, callRecord.getCustomParameters());
+
     final Person activeCaller = new Person.Builder()
-      .setName(notificationResource.getContent(callRecord.getCallRecipient()))
+      .setName(notificationTitle)
       .build();
 
     Intent foregroundIntent = constructMessage(
