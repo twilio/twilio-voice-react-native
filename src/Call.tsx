@@ -939,7 +939,7 @@ export class Call extends EventEmitter {
    *    - Rejects when the feedback is unable to be sent.
    */
   async postFeedback(score: Call.Score, issue: Call.Issue): Promise<void> {
-    if (!Object.values(Call.Score).includes(score)) {
+    if (!validScores.includes(score)) {
       throw new InvalidArgumentError(
         '"score" parameter invalid. Must be a member of the `Call.Score` enum.'
       );
@@ -1296,6 +1296,20 @@ const eventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>> = {
   [Constants.CallEventReconnected]: Call.State.Connected,
   [Constants.CallEventRinging]: Call.State.Ringing,
 };
+
+/**
+ * Array of valid call scores.
+ *
+ * @internal
+ */
+const validScores = [
+  Call.Score.NotReported,
+  Call.Score.One,
+  Call.Score.Two,
+  Call.Score.Three,
+  Call.Score.Four,
+  Call.Score.Five,
+];
 
 /**
  * Mapping of the {@link (Call:namespace).Score | Call score} enum to
