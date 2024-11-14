@@ -83,3 +83,20 @@ export type NativeCallEventType =
   | Constants.CallEventReconnecting
   | Constants.CallEventRinging
   | Constants.CallEventMessageReceived;
+
+export type NativeCallFeedbackIssue =
+  | Constants.CallFeedbackIssueAudioLatency
+  | Constants.CallFeedbackIssueChoppyAudio
+  | Constants.CallFeedbackIssueDroppedCall
+  | Constants.CallFeedbackIssueEcho
+  | Constants.CallFeedbackIssueNoisyCall
+  | Constants.CallFeedbackIssueNotReported
+  | Constants.CallFeedbackIssueOneWayAudio;
+
+export type NativeCallFeedbackScore =
+  | Constants.CallFeedbackScoreNotReported
+  | Constants.CallFeedbackScoreOne
+  | Constants.CallFeedbackScoreTwo
+  | Constants.CallFeedbackScoreThree
+  | Constants.CallFeedbackScoreFour
+  | Constants.CallFeedbackScoreFive;
