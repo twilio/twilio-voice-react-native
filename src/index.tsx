@@ -10,7 +10,11 @@
  * @packageDocumentation
  */
 
-export { Voice } from './Voice';
+export {
+  Voice,
+  CallNotificationTitleTemplates,
+  CallRemoteHandleTemplates,
+} from './Voice';
 
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';

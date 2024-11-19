@@ -78,8 +78,12 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_setAnsweredCallNotificationTitleTemplate_android(
     template: string
   ): Promise<void>;
-  voice_setIncomingCallerHandleTemplate_ios(template: string): Promise<void>;
-  voice_setOutgoingCallerHandleTemplate_ios(template: string): Promise<void>;
+  voice_setIncomingCallRemoteHandleTemplate_ios(
+    template: string
+  ): Promise<void>;
+  voice_setOutgoingCallRemoteHandleTemplate_ios(
+    template: string
+  ): Promise<void>;
   voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
   voice_getCalls(): Promise<NativeCallInfo[]>;
   voice_getCallInvites(): Promise<NativeCallInviteInfo[]>;

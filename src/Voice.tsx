@@ -740,66 +740,142 @@ export class Voice extends EventEmitter {
   }
 
   /**
+   * Set the call notification template.
    *
+   * This method can be used to customize the displayed title for the Android
+   * notifications displayed when making outgoing calls, receiving incoming
+   * calls, or for answered/ongoing calls.
+   *
+   * @example
+   * ```ts
+   * await voice.setNotificationTitleTemplates({
+   *   incoming: 'Foo ${DisplayName}',
+   *   outgoing: 'Biff ${DisplayName}',
+   *   answered: 'Whiz ${DisplayName}',
+   * });
+   * ```
+   * If an incoming call is made and there is a Twiml Parameter with key
+   * "DisplayName" and value "Bar", then the notification title will be
+   * templated into "Foo Bar".
+   * If an outgoing call is made and there is a Twiml Parameter with key
+   * "DisplayName" and value "Bazz", then the notification title will be
+   * templated into "Biff Bazz".
+   * If an answered call is in-progess and the call was made with a Twiml
+   * Parameter with key "DisplayName" and value "Bang", then the notification
+   * title will be templated into "Whiz Bang".
+   *
+   * @remarks
+   * Unsupported platforms:
+   * - iOS
+   *
+   * @returns
+   * A `Promise` that
+   * - Resolves with `undefined` if the templates were set.
+   * - Rejects if a template was unable to be set.
    */
-  async setCallNotificationTitleTemplate(
-    templates: CallNotificationTitleTemplates
-  ): Promise<void> {
-    if (Platform.OS === 'android') {
-      if (typeof templates.android === 'undefined') {
-        return;
-      }
-
-      const { incoming, outgoing, answered } = templates.android;
-
-      if (incoming) {
-        await NativeModule.voice_setIncomingCallNotificationTitleTemplate_android(
-          incoming
-        );
-      }
-
-      if (outgoing) {
-        await NativeModule.voice_setOutgoingCallNotificationTitleTemplate_android(
-          outgoing
-        );
-      }
-
-      if (answered) {
-        await NativeModule.voice_setAnsweredCallNotificationTitleTemplate_android(
-          answered
-        );
-      }
+  async setNotificationTitleTemplates({
+    incoming,
+    outgoing,
+    answered,
+  }: CallNotificationTitleTemplates): Promise<void> {
+    if (Platform.OS !== 'android') {
+      throw new UnsupportedPlatformError(
+        `Unsupported platform "${Platform.OS}". This method is only supported on Android.`
+      );
     }
 
-    if (Platform.OS === 'ios') {
-      if (typeof templates.ios === 'undefined') {
-        return;
-      }
+    if (incoming) {
+      await NativeModule.voice_setIncomingCallNotificationTitleTemplate_android(
+        incoming
+      );
+    }
 
-      const { incoming, outgoing } = templates.ios;
+    if (outgoing) {
+      await NativeModule.voice_setOutgoingCallNotificationTitleTemplate_android(
+        outgoing
+      );
+    }
 
-      if (incoming) {
-        await NativeModule.voice_setIncomingCallerHandleTemplate_ios(incoming);
-      }
+    if (answered) {
+      await NativeModule.voice_setAnsweredCallNotificationTitleTemplate_android(
+        answered
+      );
+    }
+  }
 
-      if (outgoing) {
-        await NativeModule.voice_setOutgoingCallerHandleTemplate_ios(outgoing);
-      }
+  /**
+   * Set the call remote handle template for CallKit.
+   *
+   * This method can be used to customize the displayed remote handle for the
+   * CallKit UI when making outgoing calls or receiving incoming calls.
+   *
+   * @example
+   * ```ts
+   * await voice.setCallRemoteHandleTemplates({
+   *   incoming: 'Foo ${DisplayName}',
+   *   outgoing: 'Biff ${DisplayName}',
+   * });
+   * ```
+   * If an incoming call is made and there is a Twiml Parameter with key
+   * "DisplayName" and value "Bar", then the CallKit remote handle will be
+   * templated into "Foo Bar".
+   * If an outgoing call is made and there is a Twiml Parameter with key
+   * "DisplayName" and value "Bazz", then the CallKit remote handle will be
+   * templated into "Biff Bazz".
+   *
+   * @remarks
+   * Unsupported platforms:
+   * - Android
+   *
+   * @returns
+   * A `Promise` that
+   * - Resolves with `undefined` if the templates were set.
+   * - Rejects if a template was unable to be set.
+   */
+  async setCallRemoteHandleTemplates({
+    incoming,
+    outgoing,
+  }: CallRemoteHandleTemplates) {
+    if (Platform.OS !== 'ios') {
+      throw new UnsupportedPlatformError(
+        `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+      );
+    }
+
+    if (incoming) {
+      await NativeModule.voice_setIncomingCallRemoteHandleTemplate_ios(
+        incoming
+      );
+    }
+
+    if (outgoing) {
+      await NativeModule.voice_setOutgoingCallRemoteHandleTemplate_ios(
+        outgoing
+      );
     }
   }
 }
 
-type CallNotificationTitleTemplates = {
-  android?: {
-    incoming?: string;
-    outgoing?: string;
-    answered?: string;
-  };
-  ios?: {
-    incoming?: string;
-    outgoing?: string;
-  };
-};
+/**
+ * Parameter type for setting call notification title templates.
+ *
+ * @public
+ */
+export type CallNotificationTitleTemplates = Partial<{
+  incoming: string;
+  outgoing: string;
+  answered: string;
+}>;
+
+/**
+ * Parameter type for setting call remote handle templates.
+ *
+ * @public
+ */
+export type CallRemoteHandleTemplates = Partial<{
+  incoming: string;
+  outgoing: string;
+}>;
 
 /**
  * Provides enumerations and types used by {@link (Voice:class)

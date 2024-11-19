@@ -66,6 +66,47 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     self.callKitCallController = [CXCallController new];
 }
 
+- (NSString *) getDisplayName:(NSString *)template
+                  twimlParams:(NSDictionary<NSString *, NSString *> *)twimlParams {
+  NSLog(@"template string: %@", template);
+  
+  NSError *reError = NULL;
+  NSRegularExpression *re = [NSRegularExpression regularExpressionWithPattern:@"\\$\\{(.*?)\\}" options:0 error:&reError];
+  NSArray<NSTextCheckingResult *>* results = [re matchesInString:template options:0 range:NSMakeRange(0, [template length])];
+  NSLog(@"results: %@", results);
+  
+  NSMutableDictionary<NSString*, NSString*> *replacements = [[NSMutableDictionary alloc] init];
+  
+  for (NSTextCheckingResult *result in results) {
+    if ([result numberOfRanges] != 2) {
+      continue;
+    }
+    
+    NSRange matchRange = [result rangeAtIndex:0];
+    NSString *match = [template substringWithRange:matchRange];
+    NSLog(@"match: %@", match);
+    
+    NSRange groupRange = [result rangeAtIndex:1];
+    NSString *group = [template substringWithRange:groupRange];
+    NSLog(@"group: %@", group);
+    
+    NSString *value = twimlParams[group];
+    replacements[match] = value;
+  }
+  
+  NSLog(@"replacements: %@", replacements);
+  
+  NSString *replacedTemplate = template;
+  
+  for (NSString *k in replacements) {
+    NSString *v = replacements[k];
+    replacedTemplate = [replacedTemplate stringByReplacingOccurrencesOfString:k withString:v];
+    NSLog(@"replaced: %@ with %@, result: %@", k, v, replacedTemplate);
+  }
+  
+  return replacedTemplate;
+}
+
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     NSString *handleName = callInvite.from;
     if (handleName == nil) {
@@ -75,6 +116,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
+  
+    NSString *remoteHandle = [self getDisplayName:[self getIncomingCallRemoteHandleTemplate] twimlParams:[callInvite customParameters]];
+  
+    NSLog(@"remoteHandle: %@", remoteHandle);
+  
     callUpdate.remoteHandle = callHandle;
     callUpdate.localizedCallerName = handleName;
     callUpdate.supportsDTMF = YES;
@@ -143,6 +189,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"StartCallAction transaction request successful");
 
             CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
+          
+            NSString *remoteHandle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] twimlParams:params];
+          
+            NSLog(@"remoteHandle: %@", remoteHandle);
+          
             callUpdate.remoteHandle = callHandle;
             callUpdate.supportsDTMF = YES;
             callUpdate.supportsHolding = YES;

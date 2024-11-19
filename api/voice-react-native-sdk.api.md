@@ -372,6 +372,19 @@ export interface CallMessage {
 }
 
 // @public
+export type CallNotificationTitleTemplates = Partial<{
+    incoming: string;
+    outgoing: string;
+    answered: string;
+}>;
+
+// @public
+export type CallRemoteHandleTemplates = Partial<{
+    incoming: string;
+    outgoing: string;
+}>;
+
+// @public
 namespace ClientErrors {
     class AddressIncomplete extends TwilioError {
         constructor(message: string);
@@ -1021,6 +1034,8 @@ export class Voice extends EventEmitter {
     initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
+    setCallRemoteHandleTemplates({ incoming, outgoing, }: CallRemoteHandleTemplates): Promise<void>;
+    setNotificationTitleTemplates({ incoming, outgoing, answered, }: CallNotificationTitleTemplates): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;
 }
