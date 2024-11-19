@@ -113,14 +113,17 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
         handleName = @"Unknown Caller";
     }
     
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
+    CXHandle *callHandle;
+    if ([self getIncomingCallRemoteHandleTemplate] == NULL) {
+        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
+    } else {
+        NSString *remoteHandle = [self getDisplayName:[self getIncomingCallRemoteHandleTemplate] twimlParams:[callInvite customParameters]];
+        NSLog(@"remoteHandle: %@", remoteHandle);
+        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:remoteHandle];
+        handleName = remoteHandle;
+    }
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
-  
-    NSString *remoteHandle = [self getDisplayName:[self getIncomingCallRemoteHandleTemplate] twimlParams:[callInvite customParameters]];
-  
-    NSLog(@"remoteHandle: %@", remoteHandle);
-  
     callUpdate.remoteHandle = callHandle;
     callUpdate.localizedCallerName = handleName;
     callUpdate.supportsDTMF = YES;
@@ -176,8 +179,16 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if ([contactHandle length] > 0) {
         handle = contactHandle;
     }
+
+    CXHandle *callHandle;
+    if ([self getOutgoingCallRemoteHandleTemplate] == NULL) {
+        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
+    } else {
+        NSString *remoteHandle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] twimlParams:params];
+        NSLog(@"remoteHandle: %@", remoteHandle);
+        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:remoteHandle];
+    }
     
-    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
