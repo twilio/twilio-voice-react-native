@@ -334,6 +334,25 @@ jobs:
           when: always
           path: ./test/app/detox_artifacts
 
+  trigger-qe-tests:
+    executor:
+      name: default
+    steps:
+      - run:
+          name: Trigger standard QE tests 
+          command: |
+            curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
+            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
+            -d '{"branch":"main","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
+            $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
+      - run:
+          name: Trigger custom android messaging QE tests 
+          command: |
+            curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
+            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
+            -d '{"branch":"custom-android-messaging","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
+            $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
+      
 
 ###
 # Workflows
@@ -407,3 +426,13 @@ workflows:
           dry-run: false
           requires:
             - Release approval
+      - trigger-qe-tests:
+          context: sdks-qe
+          filters:
+            tags:
+              only:
+              - /^\d+\.\d+\.\d+-rc\d+$/
+              - /^\d+\.\d+\.\d+-preview\d+-rc\d+$/
+              - /^\d+\.\d+\.\d+-beta\d+-rc\d+$/
+            branches:
+              ignore: /.*/
