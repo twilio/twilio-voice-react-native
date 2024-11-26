@@ -3,32 +3,14 @@ package com.twiliovoicereactnative;
 import android.content.Context;
 
 class ConfigurationProperties {
-  private static String incomingNotificationTemplate = null;
-  private static String outgoingNotificationTemplate = null;
-  private static String answeredNotificationTemplate = null;
+  private static String incomingCallContactHandleTemplate = null;
 
-  public static void setIncomingNotificationTemplate(String incomingNotificationTemplate) {
-    ConfigurationProperties.incomingNotificationTemplate = incomingNotificationTemplate;
+  public static void setIncomingCallContactHandleTemplate(String template) {
+    ConfigurationProperties.incomingCallContactHandleTemplate = template;
   }
 
-  public static String getIncomingNotificationTemplate() {
-    return ConfigurationProperties.incomingNotificationTemplate;
-  }
-
-  public static void setOutgoingNotificationTemplate(String outgoingNotificationTemplate) {
-    ConfigurationProperties.outgoingNotificationTemplate = outgoingNotificationTemplate;
-  }
-
-  public static String getOutgoingNotificationTemplate() {
-    return ConfigurationProperties.outgoingNotificationTemplate;
-  }
-
-  public static void setAnsweredNotificationTemplate(String answeredNotificationTemplate) {
-    ConfigurationProperties.answeredNotificationTemplate = answeredNotificationTemplate;
-  }
-
-  public static String getAnsweredNotificationTemplate() {
-    return ConfigurationProperties.answeredNotificationTemplate;
+  public static String getIncomingCallContactHandleTemplate() {
+    return ConfigurationProperties.incomingCallContactHandleTemplate;
   }
 
   /**

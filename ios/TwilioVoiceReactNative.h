@@ -75,6 +75,5 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite;
 
 - (NSString *)getIncomingCallRemoteHandleTemplate;
-- (NSString *)getOutgoingCallRemoteHandleTemplate;
 
 @end

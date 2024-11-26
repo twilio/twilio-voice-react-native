@@ -66,45 +66,15 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     self.callKitCallController = [CXCallController new];
 }
 
-- (NSString *) getDisplayName:(NSString *)template
-                  twimlParams:(NSDictionary<NSString *, NSString *> *)twimlParams {
-  NSLog(@"template string: %@", template);
-  
-  NSError *reError = NULL;
-  NSRegularExpression *re = [NSRegularExpression regularExpressionWithPattern:@"\\$\\{(.*?)\\}" options:0 error:&reError];
-  NSArray<NSTextCheckingResult *>* results = [re matchesInString:template options:0 range:NSMakeRange(0, [template length])];
-  NSLog(@"results: %@", results);
-  
-  NSMutableDictionary<NSString*, NSString*> *replacements = [[NSMutableDictionary alloc] init];
-  
-  for (NSTextCheckingResult *result in results) {
-    if ([result numberOfRanges] != 2) {
-      continue;
+- (NSString *)getDisplayName:(NSString *)template
+                 customParameters:(NSDictionary<NSString *, NSString *> *)customParameters {
+    NSString *processedTemplate = template;
+    for (NSString *paramKey in customParameters) {
+        NSString *paramValue = customParameters[paramKey];
+        NSString *wrappedParamKey = [NSString stringWithFormat:@"${%@}", paramKey];
+        processedTemplate = [processedTemplate stringByReplacingOccurrencesOfString:wrappedParamKey withString:paramValue];
     }
-    
-    NSRange matchRange = [result rangeAtIndex:0];
-    NSString *match = [template substringWithRange:matchRange];
-    NSLog(@"match: %@", match);
-    
-    NSRange groupRange = [result rangeAtIndex:1];
-    NSString *group = [template substringWithRange:groupRange];
-    NSLog(@"group: %@", group);
-    
-    NSString *value = twimlParams[group];
-    replacements[match] = value;
-  }
-  
-  NSLog(@"replacements: %@", replacements);
-  
-  NSString *replacedTemplate = template;
-  
-  for (NSString *k in replacements) {
-    NSString *v = replacements[k];
-    replacedTemplate = [replacedTemplate stringByReplacingOccurrencesOfString:k withString:v];
-    NSLog(@"replaced: %@ with %@, result: %@", k, v, replacedTemplate);
-  }
-  
-  return replacedTemplate;
+    return processedTemplate;
 }
 
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
@@ -112,16 +82,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if (handleName == nil) {
         handleName = @"Unknown Caller";
     }
-    
-    CXHandle *callHandle;
-    if ([self getIncomingCallRemoteHandleTemplate] == NULL) {
-        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
-    } else {
-        NSString *remoteHandle = [self getDisplayName:[self getIncomingCallRemoteHandleTemplate] twimlParams:[callInvite customParameters]];
-        NSLog(@"remoteHandle: %@", remoteHandle);
-        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:remoteHandle];
-        handleName = remoteHandle;
+    if ([self getIncomingCallRemoteHandleTemplate] != NULL) {
+        handleName = [self getDisplayName:[self getIncomingCallRemoteHandleTemplate] customParameters:[callInvite customParameters]];
     }
+
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
@@ -179,16 +144,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if ([contactHandle length] > 0) {
         handle = contactHandle;
     }
-
-    CXHandle *callHandle;
-    if ([self getOutgoingCallRemoteHandleTemplate] == NULL) {
-        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
-    } else {
-        NSString *remoteHandle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] twimlParams:params];
-        NSLog(@"remoteHandle: %@", remoteHandle);
-        callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:remoteHandle];
+    if ([self getOutgoingCallRemoteHandleTemplate] != NULL) {
+        handle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] customParameters:params];
     }
-    
+
+    CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];

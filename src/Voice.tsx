@@ -287,10 +287,15 @@ export class Voice extends EventEmitter {
   /**
    * Connect for devices on Android platforms.
    */
-  private async _connect_android(token: string, params: CustomParameters) {
+  private async _connect_android(
+    token: string,
+    params: CustomParameters,
+    notificationDisplayName: string | undefined
+  ) {
     const connectResult = await NativeModule.voice_connect_android(
       token,
-      params
+      params,
+      notificationDisplayName
     )
       .then((callInfo) => {
         return { type: 'ok', callInfo } as const;
@@ -475,6 +480,7 @@ export class Voice extends EventEmitter {
     token: string,
     {
       contactHandle = 'Default Contact',
+      notificationDisplayName = undefined,
       params = {},
     }: Voice.ConnectOptions = {}
   ): Promise<Call> {
@@ -509,7 +515,7 @@ export class Voice extends EventEmitter {
       case 'ios':
         return this._connect_ios(token, params, contactHandle);
       case 'android':
-        return this._connect_android(token, params);
+        return this._connect_android(token, params, notificationDisplayName);
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". Expected "android" or "ios".`
@@ -740,142 +746,28 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * Set the call notification template.
+   * Set the native call contact handle template.
    *
-   * This method can be used to customize the displayed title for the Android
-   * notifications displayed when making outgoing calls, receiving incoming
-   * calls, or for answered/ongoing calls.
-   *
-   * @example
-   * ```ts
-   * await voice.setNotificationTitleTemplates({
-   *   incoming: 'Foo ${DisplayName}',
-   *   outgoing: 'Biff ${DisplayName}',
-   *   answered: 'Whiz ${DisplayName}',
-   * });
-   * ```
-   * If an incoming call is made and there is a Twiml Parameter with key
-   * "DisplayName" and value "Bar", then the notification title will be
-   * templated into "Foo Bar".
-   * If an outgoing call is made and there is a Twiml Parameter with key
-   * "DisplayName" and value "Bazz", then the notification title will be
-   * templated into "Biff Bazz".
-   * If an answered call is in-progess and the call was made with a Twiml
-   * Parameter with key "DisplayName" and value "Bang", then the notification
-   * title will be templated into "Whiz Bang".
-   *
-   * @remarks
-   * Unsupported platforms:
-   * - iOS
-   *
-   * @returns
-   * A `Promise` that
-   * - Resolves with `undefined` if the templates were set.
-   * - Rejects if a template was unable to be set.
-   */
-  async setNotificationTitleTemplates({
-    incoming,
-    outgoing,
-    answered,
-  }: CallNotificationTitleTemplates): Promise<void> {
-    if (Platform.OS !== 'android') {
-      throw new UnsupportedPlatformError(
-        `Unsupported platform "${Platform.OS}". This method is only supported on Android.`
-      );
-    }
-
-    if (incoming) {
-      await NativeModule.voice_setIncomingCallNotificationTitleTemplate_android(
-        incoming
-      );
-    }
-
-    if (outgoing) {
-      await NativeModule.voice_setOutgoingCallNotificationTitleTemplate_android(
-        outgoing
-      );
-    }
-
-    if (answered) {
-      await NativeModule.voice_setAnsweredCallNotificationTitleTemplate_android(
-        answered
-      );
-    }
-  }
-
-  /**
-   * Set the call remote handle template for CallKit.
-   *
-   * This method can be used to customize the displayed remote handle for the
-   * CallKit UI when making outgoing calls or receiving incoming calls.
+   * This method is used to customize the displayed contact for Android
+   * notifications and the contact handle displayed in iOS CallKit UIs.
    *
    * @example
    * ```ts
-   * await voice.setCallRemoteHandleTemplates({
-   *   incoming: 'Foo ${DisplayName}',
-   *   outgoing: 'Biff ${DisplayName}',
-   * });
+   * await voice.setIncomingNotificationTitleTemplate('Foo ${DisplayName}');
    * ```
    * If an incoming call is made and there is a Twiml Parameter with key
-   * "DisplayName" and value "Bar", then the CallKit remote handle will be
-   * templated into "Foo Bar".
-   * If an outgoing call is made and there is a Twiml Parameter with key
-   * "DisplayName" and value "Bazz", then the CallKit remote handle will be
-   * templated into "Biff Bazz".
-   *
-   * @remarks
-   * Unsupported platforms:
-   * - Android
+   * "DisplayName" and value "Bar", then the notification title or CallKit
+   * handle will display as "Foo Bar".
    *
    * @returns
    * A `Promise` that
-   * - Resolves with `undefined` if the templates were set.
-   * - Rejects if a template was unable to be set.
+   * - Resolves with `undefined` if the template were set.
+   * - Rejects if the template was unable to be set.
    */
-  async setCallRemoteHandleTemplates({
-    incoming,
-    outgoing,
-  }: CallRemoteHandleTemplates) {
-    if (Platform.OS !== 'ios') {
-      throw new UnsupportedPlatformError(
-        `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
-      );
-    }
-
-    if (incoming) {
-      await NativeModule.voice_setIncomingCallRemoteHandleTemplate_ios(
-        incoming
-      );
-    }
-
-    if (outgoing) {
-      await NativeModule.voice_setOutgoingCallRemoteHandleTemplate_ios(
-        outgoing
-      );
-    }
+  async setIncomingCallContactHandleTemplate(template: string): Promise<void> {
+    await NativeModule.voice_setIncomingCallContactHandleTemplate(template);
   }
 }
-
-/**
- * Parameter type for setting call notification title templates.
- *
- * @public
- */
-export type CallNotificationTitleTemplates = Partial<{
-  incoming: string;
-  outgoing: string;
-  answered: string;
-}>;
-
-/**
- * Parameter type for setting call remote handle templates.
- *
- * @public
- */
-export type CallRemoteHandleTemplates = Partial<{
-  incoming: string;
-  outgoing: string;
-}>;
 
 /**
  * Provides enumerations and types used by {@link (Voice:class)
@@ -905,6 +797,14 @@ export namespace Voice {
      * - Android
      */
     contactHandle?: string;
+    /**
+     * The display name that will show in the Android notifications.
+     *
+     * @remarks
+     * Unsupported platforms:
+     * - iOS
+     */
+    notificationDisplayName?: string;
   };
 
   /**

@@ -9,13 +9,7 @@
  *
  * @packageDocumentation
  */
-
-export {
-  Voice,
-  CallNotificationTitleTemplates,
-  CallRemoteHandleTemplates,
-} from './Voice';
-
+export { Voice } from './Voice';
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';
 export { CallInvite } from './CallInvite';

@@ -171,7 +171,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
+  public void voice_connect_android(
+    String accessToken,
+    ReadableMap twimlParams,
+    String notificationDisplayName,
+    Promise promise
+  ) {
     logger.debug("Calling voice_connect_android");
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
@@ -214,7 +219,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           connectOptions,
           new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())),
         callRecipient,
-        parsedTwimlParams);
+        parsedTwimlParams,
+        CallRecord.Direction.OUTGOING,
+        notificationDisplayName);
       getCallRecordDatabase().add(callRecord);
       // notify JS layer
       promise.resolve(serializeCall(callRecord));
@@ -312,20 +319,8 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_setIncomingCallNotificationTitleTemplate_android(String template, Promise promise) {
-    ConfigurationProperties.setIncomingNotificationTemplate(template);
-    promise.resolve(null);
-  }
-
-  @ReactMethod
-  public void voice_setOutgoingCallNotificationTitleTemplate_android(String template, Promise promise) {
-    ConfigurationProperties.setOutgoingNotificationTemplate(template);
-    promise.resolve(null);
-  }
-
-  @ReactMethod
-  public void voice_setAnsweredCallNotificationTitleTemplate_android(String template, Promise promise) {
-    ConfigurationProperties.setAnsweredNotificationTemplate(template);
+  public void voice_setIncomingCallContactHandleTemplate(String template, Promise promise) {
+    ConfigurationProperties.setIncomingCallContactHandleTemplate(template);
     promise.resolve(null);
   }
 
