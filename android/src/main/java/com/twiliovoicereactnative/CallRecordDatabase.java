@@ -83,6 +83,9 @@ class CallRecordDatabase  {
       return this.voiceCall;
     }
     public final Map<String, String> getCustomParameters() {
+      if (this.direction == Direction.INCOMING) {
+        return this.callInvite.getCustomParameters();
+      }
       return this.customParameters;
     }
     public final String getNotificationDisplayName() {

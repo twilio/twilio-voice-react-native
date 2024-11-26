@@ -71,13 +71,12 @@ class NotificationUtility {
 
     public String getName() {
       if (this.callRecord.getDirection() == CallRecord.Direction.INCOMING) {
-        final CallInvite callInvite = this.callRecord.getCallInvite();
-
         final String template = ConfigurationProperties.getIncomingCallContactHandleTemplate();
         if (template != null) {
-          return templateDisplayName(template, callInvite.getCustomParameters());
+          return templateDisplayName(template, this.callRecord.getCustomParameters());
         }
 
+        final CallInvite callInvite = this.callRecord.getCallInvite();
         final String from = null != callInvite ? getDisplayName(callInvite) : "";
         return this.getContentText().replaceAll("\\$\\{from\\}", from);
       }
