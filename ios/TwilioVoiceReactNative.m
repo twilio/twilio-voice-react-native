@@ -979,15 +979,16 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
     resolve([NSUUID UUID].UUIDString);
 }
 
-RCT_EXPORT_METHOD(voice_setIncomingCallRemoteHandleTemplate_ios:(NSString *) template
-                  resolver:(RCTPromiseResolveBlock) resolve
-                  rejecter:(RCTPromiseRejectBlock) reject) {
-  self.incomingCallRemoteHandleTemplate = template;
+RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)template
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  self.incomingCallContactHandleTemplate = template;
   resolve(NULL);
 }
 
-- (NSString *) getIncomingCallRemoteHandleTemplate {
-  return self.incomingCallRemoteHandleTemplate;
+- (NSString *)getIncomingCallContactHandleTemplate {
+  return self.incomingCallContactHandleTemplate;
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {

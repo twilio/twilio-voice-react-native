@@ -157,11 +157,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"StartCallAction transaction request successful");
 
             CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
-          
-            NSString *remoteHandle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] twimlParams:params];
-          
-            NSLog(@"remoteHandle: %@", remoteHandle);
-          
+
             callUpdate.remoteHandle = callHandle;
             callUpdate.supportsDTMF = YES;
             callUpdate.supportsHolding = YES;

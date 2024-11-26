@@ -43,7 +43,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 + (TVODefaultAudioDevice *)twilioAudioDevice;
 
-@property(nonatomic, strong) NSString *incomingCallRemoteHandleTemplate;
+@property(nonatomic, strong) NSString *incomingCallContactHandleTemplate;
 
 @end
 
@@ -73,6 +73,6 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite;
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite;
 
-- (NSString *)getIncomingCallRemoteHandleTemplate;
+- (NSString *)getIncomingCallContactHandleTemplate;
 
 @end
