@@ -67,7 +67,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (NSString *)getDisplayName:(NSString *)template
-                 customParameters:(NSDictionary<NSString *, NSString *> *)customParameters {
+            customParameters:(NSDictionary<NSString *, NSString *> *)customParameters {
     NSString *processedTemplate = template;
     for (NSString *paramKey in customParameters) {
         NSString *paramValue = customParameters[paramKey];
@@ -143,9 +143,6 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     NSString *handle = @"Default Contact";
     if ([contactHandle length] > 0) {
         handle = contactHandle;
-    }
-    if ([self getOutgoingCallRemoteHandleTemplate] != NULL) {
-        handle = [self getDisplayName:[self getOutgoingCallRemoteHandleTemplate] customParameters:params];
     }
 
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
