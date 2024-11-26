@@ -794,6 +794,26 @@ describe('Voice class', () => {
         ).resolves.toBeUndefined();
       });
     });
+
+    describe('.setIncomingCallContactHandleTemplate', () => {
+      it('invokes the native module', async () => {
+        const template = 'Foo ${DisplayName}';
+        await new Voice().setIncomingCallContactHandleTemplate(template);
+        expect(
+          jest.mocked(
+            MockNativeModule.voice_setIncomingCallContactHandleTemplate
+          ).mock.calls
+        ).toEqual([[template]]);
+      });
+
+      it('returns a Promise<void>', async () => {
+        const setIncomingCallContactHandleTemplatePromise =
+          new Voice().setIncomingCallContactHandleTemplate('foobar');
+        await expect(
+          setIncomingCallContactHandleTemplatePromise
+        ).resolves.toBeUndefined();
+      });
+    });
   });
 
   describe('private methods', () => {
