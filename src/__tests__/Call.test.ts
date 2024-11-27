@@ -6,6 +6,7 @@ import { createStatsReport } from '../__mocks__/RTCStats';
 import { Call } from '../Call';
 import { NativeEventEmitter, NativeModule } from '../common';
 import { Constants } from '../constants';
+import { InvalidArgumentError } from '../error/InvalidArgumentError';
 import type { NativeCallEventType } from '../type/Call';
 
 const MockNativeEventEmitter =
@@ -544,7 +545,43 @@ describe('Call class', () => {
         await new Call(createNativeCallInfo()).postFeedback(score, issue);
         expect(
           jest.mocked(MockNativeModule.call_postFeedback).mock.calls
-        ).toEqual([['mock-nativecallinfo-uuid', score, issue]]);
+        ).toEqual([
+          [
+            'mock-nativecallinfo-uuid',
+            Constants.CallFeedbackScoreThree,
+            Constants.CallFeedbackIssueAudioLatency,
+          ],
+        ]);
+      });
+
+      it('rejects when passing an invalid score', async () => {
+        expect.assertions(2);
+
+        const call = new Call(createNativeCallInfo());
+        await call
+          .postFeedback('foobar' as any, Call.Issue.Echo)
+          .catch((error) => {
+            expect(error).toBeInstanceOf(InvalidArgumentError);
+            expect(error.message).toStrictEqual(
+              '"score" parameter invalid. ' +
+                'Must be a member of the `Call.Score` enum.'
+            );
+          });
+      });
+
+      it('rejects when passing an invalid issue', async () => {
+        expect.assertions(2);
+
+        const call = new Call(createNativeCallInfo());
+        await call
+          .postFeedback(Call.Score.Three, 'foobar' as any)
+          .catch((error) => {
+            expect(error).toBeInstanceOf(InvalidArgumentError);
+            expect(error.message).toStrictEqual(
+              '"issue" parameter invalid. ' +
+                'Must be a member of the `Call.Issue` enum.'
+            );
+          });
       });
 
       it('returns a Promise<void>', async () => {
@@ -718,11 +755,6 @@ describe('Call namespace', () => {
     it('State', () => {
       expect(Call.State).toBeDefined();
       expect(typeof Call.State).toBe('object');
-    });
-
-    it('EventTypeStateMap', () => {
-      expect(Call.EventTypeStateMap).toBeDefined();
-      expect(typeof Call.EventTypeStateMap).toBe('object');
     });
 
     it('QualityWarning', () => {

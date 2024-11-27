@@ -231,18 +231,14 @@ export namespace Call {
         'Ringing' = "ringing"
     }
     export enum Issue {
-        AudioLatency = "audio-latency",
-        ChoppyAudio = "choppy-audio",
-        DroppedCall = "dropped-call",
-        Echo = "echo",
-        NoisyCall = "noisy-call",
-        NotReported = "not-reported",
-        OneWayAudio = "one-way-audio"
+        'AudioLatency' = "audio-latency",
+        'ChoppyAudio' = "choppy-audio",
+        'DroppedCall' = "dropped-call",
+        'Echo' = "echo",
+        'NoisyCall' = "noisy-call",
+        'NotReported' = "not-reported",
+        'OneWayAudio' = "one-way-audio"
     }
-    const // Warning: (ae-forgotten-export) The symbol "NativeCallEventType" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
-    EventTypeStateMap: Partial<Record<NativeCallEventType, Call.State>>;
     export namespace Listener {
         export type Connected = () => void;
         export type ConnectFailure = (error: TwilioError) => void;
@@ -255,19 +251,19 @@ export namespace Call {
         export type Ringing = () => void;
     }
     export enum QualityWarning {
-        ConstantAudioInputLevel = "constant-audio-input-level",
-        HighJitter = "high-jitter",
-        HighPacketLoss = "high-packet-loss",
-        HighRtt = "high-rtt",
-        LowMos = "low-mos"
+        'ConstantAudioInputLevel' = "constant-audio-input-level",
+        'HighJitter' = "high-jitter",
+        'HighPacketLoss' = "high-packet-loss",
+        'HighRtt' = "high-rtt",
+        'LowMos' = "low-mos"
     }
     export enum Score {
-        Five = 5,
-        Four = 4,
-        NotReported = 0,
-        One = 1,
-        Three = 3,
-        Two = 2
+        'Five' = 5,
+        'Four' = 4,
+        'NotReported' = 0,
+        'One' = 1,
+        'Three' = 3,
+        'Two' = 2
     }
     export enum State {
         'Connected' = "connected",

@@ -1,3 +1,10 @@
+1.2.2 (In Progress)
+===================
+
+## Fixes
+
+- Fixed a scenario where posting feedback for a call with the `Echo` issue would not post correctly to Twilio Insights.
+
 1.2.1 (Oct 31, 2024)
 ====================
 
