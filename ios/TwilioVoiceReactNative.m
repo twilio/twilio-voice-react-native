@@ -983,12 +983,8 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  self.incomingCallContactHandleTemplate = template;
-  resolve(NULL);
-}
-
-- (NSString *)getIncomingCallContactHandleTemplate {
-  return self.incomingCallContactHandleTemplate;
+    self.incomingCallContactHandleTemplate = template;
+    resolve(NULL);
 }
 
 - (NSString *)stringOfState:(TVOCallState)state {
