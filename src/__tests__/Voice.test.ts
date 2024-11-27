@@ -796,7 +796,7 @@ describe('Voice class', () => {
     });
 
     describe('.setIncomingCallContactHandleTemplate', () => {
-      it('invokes the native module', async () => {
+      it('invokes the native module with a string', async () => {
         const template = 'Foo ${DisplayName}';
         await new Voice().setIncomingCallContactHandleTemplate(template);
         expect(
@@ -804,6 +804,15 @@ describe('Voice class', () => {
             MockNativeModule.voice_setIncomingCallContactHandleTemplate
           ).mock.calls
         ).toEqual([[template]]);
+      });
+
+      it('invokes the native module with no parameter', async () => {
+        await new Voice().setIncomingCallContactHandleTemplate();
+        expect(
+          jest.mocked(
+            MockNativeModule.voice_setIncomingCallContactHandleTemplate
+          ).mock.calls
+        ).toEqual([[]]);
       });
 
       it('returns a Promise<void>', async () => {

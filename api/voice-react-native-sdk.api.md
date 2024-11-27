@@ -1021,7 +1021,7 @@ export class Voice extends EventEmitter {
     initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
-    setIncomingCallContactHandleTemplate(template: string): Promise<void>;
+    setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;
 }

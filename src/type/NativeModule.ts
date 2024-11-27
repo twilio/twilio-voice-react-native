@@ -70,7 +70,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_setCallKitConfiguration(
     configuration: Record<string, any>
   ): Promise<void>;
-  voice_setIncomingCallContactHandleTemplate(template: string): Promise<void>;
+  voice_setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
   voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
   voice_getCalls(): Promise<NativeCallInfo[]>;
   voice_getCallInvites(): Promise<NativeCallInviteInfo[]>;

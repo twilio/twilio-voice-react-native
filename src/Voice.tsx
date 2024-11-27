@@ -759,12 +759,24 @@ export class Voice extends EventEmitter {
    * "DisplayName" and value "Bar", then the notification title or CallKit
    * handle will display as "Foo Bar".
    *
+   * @example
+   * ```ts
+   * await voice.setIncomingNotificationTitleTemplate();
+   * ```
+   * When invoking this method without any parameters, the template will be
+   * unset and the default notification and contact handle behavior is restored.
+   *
+   * @param template - The string to set the notification and contact handle
+   * template to. Note that this value is optional, if the method is invoked
+   * with an implicit undefined (no parameter) then the template will be unset
+   * and the default notification and contact handle behavior will be restored.
+   *
    * @returns
    * A `Promise` that
    * - Resolves with `undefined` if the template were set.
    * - Rejects if the template was unable to be set.
    */
-  async setIncomingCallContactHandleTemplate(template: string): Promise<void> {
+  async setIncomingCallContactHandleTemplate(template?: string): Promise<void> {
     await NativeModule.voice_setIncomingCallContactHandleTemplate(template);
   }
 }
