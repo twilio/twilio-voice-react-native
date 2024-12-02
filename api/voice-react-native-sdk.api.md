@@ -1004,7 +1004,7 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    connect(token: string, { contactHandle, params, }?: Voice.ConnectOptions): Promise<Call>;
+    connect(token: string, { contactHandle, notificationDisplayName, params, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
         selectedDevice?: AudioDevice;
@@ -1017,6 +1017,7 @@ export class Voice extends EventEmitter {
     initializePushRegistry(): Promise<void>;
     register(token: string): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
+    setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
     unregister(token: string): Promise<void>;
 }
@@ -1026,6 +1027,7 @@ export namespace Voice {
     export type ConnectOptions = {
         params?: Record<string, string>;
         contactHandle?: string;
+        notificationDisplayName?: string;
     };
     export enum Event {
         'AudioDevicesUpdated' = "audioDevicesUpdated",

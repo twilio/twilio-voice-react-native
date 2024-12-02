@@ -198,7 +198,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void voice_connect_android(String accessToken, ReadableMap twimlParams, Promise promise) {
+  public void voice_connect_android(
+    String accessToken,
+    ReadableMap twimlParams,
+    String notificationDisplayName,
+    Promise promise
+  ) {
     logger.debug("Calling voice_connect_android");
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
@@ -240,7 +245,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         getVoiceServiceApi().connect(
           connectOptions,
           new CallListenerProxy(uuid, getVoiceServiceApi().getServiceContext())),
-        callRecipient);
+        callRecipient,
+        parsedTwimlParams,
+        CallRecord.Direction.OUTGOING,
+        notificationDisplayName);
       getCallRecordDatabase().add(callRecord);
       // notify JS layer
       promise.resolve(serializeCall(callRecord));
@@ -334,6 +342,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     audioSwitchManager.getAudioSwitch().selectDevice(audioDevice);
 
+    promise.resolve(null);
+  }
+
+  @ReactMethod
+  public void voice_setIncomingCallContactHandleTemplate(String template, Promise promise) {
+    ConfigurationProperties.setIncomingCallContactHandleTemplate(template);
     promise.resolve(null);
   }
 

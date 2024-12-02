@@ -1,6 +1,14 @@
 1.2.2 (In Progress)
 ===================
 
+## Changes
+
+- Added a new API for customizing the displayed name for incoming calls in CallKit on iOS.
+  See `voice.setIncomingCallContactHandleTemplate` and the associated API docs for more information.
+
+- Added a new API for customizing the displayed name for outgoing, incoming, and answered call notifications on Android.
+  See `voice.setIncomingCallContactHandleTemplate` and `voice.connect` for more information.
+
 ## Fixes
 
 - Fixed a scenario where posting feedback for a call with the `Echo` issue would not post correctly to Twilio Insights.

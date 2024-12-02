@@ -66,12 +66,26 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     self.callKitCallController = [CXCallController new];
 }
 
+- (NSString *)getDisplayName:(NSString *)template
+            customParameters:(NSDictionary<NSString *, NSString *> *)customParameters {
+    NSString *processedTemplate = template;
+    for (NSString *paramKey in customParameters) {
+        NSString *paramValue = customParameters[paramKey];
+        NSString *wrappedParamKey = [NSString stringWithFormat:@"${%@}", paramKey];
+        processedTemplate = [processedTemplate stringByReplacingOccurrencesOfString:wrappedParamKey withString:paramValue];
+    }
+    return processedTemplate;
+}
+
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite {
     NSString *handleName = callInvite.from;
     if (handleName == nil) {
         handleName = @"Unknown Caller";
     }
-    
+    if (self.incomingCallContactHandleTemplate != NULL && [self.incomingCallContactHandleTemplate length] > 0) {
+        handleName = [self getDisplayName:self.incomingCallContactHandleTemplate customParameters:[callInvite customParameters]];
+    }
+
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];
 
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
@@ -130,7 +144,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if ([contactHandle length] > 0) {
         handle = contactHandle;
     }
-    
+
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
@@ -143,6 +157,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"StartCallAction transaction request successful");
 
             CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
+
             callUpdate.remoteHandle = callHandle;
             callUpdate.supportsDTMF = YES;
             callUpdate.supportsHolding = YES;

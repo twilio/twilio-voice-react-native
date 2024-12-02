@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 
@@ -21,6 +22,7 @@ import com.twilio.voice.CancelledCallInvite;
 class CallRecordDatabase  {
   public static class CallRecord {
     public enum CallInviteState { NONE, ACTIVE, USED }
+    public enum Direction { INCOMING, OUTGOING }
     private final UUID uuid;
     private String callSid = null;
     private Date timestamp = null;
@@ -33,6 +35,9 @@ class CallRecordDatabase  {
     private Promise callAcceptedPromise = null;
     private Promise callRejectedPromise = null;
     private CallException callException = null;
+    private Map<String, String> customParameters = null;
+    private String notificationDisplayName = null;
+    private Direction direction = Direction.INCOMING;
     public CallRecord(final UUID uuid) {
       this.uuid = uuid;
     }
@@ -46,11 +51,21 @@ class CallRecordDatabase  {
       this.callInvite = callInvite;
       this.callInviteState = ACTIVE;
     }
-    public CallRecord(final UUID uuid, final Call call, final String recipient) {
+    public CallRecord(
+      final UUID uuid,
+      final Call call,
+      final String recipient,
+      final Map<String, String> customParameters,
+      final Direction direction,
+      final String notificationDisplayName
+    ) {
       this.uuid = uuid;
       this.callSid = call.getSid();
       this.voiceCall = call;
       this.callRecipient = recipient;
+      this.customParameters = customParameters;
+      this.direction = direction;
+      this.notificationDisplayName = notificationDisplayName;
     }
     public final UUID getUuid() {
       return uuid;
@@ -66,6 +81,18 @@ class CallRecordDatabase  {
     }
     public Call getVoiceCall() {
       return this.voiceCall;
+    }
+    public final Map<String, String> getCustomParameters() {
+      if (this.direction == Direction.INCOMING) {
+        return this.callInvite.getCustomParameters();
+      }
+      return this.customParameters;
+    }
+    public final String getNotificationDisplayName() {
+      return this.notificationDisplayName;
+    }
+    public final Direction getDirection() {
+      return this.direction;
     }
     public CallInvite getCallInvite() {
       return this.callInvite;
@@ -154,4 +181,3 @@ class CallRecordDatabase  {
     return false;
   }
 }
-

@@ -287,10 +287,15 @@ export class Voice extends EventEmitter {
   /**
    * Connect for devices on Android platforms.
    */
-  private async _connect_android(token: string, params: CustomParameters) {
+  private async _connect_android(
+    token: string,
+    params: CustomParameters,
+    notificationDisplayName: string | undefined
+  ) {
     const connectResult = await NativeModule.voice_connect_android(
       token,
-      params
+      params,
+      notificationDisplayName
     )
       .then((callInfo) => {
         return { type: 'ok', callInfo } as const;
@@ -475,6 +480,7 @@ export class Voice extends EventEmitter {
     token: string,
     {
       contactHandle = 'Default Contact',
+      notificationDisplayName = undefined,
       params = {},
     }: Voice.ConnectOptions = {}
   ): Promise<Call> {
@@ -509,7 +515,7 @@ export class Voice extends EventEmitter {
       case 'ios':
         return this._connect_ios(token, params, contactHandle);
       case 'android':
-        return this._connect_android(token, params);
+        return this._connect_android(token, params, notificationDisplayName);
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". Expected "android" or "ios".`
@@ -738,6 +744,41 @@ export class Voice extends EventEmitter {
         );
     }
   }
+
+  /**
+   * Set the native call contact handle template.
+   *
+   * This method is used to customize the displayed contact for Android
+   * notifications and the contact handle displayed in iOS CallKit UIs.
+   *
+   * @example
+   * ```ts
+   * await voice.setIncomingNotificationTitleTemplate('Foo ${DisplayName}');
+   * ```
+   * If an incoming call is made and there is a Twiml Parameter with key
+   * "DisplayName" and value "Bar", then the notification title or CallKit
+   * handle will display as "Foo Bar".
+   *
+   * @example
+   * ```ts
+   * await voice.setIncomingNotificationTitleTemplate();
+   * ```
+   * When invoking this method without any parameters, the template will be
+   * unset and the default notification and contact handle behavior is restored.
+   *
+   * @param template - The string to set the notification and contact handle
+   * template to. Note that this value is optional, if the method is invoked
+   * with an implicit undefined (no parameter) then the template will be unset
+   * and the default notification and contact handle behavior will be restored.
+   *
+   * @returns
+   * A `Promise` that
+   * - Resolves with `undefined` if the template were set.
+   * - Rejects if the template was unable to be set.
+   */
+  async setIncomingCallContactHandleTemplate(template?: string): Promise<void> {
+    await NativeModule.voice_setIncomingCallContactHandleTemplate(template);
+  }
 }
 
 /**
@@ -768,6 +809,14 @@ export namespace Voice {
      * - Android
      */
     contactHandle?: string;
+    /**
+     * The display name that will show in the Android notifications.
+     *
+     * @remarks
+     * Unsupported platforms:
+     * - iOS
+     */
+    notificationDisplayName?: string;
   };
 
   /**

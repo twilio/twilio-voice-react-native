@@ -979,6 +979,14 @@ RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
     resolve([NSUUID UUID].UUIDString);
 }
 
+RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)template
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    self.incomingCallContactHandleTemplate = template;
+    resolve(NULL);
+}
+
 - (NSString *)stringOfState:(TVOCallState)state {
     switch (state) {
         case TVOCallStateConnecting:

@@ -56,6 +56,9 @@ export const NativeModule = {
   voice_selectAudioDevice: jest.fn().mockResolvedValue(undefined),
   voice_setCallKitConfiguration: jest.fn().mockResolvedValue(undefined),
   voice_showNativeAvRoutePicker: jest.fn().mockResolvedValue(undefined),
+  voice_setIncomingCallContactHandleTemplate: jest
+    .fn()
+    .mockResolvedValue(undefined),
   voice_unregister: jest.fn().mockResolvedValue(undefined),
 };
 
