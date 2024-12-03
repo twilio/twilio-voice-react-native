@@ -1,4 +1,4 @@
-1.2.2 (In Progress)
+1.3.0 (In Progress)
 ===================
 
 ## Changes
