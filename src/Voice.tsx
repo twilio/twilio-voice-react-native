@@ -753,7 +753,7 @@ export class Voice extends EventEmitter {
    *
    * @example
    * ```ts
-   * await voice.setIncomingNotificationTitleTemplate('Foo ${DisplayName}');
+   * await voice.setIncomingCallContactHandleTemplate('Foo ${DisplayName}');
    * ```
    * If an incoming call is made and there is a Twiml Parameter with key
    * "DisplayName" and value "Bar", then the notification title or CallKit
@@ -761,7 +761,7 @@ export class Voice extends EventEmitter {
    *
    * @example
    * ```ts
-   * await voice.setIncomingNotificationTitleTemplate();
+   * await voice.setIncomingCallContactHandleTemplate();
    * ```
    * When invoking this method without any parameters, the template will be
    * unset and the default notification and contact handle behavior is restored.
@@ -770,6 +770,7 @@ export class Voice extends EventEmitter {
    * template to. Note that this value is optional, if the method is invoked
    * with an implicit undefined (no parameter) then the template will be unset
    * and the default notification and contact handle behavior will be restored.
+   * Empty string values will be considered as the same as passing `undefined`.
    *
    * @returns
    * A `Promise` that
@@ -810,7 +811,8 @@ export namespace Voice {
      */
     contactHandle?: string;
     /**
-     * The display name that will show in the Android notifications.
+     * The display name that will show in the Android notifications. Passing an
+     * empty string will be considered the same as if `undefined` were passed.
      *
      * @remarks
      * Unsupported platforms:

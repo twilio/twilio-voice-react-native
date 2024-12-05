@@ -73,7 +73,11 @@ class NotificationUtility {
       if (this.callRecord.getDirection() == CallRecord.Direction.INCOMING) {
         final String template = ConfigurationProperties.getIncomingCallContactHandleTemplate();
         if (template != null) {
-          return templateDisplayName(template, this.callRecord.getCustomParameters());
+          final String processedTemplate =
+            templateDisplayName(template, this.callRecord.getCustomParameters());
+          if (!processedTemplate.isEmpty()) {
+            return processedTemplate;
+          }
         }
 
         final CallInvite callInvite = this.callRecord.getCallInvite();
@@ -82,8 +86,9 @@ class NotificationUtility {
       }
 
       // this.callRecord.Direction == CallRecord.Direction.OUTGOING
-      if (this.callRecord.getNotificationDisplayName() != null) {
-        return this.callRecord.getNotificationDisplayName();
+      final String notificationDisplayName = this.callRecord.getNotificationDisplayName();
+      if (notificationDisplayName != null && !notificationDisplayName.isEmpty()) {
+        return notificationDisplayName;
       }
 
       final String to = this.callRecord.getCallRecipient();
