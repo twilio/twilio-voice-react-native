@@ -1,3 +1,19 @@
+1.4.0 (In Progress)
+===================
+
+## Changes
+
+### Platform Specific Changes
+
+#### Android
+
+- Updated the Twilio Voice Android SDK dependency to `6.7.1`.
+
+#### iOS
+
+- Updated the Twilio Voice iOS SDK dependency to `6.12.1`.
+
+
 1.3.0 (Dec 10, 2024)
 ====================
 
