@@ -426,10 +426,10 @@ PODS:
     - React-logger (= 0.72.9)
     - React-perflogger (= 0.72.9)
   - SocketRocket (0.6.1)
-  - twilio-voice-react-native (1.1.2-dev):
+  - twilio-voice-react-native (1.3.1-dev):
     - React-Core
-    - TwilioVoice (= 6.11.2)
-  - TwilioVoice (6.11.2)
+    - TwilioVoice (= 6.12.1)
+  - TwilioVoice (6.12.1)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -574,7 +574,7 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 9b9bb14184a11b8ceb4131b09abf634880f0f46d
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
   RCTRequired: f30c3213569b1dc43659ecc549a6536e1e11139e
   RCTTypeSafety: e1ed3137728804fa98bce30b70e3da0b8e23054e
   React: 54070abee263d5773486987f1cf3a3616710ed52
@@ -607,10 +607,10 @@ SPEC CHECKSUMS:
   React-utils: a3ffbc321572ee91911d7bc30965abe9aa4e16af
   ReactCommon: 180205f326d59f52e12fa724f5278fcf8fb6afc3
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  twilio-voice-react-native: 71855cc190ad75fa90f292229094b52f28a73fb1
-  TwilioVoice: 95a7c850e54d7af0dcf845453d80d1147b0bfff1
+  twilio-voice-react-native: ea5e865b70d557f36ecf1c785f0e253bf0672456
+  TwilioVoice: fdf3e90f84023b42d64c204ffbd03c490c86e0cf
   Yoga: eddf2bbe4a896454c248a8f23b4355891eb720a6
 
 PODFILE CHECKSUM: c8cd0564360b3e01e4126d705332f5461be17585
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.15.2
