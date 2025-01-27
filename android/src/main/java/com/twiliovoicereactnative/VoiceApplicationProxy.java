@@ -48,6 +48,13 @@ public class VoiceApplicationProxy {
     }
   }
 
+  public VoiceApplicationProxy(Application application) {
+    if (null != instance) {
+      logger.error("Voice application proxy already created!");
+    }
+    instance = this;
+    context = application;
+  }
   public VoiceApplicationProxy(VoiceReactNativeHost reactNativeHost) {
     if (null != instance) {
       logger.error("Voice application proxy already created!");

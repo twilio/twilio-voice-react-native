@@ -1,6 +1,10 @@
 1.4.0 (Feb 11, 2025)
 ====================
 
+## Features
+
+- Added support for React Native applications using the New Architecture. If you are migrating your app from the Old Architecture to the New Architecture, and are already using the Twilio Voice React Native SDK, you will need to adjust your `MainApplication.java` file. Please see the updated Getting Started docs for [Java](/docs/getting-started-android-java.md) or [Kotlin](/docs/getting-started-android-kotlin.md).
+
 ## Changes
 
 ### Platform Specific Changes
