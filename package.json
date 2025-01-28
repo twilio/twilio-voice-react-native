@@ -131,7 +131,8 @@
     "lib/",
     "test/app/e2e/",
     "src/error/generated.ts",
-    "coverage/"
+    "coverage/",
+    "test/TwilioVoiceExampleNewArch"
   ],
   "prettier": {
     "quoteProps": "consistent",

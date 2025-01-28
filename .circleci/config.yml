@@ -48,6 +48,7 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
+            cd test/TwilioVoiceExampleNewArch && npm ci && cd ../..
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
@@ -339,20 +340,20 @@ jobs:
       name: default
     steps:
       - run:
-          name: Trigger standard QE tests 
+          name: Trigger standard QE tests
           command: |
             curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
             -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
             -d '{"branch":"main","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
             $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
       - run:
-          name: Trigger custom android messaging QE tests 
+          name: Trigger custom android messaging QE tests
           command: |
             curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
             -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
             -d '{"branch":"custom-android-messaging","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
             $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
-      
+
 
 ###
 # Workflows
