@@ -157,14 +157,18 @@ class CallRecordDatabase  {
 
   public CallRecord get(final CallRecord record) {
     try {
-      return callRecordList.get(callRecordList.indexOf(record));
+      synchronized (callRecordList) {
+        return callRecordList.get(callRecordList.indexOf(record));
+      }
     } catch (IndexOutOfBoundsException e) {
       return null;
     }
   }
   public CallRecord remove(final CallRecord record) {
     try {
-      return callRecordList.remove(callRecordList.indexOf(record));
+      synchronized (callRecordList) {
+        return callRecordList.remove(callRecordList.indexOf(record));
+      }
     } catch (IndexOutOfBoundsException e) {
       return null;
     }
