@@ -13,6 +13,13 @@
 
 - Updated the Twilio Voice iOS SDK dependency to `6.12.1`.
 
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fix thread safety issue in the `CallRecordDatabase`
 
 1.3.0 (Dec 10, 2024)
 ====================
