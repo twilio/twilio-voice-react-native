@@ -1,14 +1,18 @@
 # Expo Support on Android Platforms
 
-To support Expo on Android platforms, you will need to hook into Android lifecycle events, declare an Expo module to expose native APIs to the JS layer, and create an Expo Config Plugin.
+To support Expo on Android platforms, you will need to hook into Android
+lifecycle events, declare an Expo module to expose native APIs to the JS layer,
+and create an Expo Config Plugin.
 
 ## Summary
 
 After following the below guides, you will have four new native files:
 
-- `ExpoModule.kt` (a file declaring Expo Module methods to be used by the JS layer)
+- `ExpoModule.kt` (a file declaring Expo Module methods to be used by the JS
+layer)
 - `ExpoActivityLifecycleListener.java` (a file declaring Activity lifecycle hooks)
-- `ExpoApplicationLifecycleListener.java` (a file declaring Application lifecycle hooks)
+- `ExpoApplicationLifecycleListener.java` (a file declaring Application
+lifecycle hooks)
 - `ExpoPackage.java` (a file declaring the Expo Package)
 
 And you will have modified one build file:
@@ -17,13 +21,26 @@ And you will have modified one build file:
 
 ### Lifecycle Events
 
-To add support for Expo on Android, you will have to leverage the Expo Modules API to hook into the Android Lifecycle events. You can read more about Android lifecycle events [here](https://developer.android.com/reference/android/app/Activity#activity-lifecycle).
+To add support for Expo on Android, you will have to leverage the Expo Modules
+API to hook into the Android Lifecycle events. You can read more about Android
+lifecycle events
+[here](https://developer.android.com/reference/android/app/Activity#activity-lifecycle).
 
-The Twilio Voice React Native SDK requires hooking into these lifecycle events in both Bare and Expo React Native applications. The Voice RN SDK makes it convenient to hook into these lifecycle hooks by providing the `VoiceApplicationProxy` and `VoiceActivityProxy` classes. You can see how these classes are used in the [Java getting started guides](/docs/getting-started-java.md).
+The Twilio Voice React Native SDK requires hooking into these lifecycle events
+in both Bare and Expo React Native applications. The Voice RN SDK makes it
+convenient to hook into these lifecycle hooks by providing the
+`VoiceApplicationProxy` and `VoiceActivityProxy` classes. You can see how these
+classes are used in the [Java getting started
+guides](/docs/getting-started-java.md).
 
-Instead of overriding the activity and application lifecycle callbacks, Expo exposes an API to hook into these events. You can read more about that [here](https://docs.expo.dev/modules/android-lifecycle-listeners/).
+Instead of overriding the activity and application lifecycle callbacks, Expo
+exposes an API to hook into these events. You can read more about that
+[here](https://docs.expo.dev/modules/android-lifecycle-listeners/).
 
-To use the Expo Modules API, you will need to create two files, an Activity lifecycle listener and an Application lifecycle listener. The following is an example of how to integrate the `VoiceApplicationProxy` with the Expo Modules API.
+To use the Expo Modules API, you will need to create two files, an Activity
+lifecycle listener and an Application lifecycle listener. The following is an
+example of how to integrate the `VoiceApplicationProxy` with the Expo Modules
+API.
 
 ```java
 public class ExpoApplicationLifecycleListener implements ApplicationLifecycleListener {
@@ -37,7 +54,8 @@ public class ExpoApplicationLifecycleListener implements ApplicationLifecycleLis
 }
 ```
 
-Here is an example of how to integrate the `VoiceActivityProxy` with the Expo Modules API.
+Here is an example of how to integrate the `VoiceActivityProxy` with the Expo
+Modules API.
 
 ```java
 public class ExpoActivityLifecycleListener implements ReactActivityLifecycleListener {
@@ -63,11 +81,18 @@ public class ExpoActivityLifecycleListener implements ReactActivityLifecycleList
 
 ### Expo Module
 
-The Twilio Voice React Native SDK utilizes the Twilio Voice Android SDK under the hood. The file `TwilioVoiceReactNativeModule.java` exposes the functionality of the Twilio Voice Android SDK to the JS runtime of the React Native application.
+The Twilio Voice React Native SDK utilizes the Twilio Voice Android SDK under
+the hood. The file `TwilioVoiceReactNativeModule.java` exposes the
+functionality of the Twilio Voice Android SDK to the JS runtime of the React
+Native application.
 
-To support Expo, an analogous Expo Module will need to be written that exposes the functionality of the Twilio Voice Android SDK in the same way. Please see [this document](https://docs.expo.dev/modules/module-api/) for more information about declaring an Expo Module.
+To support Expo, an analogous Expo Module will need to be written that exposes
+the functionality of the Twilio Voice Android SDK in the same way. Please see
+[this document](https://docs.expo.dev/modules/module-api/) for more information
+about declaring an Expo Module.
 
-Below is a very basic example of how to expose a method that invokes the `Voice.connect` method to make an outgoing call.
+Below is a very basic example of how to expose a method that invokes the
+`Voice.connect` method to make an outgoing call.
 
 ```kotlin
 class ExpoModule : Module() {
@@ -101,9 +126,11 @@ class ExpoModule : Module() {
 
 ### Expo Package
 
-To support Expo on Android platforms, your Expo module must be declared to the Expo Modules API by creating an Expo package.
+To support Expo on Android platforms, your Expo module must be declared to the
+Expo Modules API by creating an Expo package.
 
-Below is an example of how to declare an Expo package and hook the lifecycle listeners into the Expo Modules API.
+Below is an example of how to declare an Expo package and hook the lifecycle
+listeners into the Expo Modules API.
 
 ```java
 public class ExpoPackage implements Package {
@@ -121,13 +148,42 @@ public class ExpoPackage implements Package {
 
 ### Config Plugin
 
-TODO
+To properly add the required parent dependencies to your Expo app, you will
+need to leverage the Expo Config Plugin API. You can read more about Expo
+Config Plugins [here](https://docs.expo.dev/config-plugins/introduction/).
+
+The Twilio Voice Android SDK depends on Firebase Cloud Messaging and uses the
+Google Services Gradle Plugin. You can read more about the Google Services
+Gradle Plugin [here](https://firebase.google.com/docs/android/setup).
+
+The Expo Config Plugin will therefore need to add the Google Services Plugin to
+your Android build files at the prebuild phase.
+
+The Expo Config Plugin can also be used to copy the required
+`google-services.json` file to the proper location under `android/app/`.
+
+The Expo Config Plugin can also be helpful in enabling/disabling the built-in
+Firebase Cloud Messaging listener that is included in the Twilio Voice React
+Native SDK. To disable the Firebase Cloud Messaging listener, add a
+configuration to your `android/src/main/res/values/config.xml` file with the
+below content. This file should be modified using the Expo Config Plugin if
+your use-case necessitates it.
+
+```xml
+<bool name="twiliovoicereactnative_firebasemessagingservice_enabled">true</bool>
+```
+
+If you are using another library that declares a Firebase Cloud Messaging
+listener, then you will likely need to use the Config Plugin to disable the
+built-in Firebase Cloud Messaging listener.
 
 ### Gradle Build File
 
-To build and include the required `ExpoModule.kt`, you will have to modify the `android/build.gradle` file to include the Kotlin compiler.
+To build and include the required `ExpoModule.kt`, you will have to modify the
+`android/build.gradle` file to include the Kotlin compiler.
 
-In your versions array, declare a Kotlin compiler version suitable for your needs. In this example, we will be using `1.9.24`
+In your versions array, declare a Kotlin compiler version suitable for your
+needs. In this example, we will be using `1.9.24`
 
 ```gradle
 buildscript {
