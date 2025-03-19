@@ -302,26 +302,40 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void voice_getCalls(Promise promise) {
-    WritableArray callInfos = Arguments.createArray();
-    for (CallRecord callRecord : getCallRecordDatabase().getCollection()) {
-      // incoming calls that have not been acted on do not have call-objects
-      if (null != callRecord.getVoiceCall()) {
-        callInfos.pushMap(serializeCall(callRecord));
+    logger.debug(".voice_getCalls()");
+
+    mainHandler.post(() -> {
+      logger.debug(".voice_getCalls() > runnable");
+
+      WritableArray callInfos = Arguments.createArray();
+      for (CallRecord callRecord : getCallRecordDatabase().getCollection()) {
+        // incoming calls that have not been acted on do not have call-objects
+        if (null != callRecord.getVoiceCall()) {
+          callInfos.pushMap(serializeCall(callRecord));
+        }
       }
-    }
-    promise.resolve(callInfos);
+
+      promise.resolve(callInfos);
+    });
   }
 
   @ReactMethod
   public void voice_getCallInvites(Promise promise) {
-    WritableArray callInviteInfos = Arguments.createArray();
-    for (CallRecord callRecord : getCallRecordDatabase().getCollection()) {
-      if (null != callRecord.getCallInvite() &&
+    logger.debug(".voice_getCallInvites()");
+
+    mainHandler.post(() -> {
+      logger.debug(".voice_getCallInvites() > runnable");
+
+      WritableArray callInviteInfos = Arguments.createArray();
+      for (CallRecord callRecord : getCallRecordDatabase().getCollection()) {
+        if (null != callRecord.getCallInvite() &&
           CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState()) {
-        callInviteInfos.pushMap(serializeCallInvite(callRecord));
+          callInviteInfos.pushMap(serializeCallInvite(callRecord));
+        }
       }
-    }
-    promise.resolve(callInviteInfos);
+
+      promise.resolve(callInviteInfos);
+    });
   }
 
   @ReactMethod
@@ -364,29 +378,47 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void call_getState(String uuid, Promise promise) {
-    final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+    logger.debug(".call_getState()");
 
-    if (null != callRecord) {
-      promise.resolve(callRecord.getVoiceCall().getState().toString().toLowerCase());
-    }
+    mainHandler.post(() -> {
+      logger.debug(".call_getState() > runnable");
+
+      final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+
+      if (null != callRecord) {
+        promise.resolve(callRecord.getVoiceCall().getState().toString().toLowerCase());
+      }
+    });
   }
 
   @ReactMethod
   public void call_isMuted(String uuid, Promise promise) {
-    final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+    logger.debug(".call_isMuted()");
 
-    if (null != callRecord) {
-      promise.resolve(callRecord.getVoiceCall().isMuted());
-    }
+    mainHandler.post(() -> {
+      logger.debug(".call_isMuted() > runnable");
+
+      final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+
+      if (null != callRecord) {
+        promise.resolve(callRecord.getVoiceCall().isMuted());
+      }
+    });
   }
 
   @ReactMethod
   public void call_isOnHold(String uuid, Promise promise) {
-    final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+    logger.debug(".call_isOnHold()");
 
-    if (null != callRecord) {
-      promise.resolve(callRecord.getVoiceCall().isOnHold());
-    }
+    mainHandler.post(() -> {
+      logger.debug(".call_isOnHold() > runnable");
+
+      final CallRecord callRecord = validateCallRecord(UUID.fromString(uuid), promise);
+
+      if (null != callRecord) {
+        promise.resolve(callRecord.getVoiceCall().isOnHold());
+      }
+    });
   }
 
   @ReactMethod
