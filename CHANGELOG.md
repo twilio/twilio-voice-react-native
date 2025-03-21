@@ -1,3 +1,16 @@
+1.5.0 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Updated the RNModule methods to invoke all Voice Service API methods from only
+  the main thread.
+
+
 1.4.0 (Feb 11, 2025)
 ====================
 
