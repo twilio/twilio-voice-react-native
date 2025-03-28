@@ -72,3 +72,7 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Secrets
+/src/e2e-tests-token.*.ts
+/android/app/google-services.json
