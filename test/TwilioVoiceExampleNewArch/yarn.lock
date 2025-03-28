@@ -1945,7 +1945,7 @@
   resolved "https://registry.yarnpkg.com/@twilio/voice-errors/-/voice-errors-1.8.0.tgz#ab13ae8ee9bd53dc62acffa9631be4f391b8c695"
   integrity sha512-Mh3CCCNOZ+OCFNv90ibml1VrsXiJy/1+/FP6382tUQuqZztndp41eqnJhsnM44UBkMAtlvVUSd1HuK8iCdHM/A==
 
-"@twilio/voice-react-native-sdk@link:../../":
+"@twilio/voice-react-native-sdk@link:../..":
   version "0.0.0"
   uid ""
 
