@@ -1,0 +1,6 @@
+{
+  "platforms": ["android", "ios"],
+  "android": {
+    "modules": ["com.twiliovoicereactnative.ExpoModule"]
+  }
+} 
