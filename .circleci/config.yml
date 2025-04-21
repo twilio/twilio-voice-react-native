@@ -30,7 +30,7 @@ executors:
     working_directory: ~/project
   ios-executor:
     macos:
-      xcode: "14.3.1"
+      xcode: 16.2.0
       resource_class: macos.m1.medium.gen1
 
 ###
