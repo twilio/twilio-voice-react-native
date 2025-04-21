@@ -12,13 +12,13 @@ module.exports = {
   apps: {
     'ios.debug': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/TwilioVoiceReactNativeExample.app',
-      build: 'xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build'
+      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/TwilioVoiceExampleNewArch.app',
+      build: 'xcodebuild -workspace ios/TwilioVoiceExampleNewArch.xcworkspace -scheme TwilioVoiceExampleNewArch -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build'
     },
     'ios.release': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceReactNativeExample.app',
-      build: 'xcodebuild -workspace ios/TwilioVoiceReactNativeExample.xcworkspace -scheme TwilioVoiceReactNativeExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build'
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/TwilioVoiceExampleNewArch.app',
+      build: 'xcodebuild -workspace ios/TwilioVoiceExampleNewArch.xcworkspace -scheme TwilioVoiceExampleNewArch -configuration Release -sdk iphonesimulator -derivedDataPath ios/build'
     },
     'android.debug': {
       type: 'android.apk',
