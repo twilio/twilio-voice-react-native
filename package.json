@@ -129,7 +129,7 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "test/app/e2e/",
+    "test/app/",
     "src/error/generated.ts",
     "coverage/"
   ],
