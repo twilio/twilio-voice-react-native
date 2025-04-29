@@ -18,7 +18,6 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 public class VoiceActivityProxy {
@@ -42,10 +41,6 @@ public class VoiceActivityProxy {
     // Ensure the microphone permission is enabled
     if (!checkPermissions()) {
       requestPermissions();
-    }
-    // Ensure necessary requests for full screen intents are activated (API 34+)
-    if (checkFullScreenIntentsEnabled()) {
-      requestFullScreenIntentPermission();
     }
     // These flags ensure that the activity can be launched when the screen is locked.
     Window window = context.getWindow();
@@ -83,19 +78,6 @@ public class VoiceActivityProxy {
       }
     }
     return true;
-  }
-
-  private void requestFullScreenIntentPermission() {
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
-      Intent intent = new Intent(
-        Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
-        Uri.parse("package:" + context.getPackageName()));
-      context.startActivity(intent);
-    }
-  }
-  private boolean checkFullScreenIntentsEnabled() {
-    return isFullScreenNotificationEnabled(context) &&
-      !NotificationManagerCompat.from(context).canUseFullScreenIntent();
   }
   private void handleIntent(Intent intent) {
     String action = intent.getAction();
