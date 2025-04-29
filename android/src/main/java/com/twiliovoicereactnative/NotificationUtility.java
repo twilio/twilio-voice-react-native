@@ -249,7 +249,6 @@ class NotificationUtility {
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
       .setContentIntent(piForegroundIntent)
-      .setFullScreenIntent(piForegroundIntent, true)
       .setOngoing(true)
       .addPerson(activeCaller)
       .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent));
