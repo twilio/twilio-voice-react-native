@@ -12,6 +12,28 @@ To get started on Android, you will need a Firebase project and a `google-servic
 For more information on Firebase and Push Credentials, please see the Twilio Programmable Voice Android Quickstart:
 https://github.com/twilio/voice-quickstart-android#quickstart
 
+### Gradle Dependencies
+You will also need to add the Google Services Gradle Plugin as a dependency in your Gradle build files.
+
+In your `android/build.gradle`:
+```
+buildscript {
+    // excluded for brevity
+    ...
+
+    dependencies {
+        // excluded for brevity
+        ...
+        classpath("com.google.gms:google-services:4.4.1")
+    }
+}
+```
+
+And in your `android/app/build.gradle`:
+```
+apply plugin: "com.google.gms.google-services"
+```
+
 ### Native Code (Java)
 The native Android layer of the SDK exposes several helper classes that will need to be invoked in your existing native Android code.
 
@@ -78,31 +100,11 @@ You will need to do this for the following Android lifecycle methods:
   - `onStop`
 
 #### `MainApplication`
-You will need to instantiate a `VoiceApplicationProxy` and replace the `ReactNativeHost` with a `VoiceApplicationProxy.VoiceReactNativeHost`. The `VoiceApplicationProxy` will need to be "hooked" into the Android application lifecycle methods as well.
-
-Note that the React Native application boilerplate opts to inline extend the `com.facebook.react.ReactNativeHost` in the `MainApplication.java` file. We opt to extend the `VoiceApplicationProxy.VoiceReactNativeHost` in a separate class and file.
-
-In `MainReactNativeHost.java`:
-
-```java
-public class MainReactNativeHost extends VoiceApplicationProxy.VoiceReactNativeHost {
-  // Excluded for brevity
-  ...
-}
-```
-
-Then you can construct the `VoiceApplicationProxy` and the `MainReactNativeHost` in your `MainApplication.java`:
+You will need to instantiate a `VoiceApplicationProxy` which will need to be "hooked" into the Android application lifecycle methods:
 
 ```java
 public class MainApplication extends Application implements ReactApplication {
-  private final VoiceApplicationProxy voiceApplicationProxy;
-  private final MainReactNativeHost mReactNativeHost;
-
-  public MainApplication() {
-    super();
-    mReactNativeHost = new MainReactNativeHost(this);
-    voiceApplicationProxy = new VoiceApplicationProxy(mReactNativeHost);
-  }
+  private final VoiceApplicationProxy voiceApplicationProxy = new VoiceApplicationProxy(this);
 
   // Excluded for brevity
   ...
