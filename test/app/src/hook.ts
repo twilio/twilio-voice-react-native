@@ -260,7 +260,7 @@ export function useCallInvites(
             removeCallInvite(callInvite.getCallSid());
             try {
               await callInvite.accept();
-            } catch (err) {
+            } catch (err: any) {
               const message = err.message;
               const code = err.code;
               logEvent(
@@ -381,7 +381,7 @@ export function useVoice(token: string) {
           },
         });
         callHandler(call);
-      } catch (err) {
+      } catch (err: any) {
         const message = err.message;
         const code = err.code;
         logEvent(
@@ -474,6 +474,13 @@ export function useVoice(token: string) {
     const bootstrap = async () => {
       if (Platform.OS === 'ios') {
         await voice.initializePushRegistry();
+      }
+
+      if (Platform.OS === 'android') {
+        const isFullscreen = await voice.isFullScreenNotificationEnabled();
+        if (!isFullscreen) {
+          await voice.requestFullScreenNotificationPermission();
+        }
       }
 
       const calls = await voice.getCalls();
