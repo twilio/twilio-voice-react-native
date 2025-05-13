@@ -651,10 +651,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         isFullScreenNotificationEnabled(reactContext);
 
     if (shouldStartActivity) {
-      Intent intent = new Intent(
-        Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
-        Uri.parse("package:" + reactContext.getPackageName()));
-      reactContext.startActivity(intent);
+      try {
+        Intent intent = new Intent(
+          Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+          Uri.parse("package:" + reactContext.getPackageName()));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        reactContext.startActivity(intent);
+      } catch (Exception e) {
+        promise.reject(e);
+      }
     }
 
     promise.resolve(null);

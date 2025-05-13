@@ -19,6 +19,13 @@ import type {
 
 import { generateAccessToken } from './tokenUtility';
 
+export function settlePromise<T>(p: Promise<T>) {
+  const r = p
+    .then((value: T) => ({ status: 'resolved', value }))
+    .catch((value: any) => ({ status: 'rejected', value }));
+  return r;
+}
+
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
     console.log(usage);
@@ -477,9 +484,11 @@ export function useVoice(token: string) {
       }
 
       if (Platform.OS === 'android') {
-        const isFullscreen = await voice.isFullScreenNotificationEnabled();
-        if (!isFullscreen) {
-          await voice.requestFullScreenNotificationPermission();
+        const isFullScreen = await voice.isFullScreenNotificationEnabled();
+        if (!isFullScreen) {
+          const requestResult =
+            await settlePromise(voice.requestFullScreenNotificationPermission());
+          console.log(requestResult);
         }
       }
 
