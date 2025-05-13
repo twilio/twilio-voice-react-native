@@ -1015,7 +1015,9 @@ export class Voice extends EventEmitter {
     getVersion(): Promise<string>;
     handleFirebaseMessage(remoteMessage: Record<string, string>): Promise<boolean>;
     initializePushRegistry(): Promise<void>;
+    isFullScreenNotificationEnabled(): Promise<boolean>;
     register(token: string): Promise<void>;
+    requestFullScreenNotificationPermission(): Promise<void>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
     showAvRoutePickerView(): Promise<void>;

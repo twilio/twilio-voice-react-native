@@ -1,6 +1,7 @@
 package com.twiliovoicereactnative;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -37,6 +38,7 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventAudioDevicesU
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
+import static com.twiliovoicereactnative.ConfigurationProperties.isFullScreenNotificationEnabled;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
@@ -46,8 +48,12 @@ import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceAp
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Pair;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
@@ -136,67 +142,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void removeListeners(Integer count) {
     logger.debug("Calling removeListeners: " + count);
-  }
-
-  @Override
-  @NonNull
-  public String getName() {
-    return TAG;
-  }
-
-  private RegistrationListener createRegistrationListener(Promise promise) {
-    return new RegistrationListener() {
-      @Override
-      public void onRegistered(@NonNull String accessToken, @NonNull String fcmToken) {
-        logger.log("Successfully registered FCM");
-        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventRegistered)));
-        promise.resolve(null);
-      }
-
-      @Override
-      public void onError(@NonNull RegistrationException registrationException,
-                          @NonNull String accessToken,
-                          @NonNull String fcmToken) {
-        String errorMessage = reactContext.getString(
-          R.string.registration_error,
-          registrationException.getErrorCode(),
-          registrationException.getMessage());
-        logger.error(errorMessage);
-
-        sendJSEvent(constructJSMap(
-          new Pair<>(VoiceEventType, VoiceEventError),
-          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
-
-        promise.reject(errorMessage);
-      }
-    };
-  }
-
-  private UnregistrationListener createUnregistrationListener(Promise promise) {
-    return new UnregistrationListener() {
-      @Override
-      public void onUnregistered(String accessToken, String fcmToken) {
-        logger.log("Successfully unregistered FCM");
-        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventUnregistered)));
-        promise.resolve(null);
-      }
-
-      @Override
-      public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
-        @SuppressLint("DefaultLocale")
-        String errorMessage = reactContext.getString(
-          R.string.unregistration_error,
-          registrationException.getErrorCode(),
-          registrationException.getMessage());
-        logger.error(errorMessage);
-
-        sendJSEvent(constructJSMap(
-          new Pair<>(VoiceEventType, VoiceEventError),
-          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
-
-        promise.reject(errorMessage);
-      }
-    };
   }
 
   @ReactMethod
@@ -688,6 +633,97 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         getVoiceServiceApi().rejectCall(callRecord);
       }
     });
+  }
+
+  @ReactMethod
+  public void system_isFullScreenNotificationEnabled(Promise promise) {
+    boolean isEnabled =
+      isFullScreenNotificationEnabled(reactContext) &&
+        NotificationManagerCompat.from(reactContext).canUseFullScreenIntent();
+
+    promise.resolve(isEnabled);
+  }
+
+  @ReactMethod
+  public void system_requestFullScreenNotificationPermission(Promise promise) {
+    final boolean shouldStartActivity =
+      Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU &&
+        isFullScreenNotificationEnabled(reactContext);
+
+    if (shouldStartActivity) {
+      try {
+        Intent intent = new Intent(
+          Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+          Uri.parse("package:" + reactContext.getPackageName()));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        reactContext.startActivity(intent);
+      } catch (Exception e) {
+        promise.reject(e);
+      }
+    }
+
+    promise.resolve(null);
+  }
+
+  @Override
+  @NonNull
+  public String getName() {
+    return TAG;
+  }
+
+  private RegistrationListener createRegistrationListener(Promise promise) {
+    return new RegistrationListener() {
+      @Override
+      public void onRegistered(@NonNull String accessToken, @NonNull String fcmToken) {
+        logger.log("Successfully registered FCM");
+        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventRegistered)));
+        promise.resolve(null);
+      }
+
+      @Override
+      public void onError(@NonNull RegistrationException registrationException,
+                          @NonNull String accessToken,
+                          @NonNull String fcmToken) {
+        String errorMessage = reactContext.getString(
+          R.string.registration_error,
+          registrationException.getErrorCode(),
+          registrationException.getMessage());
+        logger.error(errorMessage);
+
+        sendJSEvent(constructJSMap(
+          new Pair<>(VoiceEventType, VoiceEventError),
+          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
+
+        promise.reject(errorMessage);
+      }
+    };
+  }
+
+  private UnregistrationListener createUnregistrationListener(Promise promise) {
+    return new UnregistrationListener() {
+      @Override
+      public void onUnregistered(String accessToken, String fcmToken) {
+        logger.log("Successfully unregistered FCM");
+        sendJSEvent(constructJSMap(new Pair<>(VoiceEventType, VoiceEventUnregistered)));
+        promise.resolve(null);
+      }
+
+      @Override
+      public void onError(RegistrationException registrationException, String accessToken, String fcmToken) {
+        @SuppressLint("DefaultLocale")
+        String errorMessage = reactContext.getString(
+          R.string.unregistration_error,
+          registrationException.getErrorCode(),
+          registrationException.getMessage());
+        logger.error(errorMessage);
+
+        sendJSEvent(constructJSMap(
+          new Pair<>(VoiceEventType, VoiceEventError),
+          new Pair<>(VoiceErrorKeyError, serializeVoiceException(registrationException))));
+
+        promise.reject(errorMessage);
+      }
+    };
   }
 
   /**
