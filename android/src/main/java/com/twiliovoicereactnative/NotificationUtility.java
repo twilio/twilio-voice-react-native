@@ -244,7 +244,7 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
-    NotificationCompat.Builder builder =  constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
+    NotificationCompat.Builder builder = constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)

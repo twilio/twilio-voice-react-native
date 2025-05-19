@@ -1,7 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.ConfigurationProperties.isFullScreenNotificationEnabled;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -9,10 +7,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 
