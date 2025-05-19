@@ -60,6 +60,13 @@ export const NativeModule = {
     .fn()
     .mockResolvedValue(undefined),
   voice_unregister: jest.fn().mockResolvedValue(undefined),
+
+  system_isFullScreenNotificationEnabled: jest
+    .fn()
+    .mockResolvedValue(undefined),
+  system_requestFullScreenNotificationPermission: jest
+    .fn()
+    .mockResolvedValue(undefined),
 };
 
 export class MockNativeEventEmitter extends EventEmitter {

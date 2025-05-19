@@ -1,3 +1,14 @@
+1.7.0 (In Progress)
+===================
+
+## Features
+
+### Platform Specific Features
+
+#### Android
+
+- Added a new API to check for and request Full Screen Notification permissions on Android platforms.
+
 1.6.0 (In Progress)
 ===================
 
