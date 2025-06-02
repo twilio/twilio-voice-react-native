@@ -82,8 +82,14 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if (handleName == nil) {
         handleName = @"Unknown Caller";
     }
-    if (self.incomingCallContactHandleTemplate != NULL && [self.incomingCallContactHandleTemplate length] > 0) {
-        handleName = [self getDisplayName:self.incomingCallContactHandleTemplate customParameters:[callInvite customParameters]];
+
+    NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+    NSString *preferenceKey = @"incomingCallContactHandleTemplate";
+    if ([preferences objectForKey:preferenceKey] != nil) {
+        const NSString *preferenceVal = [preferences stringForKey:preferenceKey];
+        if ([preferenceVal length] > 0) {
+            handleName = [self getDisplayName:preferenceVal customParameters:[callInvite customParameters]];
+        }
     }
 
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handleName];

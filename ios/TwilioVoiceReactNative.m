@@ -983,7 +983,10 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    self.incomingCallContactHandleTemplate = template;
+    NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+    NSString *preferenceKey = @"incomingCallContactHandleTemplate";
+    [preferences setObject:template forKey:preferenceKey];
+    [preferences synchronize];
     resolve(NULL);
 }
 

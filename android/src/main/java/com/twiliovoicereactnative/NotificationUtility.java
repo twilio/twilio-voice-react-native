@@ -72,7 +72,7 @@ class NotificationUtility {
 
     public String getName() {
       if (this.callRecord.getDirection() == CallRecord.Direction.INCOMING) {
-        final String template = ConfigurationProperties.getIncomingCallContactHandleTemplate();
+        final String template = ConfigurationProperties.getIncomingCallContactHandleTemplate(ctx);
         if (template != null) {
           final String processedTemplate =
             templateDisplayName(template, this.callRecord.getCustomParameters());
