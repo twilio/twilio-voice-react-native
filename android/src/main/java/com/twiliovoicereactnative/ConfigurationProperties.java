@@ -1,16 +1,20 @@
 package com.twiliovoicereactnative;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 class ConfigurationProperties {
-  private static String incomingCallContactHandleTemplate = null;
-
-  public static void setIncomingCallContactHandleTemplate(String template) {
-    ConfigurationProperties.incomingCallContactHandleTemplate = template;
+  public static void setIncomingCallContactHandleTemplate(Context ctx, String template) {
+    SharedPreferences sharedPreferences = ctx.getSharedPreferences(Constants.PREFERENCES_FILE, Context.MODE_PRIVATE);
+    sharedPreferences
+      .edit()
+      .putString(Constants.INCOMING_CALL_CONTACT_HANDLE_TEMPLATE_PREFERENCES_KEY, template)
+      .apply();
   }
 
-  public static String getIncomingCallContactHandleTemplate() {
-    return ConfigurationProperties.incomingCallContactHandleTemplate;
+  public static String getIncomingCallContactHandleTemplate(Context ctx) {
+    SharedPreferences sharedPreferences = ctx.getSharedPreferences(Constants.PREFERENCES_FILE, Context.MODE_PRIVATE);
+    return sharedPreferences.getString(Constants.INCOMING_CALL_CONTACT_HANDLE_TEMPLATE_PREFERENCES_KEY, null);
   }
 
   /**
