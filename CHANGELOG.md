@@ -1,6 +1,10 @@
 1.7.0 (In Progress)
 ===================
 
+## Fixes
+
+- The call contact handle template feature now caches the set value. This fixes an issue where the handle template value would be `null` when an incoming call was received and the React Native JS runtime was not initialized or was restarted by the OS.
+
 ## Features
 
 ### Platform Specific Features
