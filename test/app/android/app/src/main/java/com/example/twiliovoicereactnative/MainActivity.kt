@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.widget.Toast
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -54,8 +53,8 @@ class MainActivity : ReactActivity() {
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
-  override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-    super.onCreate(savedInstanceState, persistentState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
     voiceActivityProxy.onCreate(savedInstanceState)
   }
 
