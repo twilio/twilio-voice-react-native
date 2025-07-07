@@ -63,7 +63,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @interface TwilioVoiceReactNative ()
 
-@property (nonatomic, strong) TwilioVoicePushRegistry *twilioVoicePushRegistry;
+// Fix receive notification when the app is in kill state
+//@property (nonatomic, strong) TwilioVoicePushRegistry *twilioVoicePushRegistry;
 
 @property(nonatomic, strong) NSData *deviceTokenData;
 @property(nonatomic, strong) NSMutableDictionary *audioDevices;
@@ -104,8 +105,11 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 }
 
 - (void)initializePushRegistry {
-    self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
-    [self.twilioVoicePushRegistry updatePushRegistry];
+    // Fix receive notification when the app is in kill state
+
+    [TwilioVoicePushRegistry sharedInstance];
+    // self.twilioVoicePushRegistry = [TwilioVoicePushRegistry new];
+    // [self.twilioVoicePushRegistry updatePushRegistry];
 }
 
 - (void)subscribeToNotifications {

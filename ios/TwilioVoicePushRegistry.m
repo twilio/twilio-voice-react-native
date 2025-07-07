@@ -29,12 +29,39 @@ NSString * const kTwilioVoicePushRegistryNotificationIncomingPushPayload = @"inc
 
 @implementation TwilioVoicePushRegistry
 
+// Fix receive notification when the app is in kill state
+#pragma mark - Singleton Implementation
++ (instancetype)sharedInstance {
+    static TwilioVoicePushRegistry *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[self alloc] init];
+        [sharedInstance updatePushRegistry];
+    });
+    return sharedInstance;
+}
++ (BOOL)requiresMainQueueSetup
+{
+    return YES;
+}
+
 #pragma mark - TwilioVoicePushRegistry methods
 
 - (void)updatePushRegistry {
-    self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
-    self.voipRegistry.delegate = self;
-    self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+     // Fix receive notification when the app is in kill state
+    
+    // self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
+    // self.voipRegistry.delegate = self;
+    // self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+    dispatch_queue_t mainQueue = dispatch_get_main_queue();
+    dispatch_async(mainQueue, ^{
+        // --- Create a push registry object
+        self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:mainQueue];
+        // --- Set the registry's delegate to the singleton itself
+        self.voipRegistry.delegate = self;
+        // --- Set the push type to VoIP
+        self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+    });
 }
 
 #pragma mark - PKPushRegistryDelegate

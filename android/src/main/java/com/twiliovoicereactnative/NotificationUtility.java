@@ -31,6 +31,7 @@ import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
 import static com.twiliovoicereactnative.VoiceService.constructMessage;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
+import java.net.URLDecoder;
 
 class NotificationUtility {
   private static final SecureRandom secureRandom = new SecureRandom();
@@ -108,7 +109,11 @@ class NotificationUtility {
 
     private static String getDisplayName(@NonNull CallInvite callInvite) {
       final String title = callInvite.getFrom();
-      if (title.startsWith("client:")) {
+      Map<String, String> customParameters = callInvite.getCustomParameters();
+      if (customParameters.get(Constants.DISPLAY_NAME) != null) {
+        return URLDecoder.decode(customParameters.get(Constants.DISPLAY_NAME)
+                          .replaceAll("\\+", "%20"));
+      } else if (title.startsWith("client:")) {
         return title.replaceFirst("client:", "");
       }
       return title;

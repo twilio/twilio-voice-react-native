@@ -14,6 +14,9 @@ FOUNDATION_EXPORT NSString * const kTwilioVoicePushRegistryNotificationIncomingP
 
 @interface TwilioVoicePushRegistry : NSObject
 
+// Fix receive notification when the app is in kill state
++ (instancetype)sharedInstance;
+
 - (void)updatePushRegistry;
 
 @end

@@ -3622,7 +3622,7 @@ anymatch@^3.0.3:
 
 "api-documenter@github:twilio/api-documenter#v0.0.1":
   version "7.17.24"
-  resolved "git+ssh://git@github.com/twilio/api-documenter.git#d4475f504a43b543c08a900aeae2b0eb7c67ee4d"
+  resolved "https://github.com/twilio/api-documenter#d4475f504a43b543c08a900aeae2b0eb7c67ee4d"
   dependencies:
     "@microsoft/api-extractor-model" "^7.20.1"
     "@microsoft/tsdoc" "0.14.1"
