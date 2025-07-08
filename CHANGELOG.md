@@ -13,8 +13,8 @@
 
 - Added a new API to check for and request Full Screen Notification permissions on Android platforms.
 
-1.6.1 (July 7th, 2025)
-======================
+1.6.1 (July 7, 2025)
+====================
 
 ## Changes
 
