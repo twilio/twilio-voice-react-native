@@ -13,6 +13,25 @@
 
 - Added a new API to check for and request Full Screen Notification permissions on Android platforms.
 
+1.6.1 (July 7, 2025)
+====================
+
+## Changes
+
+### Platform Specific Changes
+
+#### Android
+
+- Added Bluetooth permissions to the Twilio Voice RN SDK manifest.
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Updated Audioswitch library to version `1.2.2`. This should fix missing Bluetooth audio devices on Android platforms.
+
 1.6.0 (June 18, 2025)
 =====================
 
