@@ -64,7 +64,7 @@
     "@types/jest": "^28.1.6",
     "@types/react": "18.2.48",
     "@types/react-native": "0.62.13",
-    "api-documenter": "github:twilio/api-documenter#v0.0.1",
+    "api-documenter": "https://github.com/twilio/api-documenter#v0.0.1",
     "axios": "^1.7.2",
     "commitlint": "^11.0.0",
     "cors": "^2.8.5",
