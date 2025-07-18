@@ -16,9 +16,6 @@ parameters:
   release_workflow:
     type: boolean
     default: false
-  qe_workflow:
-    type: boolean
-    default: false
   release_command:
     type: string
     default: "echo \"no release-command specified\""
@@ -346,14 +343,14 @@ jobs:
           name: Trigger standard QE tests
           command: |
             curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
-            -u "$INTERNAL_CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
+            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
             -d '{"config":{"branch":"main"},"checkout":{"branch":"main"},"definition_id":"'$SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_DEFINITION_ID'","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
             $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
       - run:
           name: Trigger custom android messaging QE tests
           command: |
             curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
-            -u "$INTERNAL_CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
+            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
             -d '{"config":{"branch":"custom-android-messaging"},"checkout":{"branch":"custom-android-messaging"},"definition_id":"'$SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_DEFINITION_ID'","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
             $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
 
@@ -431,10 +428,6 @@ workflows:
           requires:
             - Release approval
   release-candidate:
-    when:
-        or:
-          - equal: [true, <<pipeline.parameters.qe_workflow>>]
-          - equal: [true, <<pipeline.parameters.release_workflow>>]
     jobs:
       - trigger-qe-tests:
           context: sdks-qe
