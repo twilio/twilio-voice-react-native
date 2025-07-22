@@ -15,6 +15,7 @@ import { InvalidArgumentError } from './error/InvalidArgumentError';
 import type { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
+import { PreflightTest } from './PreflightTest';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
@@ -835,6 +836,17 @@ export class Voice extends EventEmitter {
     }
 
     return NativeModule.system_requestFullScreenNotificationPermission();
+  }
+
+  // TODO
+  async runPreflight(accessToken: string): Promise<PreflightTest> {
+    return await NativeModule.voice_runPreflight(accessToken)
+      .then((uuid: string): PreflightTest => {
+        return new PreflightTest(uuid);
+      })
+      .catch((error: any): never => {
+        throw constructTwilioError(error.message, error.code);
+      });
   }
 }
 

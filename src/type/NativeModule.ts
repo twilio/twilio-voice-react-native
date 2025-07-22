@@ -90,4 +90,17 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    */
   system_isFullScreenNotificationEnabled(): Promise<boolean>;
   system_requestFullScreenNotificationPermission(): Promise<void>;
+
+  /**
+   * Preflight related bindings.
+   */
+  voice_runPreflight(accessToken: string): Promise<Uuid>;
+
+  preflightTest_getCallSid(preflightTestUuid: Uuid): Promise<string>;
+  preflightTest_getEndTime(preflightTestUuid: Uuid): Promise<number>;
+  preflightTest_getLatestSample(preflightTestUuid: Uuid): Promise<string>;
+  preflightTest_getReport(prefligthTestUuid: Uuid): Promise<string>;
+  preflightTest_getStartTime(preflightTestUuid: Uuid): Promise<number>;
+  preflightTest_getState(preflightTestUuid: Uuid): Promise<string>;
+  preflightTest_stop(preflightTestUuid: Uuid): Promise<void>;
 }
