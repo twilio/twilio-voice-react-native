@@ -1,5 +1,4 @@
 import { Constants } from '../constants';
-import { InvalidStateError } from '../error';
 import type { Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
 import type { NativeCallQualityWarnings } from './Call';

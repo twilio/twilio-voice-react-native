@@ -40,6 +40,25 @@ CallStateDisconnected=disconnected
 CallStateReconnecting=reconnecting
 CallStateRinging=ringing
 
+// Call Options
+AudioCodecKeyType=type
+
+AudioCodecTypeValueOpus=opus
+AudioCodecOpusKeyMaxAverageBitrate=maxAverageBitrate
+
+AudioCodecTypeValuePCMU=pcmu
+
+IceTransportPolicyValueAll=all
+IceTransportPolicyValueRelay=relay
+
+IceServerKeyPassword=password
+IceServerKeyServerUrl=serverUrl
+IceServerKeyUsername=username
+
+CallOptionsKeyIceTransportPolicy=iceTransportPolicy
+CallOptionsKeyIceServers=iceServers
+CallOptionsKeyPreferredAudioCodecs=preferredAudioCodecs
+
 // Call Invite Info
 CallInviteInfoUuid=uuid
 CallInviteInfoCallSid=callSid
