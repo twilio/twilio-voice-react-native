@@ -13,10 +13,10 @@ export { Voice } from './Voice';
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';
 export { CallInvite } from './CallInvite';
-export { CallMessage } from './CallMessage/CallMessage';
+export type { CallMessage } from './CallMessage/CallMessage';
 export { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 export { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
-export { CustomParameters } from './type/common';
+export type { CustomParameters } from './type/common';
 export { CallKit } from './type/CallKit';
 export { RTCStats } from './type/RTCStats';
 
