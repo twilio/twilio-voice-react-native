@@ -842,7 +842,7 @@ export class Voice extends EventEmitter {
   // TODO
   async runPreflight(
     accessToken: string,
-    options: Voice.RunPreflightTestOptions = {},
+    options: Voice.PreflightOptions = {},
   ): Promise<PreflightTest> {
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
@@ -896,7 +896,7 @@ export namespace Voice {
   /**
    * TODO docstrings
    */
-  export type RunPreflightTestOptions = Partial<{
+  export type PreflightOptions = Partial<{
     [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
     [Constants.CallOptionsKeyIceTransportPolicy]:
       CallOptions.IceTransportPolicy;
