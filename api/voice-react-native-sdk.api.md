@@ -6,6 +6,9 @@
 
 import { EventEmitter } from 'eventemitter3';
 
+// @public (undocumented)
+type AudioCodec = OpusAudioCodec | PCMUAudioCodec;
+
 // @public
 export class AudioDevice {
     // Warning: (ae-forgotten-export) The symbol "NativeAudioDeviceInfo" needs to be exported by the entry point index.d.ts
@@ -510,6 +513,21 @@ namespace GeneralErrors {
     }
 }
 
+// @public (undocumented)
+type IceServer = Partial<{
+    [Constants.IceServerKeyPassword]: string;
+    [Constants.IceServerKeyServerUrl]: string;
+    [Constants.IceServerKeyUsername]: string;
+}>;
+
+// @public (undocumented)
+enum IceTransportPolicy {
+    // (undocumented)
+    All = "all",
+    // (undocumented)
+    Relay = "relay"
+}
+
 // @public
 export class IncomingCallMessage extends EventEmitter {
     // Warning: (ae-forgotten-export) The symbol "NativeCallMessageInfo" needs to be exported by the entry point index.d.ts
@@ -612,6 +630,12 @@ namespace MediaErrors {
     }
 }
 
+// @public (undocumented)
+type OpusAudioCodec = {
+    [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValueOpus;
+    [Constants.AudioCodecOpusKeyMaxAverageBitrate]?: number;
+};
+
 // @public
 export interface OutgoingCallMessage {
     addListener(failureEvent: OutgoingCallMessage.Event.Failure, listener: OutgoingCallMessage.Listener.Failure): this;
@@ -641,6 +665,106 @@ export namespace OutgoingCallMessage {
         export type Failure = (error: TwilioError) => void;
         export type Generic = (...args: any[]) => void;
         export type Sent = () => void;
+    }
+}
+
+// @public (undocumented)
+type PCMUAudioCodec = {
+    [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValuePCMU;
+};
+
+// @public (undocumented)
+export interface PreflightTest {
+    // (undocumented)
+    addListener(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
+    // (undocumented)
+    addListener(completedEvent: PreflightTest.Event.Completed, listener: PreflightTest.Listener.Completed): this;
+    // (undocumented)
+    addListener(failedEvent: PreflightTest.Event.Failed, listener: PreflightTest.Listener.Failed): this;
+    // (undocumented)
+    addListener(sampleEvent: PreflightTest.Event.Sample, listener: PreflightTest.Listener.Sample): this;
+    // (undocumented)
+    addListener(warningEvent: PreflightTest.Event.QualityWarning, listener: PreflightTest.Listener.QualityWarning): this;
+    // (undocumented)
+    addListener(event: PreflightTest.Event, listener: PreflightTest.Listener.Generic): this;
+    // (undocumented)
+    emit(connectedEvent: PreflightTest.Event.Connected): boolean;
+    // (undocumented)
+    emit(completedEvent: PreflightTest.Event.Completed, report: string): boolean;
+    // (undocumented)
+    emit(failedEvent: PreflightTest.Event.Failed, error: TwilioError): boolean;
+    // (undocumented)
+    emit(sampleEvent: PreflightTest.Event.Sample, sample: string): boolean;
+    // (undocumented)
+    emit(qualityWarningEvent: PreflightTest.Event.QualityWarning, currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]): boolean;
+    // (undocumented)
+    on(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
+    // (undocumented)
+    on(completedEvent: PreflightTest.Event.Completed, listener: PreflightTest.Listener.Completed): this;
+    // (undocumented)
+    on(failedEvent: PreflightTest.Event.Failed, listener: PreflightTest.Listener.Failed): this;
+    // (undocumented)
+    on(sampleEvent: PreflightTest.Event.Sample, listener: PreflightTest.Listener.Sample): this;
+    // (undocumented)
+    on(warningEvent: PreflightTest.Event.QualityWarning, listener: PreflightTest.Listener.QualityWarning): this;
+    // (undocumented)
+    on(event: PreflightTest.Event, listener: PreflightTest.Listener.Generic): this;
+}
+
+// @public (undocumented)
+export class PreflightTest extends EventEmitter {
+    constructor(uuid: string);
+    // (undocumented)
+    getCallSid(): Promise<string>;
+    // (undocumented)
+    getEndTime(): Promise<number>;
+    // (undocumented)
+    getLatestSample(): Promise<string>;
+    // (undocumented)
+    getReport(): Promise<string>;
+    // (undocumented)
+    getStartTime(): Promise<number>;
+    // (undocumented)
+    getState(): Promise<string>;
+}
+
+// @public
+export namespace PreflightTest {
+    export enum Event {
+        // (undocumented)
+        Completed = "completed",
+        // (undocumented)
+        Connected = "connected",
+        // (undocumented)
+        Failed = "failed",
+        // (undocumented)
+        QualityWarning = "qualityWarning",
+        // (undocumented)
+        Sample = "sample"
+    }
+    export namespace Listener {
+        // (undocumented)
+        export type Completed = () => void;
+        // (undocumented)
+        export type Connected = () => void;
+        // (undocumented)
+        export type Failed = () => void;
+        // (undocumented)
+        export type Generic = () => void;
+        // (undocumented)
+        export type QualityWarning = () => void;
+        // (undocumented)
+        export type Sample = () => void;
+    }
+    export enum State {
+        // (undocumented)
+        Completed = "completed",
+        // (undocumented)
+        Connected = "connected",
+        // (undocumented)
+        Connecting = "connecting",
+        // (undocumented)
+        Failed = "failed"
     }
 }
 
@@ -1018,6 +1142,8 @@ export class Voice extends EventEmitter {
     isFullScreenNotificationEnabled(): Promise<boolean>;
     register(token: string): Promise<void>;
     requestFullScreenNotificationPermission(): Promise<void>;
+    // (undocumented)
+    runPreflight(accessToken: string, options?: Voice.RunPreflightTestOptions): Promise<PreflightTest>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
@@ -1046,6 +1172,16 @@ export namespace Voice {
         export type Registered = () => void;
         export type Unregistered = () => void;
     }
+    export type RunPreflightTestOptions = Partial<{
+        [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
+        [Constants.CallOptionsKeyIceTransportPolicy]: CallOptions.IceTransportPolicy;
+        [Constants.CallOptionsKeyPreferredAudioCodecs]: CallOptions.AudioCodec;
+    }>;
 }
+
+// Warnings were encountered during analysis:
+//
+// lib/typescript/Voice.d.ts:511:9 - (ae-forgotten-export) The symbol "CallOptions" needs to be exported by the entry point index.d.ts
+// lib/typescript/type/CallOptions.d.ts:7:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```

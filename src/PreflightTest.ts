@@ -9,9 +9,8 @@ import { EventEmitter } from 'eventemitter3';
 import type { Call } from './Call';
 import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
-import { InvalidStateError, TwilioError } from './error';
-import { constructTwilioError } from './error/utility';
-import { NativePreflightTestEvent, NativePreflightTestEventQualityWarning, NativePreflightTestEventFailed, NativePreflightTestEventSample, NativePreflightTestEventConnected, checkEventType } from './type/PreflightTest';
+import type { TwilioError } from './error';
+import type { NativePreflightTestEvent } from './type/PreflightTest';
 
 export interface PreflightTest {
   emit(connectedEvent: PreflightTest.Event.Connected): boolean;
@@ -117,28 +116,29 @@ export class PreflightTest extends EventEmitter {
   }
 
   private _handleNativeEvent = (
-    nativePreflightTestEvent: NativePreflightTestEvent,
+    _nativePreflightTestEvent: NativePreflightTestEvent,
   ): void => {
     // TODO
+    this._nativeEventHandler;
   };
 
-  private _handleConnectedEvent = (nativeEvent: NativePreflightTestEvent) => {
+  private _handleConnectedEvent = (_nativeEvent: NativePreflightTestEvent) => {
     // TODO
   };
 
-  private _handleCompletedEvent = (nativeEvent: NativePreflightTestEvent) => {
+  private _handleCompletedEvent = (_nativeEvent: NativePreflightTestEvent) => {
     // TODO
   };
 
-  private _handleFailedEvent = (nativeEvent: NativePreflightTestEvent) => {
+  private _handleFailedEvent = (_nativeEvent: NativePreflightTestEvent) => {
     // TODO
   }
 
-  private _handleQualityWarningEvent = (nativeEvent: NativePreflightTestEvent) => {
+  private _handleQualityWarningEvent = (_nativeEvent: NativePreflightTestEvent) => {
     // TODO
   }
 
-  private _handleSampleEvent = (nativeEvent: NativePreflightTestEvent) => {
+  private _handleSampleEvent = (_nativeEvent: NativePreflightTestEvent) => {
     // TODO
   }
 
