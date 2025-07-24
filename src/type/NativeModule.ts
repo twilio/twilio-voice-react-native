@@ -1,5 +1,6 @@
 import type { NativeModulesStatic } from 'react-native';
 import type { CallInvite } from '../CallInvite';
+import type { Voice } from '../Voice';
 import type { NativeAudioDevicesInfo } from './AudioDevice';
 import type {
   NativeCallInfo,
@@ -94,7 +95,10 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   /**
    * Preflight related bindings.
    */
-  voice_runPreflight(accessToken: string): Promise<Uuid>;
+  voice_runPreflight(
+    accessToken: string,
+    options: Voice.PreflightOptions
+  ): Promise<Uuid>;
 
   preflightTest_getCallSid(preflightTestUuid: Uuid): Promise<string>;
   preflightTest_getEndTime(preflightTestUuid: Uuid): Promise<number>;

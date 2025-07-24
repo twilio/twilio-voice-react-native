@@ -19,6 +19,7 @@ import { PreflightTest } from './PreflightTest';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
+import type * as CallOptions from './type/CallOptions';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
@@ -839,8 +840,11 @@ export class Voice extends EventEmitter {
   }
 
   // TODO
-  async runPreflight(accessToken: string): Promise<PreflightTest> {
-    return await NativeModule.voice_runPreflight(accessToken)
+  async runPreflight(
+    accessToken: string,
+    options: Voice.PreflightOptions = {},
+  ): Promise<PreflightTest> {
+    return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
         return new PreflightTest(uuid);
       })
@@ -888,6 +892,16 @@ export namespace Voice {
      */
     notificationDisplayName?: string;
   };
+
+  /**
+   * TODO docstrings
+   */
+  export type PreflightOptions = Partial<{
+    [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
+    [Constants.CallOptionsKeyIceTransportPolicy]:
+      CallOptions.IceTransportPolicy;
+    [Constants.CallOptionsKeyPreferredAudioCodecs]: CallOptions.AudioCodec;
+  }>;
 
   /**
    * Enumeration of all event strings emitted by {@link (Voice:class)} objects.
