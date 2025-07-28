@@ -5,10 +5,12 @@ import java.util.Vector;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -38,6 +40,8 @@ public class VoiceActivityProxy {
     if (!checkPermissions()) {
       requestPermissions();
     }
+    // Check full screen intent permission for newer Android versions
+    checkFullScreenIntentPermission();
     // These flags ensure that the activity can be launched when the screen is locked.
     Window window = context.getWindow();
     window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -74,6 +78,19 @@ public class VoiceActivityProxy {
       }
     }
     return true;
+  }
+  private void checkFullScreenIntentPermission() {
+    // Check full screen intent permission for Android 14+ (API 34+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      NotificationManager notificationManager = (NotificationManager) context.getSystemService(Activity.NOTIFICATION_SERVICE);
+      
+      if (notificationManager != null && !notificationManager.canUseFullScreenIntent()) {
+        logger.debug("Full screen intent permission not granted, launching settings");
+        // Permission not granted, launch settings page
+        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT);
+        context.startActivity(intent);
+      }
+    }
   }
   private void handleIntent(Intent intent) {
     String action = intent.getAction();
