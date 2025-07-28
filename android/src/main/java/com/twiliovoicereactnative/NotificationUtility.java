@@ -285,8 +285,14 @@ class NotificationUtility {
   }
 
   public static boolean isFullscreenIntentEnabled(Context context) {
-    return isFullScreenNotificationEnabled(context) &&
-      NotificationManagerCompat.from(context).canUseFullScreenIntent();
+    try {
+      return isFullScreenNotificationEnabled(context) &&
+        NotificationManagerCompat.from(context).canUseFullScreenIntent();
+    } catch (Exception e) {
+      // If there's any issue checking full screen intent permission, 
+      // assume it's not available to prevent crashes
+      return false;
+    }
   }
 
   private static NotificationChannelCompat createNotificationChannel(@NonNull Context context,

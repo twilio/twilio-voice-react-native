@@ -182,26 +182,39 @@ public class VoiceService extends Service {
       return;
     }
 
-    // put up notification
-    callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
-    Notification notification = NotificationUtility.createIncomingCallNotification(
-      VoiceService.this,
-      callRecord,
-      VOICE_CHANNEL_HIGH_IMPORTANCE);
-    createOrReplaceNotification(callRecord.getNotificationId(), notification);
+    try {
+      // put up notification
+      callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
+      Notification notification = NotificationUtility.createIncomingCallNotification(
+        VoiceService.this,
+        callRecord,
+        VOICE_CHANNEL_HIGH_IMPORTANCE);
+      createOrReplaceNotification(callRecord.getNotificationId(), notification);
 
+      // play ringer sound
+      VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().activate();
+      VoiceApplicationProxy.getMediaPlayerManager().play(MediaPlayerManager.SoundTable.INCOMING);
 
-
-    // play ringer sound
-    VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().activate();
-    VoiceApplicationProxy.getMediaPlayerManager().play(MediaPlayerManager.SoundTable.INCOMING);
-
-    // trigger JS layer
-    sendJSEvent(
-      ScopeVoice,
-      constructJSMap(
-        new Pair<>(VoiceEventType, VoiceEventTypeValueIncomingCallInvite),
-        new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
+      // trigger JS layer
+      sendJSEvent(
+        ScopeVoice,
+        constructJSMap(
+          new Pair<>(VoiceEventType, VoiceEventTypeValueIncomingCallInvite),
+          new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
+    } catch (Exception e) {
+      logger.warning("Failed to handle incoming call: " + e.getMessage());
+      // Don't crash the app if incoming call handling fails
+      // Still try to notify JS layer about the incoming call
+      try {
+        sendJSEvent(
+          ScopeVoice,
+          constructJSMap(
+            new Pair<>(VoiceEventType, VoiceEventTypeValueIncomingCallInvite),
+            new Pair<>(JS_EVENT_KEY_CALL_INVITE_INFO, serializeCallInvite(callRecord))));
+      } catch (Exception jsError) {
+        logger.warning("Failed to send JS event for incoming call: " + jsError.getMessage());
+      }
+    }
   }
   private void acceptCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("acceptCall: " + callRecord.getUuid());
@@ -348,9 +361,14 @@ public class VoiceService extends Service {
   }
   private void createOrReplaceNotification(final int notificationId,
                                            final Notification notification) {
-    NotificationManager mNotificationManager =
-      (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    mNotificationManager.notify(notificationId, notification);
+    try {
+      NotificationManager mNotificationManager =
+        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+      mNotificationManager.notify(notificationId, notification);
+    } catch (Exception e) {
+      logger.warning("Failed to create notification: " + e.getMessage());
+      // Don't crash the app if notification creation fails
+    }
   }
   private void createOrReplaceForegroundNotification(final int notificationId,
                                                      final Notification notification) {
