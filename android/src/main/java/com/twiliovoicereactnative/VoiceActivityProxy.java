@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -81,17 +80,26 @@ public class VoiceActivityProxy {
   }
   private void checkFullScreenIntentPermission() {
     // Check full screen intent permission for Android 14+ (API 34+)
+    // This is a non-blocking check that just logs the status
+    // The actual permission request should be handled by the React Native side
+    // using system_requestFullScreenNotificationPermission() method
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-      NotificationManager notificationManager = (NotificationManager) context.getSystemService(Activity.NOTIFICATION_SERVICE);
-      
-      if (notificationManager != null && !notificationManager.canUseFullScreenIntent()) {
-        logger.debug("Full screen intent permission not granted, launching settings");
-        // Permission not granted, launch settings page
-        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT);
-        context.startActivity(intent);
+      try {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Activity.NOTIFICATION_SERVICE);
+        
+        if (notificationManager != null && !notificationManager.canUseFullScreenIntent()) {
+          logger.info("Full screen intent permission not granted. Incoming call popup may not display properly on Android 14+.");
+          logger.info("Use system_requestFullScreenNotificationPermission() from React Native to request this permission.");
+        } else {
+          logger.debug("Full screen intent permission is granted");
+        }
+      } catch (Exception e) {
+        logger.debug("Could not check full screen intent permission: " + e.getMessage());
+        // Don't crash the app if there's an issue with permission check
       }
     }
   }
+
   private void handleIntent(Intent intent) {
     String action = intent.getAction();
     if ((null != action) && (!action.equals(Constants.ACTION_PUSH_APP_TO_FOREGROUND))) {
