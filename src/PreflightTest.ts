@@ -547,19 +547,19 @@ export namespace PreflightTest {
    * Events raised by the PreflightTest.
    */
   export enum Event {
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:1)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:1)} */
     Connected = 'connected',
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:2)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:2)} */
     Completed = 'completed',
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:3)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:3)} */
     Failed = 'failed',
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:4)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:4)} */
     Sample = 'sample',
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:5)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:5)} */
     QualityWarning = 'qualityWarning',
   }
 
@@ -567,22 +567,22 @@ export namespace PreflightTest {
    * Types of the listener methods that are bound to the PreflightTest events.
    */
   export namespace Listener {
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:1)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:1)} */
     export type Connected = () => void;
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:2)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:2)} */
     export type Completed = () => void;
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:3)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:3)} */
     export type Failed = () => void;
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:4)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:4)} */
     export type Sample = () => void;
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:5)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:5)} */
     export type QualityWarning = () => void;
 
-    /** {@inerhitdoc (PreflightTest:interface).(addListener:6)} */
+    /** {@inheritdoc (PreflightTest:interface).(addListener:6)} */
     export type Generic = () => void;
   }
 

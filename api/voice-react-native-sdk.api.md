@@ -714,29 +714,18 @@ export class PreflightTest extends EventEmitter {
 // @public
 export namespace PreflightTest {
     export enum Event {
-        // (undocumented)
         Completed = "completed",
-        // (undocumented)
         Connected = "connected",
-        // (undocumented)
         Failed = "failed",
-        // (undocumented)
         QualityWarning = "qualityWarning",
-        // (undocumented)
         Sample = "sample"
     }
     export namespace Listener {
-        // (undocumented)
         export type Completed = () => void;
-        // (undocumented)
         export type Connected = () => void;
-        // (undocumented)
         export type Failed = () => void;
-        // (undocumented)
         export type Generic = () => void;
-        // (undocumented)
         export type QualityWarning = () => void;
-        // (undocumented)
         export type Sample = () => void;
     }
     export enum State {
