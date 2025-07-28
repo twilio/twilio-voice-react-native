@@ -88,8 +88,8 @@ public class VoiceActivityProxy {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Activity.NOTIFICATION_SERVICE);
         
         if (notificationManager != null && !notificationManager.canUseFullScreenIntent()) {
-          logger.info("Full screen intent permission not granted. Incoming call popup may not display properly on Android 14+.");
-          logger.info("Use system_requestFullScreenNotificationPermission() from React Native to request this permission.");
+          logger.log("Full screen intent permission not granted. Incoming call popup may not display properly on Android 14+.");
+          logger.log("Use system_requestFullScreenNotificationPermission() from React Native to request this permission.");
         } else {
           logger.debug("Full screen intent permission is granted");
         }
