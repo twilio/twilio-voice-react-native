@@ -43,4 +43,3 @@ export type NativePreflightTestEvent =
   | NativePreflightTestEventFailed
   | NativePreflightTestEventSample
   | NativePreflightTestEventQualityWarning;
-

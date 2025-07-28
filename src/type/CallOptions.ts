@@ -20,6 +20,4 @@ export type PCMUAudioCodec = {
   [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValuePCMU;
 };
 
-export type AudioCodec =
-  | OpusAudioCodec
-  | PCMUAudioCodec;
+export type AudioCodec = OpusAudioCodec | PCMUAudioCodec;

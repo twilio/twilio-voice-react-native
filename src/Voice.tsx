@@ -839,10 +839,25 @@ export class Voice extends EventEmitter {
     return NativeModule.system_requestFullScreenNotificationPermission();
   }
 
-  // TODO
+  /**
+   * Starts a PreflightTest.
+   *
+   * The PreflightTest allows you to anticipate and troubleshoot end users'
+   * connectivity and bandwidth issues before or during Twilio Voice calls.
+   *
+   * The PreflightTest performs a test call to Twilio and provides a
+   * JSON-serialized report at the end. The report includes information about
+   * the end user's network connection (including jitter, packet loss, and
+   * round trip time) and connection settings.
+   *
+   * @returns
+   * A Promise that:
+   * - Resolves with a {@link (PreflightTest:class)} object.
+   * - Rejects with a {@link TwilioError} if unable to perform a {@link (PreflightTest:class)}.
+   */
   async runPreflight(
     accessToken: string,
-    options: Voice.PreflightOptions = {},
+    options: Voice.PreflightOptions = {}
   ): Promise<PreflightTest> {
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
@@ -892,16 +907,6 @@ export namespace Voice {
      */
     notificationDisplayName?: string;
   };
-
-  /**
-   * TODO docstrings
-   */
-  export type PreflightOptions = Partial<{
-    [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
-    [Constants.CallOptionsKeyIceTransportPolicy]:
-      CallOptions.IceTransportPolicy;
-    [Constants.CallOptionsKeyPreferredAudioCodecs]: CallOptions.AudioCodec;
-  }>;
 
   /**
    * Enumeration of all event strings emitted by {@link (Voice:class)} objects.
@@ -1032,5 +1037,26 @@ export namespace Voice {
      * See {@link (Voice:interface).(addListener:6)}.
      */
     export type Generic = (...args: any[]) => void;
+  }
+
+  /**
+   * Options to run a PreflightTest.
+   */
+  export interface PreflightOptions {
+    /**
+     * Array of ICE servers to use for the PreflightTest.
+     */
+    [Constants.CallOptionsKeyIceServers]?: CallOptions.IceServer[];
+    /**
+     * The ICE transport policy to use for the PreflightTest.
+     */
+    [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptions.IceTransportPolicy;
+    /**
+     * The preferred audio codec to use for the PreflightTest.
+     *
+     * @remarks
+     * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
+     */
+    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptions.AudioCodec;
   }
 }
