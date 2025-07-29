@@ -164,8 +164,8 @@ export interface PreflightTest {
    * preflightTest.addListener(
    *   PreflightTest.Event.QualityWarning,
    *   (currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]) => {
-   *     // preflightTest has generated a sample
-   *     // consider updating your UI with information from the sample
+   *     // preflightTest has generated or cleared a quality warning
+   *     // consider updating your UI with information about the warning
    *   },
    * );
    * ```
