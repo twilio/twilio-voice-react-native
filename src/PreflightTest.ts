@@ -606,7 +606,7 @@ export namespace PreflightTest {
 
     /**
      * The state of the PreflightTest after the PreflightTest has been started
-     * but not the PreflightTest has not yet connected.
+     * but not yet connected.
      */
     Connecting = 'connecting',
 
