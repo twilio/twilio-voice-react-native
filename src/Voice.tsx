@@ -19,7 +19,6 @@ import { PreflightTest } from './PreflightTest';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
-import type * as CallOptions from './type/CallOptions';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
@@ -857,7 +856,7 @@ export class Voice extends EventEmitter {
    */
   async runPreflight(
     accessToken: string,
-    options: Voice.PreflightOptions = {}
+    options: PreflightTest.Options = {}
   ): Promise<PreflightTest> {
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
@@ -1037,26 +1036,5 @@ export namespace Voice {
      * See {@link (Voice:interface).(addListener:6)}.
      */
     export type Generic = (...args: any[]) => void;
-  }
-
-  /**
-   * Options to run a PreflightTest.
-   */
-  export interface PreflightOptions {
-    /**
-     * Array of ICE servers to use for the PreflightTest.
-     */
-    [Constants.CallOptionsKeyIceServers]?: CallOptions.IceServer[];
-    /**
-     * The ICE transport policy to use for the PreflightTest.
-     */
-    [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptions.IceTransportPolicy;
-    /**
-     * The preferred audio codec to use for the PreflightTest.
-     *
-     * @remarks
-     * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
-     */
-    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptions.AudioCodec;
   }
 }

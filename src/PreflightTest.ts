@@ -11,15 +11,8 @@ import { NativeEventEmitter, NativeModule } from './common';
 import { Constants } from './constants';
 import { InvalidStateError, TwilioError } from './error';
 import { constructTwilioError } from './error/utility';
-import type {
-  NativePreflightTestEvent,
-  NativePreflightTestEventCompleted,
-  NativePreflightTestEventFailed,
-  NativePreflightTestEventQualityWarning,
-  NativePreflightTestEventSample,
-  PreflightReport,
-  PreflightStatsSample,
-} from './type/PreflightTest';
+import type * as PreflightTestType from './type/PreflightTest';
+import type * as CallOptionsType from './type/CallOptions';
 
 export interface PreflightTest {
   /**
@@ -34,7 +27,7 @@ export interface PreflightTest {
   /** @internal */
   emit(
     completedEvent: PreflightTest.Event.Completed,
-    report: PreflightReport
+    report: PreflightTest.Report
   ): boolean;
 
   /** @internal */
@@ -43,7 +36,7 @@ export interface PreflightTest {
   /** @internal */
   emit(
     sampleEvent: PreflightTest.Event.Sample,
-    sample: PreflightStatsSample
+    sample: PreflightTest.StatsSample
   ): boolean;
 
   /** @internal */
@@ -278,7 +271,7 @@ export class PreflightTest extends EventEmitter {
    * Handle all PreflightTest native events.
    */
   private _handleNativeEvent = (
-    nativePreflightTestEvent: NativePreflightTestEvent
+    nativePreflightTestEvent: PreflightTestType.NativeEvent
   ): void => {
     const uuid = nativePreflightTestEvent[Constants.PreflightTestEventKeyUuid];
     if (typeof uuid !== 'string') {
@@ -324,7 +317,7 @@ export class PreflightTest extends EventEmitter {
    * Handle completed event.
    */
   private _handleCompletedEvent = (
-    nativeEvent: NativePreflightTestEventCompleted
+    nativeEvent: PreflightTestType.NativeEventCompleted
   ) => {
     const report = nativeEvent[Constants.PreflightTestCompletedEventKeyReport];
     if (typeof report !== 'string') {
@@ -352,7 +345,7 @@ export class PreflightTest extends EventEmitter {
    * Handle failed event.
    */
   private _handleFailedEvent = (
-    nativeEvent: NativePreflightTestEventFailed
+    nativeEvent: PreflightTestType.NativeEventFailed
   ) => {
     const { message, code } =
       nativeEvent[Constants.PreflightTestFailedEventKeyError];
@@ -381,7 +374,7 @@ export class PreflightTest extends EventEmitter {
    * Handle quality warning event.
    */
   private _handleQualityWarningEvent = (
-    nativeEvent: NativePreflightTestEventQualityWarning
+    nativeEvent: PreflightTestType.NativeEventQualityWarning
   ) => {
     const currentWarnings =
       nativeEvent[Constants.PreflightTestQualityWarningEventKeyCurrentWarnings];
@@ -438,7 +431,7 @@ export class PreflightTest extends EventEmitter {
    * Handle sample event.
    */
   private _handleSampleEvent = (
-    nativeEvent: NativePreflightTestEventSample
+    nativeEvent: PreflightTestType.NativeEventSample
   ) => {
     const sample = nativeEvent[Constants.PreflightTestSampleEventKeySample];
     if (typeof sample !== 'string') {
@@ -556,6 +549,27 @@ function constructInvalidValueError(
  */
 export namespace PreflightTest {
   /**
+   * Options to run a PreflightTest.
+   */
+  export interface Options {
+    /**
+     * Array of ICE servers to use for the PreflightTest.
+     */
+    [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
+    /**
+     * The ICE transport policy to use for the PreflightTest.
+     */
+    [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
+    /**
+     * The preferred audio codec to use for the PreflightTest.
+     *
+     * @remarks
+     * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
+     */
+    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec;
+  }
+
+  /**
    * Events raised by the PreflightTest.
    */
   export enum Event {
@@ -583,13 +597,13 @@ export namespace PreflightTest {
     export type Connected = () => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:2)} */
-    export type Completed = (report: PreflightReport) => void;
+    export type Completed = (report: Report) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:3)} */
     export type Failed = (error: TwilioError) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:4)} */
-    export type Sample = (sample: PreflightStatsSample) => void;
+    export type Sample = (sample: StatsSample) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:5)} */
     export type QualityWarning = (
@@ -631,5 +645,105 @@ export namespace PreflightTest {
      * See {@link (PreflightTest:interface).(addListener:3)}.
      */
     Failed = 'failed',
+  }
+
+  // VBLOCKS-5096
+  // Add docstrings for all the below types.
+  export interface AggregateStats {
+    [Constants.PreflightAggregateStatsAverage]: number;
+    [Constants.PreflightAggregateStatsMax]: number;
+    [Constants.PreflightAggregateStatsMin]: number;
+  }
+
+  export interface NetworkStats {
+    [Constants.PreflightNetworkStatsJitter]: AggregateStats;
+    [Constants.PreflightNetworkStatsMos]: AggregateStats;
+    [Constants.PreflightNetworkStatsRtt]: AggregateStats;
+  }
+
+  export interface TimeMeasurement {
+    [Constants.PreflightTimeMeasurementStartTime]: number;
+    [Constants.PreflightTimeMeasurementEndTime]: number;
+    [Constants.PreflightTimeMeasurementDuration]: number;
+  }
+
+  export interface NetworkTiming {
+    [Constants.PreflightNetworkTimingSignaling]: TimeMeasurement;
+    [Constants.PreflightNetworkTimingPeerConnection]: TimeMeasurement;
+    [Constants.PreflightNetworkTimingIceConnection]: TimeMeasurement;
+    [Constants.PreflightNetworkTimingPreflightTest]: TimeMeasurement;
+  }
+
+  export interface Warning {
+    [Constants.PreflightWarningName]: string;
+    [Constants.PreflightWarningThreshold]: string;
+    [Constants.PreflightWarningValues]: string;
+    [Constants.PreflightWarningTimestamp]: number;
+  }
+
+  export interface WarningCleared {
+    [Constants.PreflightWarningClearedName]: string;
+    [Constants.PreflightWarningClearedTimestamp]: number;
+  }
+
+  export interface IceCandidate {
+    [Constants.PreflightIceCandidateTransportId]: string;
+    [Constants.PreflightIceCandidateIsRemote]: boolean;
+    [Constants.PreflightIceCandidateIp]: string;
+    [Constants.PreflightIceCandidatePort]: number;
+    [Constants.PreflightIceCandidateProtocol]: string;
+    [Constants.PreflightIceCandidateCandidateType]: string;
+    [Constants.PreflightIceCandidateUrl]: string;
+    [Constants.PreflightIceCandidateDeleted]: boolean;
+    [Constants.PreflightIceCandidateNetworkCost]: number;
+    [Constants.PreflightIceCandidateNetworkId]: number;
+    [Constants.PreflightIceCandidateNetworkType]: string;
+    [Constants.PreflightIceCandidateRelatedAddress]: string;
+    [Constants.PreflightIceCandidateRelatedPort]: number;
+    [Constants.PreflightIceCandidateTcpType]: string;
+  }
+
+  export interface SelectedIceCandidatePair {
+    [Constants.PreflightSelectedIceCandidatePairLocalCandidate]: IceCandidate;
+    [Constants.PreflightSelectedIceCandidatePairRemoteCandidate]: IceCandidate;
+  }
+
+  export interface StatsSample {
+    [Constants.PreflightStatsSampleAudioInputLevel]: number;
+    [Constants.PreflightStatsSampleAudioOutputLevel]: number;
+    [Constants.PreflightStatsSampleBytesReceived]: number;
+    [Constants.PreflightStatsSampleBytesSent]: number;
+    [Constants.PreflightStatsSampleCodec]: string;
+    [Constants.PreflightStatsSampleJitter]: number;
+    [Constants.PreflightStatsSampleMos]: number;
+    [Constants.PreflightStatsSamplePacketsLost]: number;
+    [Constants.PreflightStatsSamplePacketsLostFraction]: number;
+    [Constants.PreflightStatsSamplePacketsReceived]: number;
+    [Constants.PreflightStatsSamplePacketsSent]: number;
+    [Constants.PreflightStatsSampleRtt]: number;
+    [Constants.PreflightStatsSampleTimestamp]: string;
+  }
+
+  export enum CallQuality {
+    Excellent = Constants.PreflightReportCallQualityExcellent,
+    Great = Constants.PreflightReportCallQualityGreat,
+    Good = Constants.PreflightReportCallQualityGood,
+    Fair = Constants.PreflightReportCallQualityFair,
+    Degraded = Constants.PreflightReportCallQualityDegraded,
+  }
+
+  export interface Report {
+    [Constants.PreflightReportCallSid]: string;
+    [Constants.PreflightReportCallQuality]?: CallQuality;
+    [Constants.PreflightReportEdge]: string;
+    [Constants.PreflightReportIceCandidates]: IceCandidate[];
+    [Constants.PreflightReportIsTurnRequired]: boolean | null;
+    [Constants.PreflightReportNetworkStats]: NetworkStats;
+    [Constants.PreflightReportNetworkTiming]: NetworkTiming;
+    [Constants.PreflightReportStatsSamples]: StatsSample[];
+    [Constants.PreflightReportSelectedEdge]: string;
+    [Constants.PreflightReportSelectedIceCandidatePair]: SelectedIceCandidatePair;
+    [Constants.PreflightReportWarnings]: Warning[];
+    [Constants.PreflightReportWarningsCleared]: WarningCleared[];
   }
 }
