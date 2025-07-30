@@ -17,6 +17,8 @@ import type {
   NativePreflightTestEventFailed,
   NativePreflightTestEventQualityWarning,
   NativePreflightTestEventSample,
+  PreflightReport,
+  PreflightStatsSample,
 } from './type/PreflightTest';
 
 export interface PreflightTest {
@@ -30,13 +32,19 @@ export interface PreflightTest {
   emit(connectedEvent: PreflightTest.Event.Connected): boolean;
 
   /** @internal */
-  emit(completedEvent: PreflightTest.Event.Completed, report: string): boolean;
+  emit(
+    completedEvent: PreflightTest.Event.Completed,
+    report: PreflightReport
+  ): boolean;
 
   /** @internal */
   emit(failedEvent: PreflightTest.Event.Failed, error: TwilioError): boolean;
 
   /** @internal */
-  emit(sampleEvent: PreflightTest.Event.Sample, sample: string): boolean;
+  emit(
+    sampleEvent: PreflightTest.Event.Sample,
+    sample: PreflightStatsSample
+  ): boolean;
 
   /** @internal */
   emit(
@@ -328,7 +336,9 @@ export class PreflightTest extends EventEmitter {
       );
     }
 
-    this.emit(PreflightTest.Event.Completed, report);
+    const parsedReport = JSON.parse(report);
+
+    this.emit(PreflightTest.Event.Completed, parsedReport);
   };
 
   /**
@@ -440,7 +450,9 @@ export class PreflightTest extends EventEmitter {
       );
     }
 
-    this.emit(PreflightTest.Event.Sample, sample);
+    const parsedSample = JSON.parse(sample);
+
+    this.emit(PreflightTest.Event.Sample, parsedSample);
   };
 
   /**
@@ -571,19 +583,22 @@ export namespace PreflightTest {
     export type Connected = () => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:2)} */
-    export type Completed = () => void;
+    export type Completed = (report: PreflightReport) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:3)} */
-    export type Failed = () => void;
+    export type Failed = (error: TwilioError) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:4)} */
-    export type Sample = () => void;
+    export type Sample = (sample: PreflightStatsSample) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:5)} */
-    export type QualityWarning = () => void;
+    export type QualityWarning = (
+      currentWarnings: Call.QualityWarning[],
+      previousWarnings: Call.QualityWarning[]
+    ) => void;
 
     /** {@inheritdoc (PreflightTest:interface).(addListener:6)} */
-    export type Generic = () => void;
+    export type Generic = (...args: any[]) => void;
   }
 
   /**

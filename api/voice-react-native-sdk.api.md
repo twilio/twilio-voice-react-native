@@ -683,12 +683,16 @@ export interface PreflightTest {
     addListener(event: PreflightTest.Event, listener: PreflightTest.Listener.Generic): this;
     // @internal (undocumented)
     emit(connectedEvent: PreflightTest.Event.Connected): boolean;
+    // Warning: (ae-forgotten-export) The symbol "PreflightReport" needs to be exported by the entry point index.d.ts
+    //
     // @internal (undocumented)
-    emit(completedEvent: PreflightTest.Event.Completed, report: string): boolean;
+    emit(completedEvent: PreflightTest.Event.Completed, report: PreflightReport): boolean;
     // @internal (undocumented)
     emit(failedEvent: PreflightTest.Event.Failed, error: TwilioError): boolean;
+    // Warning: (ae-forgotten-export) The symbol "PreflightStatsSample" needs to be exported by the entry point index.d.ts
+    //
     // @internal (undocumented)
-    emit(sampleEvent: PreflightTest.Event.Sample, sample: string): boolean;
+    emit(sampleEvent: PreflightTest.Event.Sample, sample: PreflightStatsSample): boolean;
     // @internal (undocumented)
     emit(qualityWarningEvent: PreflightTest.Event.QualityWarning, currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]): boolean;
     on(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
@@ -721,12 +725,12 @@ export namespace PreflightTest {
         Sample = "sample"
     }
     export namespace Listener {
-        export type Completed = () => void;
+        export type Completed = (report: PreflightReport) => void;
         export type Connected = () => void;
-        export type Failed = () => void;
-        export type Generic = () => void;
-        export type QualityWarning = () => void;
-        export type Sample = () => void;
+        export type Failed = (error: TwilioError) => void;
+        export type Generic = (...args: any[]) => void;
+        export type QualityWarning = (currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]) => void;
+        export type Sample = (sample: PreflightStatsSample) => void;
     }
     export enum State {
         Completed = "completed",
