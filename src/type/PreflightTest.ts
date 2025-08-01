@@ -3,44 +3,38 @@ import type { Uuid } from './common';
 import type { NativeErrorInfo } from './Error';
 import type { NativeCallQualityWarnings } from './Call';
 
-export interface NativePreflightTestEventBase {
+export interface NativeEventBase {
   [Constants.PreflightTestEventKeyUuid]: Uuid;
 }
 
-export interface NativePreflightTestEventConnected
-  extends NativePreflightTestEventBase {
+export interface NativeEventConnected extends NativeEventBase {
   [Constants.PreflightTestEventKeyType]: Constants.PreflightTestEventTypeValueConnected;
 }
 
-export interface NativePreflightTestEventCompleted
-  extends NativePreflightTestEventBase {
+export interface NativeEventCompleted extends NativeEventBase {
   [Constants.PreflightTestEventKeyType]: Constants.PreflightTestEventTypeValueCompleted;
   [Constants.PreflightTestCompletedEventKeyReport]: string;
 }
 
-export interface NativePreflightTestEventFailed
-  extends NativePreflightTestEventBase {
+export interface NativeEventFailed extends NativeEventBase {
   [Constants.PreflightTestEventKeyType]: Constants.PreflightTestEventTypeValueFailed;
   [Constants.PreflightTestFailedEventKeyError]: NativeErrorInfo;
 }
 
-export interface NativePreflightTestEventSample
-  extends NativePreflightTestEventBase {
+export interface NativeEventSample extends NativeEventBase {
   [Constants.PreflightTestEventKeyType]: Constants.PreflightTestEventTypeValueSample;
   [Constants.PreflightTestSampleEventKeySample]: string;
 }
 
-export interface NativePreflightTestEventQualityWarning
-  extends NativePreflightTestEventBase {
+export interface NativeEventQualityWarning extends NativeEventBase {
   [Constants.PreflightTestEventKeyType]: Constants.PreflightTestEventTypeValueQualityWarning;
   [Constants.PreflightTestQualityWarningEventKeyCurrentWarnings]: NativeCallQualityWarnings;
   [Constants.PreflightTestQualityWarningEventKeyPreviousWarnings]: NativeCallQualityWarnings;
 }
 
-export type NativePreflightTestEvent =
-  | NativePreflightTestEventConnected
-  | NativePreflightTestEventCompleted
-  | NativePreflightTestEventFailed
-  | NativePreflightTestEventSample
-  | NativePreflightTestEventQualityWarning;
-
+export type NativeEvent =
+  | NativeEventConnected
+  | NativeEventCompleted
+  | NativeEventFailed
+  | NativeEventSample
+  | NativeEventQualityWarning;

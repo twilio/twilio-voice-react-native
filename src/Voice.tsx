@@ -19,7 +19,6 @@ import { PreflightTest } from './PreflightTest';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
 import type { NativeCallInviteInfo } from './type/CallInvite';
-import type * as CallOptions from './type/CallOptions';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
@@ -839,10 +838,25 @@ export class Voice extends EventEmitter {
     return NativeModule.system_requestFullScreenNotificationPermission();
   }
 
-  // TODO
+  /**
+   * Starts a PreflightTest.
+   *
+   * The PreflightTest allows you to anticipate and troubleshoot end users'
+   * connectivity and bandwidth issues before or during Twilio Voice calls.
+   *
+   * The PreflightTest performs a test call to Twilio and provides a
+   * {@link PreflightTest.Report} at the end. The report includes information
+   * about the end user's network connection (including jitter, packet loss,
+   * and round trip time) and connection settings.
+   *
+   * @returns
+   * A Promise that:
+   * - Resolves with a {@link (PreflightTest:class)} object.
+   * - Rejects with a {@link TwilioError} if unable to perform a {@link (PreflightTest:class)}.
+   */
   async runPreflight(
     accessToken: string,
-    options: Voice.PreflightOptions = {},
+    options: PreflightTest.Options = {}
   ): Promise<PreflightTest> {
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
@@ -892,16 +906,6 @@ export namespace Voice {
      */
     notificationDisplayName?: string;
   };
-
-  /**
-   * TODO docstrings
-   */
-  export type PreflightOptions = Partial<{
-    [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
-    [Constants.CallOptionsKeyIceTransportPolicy]:
-      CallOptions.IceTransportPolicy;
-    [Constants.CallOptionsKeyPreferredAudioCodecs]: CallOptions.AudioCodec;
-  }>;
 
   /**
    * Enumeration of all event strings emitted by {@link (Voice:class)} objects.

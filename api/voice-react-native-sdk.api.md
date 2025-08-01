@@ -675,96 +675,233 @@ type PCMUAudioCodec = {
 
 // @public (undocumented)
 export interface PreflightTest {
-    // (undocumented)
     addListener(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
-    // (undocumented)
     addListener(completedEvent: PreflightTest.Event.Completed, listener: PreflightTest.Listener.Completed): this;
-    // (undocumented)
     addListener(failedEvent: PreflightTest.Event.Failed, listener: PreflightTest.Listener.Failed): this;
-    // (undocumented)
     addListener(sampleEvent: PreflightTest.Event.Sample, listener: PreflightTest.Listener.Sample): this;
-    // (undocumented)
     addListener(warningEvent: PreflightTest.Event.QualityWarning, listener: PreflightTest.Listener.QualityWarning): this;
-    // (undocumented)
     addListener(event: PreflightTest.Event, listener: PreflightTest.Listener.Generic): this;
-    // (undocumented)
+    // @internal (undocumented)
     emit(connectedEvent: PreflightTest.Event.Connected): boolean;
-    // (undocumented)
-    emit(completedEvent: PreflightTest.Event.Completed, report: string): boolean;
-    // (undocumented)
+    // @internal (undocumented)
+    emit(completedEvent: PreflightTest.Event.Completed, report: PreflightTest.Report): boolean;
+    // @internal (undocumented)
     emit(failedEvent: PreflightTest.Event.Failed, error: TwilioError): boolean;
-    // (undocumented)
-    emit(sampleEvent: PreflightTest.Event.Sample, sample: string): boolean;
-    // (undocumented)
+    // @internal (undocumented)
+    emit(sampleEvent: PreflightTest.Event.Sample, sample: PreflightTest.RTCSample): boolean;
+    // @internal (undocumented)
     emit(qualityWarningEvent: PreflightTest.Event.QualityWarning, currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]): boolean;
-    // (undocumented)
     on(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
-    // (undocumented)
     on(completedEvent: PreflightTest.Event.Completed, listener: PreflightTest.Listener.Completed): this;
-    // (undocumented)
     on(failedEvent: PreflightTest.Event.Failed, listener: PreflightTest.Listener.Failed): this;
-    // (undocumented)
     on(sampleEvent: PreflightTest.Event.Sample, listener: PreflightTest.Listener.Sample): this;
-    // (undocumented)
     on(warningEvent: PreflightTest.Event.QualityWarning, listener: PreflightTest.Listener.QualityWarning): this;
-    // (undocumented)
     on(event: PreflightTest.Event, listener: PreflightTest.Listener.Generic): this;
 }
 
-// @public (undocumented)
+// @public
 export class PreflightTest extends EventEmitter {
+    // @internal
     constructor(uuid: string);
-    // (undocumented)
     getCallSid(): Promise<string>;
-    // (undocumented)
     getEndTime(): Promise<number>;
-    // (undocumented)
-    getLatestSample(): Promise<string>;
-    // (undocumented)
-    getReport(): Promise<string>;
-    // (undocumented)
+    getLatestSample(): Promise<PreflightTest.RTCSample>;
+    getReport(): Promise<PreflightTest.Report>;
     getStartTime(): Promise<number>;
-    // (undocumented)
-    getState(): Promise<string>;
+    getState(): Promise<PreflightTest.State>;
 }
 
 // @public
 export namespace PreflightTest {
+    // (undocumented)
+    export enum CallQuality {
+        // (undocumented)
+        Degraded = "Degraded",
+        // (undocumented)
+        Excellent = "Excellent",
+        // (undocumented)
+        Fair = "Fair",
+        // (undocumented)
+        Good = "Good",
+        // (undocumented)
+        Great = "Great"
+    }
     export enum Event {
-        // (undocumented)
         Completed = "completed",
-        // (undocumented)
         Connected = "connected",
-        // (undocumented)
         Failed = "failed",
-        // (undocumented)
         QualityWarning = "qualityWarning",
-        // (undocumented)
         Sample = "sample"
     }
     export namespace Listener {
-        // (undocumented)
-        export type Completed = () => void;
-        // (undocumented)
+        export type Completed = (report: Report) => void;
         export type Connected = () => void;
+        export type Failed = (error: TwilioError) => void;
+        export type Generic = (...args: any[]) => void;
+        export type QualityWarning = (currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]) => void;
+        export type Sample = (sample: RTCSample) => void;
+    }
+    // (undocumented)
+    export interface NetworkTiming {
         // (undocumented)
-        export type Failed = () => void;
+        [Constants.PreflightNetworkTimingIce]: TimeMeasurement;
         // (undocumented)
-        export type Generic = () => void;
+        [Constants.PreflightNetworkTimingPeerConnection]: TimeMeasurement;
         // (undocumented)
-        export type QualityWarning = () => void;
+        [Constants.PreflightNetworkTimingSignaling]: TimeMeasurement;
+    }
+    export interface Options {
+        // Warning: (ae-forgotten-export) The symbol "CallOptionsType" needs to be exported by the entry point index.d.ts
+        [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
+        [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
+        [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec;
+    }
+    // (undocumented)
+    export interface Report {
         // (undocumented)
-        export type Sample = () => void;
+        [Constants.PreflightReportCallQuality]?: CallQuality;
+        // (undocumented)
+        [Constants.PreflightReportCallSid]: string;
+        // (undocumented)
+        [Constants.PreflightReportEdge]: string;
+        // (undocumented)
+        [Constants.PreflightReportIceCandidateStats]: RTCIceCandidateStats[];
+        // (undocumented)
+        [Constants.PreflightReportIsTurnRequired]: boolean | null;
+        // (undocumented)
+        [Constants.PreflightReportNetworkTiming]: NetworkTiming;
+        // (undocumented)
+        [Constants.PreflightReportSamples]: RTCSample[];
+        // (undocumented)
+        [Constants.PreflightReportSelectedEdge]: string;
+        // (undocumented)
+        [Constants.PreflightReportSelectedIceCandidatePairStats]: RTCSelectedIceCandidatePairStats;
+        // (undocumented)
+        [Constants.PreflightReportStats]: RTCStats;
+        // (undocumented)
+        [Constants.PreflightReportTestTiming]: TimeMeasurement;
+        // (undocumented)
+        [Constants.PreflightReportWarnings]: Warning[];
+        // (undocumented)
+        [Constants.PreflightReportWarningsCleared]: WarningCleared[];
+    }
+    // (undocumented)
+    export interface RTCIceCandidateStats {
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsCandidateType]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsDeleted]: boolean;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsIp]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsIsRemote]: boolean;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsNetworkCost]: number;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsNetworkId]: number;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsNetworkType]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsPort]: number;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsRelatedAddress]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsRelatedPort]: number;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsTcpType]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsTransportId]: string;
+        // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsUrl]: string;
+    }
+    // (undocumented)
+    export interface RTCSample {
+        // (undocumented)
+        [Constants.PreflightRTCSampleAudioInputLevel]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleAudioOutputLevel]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleBytesReceived]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleBytesSent]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleCodec]: string;
+        // (undocumented)
+        [Constants.PreflightRTCSampleJitter]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleMos]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSamplePacketsLost]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSamplePacketsLostFraction]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSamplePacketsReceived]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSamplePacketsSent]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleRtt]: number;
+        // (undocumented)
+        [Constants.PreflightRTCSampleTimestamp]: string;
+    }
+    // (undocumented)
+    export interface RTCSelectedIceCandidatePairStats {
+        // (undocumented)
+        [Constants.PreflightRTCSelectedIceCandidatePairStatsLocalCandidate]: RTCIceCandidateStats;
+        // (undocumented)
+        [Constants.PreflightRTCSelectedIceCandidatePairStatsRemoteCandidate]: RTCIceCandidateStats;
+    }
+    // (undocumented)
+    export interface RTCStats {
+        // (undocumented)
+        [Constants.PreflightRTCStatsJitter]: Stats;
+        // (undocumented)
+        [Constants.PreflightRTCStatsMos]: Stats;
+        // (undocumented)
+        [Constants.PreflightRTCStatsRtt]: Stats;
     }
     export enum State {
-        // (undocumented)
         Completed = "completed",
-        // (undocumented)
         Connected = "connected",
-        // (undocumented)
         Connecting = "connecting",
-        // (undocumented)
         Failed = "failed"
+    }
+    // (undocumented)
+    export interface Stats {
+        // (undocumented)
+        [Constants.PreflightStatsAverage]: number;
+        // (undocumented)
+        [Constants.PreflightStatsMax]: number;
+        // (undocumented)
+        [Constants.PreflightStatsMin]: number;
+    }
+    // (undocumented)
+    export interface TimeMeasurement {
+        // (undocumented)
+        [Constants.PreflightTimeMeasurementDuration]: number;
+        // (undocumented)
+        [Constants.PreflightTimeMeasurementEnd]: number;
+        // (undocumented)
+        [Constants.PreflightTimeMeasurementStart]: number;
+    }
+    // (undocumented)
+    export interface Warning {
+        // (undocumented)
+        [Constants.PreflightWarningName]: string;
+        // (undocumented)
+        [Constants.PreflightWarningThreshold]: string;
+        // (undocumented)
+        [Constants.PreflightWarningTimestamp]: number;
+        // (undocumented)
+        [Constants.PreflightWarningValues]: string;
+    }
+    // (undocumented)
+    export interface WarningCleared {
+        // (undocumented)
+        [Constants.PreflightWarningClearedName]: string;
+        // (undocumented)
+        [Constants.PreflightWarningClearedTimestamp]: number;
     }
 }
 
@@ -1142,8 +1279,7 @@ export class Voice extends EventEmitter {
     isFullScreenNotificationEnabled(): Promise<boolean>;
     register(token: string): Promise<void>;
     requestFullScreenNotificationPermission(): Promise<void>;
-    // (undocumented)
-    runPreflight(accessToken: string, options?: Voice.RunPreflightTestOptions): Promise<PreflightTest>;
+    runPreflight(accessToken: string, options?: PreflightTest.Options): Promise<PreflightTest>;
     setCallKitConfiguration(configuration: CallKit.ConfigurationOptions): Promise<void>;
     setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
     showAvRoutePickerView(): Promise<void>;
@@ -1172,16 +1308,10 @@ export namespace Voice {
         export type Registered = () => void;
         export type Unregistered = () => void;
     }
-    export type RunPreflightTestOptions = Partial<{
-        [Constants.CallOptionsKeyIceServers]: CallOptions.IceServer[];
-        [Constants.CallOptionsKeyIceTransportPolicy]: CallOptions.IceTransportPolicy;
-        [Constants.CallOptionsKeyPreferredAudioCodecs]: CallOptions.AudioCodec;
-    }>;
 }
 
 // Warnings were encountered during analysis:
 //
-// lib/typescript/Voice.d.ts:511:9 - (ae-forgotten-export) The symbol "CallOptions" needs to be exported by the entry point index.d.ts
 // lib/typescript/type/CallOptions.d.ts:7:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```
