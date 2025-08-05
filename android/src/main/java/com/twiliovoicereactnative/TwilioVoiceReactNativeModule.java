@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDKVer;
@@ -610,6 +612,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     logger.debug(String.format(".voice_runPreflight: \"%s\"", uuid.toString()));
 
+    final PreflightTestRecordDatabase.PreflightTestRecord existingPreflightTest =
+      getPreflightTestRecordDatabase().getRecord();
+    if (existingPreflightTest != null) {
+      logger.debug(String.format("existing preflight test: \"%s\"", existingPreflightTest.getUuid()));
+      switch (existingPreflightTest.getPreflightTest().getState()) {
+        case CONNECTED, CONNECTING -> {
+          promise.reject(new IllegalStateException("Cannot start a PreflightTest while one exists in-progress."));
+          return;
+        }
+      }
+    } else {
+      logger.debug("no existing preflight test");
+    }
+
     final PreflightOptions.Builder preflightOptionsBuilder = new PreflightOptions.Builder(accessToken);
 
     // parse audio codec logic
@@ -701,7 +717,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         preflightOptions,
         new PreflightTestListenerProxy(uuid));
 
-      getPreflightTestRecordDatabase().add(uuid, preflightTest);
+      getPreflightTestRecordDatabase().setRecord(uuid, preflightTest);
     });
 
     promise.resolve(uuid.toString());
@@ -709,14 +725,36 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   // PreflightTest
 
+  public void invokePreflightMethod(String uuidStr, Promise promise, Function<PreflightTestRecordDatabase.PreflightTestRecord, Object> onSuccess) {
+    UUID uuid = UUID.fromString(uuidStr);
+
+    final PreflightTestRecordDatabase.PreflightTestRecord record =
+      getPreflightTestRecordDatabase().getRecord();
+
+    if (!uuid.equals(record.getUuid())) {
+      final String errorMessage = String.format(
+        "PreflightTest with UUID \"%s\" has already been garbage-collected. " +
+          "This method must be invoked before starting another PreflightTest.",
+        uuid);
+
+      promise.reject(new IllegalStateException(errorMessage));
+      return;
+    }
+
+    mainHandler.post(() -> {
+      final Object result = onSuccess.apply(record);
+      promise.resolve(result);
+    });
+  }
+
   @ReactMethod
   public void preflightTest_getCallSid(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getCallSid %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final String callSid = getPreflightTestRecordDatabase().get(uuid).getCallSid();
-      promise.resolve(callSid);
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final String callSid = record.getPreflightTest()
+        .getCallSid();
+      return callSid;
     });
   }
 
@@ -724,10 +762,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_getEndTime(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getEndTime %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final long endTime = getPreflightTestRecordDatabase().get(uuid).getEndTime();
-      promise.resolve(String.valueOf(endTime));
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final long endTime = record.getPreflightTest()
+        .getEndTime();
+      return String.valueOf(endTime);
     });
   }
 
@@ -735,10 +773,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_getLatestSample(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getLatestSample %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final String sample = getPreflightTestRecordDatabase().get(uuid).getLatestSample().toString();
-      promise.resolve(sample);
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final String sample = record.getPreflightTest()
+        .getLatestSample()
+        .toString();
+      return sample;
     });
   }
 
@@ -746,10 +785,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_getReport(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getReport %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final String report = getPreflightTestRecordDatabase().get(uuid).getReport().toString();
-      promise.resolve(report);
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final String report = record.getPreflightTest()
+        .getReport()
+        .toString();
+      return report;
     });
   }
 
@@ -757,10 +797,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_getStartTime(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getStartTime %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final long startTime = getPreflightTestRecordDatabase().get(uuid).getStartTime();
-      promise.resolve(String.valueOf(startTime));
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final String startTime = String.valueOf(
+        record.getPreflightTest()
+          .getStartTime());
+      return startTime;
     });
   }
 
@@ -768,10 +809,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_getState(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_getState %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      final String state = getPreflightTestRecordDatabase().get(uuid).getState().toString();
-      promise.resolve(state);
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      final String state = record.getPreflightTest()
+        .getState()
+        .toString();
+      return state;
     });
   }
 
@@ -779,10 +821,10 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   public void preflightTest_stop(String uuidStr, Promise promise) {
     logger.debug(String.format("preflight_stop %s", uuidStr));
 
-    mainHandler.post(() -> {
-      UUID uuid = UUID.fromString(uuidStr);
-      getPreflightTestRecordDatabase().get(uuid).stop();
-      promise.resolve(null);
+    invokePreflightMethod(uuidStr, promise, (record) -> {
+      record.getPreflightTest()
+        .stop();
+      return null;
     });
   }
 

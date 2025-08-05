@@ -94,15 +94,6 @@ public class VoiceApplicationProxy {
           (null != callRecord.getCallSid()) ? callRecord.getCallSid() : "null"));
     }
     callRecordDatabase.clear();
-
-    // verify that no preflight records are leaked
-    for (PreflightTestRecordDatabase.PreflightTestRecord preflightTestRecord : preflightTestRecordDatabase.getCollection()) {
-      logger.warning(
-        String.format(
-          "PreflightTest record leaked: { uuid: %s }",
-          preflightTestRecord.getUuid() != null ? preflightTestRecord.getUuid().toString() : "null"));
-    }
-    preflightTestRecordDatabase.getCollection().clear();
   }
   static CallRecordDatabase getCallRecordDatabase() {
     return VoiceApplicationProxy.instance.callRecordDatabase;

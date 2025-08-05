@@ -18,30 +18,21 @@ public class PreflightTestRecordDatabase {
     public UUID getUuid() {
       return uuid;
     }
-  }
 
-  private final Vector<PreflightTestRecord> preflightTestRecords;
-
-  PreflightTestRecordDatabase() {
-    this.preflightTestRecords = new Vector<>();
-  }
-
-  public void add(UUID uuid, PreflightTest preflightTest) {
-    final PreflightTestRecord record = new PreflightTestRecord(uuid);
-    record.preflightTest = preflightTest;
-    this.preflightTestRecords.add(record);
-  }
-
-  public PreflightTest get(UUID uuid) {
-    for (PreflightTestRecord record : this.preflightTestRecords) {
-      if (record.getUuid().equals(uuid)) {
-        return record.preflightTest;
-      }
+    public PreflightTest getPreflightTest() {
+      return preflightTest;
     }
-    return null;
   }
 
-  public Vector<PreflightTestRecord> getCollection() {
-    return this.preflightTestRecords;
+  private PreflightTestRecord preflightTestRecord;
+
+  public void setRecord(UUID uuid, PreflightTest preflightTest) {
+    PreflightTestRecord record = new PreflightTestRecord(uuid);
+    record.preflightTest = preflightTest;
+    this.preflightTestRecord = record;
+  }
+
+  public PreflightTestRecord getRecord() {
+    return this.preflightTestRecord;
   }
 }
