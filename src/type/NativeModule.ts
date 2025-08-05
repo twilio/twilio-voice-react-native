@@ -101,10 +101,10 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   ): Promise<Uuid>;
 
   preflightTest_getCallSid(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getEndTime(preflightTestUuid: Uuid): Promise<number>;
+  preflightTest_getEndTime(preflightTestUuid: Uuid): Promise<string>;
   preflightTest_getLatestSample(preflightTestUuid: Uuid): Promise<string>;
   preflightTest_getReport(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getStartTime(preflightTestUuid: Uuid): Promise<number>;
+  preflightTest_getStartTime(preflightTestUuid: Uuid): Promise<string>;
   preflightTest_getState(preflightTestUuid: Uuid): Promise<PreflightTest.State>;
   preflightTest_stop(preflightTestUuid: Uuid): Promise<void>;
 }

@@ -433,19 +433,19 @@ export class PreflightTest extends EventEmitter {
   private _handleSampleEvent = (
     nativeEvent: PreflightTestType.NativeEventSample
   ) => {
-    const sample = nativeEvent[Constants.PreflightTestSampleEventKeySample];
-    if (typeof sample !== 'string') {
+    const sampleStr = nativeEvent[Constants.PreflightTestSampleEventKeySample];
+    if (typeof sampleStr !== 'string') {
       throw constructInvalidValueError(
         PreflightTest.Event.Sample,
         'sample',
         'string',
-        typeof sample
+        typeof sampleStr
       );
     }
 
-    const parsedSample = parseSample(sample);
+    const sampleObj = JSON.parse(sampleStr);
 
-    this.emit(PreflightTest.Event.Sample, parsedSample);
+    this.emit(PreflightTest.Event.Sample, parseSample(sampleObj));
   };
 
   /**
@@ -471,7 +471,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getEndTime(): Promise<number> {
-    return NativeModule.preflightTest_getEndTime(this._uuid);
+    return NativeModule.preflightTest_getEndTime(this._uuid).then(Number);
   }
 
   /**
@@ -486,7 +486,10 @@ export class PreflightTest extends EventEmitter {
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
     return NativeModule.preflightTest_getLatestSample(this._uuid).then(
-      parseSample
+      (sampleStr) => {
+        const sampleObj = JSON.parse(sampleStr);
+        return parseSample(sampleObj);
+      }
     );
   }
 
@@ -513,7 +516,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getStartTime(): Promise<number> {
-    return NativeModule.preflightTest_getStartTime(this._uuid);
+    return NativeModule.preflightTest_getStartTime(this._uuid).then(Number);
   }
 
   /**
@@ -526,6 +529,18 @@ export class PreflightTest extends EventEmitter {
    */
   public async getState(): Promise<PreflightTest.State> {
     return NativeModule.preflightTest_getState(this._uuid);
+  }
+
+  /**
+   * Stop the ongoing PreflightTest.
+   *
+   * @returns
+   * A Promise that
+   * - Resolves if the PreflightTest was successfully stopped.
+   * - Rejects if the native layer encountered an error.
+   */
+  public async stop(): Promise<void> {
+    return NativeModule.preflightTest_stop(this._uuid);
   }
 }
 
@@ -579,6 +594,7 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
 
   const edge: string = unprocessedReport.edge;
 
+  // Note: key change from `iceCandidates` to `iceCandidateStats`
   const iceCandidateStats: PreflightTest.RTCIceCandidateStats[] =
     unprocessedReport.iceCandidates;
 
@@ -587,6 +603,8 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
   // Note: key change from `networkStats` to `stats`.
   const stats: PreflightTest.RTCStats = unprocessedReport.networkStats;
 
+  // Note: removing preflightTest from networkTiming and putting it in a
+  // separate testTiming member
   const unprocessedNetworkTiming: {
     signaling: any;
     peerConnection: any;
@@ -609,7 +627,8 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
   );
 
   // Note: key change from `statsSamples` to `stats`.
-  const samples: PreflightTest.RTCSample[] = unprocessedReport.statsSamples;
+  const samples: PreflightTest.RTCSample[] =
+    unprocessedReport.statsSamples.map(parseSample);
 
   const selectedEdge: string = unprocessedReport.selectedEdge;
 
@@ -642,12 +661,45 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
 }
 
 /**
- * Parse a preflight sample. Note that this function is _NOT_ used by
- * parseReport as a sample has the proper structure, it just needs to be run
- * through `JSON.parse`.
+ * Parse a sample object and transform the keys to match the expected output.
  */
-function parseSample(nativeSample: string) {
-  return JSON.parse(nativeSample);
+function parseSample(
+  sampleObject: Omit<
+    PreflightTest.RTCSample,
+    typeof Constants.PreflightRTCSampleTimestamp
+  > & { [Constants.PreflightRTCSampleTimestamp]: string }
+): PreflightTest.RTCSample {
+  const audioInputLevel = sampleObject.audioInputLevel;
+  const audioOutputLevel = sampleObject.audioOutputLevel;
+  const bytesReceived = sampleObject.bytesReceived;
+  const bytesSent = sampleObject.bytesSent;
+  const codec = sampleObject.codec;
+  const jitter = sampleObject.jitter;
+  const mos = sampleObject.mos;
+  const packetsLost = sampleObject.packetsLost;
+  const packetsLostFraction = sampleObject.packetsLostFraction;
+  const packetsReceived = sampleObject.packetsReceived;
+  const packetsSent = sampleObject.packetsSent;
+  const rtt = sampleObject.rtt;
+  const timestamp = Number(sampleObject.timestamp);
+
+  const sample = {
+    audioInputLevel,
+    audioOutputLevel,
+    bytesReceived,
+    bytesSent,
+    codec,
+    jitter,
+    mos,
+    packetsLost,
+    packetsLostFraction,
+    packetsReceived,
+    packetsSent,
+    rtt,
+    timestamp,
+  };
+
+  return sample;
 }
 
 /**
@@ -843,7 +895,7 @@ export namespace PreflightTest {
     [Constants.PreflightRTCSamplePacketsReceived]: number;
     [Constants.PreflightRTCSamplePacketsSent]: number;
     [Constants.PreflightRTCSampleRtt]: number;
-    [Constants.PreflightRTCSampleTimestamp]: string;
+    [Constants.PreflightRTCSampleTimestamp]: number;
   }
 
   export enum CallQuality {

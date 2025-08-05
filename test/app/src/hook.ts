@@ -211,7 +211,7 @@ export function useCallInvites(
   );
 
   const callInviteNotificationTappedHandler = React.useCallback(() => {
-    logEvent(`call invite notification tapped`);
+    logEvent('call invite notification tapped');
   }, [logEvent]);
 
   const callInviteRejectedHandler = React.useCallback(
@@ -401,6 +401,8 @@ export function useVoice(token: string) {
     [callHandler, token, voice, logEvent]
   );
 
+  const [preflightTest, setPreflightTest] = React.useState<PreflightTest>();
+
   const preflightTestHandler = React.useCallback(async () => {
     try {
       const preflightTestOptions: PreflightTest.Options = {
@@ -408,28 +410,29 @@ export function useVoice(token: string) {
         iceTransportPolicy: 'all' as any,
         preferredAudioCodecs: ['opus' as any],
       };
-      const preflightTest = await voice.runPreflight(
+
+      const _preflightTest = await voice.runPreflight(
         token,
         preflightTestOptions
       );
 
-      preflightTest.on(PreflightTest.Event.Completed, (report) => {
+      _preflightTest.on(PreflightTest.Event.Completed, (report) => {
         logEvent(`preflight test completed ${JSON.stringify(report)}`);
       });
 
-      preflightTest.on(PreflightTest.Event.Sample, (sample) => {
+      _preflightTest.on(PreflightTest.Event.Sample, (sample) => {
         logEvent(`preflight test sample ${JSON.stringify(sample)}`);
       });
 
-      preflightTest.on(PreflightTest.Event.Connected, () => {
+      _preflightTest.on(PreflightTest.Event.Connected, () => {
         logEvent('preflight test connected');
       });
 
-      preflightTest.on(PreflightTest.Event.Failed, (error) => {
+      _preflightTest.on(PreflightTest.Event.Failed, (error) => {
         logEvent(`preflight test failed ${JSON.stringify(error)}`);
       });
 
-      preflightTest.on(
+      _preflightTest.on(
         PreflightTest.Event.QualityWarning,
         (currentWarnings, previousWarnings) => {
           logEvent(
@@ -440,10 +443,38 @@ export function useVoice(token: string) {
           );
         }
       );
+
+      setPreflightTest(() => _preflightTest);
     } catch (error) {
-      logEvent(`preflight test completed error ${JSON.stringify(error)}`);
+      logEvent(`preflight test error ${JSON.stringify(error)}`);
     }
   }, [logEvent, token, voice]);
+
+  const preflightTestMethods = React.useMemo(() => {
+    return {
+      getCallSid: () => preflightTest?.getCallSid().then((callSid) =>
+        logEvent(`preflight test getCallSid ${callSid}`)
+      ),
+      getEndTime: () => preflightTest?.getEndTime().then((endTime) =>
+        logEvent(`preflight test endTime ${endTime}`)
+      ),
+      getLatestSample: () => preflightTest?.getLatestSample().then((sample) =>
+        logEvent(`preflight test getLatestSample ${JSON.stringify(sample)}`)
+      ),
+      getReport: () => preflightTest?.getReport().then((report) =>
+        logEvent(`preflight test getReport ${JSON.stringify(report)}`)
+      ),
+      getStartTime: () => preflightTest?.getStartTime().then((startTime) =>
+        logEvent(`preflight test getStartTime ${startTime}`)
+      ),
+      getState: () => preflightTest?.getState().then((state) =>
+        logEvent(`preflight test getState ${state}`)
+      ),
+      stop: () => preflightTest?.stop().then(() =>
+        logEvent('preflight test stopped')
+      ),
+    };
+  }, [logEvent, preflightTest]);
 
   const registerHandler = React.useCallback(() => {
     voice
@@ -581,6 +612,7 @@ export function useVoice(token: string) {
     recentCallInvite,
     connectHandler,
     preflightTestHandler,
+    preflightTestMethods,
     registerHandler,
     unregisterHandler,
     logAudioDevicesHandler,

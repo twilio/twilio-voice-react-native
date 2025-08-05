@@ -710,52 +710,80 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   // PreflightTest
 
   @ReactMethod
-  public void preflight_getCallSid(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final String callSid = getPreflightTestRecordDatabase().get(uuid).getCallSid();
-    promise.resolve(callSid);
+  public void preflightTest_getCallSid(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getCallSid %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final String callSid = getPreflightTestRecordDatabase().get(uuid).getCallSid();
+      promise.resolve(callSid);
+    });
   }
 
   @ReactMethod
-  public void preflight_getEndTime(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final long endTime = getPreflightTestRecordDatabase().get(uuid).getEndTime();
-    promise.resolve(endTime);
+  public void preflightTest_getEndTime(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getEndTime %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final long endTime = getPreflightTestRecordDatabase().get(uuid).getEndTime();
+      promise.resolve(String.valueOf(endTime));
+    });
   }
 
   @ReactMethod
-  public void preflight_getLatestSample(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final String sample = getPreflightTestRecordDatabase().get(uuid).getLatestSample().toString();
-    promise.resolve(sample);
+  public void preflightTest_getLatestSample(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getLatestSample %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final String sample = getPreflightTestRecordDatabase().get(uuid).getLatestSample().toString();
+      promise.resolve(sample);
+    });
   }
 
   @ReactMethod
-  public void preflight_getReport(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final String report = getPreflightTestRecordDatabase().get(uuid).getReport().toString();
-    promise.resolve(report);
+  public void preflightTest_getReport(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getReport %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final String report = getPreflightTestRecordDatabase().get(uuid).getReport().toString();
+      promise.resolve(report);
+    });
   }
 
   @ReactMethod
-  public void preflight_getStartTime(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final long startTime = getPreflightTestRecordDatabase().get(uuid).getStartTime();
-    promise.resolve(startTime);
+  public void preflightTest_getStartTime(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getStartTime %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final long startTime = getPreflightTestRecordDatabase().get(uuid).getStartTime();
+      promise.resolve(String.valueOf(startTime));
+    });
   }
 
   @ReactMethod
-  public void preflight_getState(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    final String state = getPreflightTestRecordDatabase().get(uuid).getState().toString();
-    promise.resolve(state);
+  public void preflightTest_getState(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_getState %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      final String state = getPreflightTestRecordDatabase().get(uuid).getState().toString();
+      promise.resolve(state);
+    });
   }
 
   @ReactMethod
-  public void preflight_stop(String uuidStr, Promise promise) {
-    UUID uuid = UUID.fromString(uuidStr);
-    getPreflightTestRecordDatabase().get(uuid).stop();
-    promise.resolve(null);
+  public void preflightTest_stop(String uuidStr, Promise promise) {
+    logger.debug(String.format("preflight_stop %s", uuidStr));
+
+    mainHandler.post(() -> {
+      UUID uuid = UUID.fromString(uuidStr);
+      getPreflightTestRecordDatabase().get(uuid).stop();
+      promise.resolve(null);
+    });
   }
 
   // CallInvite

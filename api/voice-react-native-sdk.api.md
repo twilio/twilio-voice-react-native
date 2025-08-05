@@ -709,6 +709,7 @@ export class PreflightTest extends EventEmitter {
     getReport(): Promise<PreflightTest.Report>;
     getStartTime(): Promise<number>;
     getState(): Promise<PreflightTest.State>;
+    stop(): Promise<void>;
 }
 
 // @public
@@ -845,7 +846,7 @@ export namespace PreflightTest {
         // (undocumented)
         [Constants.PreflightRTCSampleRtt]: number;
         // (undocumented)
-        [Constants.PreflightRTCSampleTimestamp]: string;
+        [Constants.PreflightRTCSampleTimestamp]: number;
     }
     // (undocumented)
     export interface RTCSelectedIceCandidatePairStats {
