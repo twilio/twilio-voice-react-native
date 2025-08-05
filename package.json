@@ -1,6 +1,6 @@
 {
   "name": "expo-twilio",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Expo wrapper for twilio",
   "main": "build/index.js",
   "types": "build/index.d.ts",
