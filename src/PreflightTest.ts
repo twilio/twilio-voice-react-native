@@ -565,6 +565,19 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
 }
 
 /**
+ * Parse native call quality enum.
+ */
+function parseCallQuality(
+  nativeCallQuality: string | null
+): PreflightTest.CallQuality | null {
+  if (nativeCallQuality === null) {
+    return null;
+  }
+
+  return nativeCallQuality.toLowerCase() as any as PreflightTest.CallQuality;
+}
+
+/**
  * Parse native preflight report.
  */
 function parseReport(report: string): PreflightTest.Report {
@@ -572,7 +585,7 @@ function parseReport(report: string): PreflightTest.Report {
     case 'android':
       return parseAndroidReport(report);
     case 'ios':
-      return parseAndroidReport(report);
+      return parseAndroidReport(report); // todo
     default:
       throw new InvalidStateError(
         `parseReport invoked for invalid OS: "${Platform.OS}".`
@@ -588,9 +601,11 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
 
   const callSid: string = unprocessedReport.callSid;
 
-  const callQuality: PreflightTest.CallQuality = (
-    unprocessedReport.callQuality as string
-  ).toLowerCase() as any;
+  // Note: Android returns enum values where the first letter is capitalized.
+  // The helper function normalizes this into all-lowercased values.
+  const callQuality: PreflightTest.CallQuality | null = parseCallQuality(
+    unprocessedReport.callQuality
+  );
 
   const edge: string = unprocessedReport.edge;
 
@@ -908,7 +923,7 @@ export namespace PreflightTest {
 
   export interface Report {
     [Constants.PreflightReportCallSid]: string;
-    [Constants.PreflightReportCallQuality]?: CallQuality;
+    [Constants.PreflightReportCallQuality]: CallQuality | null;
     [Constants.PreflightReportEdge]: string;
     [Constants.PreflightReportIceCandidateStats]: RTCIceCandidateStats[];
     [Constants.PreflightReportIsTurnRequired]: boolean | null;

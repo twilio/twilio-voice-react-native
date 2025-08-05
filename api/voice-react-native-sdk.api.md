@@ -760,7 +760,7 @@ export namespace PreflightTest {
     // (undocumented)
     export interface Report {
         // (undocumented)
-        [Constants.PreflightReportCallQuality]?: CallQuality;
+        [Constants.PreflightReportCallQuality]: CallQuality | null;
         // (undocumented)
         [Constants.PreflightReportCallSid]: string;
         // (undocumented)
