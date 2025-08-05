@@ -60,8 +60,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 /**
  * This class provides static helper functions that serializes native objects into
  * React Native (RN) bridge objects emit-able to the JS layer.
