@@ -29,6 +29,7 @@ export default function App() {
     callMethod,
     recentCallInvite,
     connectHandler,
+    preflightTestHandler,
     registerHandler,
     unregisterHandler,
     logAudioDevicesHandler,
@@ -65,6 +66,11 @@ export default function App() {
       />
     ),
     [callInfo]
+  );
+
+  const preflightTestButton = React.useMemo(
+    () => <Button onPress={preflightTestHandler} title="Preflight Test" />,
+    [preflightTestHandler]
   );
 
   const callInviteComponent = React.useMemo(
@@ -165,6 +171,7 @@ export default function App() {
                 onConnect={connectHandler}
                 recentCallInvite={recentCallInvite}
               />,
+              preflightTestButton,
             ],
             registrationButtons,
             audioDeviceButtons,

@@ -296,12 +296,12 @@ PreflightRTCSampleRtt=rtt
 PreflightRTCSampleTimestamp=timestamp
 
 // PreflightCallQuality
-PreflightCallQualityExcellent=Excellent
-PreflightCallQualityGreat=Great
-PreflightCallQualityGood=Good
-PreflightCallQualityFair=Fair
-PreflightCallQualityDegraded=Degraded
-PreflightCallQualityNull=Null
+PreflightCallQualityExcellent=excellent
+PreflightCallQualityGreat=great
+PreflightCallQualityGood=good
+PreflightCallQualityFair=fair
+PreflightCallQualityDegraded=degraded
+PreflightCallQualityNull=null
 
 // PreflightReport
 PreflightReportCallSid=callSid

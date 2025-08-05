@@ -16,8 +16,6 @@ import static com.twiliovoicereactnative.CommonConstants.CallInfoIsOnHold;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageContent;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageContentType;
 import static com.twiliovoicereactnative.CommonConstants.CallMessageMessageType;
-import static com.twiliovoicereactnative.CommonConstants.ScopeVoice;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventSid;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallStateConnecting;
@@ -34,7 +32,6 @@ import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfo
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
-import static com.twiliovoicereactnative.CommonConstants.VoiceEventType;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
 import java.text.SimpleDateFormat;
@@ -62,6 +59,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
+import org.json.JSONObject;
 
 /**
  * This class provides static helper functions that serializes native objects into

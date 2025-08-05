@@ -7,6 +7,7 @@ import {
   CallMessage,
   IncomingCallMessage,
   OutgoingCallMessage,
+  PreflightTest,
   Voice,
   TwilioErrors,
 } from '@twilio/voice-react-native-sdk';
@@ -36,6 +37,7 @@ export function useEventLog() {
   const [events, setEvents] = React.useState<EventLogItem[]>([]);
 
   const logEvent = React.useCallback((event: string) => {
+    console.log(event);
     setEvents((_events) => [
       ..._events,
       {
@@ -399,6 +401,50 @@ export function useVoice(token: string) {
     [callHandler, token, voice, logEvent]
   );
 
+  const preflightTestHandler = React.useCallback(async () => {
+    try {
+      const preflightTestOptions: PreflightTest.Options = {
+        iceServers: [],
+        iceTransportPolicy: 'all' as any,
+        preferredAudioCodecs: ['opus' as any],
+      };
+      const preflightTest = await voice.runPreflight(
+        token,
+        preflightTestOptions
+      );
+
+      preflightTest.on(PreflightTest.Event.Completed, (report) => {
+        logEvent(`preflight test completed ${JSON.stringify(report)}`);
+      });
+
+      preflightTest.on(PreflightTest.Event.Sample, (sample) => {
+        logEvent(`preflight test sample ${JSON.stringify(sample)}`);
+      });
+
+      preflightTest.on(PreflightTest.Event.Connected, () => {
+        logEvent('preflight test connected');
+      });
+
+      preflightTest.on(PreflightTest.Event.Failed, (error) => {
+        logEvent(`preflight test failed ${JSON.stringify(error)}`);
+      });
+
+      preflightTest.on(
+        PreflightTest.Event.QualityWarning,
+        (currentWarnings, previousWarnings) => {
+          logEvent(
+            `preflight test quality warnings ${JSON.stringify({
+              currentWarnings,
+              previousWarnings,
+            })}`
+          );
+        }
+      );
+    } catch (error) {
+      logEvent(`preflight test completed error ${JSON.stringify(error)}`);
+    }
+  }, [logEvent, token, voice]);
+
   const registerHandler = React.useCallback(() => {
     voice
       .register(token)
@@ -534,6 +580,7 @@ export function useVoice(token: string) {
     callMethod,
     recentCallInvite,
     connectHandler,
+    preflightTestHandler,
     registerHandler,
     unregisterHandler,
     logAudioDevicesHandler,

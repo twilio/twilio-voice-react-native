@@ -7,7 +7,7 @@
 
 import { EventEmitter } from 'eventemitter3';
 import type { Call } from './Call';
-import { NativeEventEmitter, NativeModule } from './common';
+import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
 import { InvalidStateError, TwilioError } from './error';
 import { constructTwilioError } from './error/utility';
@@ -329,7 +329,7 @@ export class PreflightTest extends EventEmitter {
       );
     }
 
-    const parsedReport = JSON.parse(report);
+    const parsedReport = parseReport(report);
 
     this.emit(PreflightTest.Event.Completed, parsedReport);
   };
@@ -443,7 +443,7 @@ export class PreflightTest extends EventEmitter {
       );
     }
 
-    const parsedSample = JSON.parse(sample);
+    const parsedSample = parseSample(sample);
 
     this.emit(PreflightTest.Event.Sample, parsedSample);
   };
@@ -485,7 +485,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    return NativeModule.preflightTest_getLatestSample(this._uuid);
+    return NativeModule.preflightTest_getLatestSample(this._uuid).then(
+      parseSample
+    );
   }
 
   /**
@@ -498,7 +500,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getReport(): Promise<PreflightTest.Report> {
-    return NativeModule.preflightTest_getReport(this._uuid);
+    return NativeModule.preflightTest_getReport(this._uuid).then(parseReport);
   }
 
   /**
@@ -525,6 +527,127 @@ export class PreflightTest extends EventEmitter {
   public async getState(): Promise<PreflightTest.State> {
     return NativeModule.preflightTest_getState(this._uuid);
   }
+}
+
+/**
+ * Preflight helper functions to parse JSON strings from the native layer into
+ * proper JS objects to emit from this class.
+ */
+
+/**
+ * Parse native time measurement.
+ */
+function parseTimeMeasurement(nativeTimeMeasurement: {
+  duration: number;
+  endTime: number;
+  startTime: number;
+}): PreflightTest.TimeMeasurement {
+  return {
+    duration: nativeTimeMeasurement.duration,
+    end: nativeTimeMeasurement.endTime,
+    start: nativeTimeMeasurement.startTime,
+  };
+}
+
+/**
+ * Parse native preflight report.
+ */
+function parseReport(report: string): PreflightTest.Report {
+  switch (Platform.OS) {
+    case 'android':
+      return parseAndroidReport(report);
+    case 'ios':
+      return parseAndroidReport(report);
+    default:
+      throw new InvalidStateError(
+        `parseReport invoked for invalid OS: "${Platform.OS}".`
+      );
+  }
+}
+
+/**
+ * Parse native preflight report on Android platforms.
+ */
+function parseAndroidReport(rawReport: string): PreflightTest.Report {
+  const unprocessedReport: any = JSON.parse(rawReport);
+
+  const callSid: string = unprocessedReport.callSid;
+
+  const callQuality: PreflightTest.CallQuality = (
+    unprocessedReport.callQuality as string
+  ).toLowerCase() as any;
+
+  const edge: string = unprocessedReport.edge;
+
+  const iceCandidateStats: PreflightTest.RTCIceCandidateStats[] =
+    unprocessedReport.iceCandidates;
+
+  const isTurnRequired: boolean = unprocessedReport.isTurnRequired;
+
+  // Note: key change from `networkStats` to `stats`.
+  const stats: PreflightTest.RTCStats = unprocessedReport.networkStats;
+
+  const unprocessedNetworkTiming: {
+    signaling: any;
+    peerConnection: any;
+    iceConnection: any;
+    preflightTest: any;
+  } = unprocessedReport.networkTiming;
+
+  // Note: nested key change from `startTime` to `start` and `endTime` to `end`.
+  const networkTiming: PreflightTest.NetworkTiming = {
+    signaling: parseTimeMeasurement(unprocessedNetworkTiming.signaling),
+    peerConnection: parseTimeMeasurement(
+      unprocessedNetworkTiming.peerConnection
+    ),
+    ice: parseTimeMeasurement(unprocessedNetworkTiming.iceConnection),
+  };
+
+  // Note: nested key change from `startTime` to `start` and `endTime` to `end`.
+  const testTiming: PreflightTest.TimeMeasurement = parseTimeMeasurement(
+    unprocessedNetworkTiming.preflightTest
+  );
+
+  // Note: key change from `statsSamples` to `stats`.
+  const samples: PreflightTest.RTCSample[] = unprocessedReport.statsSamples;
+
+  const selectedEdge: string = unprocessedReport.selectedEdge;
+
+  // Note: key change from `selectedIceCandidatePair` to `selectedIceCandidatePairStats`.
+  const selectedIceCandidatePairStats: PreflightTest.RTCSelectedIceCandidatePairStats =
+    unprocessedReport.selectedIceCandidatePair;
+
+  const warnings: PreflightTest.Warning[] = unprocessedReport.warnings;
+
+  const warningsCleared: PreflightTest.WarningCleared[] =
+    unprocessedReport.warningsCleared;
+
+  const report: PreflightTest.Report = {
+    callSid,
+    callQuality,
+    edge,
+    iceCandidateStats,
+    isTurnRequired,
+    stats,
+    networkTiming,
+    testTiming,
+    samples,
+    selectedEdge,
+    selectedIceCandidatePairStats,
+    warnings,
+    warningsCleared,
+  };
+
+  return report;
+}
+
+/**
+ * Parse a preflight sample. Note that this function is _NOT_ used by
+ * parseReport as a sample has the proper structure, it just needs to be run
+ * through `JSON.parse`.
+ */
+function parseSample(nativeSample: string) {
+  return JSON.parse(nativeSample);
 }
 
 /**
@@ -565,7 +688,7 @@ export namespace PreflightTest {
      * @remarks
      * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
      */
-    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec;
+    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
   }
 
   /**
@@ -685,20 +808,21 @@ export namespace PreflightTest {
   }
 
   export interface RTCIceCandidateStats {
-    [Constants.PreflightRTCIceCandidateStatsTransportId]: string;
-    [Constants.PreflightRTCIceCandidateStatsIsRemote]: boolean;
-    [Constants.PreflightRTCIceCandidateStatsIp]: string;
-    [Constants.PreflightRTCIceCandidateStatsPort]: number;
-    [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
     [Constants.PreflightRTCIceCandidateStatsCandidateType]: string;
-    [Constants.PreflightRTCIceCandidateStatsUrl]: string;
     [Constants.PreflightRTCIceCandidateStatsDeleted]: boolean;
+    [Constants.PreflightRTCIceCandidateStatsIp]: string;
+    [Constants.PreflightRTCIceCandidateStatsIsRemote]: boolean;
     [Constants.PreflightRTCIceCandidateStatsNetworkCost]: number;
     [Constants.PreflightRTCIceCandidateStatsNetworkId]: number;
     [Constants.PreflightRTCIceCandidateStatsNetworkType]: string;
+    [Constants.PreflightRTCIceCandidateStatsPort]: number;
+    [Constants.PreflightRTCIceCandidateStatsPriority]: number;
+    [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
     [Constants.PreflightRTCIceCandidateStatsRelatedAddress]: string;
     [Constants.PreflightRTCIceCandidateStatsRelatedPort]: number;
     [Constants.PreflightRTCIceCandidateStatsTcpType]: string;
+    [Constants.PreflightRTCIceCandidateStatsTransportId]: string;
+    [Constants.PreflightRTCIceCandidateStatsUrl]: string;
   }
 
   export interface RTCSelectedIceCandidatePairStats {

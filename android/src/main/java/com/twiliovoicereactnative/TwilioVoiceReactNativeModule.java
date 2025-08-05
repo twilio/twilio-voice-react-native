@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
@@ -16,17 +17,29 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
+import com.twilio.voice.AudioCodec;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallMessage;
 import com.twilio.voice.ConnectOptions;
+import com.twilio.voice.IceOptions;
+import com.twilio.voice.IceServer;
+import com.twilio.voice.IceTransportPolicy;
 import com.twilio.voice.LogLevel;
+import com.twilio.voice.OpusCodec;
+import com.twilio.voice.PcmuCodec;
+import com.twilio.voice.PreflightTest;
 import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
 import com.twilio.voice.UnregistrationListener;
 import com.twilio.voice.Voice;
+import com.twilio.voice.PreflightOptions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.ReactNativeVoiceSDK;
@@ -43,6 +56,7 @@ import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getPreflightTestRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
@@ -373,7 +387,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     mainHandler.post(() -> {
       logger.debug(".call_disconnect() > runnable");
 
-      final CallRecordDatabase.CallRecord callRecord =
+      final CallRecord callRecord =
         validateCallRecord(UUID.fromString(uuid), promise);
 
       if (null != callRecord) {
@@ -588,6 +602,160 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         promise.resolve(false);
       }
     });
+  }
+
+  @ReactMethod
+  public void voice_runPreflight(String accessToken, ReadableMap options, Promise promise) {
+    final UUID uuid = UUID.randomUUID();
+
+    logger.debug(String.format(".voice_runPreflight: \"%s\"", uuid.toString()));
+
+    final PreflightOptions.Builder preflightOptionsBuilder = new PreflightOptions.Builder(accessToken);
+
+    // parse audio codec logic
+    final ReadableArray jsPreferredAudioCodecs = options.getArray(CommonConstants.CallOptionsKeyPreferredAudioCodecs);
+
+    if (jsPreferredAudioCodecs != null) {
+      final List<AudioCodec> preferredAudioCodecs = new ArrayList<>();
+
+      for (int i = 0; i < jsPreferredAudioCodecs.size(); i++) {
+        final String jsAudioCodec = jsPreferredAudioCodecs.getString(i);
+
+        if (jsAudioCodec != null) {
+          final AudioCodec audioCodec = switch (jsAudioCodec) {
+            case CommonConstants.AudioCodecTypeValueOpus -> new OpusCodec();
+            case CommonConstants.AudioCodecTypeValuePCMU -> new PcmuCodec();
+            default -> null;
+          };
+
+          if (audioCodec != null) {
+            preferredAudioCodecs.add(audioCodec);
+          }
+        }
+      }
+
+      if (!preferredAudioCodecs.isEmpty()) {
+        preflightOptionsBuilder.preferAudioCodecs(preferredAudioCodecs);
+      }
+    }
+
+    // Ice options logic.
+
+    final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+    final Set<IceServer> iceServers = new HashSet<>();
+    IceTransportPolicy iceTransportPolicy = null;
+
+    // Ice servers logic.
+    final ReadableArray jsIceServers = options.getArray(CommonConstants.CallOptionsKeyIceServers);
+
+    if (jsIceServers != null) {
+      for (int i = 0; i < jsIceServers.size(); i++) {
+        final ReadableMap jsIceServer = jsIceServers.getMap(i);
+
+        if (jsIceServer != null) {
+          final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
+          final String username = jsIceServer.getString(CommonConstants.IceServerKeyUsername);
+          final String password = jsIceServer.getString(CommonConstants.IceServerKeyPassword);
+
+          if (serverUrl != null && username != null && password != null) {
+            iceServers.add(new IceServer(serverUrl, username, password));
+            continue;
+          }
+
+          if (serverUrl != null && username == null && password == null) {
+            iceServers.add(new IceServer(serverUrl));
+            continue;
+          }
+        }
+      }
+
+      if (!iceServers.isEmpty()) {
+        iceOptionsBuilder.iceServers(iceServers);
+      }
+    }
+
+    // Ice transport policy logic.
+    final String jsIceTransportPolicy = options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy);
+
+    if (jsIceTransportPolicy != null) {
+      iceTransportPolicy = switch (jsIceTransportPolicy) {
+        case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+        case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+        default -> null;
+      };
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+      }
+    }
+
+    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
+      preflightOptionsBuilder.iceOptions(iceOptionsBuilder.build());
+    }
+
+    final PreflightOptions preflightOptions = preflightOptionsBuilder.build();
+
+    mainHandler.post(() -> {
+      final PreflightTest preflightTest = Voice.runPreflight(
+        this.getReactApplicationContext(),
+        preflightOptions,
+        new PreflightTestListenerProxy(uuid));
+
+      getPreflightTestRecordDatabase().add(uuid, preflightTest);
+    });
+
+    promise.resolve(uuid.toString());
+  }
+
+  // PreflightTest
+
+  @ReactMethod
+  public void preflight_getCallSid(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final String callSid = getPreflightTestRecordDatabase().get(uuid).getCallSid();
+    promise.resolve(callSid);
+  }
+
+  @ReactMethod
+  public void preflight_getEndTime(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final long endTime = getPreflightTestRecordDatabase().get(uuid).getEndTime();
+    promise.resolve(endTime);
+  }
+
+  @ReactMethod
+  public void preflight_getLatestSample(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final String sample = getPreflightTestRecordDatabase().get(uuid).getLatestSample().toString();
+    promise.resolve(sample);
+  }
+
+  @ReactMethod
+  public void preflight_getReport(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final String report = getPreflightTestRecordDatabase().get(uuid).getReport().toString();
+    promise.resolve(report);
+  }
+
+  @ReactMethod
+  public void preflight_getStartTime(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final long startTime = getPreflightTestRecordDatabase().get(uuid).getStartTime();
+    promise.resolve(startTime);
+  }
+
+  @ReactMethod
+  public void preflight_getState(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    final String state = getPreflightTestRecordDatabase().get(uuid).getState().toString();
+    promise.resolve(state);
+  }
+
+  @ReactMethod
+  public void preflight_stop(String uuidStr, Promise promise) {
+    UUID uuid = UUID.fromString(uuidStr);
+    getPreflightTestRecordDatabase().get(uuid).stop();
+    promise.resolve(null);
   }
 
   // CallInvite

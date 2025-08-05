@@ -20,6 +20,7 @@ public class VoiceApplicationProxy {
   private static VoiceApplicationProxy instance = null;
   private Application context = null;
   private final CallRecordDatabase callRecordDatabase = new CallRecordDatabase();
+  private final PreflightTestRecordDatabase preflightTestRecordDatabase = new PreflightTestRecordDatabase();
   private AudioSwitchManager audioSwitchManager;
   private MediaPlayerManager mediaPlayerManager;
   private JSEventEmitter jsEventEmitter;
@@ -93,9 +94,21 @@ public class VoiceApplicationProxy {
           (null != callRecord.getCallSid()) ? callRecord.getCallSid() : "null"));
     }
     callRecordDatabase.clear();
+
+    // verify that no preflight records are leaked
+    for (PreflightTestRecordDatabase.PreflightTestRecord preflightTestRecord : preflightTestRecordDatabase.getCollection()) {
+      logger.warning(
+        String.format(
+          "PreflightTest record leaked: { uuid: %s }",
+          preflightTestRecord.getUuid() != null ? preflightTestRecord.getUuid().toString() : "null"));
+    }
+    preflightTestRecordDatabase.getCollection().clear();
   }
   static CallRecordDatabase getCallRecordDatabase() {
     return VoiceApplicationProxy.instance.callRecordDatabase;
+  }
+  static PreflightTestRecordDatabase getPreflightTestRecordDatabase() {
+    return VoiceApplicationProxy.instance.preflightTestRecordDatabase;
   }
   static AudioSwitchManager getAudioSwitchManager() {
     return VoiceApplicationProxy.instance.audioSwitchManager;
