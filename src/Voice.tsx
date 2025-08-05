@@ -845,14 +845,15 @@ export class Voice extends EventEmitter {
    * connectivity and bandwidth issues before or during Twilio Voice calls.
    *
    * The PreflightTest performs a test call to Twilio and provides a
-   * {@link PreflightTest.Report} at the end. The report includes information
-   * about the end user's network connection (including jitter, packet loss,
-   * and round trip time) and connection settings.
+   * {@link (PreflightTest:namespace).Report} at the end. The report includes
+   * information about the end user's network connection (including jitter,
+   * packet loss, and round trip time) and connection settings.
    *
    * @returns
    * A Promise that:
    * - Resolves with a {@link (PreflightTest:class)} object.
-   * - Rejects with a {@link TwilioError} if unable to perform a {@link (PreflightTest:class)}.
+   * - Rejects with a {@link TwilioErrors} if unable to perform a
+   *   {@link (PreflightTest:class)}.
    */
   async runPreflight(
     accessToken: string,
