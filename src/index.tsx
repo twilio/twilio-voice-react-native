@@ -22,3 +22,6 @@ export { RTCStats } from './type/RTCStats';
 
 import * as TwilioErrors from './error';
 export { TwilioErrors };
+
+export { default } from './ExpoTwilioModule';
+export * from  './ExpoTwilio.types';

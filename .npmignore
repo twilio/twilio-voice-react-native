@@ -16,5 +16,4 @@ node_modules
 temp
 test/app
 scripts
-src
 PULL_REQUEST_TEMPLATE.md

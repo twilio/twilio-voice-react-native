@@ -17,16 +17,6 @@ class ConfigurationProperties {
     return sharedPreferences.getString(Constants.INCOMING_CALL_CONTACT_HANDLE_TEMPLATE_PREFERENCES_KEY, null);
   }
 
-  /**
-   * Get configuration boolean, used to determine if the built-in Firebase service should be enabled
-   * or not.
-   * @param context the application context
-   * @return a boolean read from the application resources
-   */
-  public static boolean isFirebaseServiceEnabled(Context context) {
-    return context.getResources()
-      .getBoolean(R.bool.twiliovoicereactnative_firebasemessagingservice_enabled);
-  }
 
   /**
    * Get configuration boolean, used to determine if full screen notifications are enabled

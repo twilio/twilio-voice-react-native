@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["ExpoTwilioModule"]
+  },
+  "android": {
+    "modules": ["com.twiliovoicereactnative.ExpoTwilioModule"]
+  }
+}

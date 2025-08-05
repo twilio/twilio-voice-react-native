@@ -1,3 +1,5 @@
+apply plugin: 'com.android.library'
+
 buildscript {
   ext.versions = [
     'java'               : JavaVersion.VERSION_11,
@@ -7,7 +9,7 @@ buildscript {
     'androidxCore'       : '1.12.0',
     'androidxLifecycle'  : '2.2.0',
     'audioSwitch'        : '1.1.8',
-    'firebaseMessaging'  : '23.4.0'
+    'kotlin'             : '1.9.24'
   ]
   if (project == rootProject) {
     repositories {
@@ -18,41 +20,50 @@ buildscript {
     dependencies {
       classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
       classpath "com.google.gms:google-services:${versions.googleServices}"
+      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     }
   }
 }
 
-apply plugin: 'com.android.library'
+group = 'com.twiliovoicereactnative'
+version = '0.1.0'
 
-def safeExtGet(prop, fallback) {
-  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+// If you want to use the managed Android SDK versions from expo-modules-core, set this to true.
+// The Android SDK versions will be bumped from time to time in SDK releases and may introduce breaking changes in your module code.
+// Most of the time, you may like to manage the Android SDK versions yourself.
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+  useDefaultAndroidSdkVersions()
+} else {
+  buildscript {
+    // Simple helper that allows the root project to override versions declared by this library.
+    ext.safeExtGet = { prop, fallback ->
+      rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+  }
+  project.android {
+    compileSdkVersion safeExtGet("compileSdkVersion", 34)
+    defaultConfig {
+      minSdkVersion safeExtGet("minSdkVersion", 21)
+      targetSdkVersion safeExtGet("targetSdkVersion", 34)
+    }
+  }
 }
 
 android {
-  namespace 'com.twiliovoicereactnative'
-  compileSdk safeExtGet('TwilioVoiceReactNative_compileSdkVersion', 34)
+  namespace "com.twiliovoicereactnative"
   defaultConfig {
-    minSdkVersion safeExtGet('TwilioVoiceReactNative_minSdkVersion', 24)
-    targetSdkVersion safeExtGet('TwilioVoiceReactNative_targetSdkVersion', 34)
     versionCode 1
-    versionName "1.0"
-  }
-
-  buildTypes {
-    release {
-      minifyEnabled false
-    }
+    versionName "1.6.1"
   }
   lintOptions {
-    disable 'GradleCompatible'
-  }
-  compileOptions {
-    sourceCompatibility versions.java
-    targetCompatibility versions.java
-  }
-  buildFeatures {
-    // for buildconfig construction
-    buildConfig true
+    abortOnError false
   }
 }
 
@@ -66,24 +77,10 @@ repositories {
 }
 
 dependencies {
-  //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"  // From node_modules
   implementation "com.twilio:voice-android:${versions.voiceAndroid}"
   implementation "androidx.core:core:${versions.androidxCore}"
   implementation "androidx.lifecycle:lifecycle-extensions:${versions.androidxLifecycle}"
-  implementation "com.google.firebase:firebase-messaging:${versions.firebaseMessaging}"
   implementation "com.twilio:audioswitch:${versions.audioSwitch}"
   implementation 'com.google.android.material:material:1.1.0'
-
-  constraints {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
-      because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
-    }
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
-      because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
-    }
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.0") {
-      because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
-    }
-  }
 }

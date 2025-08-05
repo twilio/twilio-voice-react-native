@@ -14,7 +14,6 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallMessage;
@@ -212,31 +211,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void voice_getVersion(Promise promise) {
     promise.resolve(Voice.getVersion());
-  }
-
-  @ReactMethod
-  public void voice_getDeviceToken(Promise promise) {
-    FirebaseMessaging.getInstance().getToken()
-      .addOnCompleteListener(task -> {
-        if (!task.isSuccessful()) {
-          final String warningMsg =
-            reactContext.getString(R.string.fcm_token_registration_fail, task.getException());
-          logger.warning(warningMsg);
-          promise.reject(warningMsg);
-          return;
-        }
-
-        // Get FCM registration token
-        String fcmToken = task.getResult();
-
-        if (fcmToken == null) {
-          final String warningMsg = reactContext.getString(R.string.fcm_token_null);
-          logger.warning(warningMsg);
-          promise.reject(warningMsg);
-        } else {
-          promise.resolve(fcmToken);
-        }
-      });
   }
 
   @ReactMethod
@@ -482,111 +456,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       promise.resolve((CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState())
         ? callRecord.getCallInvite().sendMessage(callMessage)
         : callRecord.getVoiceCall().sendMessage(callMessage));
-    });
-  }
-
-  // Register/UnRegister
-
-  @ReactMethod
-  public void voice_register(String token, Promise promise) {
-    logger.debug(".voice_register()");
-
-    mainHandler.post(() -> {
-      logger.debug(".voice_register() > runnable");
-
-      FirebaseMessaging.getInstance().getToken()
-        .addOnCompleteListener(task -> {
-          if (!task.isSuccessful()) {
-            final String warningMsg =
-              reactContext.getString(R.string.fcm_token_registration_fail, task.getException());
-            logger.warning(warningMsg);
-            promise.reject(warningMsg);
-            return;
-          }
-
-          // Get new FCM registration token
-          String fcmToken = task.getResult();
-
-          if (fcmToken == null) {
-            final String warningMsg = reactContext.getString(R.string.fcm_token_null);
-            logger.warning(warningMsg);
-            promise.reject(warningMsg);
-            return;
-          }
-
-          // Log and toast
-          logger.debug("Registering with FCM with token " + fcmToken);
-          RegistrationListener registrationListener = createRegistrationListener(promise);
-          Voice.register(token, Voice.RegistrationChannel.FCM, fcmToken, registrationListener);
-        });
-    });
-  }
-
-  @ReactMethod
-  public void voice_unregister(String token, Promise promise) {
-    logger.debug(".voice_unregister()");
-
-    mainHandler.post(() -> {
-      logger.debug(".voice_unregister() > runnable");
-
-      FirebaseMessaging.getInstance().getToken()
-        .addOnCompleteListener(task -> {
-          if (!task.isSuccessful()) {
-            final String warningMsg =
-              reactContext.getString(R.string.fcm_token_registration_fail, task.getException());
-            logger.warning(warningMsg);
-            promise.reject(warningMsg);
-            return;
-          }
-
-          // Get new FCM registration token
-          String fcmToken = task.getResult();
-
-          if (fcmToken == null) {
-            final String warningMsg = reactContext.getString(R.string.fcm_token_null);
-            logger.warning(warningMsg);
-            promise.reject(warningMsg);
-            return;
-          }
-
-          // Log and toast
-          logger.debug("Registering with FCM with token " + fcmToken);
-          UnregistrationListener unregistrationListener = createUnregistrationListener(promise);
-          Voice.unregister(token, Voice.RegistrationChannel.FCM, fcmToken, unregistrationListener);
-        });
-    });
-  }
-
-  @ReactMethod void voice_handleEvent(ReadableMap messageData, Promise promise) {
-    logger.debug(".voice_handleEvent()");
-
-    mainHandler.post(() -> {
-      logger.debug(".voice_handleEvent() > runnable");
-
-      // validate embedded firebase module is disabled
-      if (ConfigurationProperties.isFirebaseServiceEnabled(reactContext)) {
-        final String errorMsg = reactContext.getString(R.string.method_invocation_invalid);
-        logger.warning("Embedded firebase messaging enabled, handleEvent invocation invalid!");
-        promise.reject(errorMsg);
-        return;
-      }
-      // parse data to string map
-      final HashMap<String, String> parsedMessageData = new HashMap<>();
-      ReadableMapKeySetIterator iterator = messageData.keySetIterator();
-      while (iterator.hasNextKey()) {
-        String key = iterator.nextKey();
-        parsedMessageData.put(key, messageData.getString(key));
-      }
-      // attempt to parse message
-      if (Voice.handleMessage(
-        reactContext,
-        parsedMessageData,
-        new VoiceFirebaseMessagingService.MessageHandler(),
-        new CallMessageListenerProxy())) {
-        promise.resolve(true);
-      } else {
-        promise.resolve(false);
-      }
     });
   }
 

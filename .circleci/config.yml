@@ -1,439 +1,83 @@
+
 version: 2.1
 
-###
-# Orbs
-###
 orbs:
-  android: circleci/android@2.5.0
+  move-ci: moverdc/move-ci@3.4.0
 
-###
-# Parameters
-###
-parameters:
-  pr_workflow:
-    type: boolean
-    default: true # by default pr workflow will get executed.
-  release_workflow:
-    type: boolean
-    default: false
-  release_command:
-    type: string
-    default: "echo \"no release-command specified\""
-
-###
-# Executors
-###
 executors:
   default:
     docker:
-      - image: cimg/node:18.19
-    working_directory: ~/project
-  ios-executor:
-    macos:
-      xcode: 16.2.0
-      resource_class: macos.m1.medium.gen1
+      - image: cimg/node:20.18
+    working_directory: ~/twilio-voice-react-native
 
-###
-# Commands
-###
-commands:
-  attach_project:
-    steps:
-      - attach_workspace:
-          at: ~/project
-
-  install-dependencies:
-    steps:
-      - run:
-          name: Install dependencies
-          command: |
-            yarn run build:constants
-            cd test/TwilioVoiceExampleNewArch && npm ci && cd ../..
-            yarn install --cwd test/app --frozen-lockfile
-            yarn install --frozen-lockfile
-            yarn run build:errors
-
-  setup-pods:
-    description: Setup pods used for ios builds
-    steps:
-      - run:
-          name: "Install Cocoapods 1.11.3"
-          command: |
-            sudo gem install cocoapods -v 1.11.3
-      - run:
-          name: Install cocoapods if cache does not exist
-          command: |
-            cd test/app/ios
-            pod install
-            cd ../../..
-
-  simulator-dependencies:
-    description: "Install iOS simulator dependencies"
-    steps:
-      - run:
-          name: "Install applesimutils"
-          command: |
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils
-
-  generate-client-identity:
-    description: "Generate a client id"
-    steps:
-      - run:
-          name: "Generate client id"
-          command: |
-            export CLIENT_IDENTITY=client-id-$CIRCLE_JOB-$CIRCLE_WORKFLOW_JOB_ID
-            echo "export CLIENT_IDENTITY=$CLIENT_IDENTITY" >> "$BASH_ENV"
-
-  setup-e2e-creds:
-    description: "Generate an access token for e2e tests"
-    steps:
-      - run:
-          name: "Generate access token"
-          command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/app/src/e2e-tests-token.ts
-
-  clear-detox-cache:
-    description: "Clears detox framework cache"
-    steps:
-      - run:
-          working_directory: .
-          name: Clear detox cache
-          command: |
-            cd test/app
-            detox clean-framework-cache
-            detox build-framework-cache
-            cd ../..
-
-  detox-build:
-    description: Builds the app with given Detox configuration, as specified in detoxrc.json file
-    parameters:
-      configuration:
-        description: The Detox configuration to build
-        type: string
-    steps:
-      - run:
-          name: Detox Build
-          command: |
-            cd test/app
-            yarn detox:build -c <<parameters.configuration>>
-            cd ../..
-          no_output_timeout: 20m
-
-  detox-test:
-    description: Tests the app with the given Detox configuration, as specified in detoxrc.json file
-    parameters:
-      configuration:
-        description: The Detox configuration to test
-        type: string
-      loglevel:
-        default: "info"
-        description: The Detox logging level to use. Default value - "info".
-        enum: [ "fatal", "error", "warn", "info", "verbose", "trace" ]
-        type: enum
-      screenshots:
-        default: "failing"
-        description: Save screenshots of each test to artifacts directory. Default values - "failing"
-        enum: [ "none", "failing", "all" ]
-        type: enum
-      artifacts:
-        default: /tmp/artifacts
-        description: Artifacts (logs, screenshots, etc) root directory.
-        type: string
-    steps:
-      - run:
-          name: Detox Test
-          command: |
-            cd test/app
-            yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
-            cd ../..
-
-###
-# Jobs
-###
 jobs:
-  cache-install-dependencies:
+  setup_workspace:
     executor: default
     steps:
       - checkout
-      - attach_project
+      - move-ci/aws-proxy-up:
+          configure-yarn3: true
+          export-proxy-variables: http
       - restore_cache:
+          name: Restore Yarn Package Cache
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
-      - restore_cache:
-          keys:
-            - dependencies-test-application-{{ checksum "test/app/package.json" }}
-            - dependencies-test-application-
-      - install-dependencies
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn install --immutable
       - save_cache:
-          key: dependencies-{{ checksum "package.json" }}
-          paths: node_modules
-      - save_cache:
-          key: dependencies-test-application-{{ checksum "test/app/package.json" }}
-          paths: test/app/node_modules
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - move-ci/aws-proxy-down
       - persist_to_workspace:
           root: .
-          paths: .
+          paths:
+            - .
 
-  lint:
+  deploy_package:
     executor: default
     steps:
-      - attach_project
+      - attach_workspace:
+          at: .
+      - move-ci/gh-install
+      - move-ci/aws-proxy-up:
+          configure-yarn3: true
+          export-proxy-variables: http
+      - move-ci/aws-codeartifact-auth:
+          account: ${AWS_ACCOUNT_RDC_DEV}
+          write-access: true
+          tool: npm
       - run:
-          name: Lint files
+          name: Install packaging deps
           command: |
-            yarn run check:lint
-
-  typescript:
-    executor: default
-    steps:
-      - attach_project
+            sudo apt-get update
+            sudo apt-get install rsync
       - run:
-          name: Typecheck files
-          command: |
-            yarn run check:type
-
-  unit-tests:
-    executor: default
-    steps:
-      - attach_project
+          name: Make constants
+          command: yarn build:constants
       - run:
-          name: Run unit tests
-          command: |
-            yarn run check:test --coverage
-      - store_artifacts:
-          path: coverage
-          destination: coverage
-
-  build-package:
-    executor: default
-    steps:
-      - attach_project
+          name: Prepare package for publish
+          command: yarn prepare
       - run:
-          name: Build package
-          command: |
-            yarn run prepare
+          name: Publish npm package to AWS Code Artifact
+          command: yarn release --ci
+      - move-ci/aws-proxy-down
 
-  build-docs:
-    executor: default
-    steps:
-      - attach_project
-      - run:
-          name: Build docs and check for API changes
-          command: |
-            yarn run build:docs
-            git diff --exit-code api/
-
-  build-errors:
-    executor: default
-    steps:
-      - attach_project
-      - run:
-          name: Build errors and check for changes
-          command: |
-            yarn run build:errors
-            git diff --exit-code src/error/generated.ts
-
-  run-release:
-    executor:
-      name: default
-    parameters:
-      dry-run:
-        type: boolean
-        default: true
-    steps:
-      - checkout
-      - install-dependencies
-      - when:
-          condition: << parameters.dry-run >>
-          steps:
-            - run: echo "Will run \"<< pipeline.parameters.release_command >>\""
-      - unless:
-          condition: << parameters.dry-run >>
-          steps:
-            - run: << pipeline.parameters.release_command >>
-
-  e2e-ios:
-    executor:
-      name: ios-executor
-    parameters:
-      detox_configuration:
-        type: string
-      artifacts_location:
-        default: /tmp/artifacts
-        type: string
-    steps:
-      - checkout
-      - install-dependencies
-      - generate-client-identity
-      - setup-e2e-creds
-      - setup-pods
-      - simulator-dependencies
-      # run E2E tests
-      - detox-build:
-          configuration: <<parameters.detox_configuration>>
-      - detox-test:
-          configuration: <<parameters.detox_configuration>>
-          artifacts: <<parameters.artifacts_location>>
-      - store_artifacts:
-          path: ./test/app/test-report.html
-
-  e2e-android:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 2024.04.1
-    parameters:
-      detox_configuration:
-        type: string
-    steps:
-      - android/change-java-version:
-          java-version: 17
-      - checkout
-      - install-dependencies
-      - generate-client-identity
-      - setup-e2e-creds
-      - android/create-avd:
-          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
-          install: true
-          system-image: system-images;android-29;google_apis;x86_64
-          additional-args: --device pixel_4
-      - android/start-emulator:
-          avd-name: TwilioVoiceReactNativeReferenceApp_AVD
-          memory: 8192
-          post-emulator-launch-assemble-command: ""
-          restore-gradle-cache-post-emulator-launch: false
-          wait-for-emulator: true
-      - run:
-          name: "Save Google Services"
-          command: |
-            cd test/app/android/app
-            echo $GOOGLE_SERVICES_JSON > google-services.json
-            cd ../../../..
-      - run:
-          name: "Start relay server"
-          background: true
-          command: |
-            cd test/app
-            yarn run detox:relay-server
-            cd ../..
-      - detox-build:
-          configuration: <<parameters.detox_configuration>>
-      - detox-test:
-          configuration: <<parameters.detox_configuration>>
-          artifacts: ./detox_artifacts
-          screenshots: all
-      - run:
-          name: "Save Android logs"
-          when: always
-          command: |
-            cd test/app
-            adb logcat -d > ./detox_artifacts/logcat.txt
-            cd ../..
-      - store_artifacts:
-          when: always
-          path: ./test/app/detox_artifacts
-
-  trigger-qe-tests:
-    executor:
-      name: default
-    steps:
-      - run:
-          name: Trigger standard QE tests
-          command: |
-            curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
-            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
-            -d '{"branch":"main","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
-            $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
-      - run:
-          name: Trigger custom android messaging QE tests
-          command: |
-            curl --fail --write-out "\nHTTP Response Code: %{http_code}\n" \
-            -u "$CIRCLECI_PERSONAL_API_TOKEN": -X POST --header "Content-Type: application/json" \
-            -d '{"branch":"custom-android-messaging","parameters":{"rc-version":"'$CIRCLE_TAG'","rc-testing":true}}' \
-            $SDKS_QE_CIRCLECI_VOICE_REACT_SLAVE_PIPELINE_ENDPOINT
-
-
-###
-# Workflows
-###
 workflows:
-  ###
-  # Pull request workflow
-  ###
-  build-test:
-    when:
-          and:
-            - equal: [true, << pipeline.parameters.pr_workflow >>]
-            - equal: [false, << pipeline.parameters.release_workflow >>]
+  publish_package:
     jobs:
-      - cache-install-dependencies
-      - lint:
-          requires:
-            - cache-install-dependencies
-      - typescript:
-          requires:
-            - cache-install-dependencies
-      - unit-tests:
-          requires:
-            - cache-install-dependencies
-      - build-package:
-          requires:
-            - cache-install-dependencies
-      - build-docs:
-          requires:
-            - cache-install-dependencies
-      - build-errors:
-          requires:
-            - cache-install-dependencies
-      - e2e-ios:
+      - setup_workspace:
           context:
-            - vblocks-js
-          detox_configuration: ios.sim.release
-      - e2e-android:
+            - aws
+      - deploy_package:
           context:
-            - vblocks-js
-          detox_configuration: android.emu.release
-
-  ###
-  # Release workflow
-  ###
-  build-test-release:
-    when: << pipeline.parameters.release_workflow >>
-    jobs:
-      - cache-install-dependencies
-      - lint:
+            - aws
+            - github
           requires:
-            - cache-install-dependencies
-      - typescript:
-          requires:
-            - cache-install-dependencies
-      - unit-tests:
-          requires:
-            - cache-install-dependencies
-      - build-package:
-          requires:
-            - cache-install-dependencies
-      - run-release:
-          name: Release dry run
-          dry-run: true
-      - hold:
-          name: Release approval
-          type: approval
-      - run-release:
-          context: vblocks-js
-          name: Release
-          dry-run: false
-          requires:
-            - Release approval
-      - trigger-qe-tests:
-          context: sdks-qe
+            - setup_workspace
           filters:
-            tags:
-              only:
-              - /^\d+\.\d+\.\d+-rc\d+$/
-              - /^\d+\.\d+\.\d+-preview\d+-rc\d+$/
-              - /^\d+\.\d+\.\d+-beta\d+-rc\d+$/
             branches:
-              ignore: /.*/
+              only:
+                - main

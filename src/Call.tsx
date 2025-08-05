@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
-import type { RTCStats } from './';
+import type { RTCStats } from './type/RTCStats';
 import { NativeModule, NativeEventEmitter } from './common';
 import { Constants } from './constants';
 import type {
