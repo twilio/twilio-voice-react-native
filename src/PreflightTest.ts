@@ -252,6 +252,12 @@ export class PreflightTest extends EventEmitter {
   private _uuid: string;
 
   /**
+   * Internal helper method to invoke a native method and handle the returned
+   * promise from the native method.
+   */
+  private _invokeAndCatchNativeMethod;
+
+  /**
    * PreflightTest constructor.
    *
    * @internal
@@ -260,6 +266,8 @@ export class PreflightTest extends EventEmitter {
     super();
 
     this._uuid = uuid;
+
+    this._invokeAndCatchNativeMethod = invokeAndCatchNativeMethod(this._uuid);
 
     NativeEventEmitter.addListener(
       Constants.ScopePreflightTest,
@@ -458,16 +466,8 @@ export class PreflightTest extends EventEmitter {
    *   PreflightTest object.
    */
   public async getCallSid(): Promise<string> {
-    return NativeModule.preflightTest_getCallSid(this._uuid).catch(
-      (error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      }
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getCallSid
     );
   }
 
@@ -481,17 +481,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getEndTime(): Promise<number> {
-    return NativeModule.preflightTest_getEndTime(this._uuid)
-      .then(Number)
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      });
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getEndTime
+    ).then(Number);
   }
 
   /**
@@ -505,20 +497,12 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    return NativeModule.preflightTest_getLatestSample(this._uuid)
-      .then((sampleStr) => {
-        const sampleObj = JSON.parse(sampleStr);
-        return parseSample(sampleObj);
-      })
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      });
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getLatestSample
+    ).then((sampleStr) => {
+      const sampleObj = JSON.parse(sampleStr);
+      return parseSample(sampleObj);
+    });
   }
 
   /**
@@ -531,17 +515,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getReport(): Promise<PreflightTest.Report> {
-    return NativeModule.preflightTest_getReport(this._uuid)
-      .then(parseReport)
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      });
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getReport
+    ).then(parseReport);
   }
 
   /**
@@ -554,17 +530,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getStartTime(): Promise<number> {
-    return NativeModule.preflightTest_getStartTime(this._uuid)
-      .then(Number)
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      });
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getStartTime
+    ).then(Number);
   }
 
   /**
@@ -576,17 +544,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getState(): Promise<PreflightTest.State> {
-    return NativeModule.preflightTest_getState(this._uuid)
-      .then(parseState)
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      });
+    return this._invokeAndCatchNativeMethod(
+      NativeModule.preflightTest_getState
+    ).then(parseState);
   }
 
   /**
@@ -598,17 +558,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async stop(): Promise<void> {
-    return NativeModule.preflightTest_stop(this._uuid).catch(
-      (error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
-
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        throw error;
-      }
-    );
+    return this._invokeAndCatchNativeMethod(NativeModule.preflightTest_stop);
   }
 }
 
@@ -812,6 +762,27 @@ function constructInvalidValueError(
     `Invalid "preflightTest#${eventName}" value type for "${valueName}".` +
       `Expected "${expectedType}"; actual "${actualType}".`
   );
+}
+
+/**
+ * Helper function that returns a function that itself will take a native
+ * method and invoke it with a bound UUID. The UUID-bound invoker helper
+ * function will also catch and transform errors.
+ */
+function invokeAndCatchNativeMethod(uuid: string) {
+  return async function uuidBoundInvoker<T>(
+    method: (uuid: string) => Promise<T>
+  ) {
+    return method(uuid).catch((error: any): never => {
+      if (typeof error.code === 'number' && error.message)
+        throw constructTwilioError(error.message, error.code);
+
+      if (error.code === Constants.ErrorCodeInvalidStateError)
+        throw new InvalidStateError(error.message);
+
+      throw error;
+    });
+  };
 }
 
 /**
