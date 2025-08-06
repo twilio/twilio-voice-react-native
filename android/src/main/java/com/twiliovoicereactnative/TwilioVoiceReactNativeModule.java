@@ -748,7 +748,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getCallSid(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getCallSid %s", uuidStr));
+    logger.debug(String.format("preflightTest_getCallSid %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final String callSid = record.getPreflightTest()
@@ -759,7 +759,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getEndTime(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getEndTime %s", uuidStr));
+    logger.debug(String.format("preflightTest_getEndTime %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final long endTime = record.getPreflightTest()
@@ -770,7 +770,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getLatestSample(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getLatestSample %s", uuidStr));
+    logger.debug(String.format("preflightTest_getLatestSample %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final String sample = record.getPreflightTest()
@@ -782,7 +782,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getReport(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getReport %s", uuidStr));
+    logger.debug(String.format("preflightTest_getReport %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final String report = record.getPreflightTest()
@@ -794,7 +794,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getStartTime(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getStartTime %s", uuidStr));
+    logger.debug(String.format("preflightTest_getStartTime %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final String startTime = String.valueOf(
@@ -806,7 +806,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_getState(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_getState %s", uuidStr));
+    logger.debug(String.format("preflightTest_getState %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       final String state = record.getPreflightTest()
@@ -818,7 +818,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void preflightTest_stop(String uuidStr, Promise promise) {
-    logger.debug(String.format("preflight_stop %s", uuidStr));
+    logger.debug(String.format("preflightTest_stop %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
       record.getPreflightTest()
