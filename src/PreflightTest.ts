@@ -458,7 +458,17 @@ export class PreflightTest extends EventEmitter {
    *   PreflightTest object.
    */
   public async getCallSid(): Promise<string> {
-    return NativeModule.preflightTest_getCallSid(this._uuid);
+    return NativeModule.preflightTest_getCallSid(this._uuid).catch(
+      (error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      }
+    );
   }
 
   /**
@@ -471,7 +481,17 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getEndTime(): Promise<number> {
-    return NativeModule.preflightTest_getEndTime(this._uuid).then(Number);
+    return NativeModule.preflightTest_getEndTime(this._uuid)
+      .then(Number)
+      .catch((error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      });
   }
 
   /**
@@ -485,12 +505,20 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    return NativeModule.preflightTest_getLatestSample(this._uuid).then(
-      (sampleStr) => {
+    return NativeModule.preflightTest_getLatestSample(this._uuid)
+      .then((sampleStr) => {
         const sampleObj = JSON.parse(sampleStr);
         return parseSample(sampleObj);
-      }
-    );
+      })
+      .catch((error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      });
   }
 
   /**
@@ -503,7 +531,17 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getReport(): Promise<PreflightTest.Report> {
-    return NativeModule.preflightTest_getReport(this._uuid).then(parseReport);
+    return NativeModule.preflightTest_getReport(this._uuid)
+      .then(parseReport)
+      .catch((error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      });
   }
 
   /**
@@ -516,7 +554,17 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getStartTime(): Promise<number> {
-    return NativeModule.preflightTest_getStartTime(this._uuid).then(Number);
+    return NativeModule.preflightTest_getStartTime(this._uuid)
+      .then(Number)
+      .catch((error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      });
   }
 
   /**
@@ -528,7 +576,17 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getState(): Promise<PreflightTest.State> {
-    return NativeModule.preflightTest_getState(this._uuid).then(parseState);
+    return NativeModule.preflightTest_getState(this._uuid)
+      .then(parseState)
+      .catch((error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      });
   }
 
   /**
@@ -540,7 +598,17 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async stop(): Promise<void> {
-    return NativeModule.preflightTest_stop(this._uuid);
+    return NativeModule.preflightTest_stop(this._uuid).catch(
+      (error: any): never => {
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
+      }
+    );
   }
 }
 

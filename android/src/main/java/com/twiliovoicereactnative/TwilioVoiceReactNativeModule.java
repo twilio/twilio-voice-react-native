@@ -736,7 +736,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           "This method must be invoked before starting another PreflightTest.",
         uuid);
 
-      promise.reject(new IllegalStateException(errorMessage));
+      promise.reject(CommonConstants.ErrorCodeInvalidStateError, errorMessage);
       return;
     }
 
