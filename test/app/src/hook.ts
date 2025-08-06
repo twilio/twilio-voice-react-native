@@ -446,29 +446,33 @@ export function useVoice(token: string) {
 
       setPreflightTest(() => _preflightTest);
     } catch (error) {
-      logEvent(`preflight test error ${JSON.stringify(error)}`);
+      logEvent(`preflight test error ${
+        JSON.stringify(error)
+      }; message: "${
+        JSON.stringify(error.message)
+      }"`);
     }
   }, [logEvent, token, voice]);
 
   const preflightTestMethods = React.useMemo(() => {
     return {
       getCallSid: () => preflightTest?.getCallSid().then((callSid) =>
-        logEvent(`preflight test getCallSid ${callSid}`)
+        logEvent(`preflight test getCallSid "${callSid}"`)
       ),
       getEndTime: () => preflightTest?.getEndTime().then((endTime) =>
-        logEvent(`preflight test endTime ${endTime}`)
+        logEvent(`preflight test endTime "${endTime}"`)
       ),
       getLatestSample: () => preflightTest?.getLatestSample().then((sample) =>
-        logEvent(`preflight test getLatestSample ${JSON.stringify(sample)}`)
+        logEvent(`preflight test getLatestSample "${JSON.stringify(sample)}"`)
       ),
       getReport: () => preflightTest?.getReport().then((report) =>
-        logEvent(`preflight test getReport ${JSON.stringify(report)}`)
+        logEvent(`preflight test getReport "${JSON.stringify(report)}"`)
       ),
       getStartTime: () => preflightTest?.getStartTime().then((startTime) =>
-        logEvent(`preflight test getStartTime ${startTime}`)
+        logEvent(`preflight test getStartTime "${startTime}"`)
       ),
       getState: () => preflightTest?.getState().then((state) =>
-        logEvent(`preflight test getState ${state}`)
+        logEvent(`preflight test getState "${state}"`)
       ),
       stop: () => preflightTest?.stop().then(() =>
         logEvent('preflight test stopped')

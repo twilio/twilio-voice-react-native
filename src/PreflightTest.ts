@@ -528,7 +528,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getState(): Promise<PreflightTest.State> {
-    return NativeModule.preflightTest_getState(this._uuid);
+    return NativeModule.preflightTest_getState(this._uuid).then(parseState);
   }
 
   /**
@@ -575,6 +575,61 @@ function parseCallQuality(
   }
 
   return nativeCallQuality.toLowerCase() as any as PreflightTest.CallQuality;
+}
+
+/**
+ * Parse native preflight test state value.
+ */
+function parseState(nativeState: string): PreflightTest.State {
+  return nativeState === 'CONNECTING'
+    ? PreflightTest.State.Connecting
+    : nativeState === 'CONNECTED'
+    ? PreflightTest.State.Connected
+    : nativeState === 'COMPLETED'
+    ? PreflightTest.State.Completed
+    : PreflightTest.State.Failed;
+}
+
+/**
+ * Parse a sample object and transform the keys to match the expected output.
+ */
+function parseSample(
+  sampleObject: Omit<
+    PreflightTest.RTCSample,
+    typeof Constants.PreflightRTCSampleTimestamp
+  > & { [Constants.PreflightRTCSampleTimestamp]: string }
+): PreflightTest.RTCSample {
+  const audioInputLevel = sampleObject.audioInputLevel;
+  const audioOutputLevel = sampleObject.audioOutputLevel;
+  const bytesReceived = sampleObject.bytesReceived;
+  const bytesSent = sampleObject.bytesSent;
+  const codec = sampleObject.codec;
+  const jitter = sampleObject.jitter;
+  const mos = sampleObject.mos;
+  const packetsLost = sampleObject.packetsLost;
+  const packetsLostFraction = sampleObject.packetsLostFraction;
+  const packetsReceived = sampleObject.packetsReceived;
+  const packetsSent = sampleObject.packetsSent;
+  const rtt = sampleObject.rtt;
+  const timestamp = Number(sampleObject.timestamp);
+
+  const sample = {
+    audioInputLevel,
+    audioOutputLevel,
+    bytesReceived,
+    bytesSent,
+    codec,
+    jitter,
+    mos,
+    packetsLost,
+    packetsLostFraction,
+    packetsReceived,
+    packetsSent,
+    rtt,
+    timestamp,
+  };
+
+  return sample;
 }
 
 /**
@@ -673,48 +728,6 @@ function parseAndroidReport(rawReport: string): PreflightTest.Report {
   };
 
   return report;
-}
-
-/**
- * Parse a sample object and transform the keys to match the expected output.
- */
-function parseSample(
-  sampleObject: Omit<
-    PreflightTest.RTCSample,
-    typeof Constants.PreflightRTCSampleTimestamp
-  > & { [Constants.PreflightRTCSampleTimestamp]: string }
-): PreflightTest.RTCSample {
-  const audioInputLevel = sampleObject.audioInputLevel;
-  const audioOutputLevel = sampleObject.audioOutputLevel;
-  const bytesReceived = sampleObject.bytesReceived;
-  const bytesSent = sampleObject.bytesSent;
-  const codec = sampleObject.codec;
-  const jitter = sampleObject.jitter;
-  const mos = sampleObject.mos;
-  const packetsLost = sampleObject.packetsLost;
-  const packetsLostFraction = sampleObject.packetsLostFraction;
-  const packetsReceived = sampleObject.packetsReceived;
-  const packetsSent = sampleObject.packetsSent;
-  const rtt = sampleObject.rtt;
-  const timestamp = Number(sampleObject.timestamp);
-
-  const sample = {
-    audioInputLevel,
-    audioOutputLevel,
-    bytesReceived,
-    bytesSent,
-    codec,
-    jitter,
-    mos,
-    packetsLost,
-    packetsLostFraction,
-    packetsReceived,
-    packetsSent,
-    rtt,
-    timestamp,
-  };
-
-  return sample;
 }
 
 /**

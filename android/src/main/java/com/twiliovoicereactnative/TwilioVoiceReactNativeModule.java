@@ -617,7 +617,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       logger.debug(String.format("existing preflight test: \"%s\"", existingPreflightTest.getUuid()));
       switch (existingPreflightTest.getPreflightTest().getState()) {
         case CONNECTED, CONNECTING -> {
-          promise.reject(new IllegalStateException("Cannot start a PreflightTest while one exists in-progress."));
+          promise.reject(CommonConstants.ErrorCodeInvalidStateError, "Cannot start a PreflightTest while one exists in-progress.");
           return;
         }
       }

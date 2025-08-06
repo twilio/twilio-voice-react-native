@@ -317,3 +317,6 @@ PreflightReportCallQuality=callQuality
 PreflightReportWarnings=warnings
 PreflightReportWarningsCleared=warningsCleared
 PreflightReportSelectedIceCandidatePairStats=selectedIceCandidatePairStats
+
+// Error codes
+ErrorCodeInvalidStateError=InvalidStateError

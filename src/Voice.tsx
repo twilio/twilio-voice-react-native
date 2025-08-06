@@ -12,6 +12,7 @@ import { CallInvite } from './CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
+import { InvalidStateError } from './error/InvalidStateError';
 import type { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
@@ -864,7 +865,13 @@ export class Voice extends EventEmitter {
         return new PreflightTest(uuid);
       })
       .catch((error: any): never => {
-        throw constructTwilioError(error.message, error.code);
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        throw error;
       });
   }
 }
