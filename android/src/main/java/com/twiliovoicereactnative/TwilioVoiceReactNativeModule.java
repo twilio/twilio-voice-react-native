@@ -724,7 +724,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   // PreflightTest
 
-  public void invokePreflightMethod(String uuidStr, Promise promise, Function<PreflightTestRecordDatabase.PreflightTestRecord, Object> onSuccess) {
+  public void invokePreflightMethod(
+    String uuidStr,
+    Promise promise,
+    Function<PreflightTestRecordDatabase.PreflightTestRecord, Object> onSuccess
+  ) {
     UUID uuid = UUID.fromString(uuidStr);
 
     final PreflightTestRecordDatabase.PreflightTestRecord record =
