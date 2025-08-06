@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -628,80 +629,79 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     final PreflightOptions.Builder preflightOptionsBuilder = new PreflightOptions.Builder(accessToken);
 
     // parse audio codec logic
-    final ReadableArray jsPreferredAudioCodecs = options.getArray(CommonConstants.CallOptionsKeyPreferredAudioCodecs);
+    final List<AudioCodec> preferredAudioCodecs = new ArrayList<>();
 
-    if (jsPreferredAudioCodecs != null) {
-      final List<AudioCodec> preferredAudioCodecs = new ArrayList<>();
+    final ReadableArray jsPreferredAudioCodecs = Optional
+      .ofNullable(options.getArray(CommonConstants.CallOptionsKeyPreferredAudioCodecs))
+      .orElse(Arguments.createArray());
 
-      for (int i = 0; i < jsPreferredAudioCodecs.size(); i++) {
-        final String jsAudioCodec = jsPreferredAudioCodecs.getString(i);
+    for (int i = 0; i < jsPreferredAudioCodecs.size(); i++) {
+      final String jsAudioCodec = Optional
+        .ofNullable(jsPreferredAudioCodecs.getString(i))
+        .orElse("");
 
-        if (jsAudioCodec != null) {
-          final AudioCodec audioCodec = switch (jsAudioCodec) {
-            case CommonConstants.AudioCodecTypeValueOpus -> new OpusCodec();
-            case CommonConstants.AudioCodecTypeValuePCMU -> new PcmuCodec();
-            default -> null;
-          };
-
-          if (audioCodec != null) {
-            preferredAudioCodecs.add(audioCodec);
-          }
-        }
-      }
-
-      if (!preferredAudioCodecs.isEmpty()) {
-        preflightOptionsBuilder.preferAudioCodecs(preferredAudioCodecs);
-      }
+      switch (jsAudioCodec) {
+        case CommonConstants.AudioCodecTypeValueOpus -> preferredAudioCodecs.add(new OpusCodec());
+        case CommonConstants.AudioCodecTypeValuePCMU -> preferredAudioCodecs.add(new PcmuCodec());
+      };
     }
 
-    // Ice options logic.
-
-    final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
-    final Set<IceServer> iceServers = new HashSet<>();
-    IceTransportPolicy iceTransportPolicy = null;
+    if (!preferredAudioCodecs.isEmpty()) {
+      preflightOptionsBuilder.preferAudioCodecs(preferredAudioCodecs);
+    }
 
     // Ice servers logic.
-    final ReadableArray jsIceServers = options.getArray(CommonConstants.CallOptionsKeyIceServers);
+    final Set<IceServer> iceServers = new HashSet<>();
 
-    if (jsIceServers != null) {
-      for (int i = 0; i < jsIceServers.size(); i++) {
-        final ReadableMap jsIceServer = jsIceServers.getMap(i);
+    final ReadableArray jsIceServers = Optional
+      .ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers))
+      .orElse(Arguments.createArray());
 
-        if (jsIceServer != null) {
-          final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
-          final String username = jsIceServer.getString(CommonConstants.IceServerKeyUsername);
-          final String password = jsIceServer.getString(CommonConstants.IceServerKeyPassword);
+    for (int i = 0; i < jsIceServers.size(); i++) {
+      final ReadableMap jsIceServer = Optional
+        .ofNullable(jsIceServers.getMap(i))
+        .orElse(Arguments.createMap());
 
-          if (serverUrl != null && username != null && password != null) {
-            iceServers.add(new IceServer(serverUrl, username, password));
-            continue;
-          }
+      final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
 
-          if (serverUrl != null && username == null && password == null) {
-            iceServers.add(new IceServer(serverUrl));
-            continue;
-          }
-        }
+      final String username = Optional
+        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyUsername))
+        .orElse("");
+
+      final String password = Optional
+        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyPassword))
+        .orElse("");
+
+      if (serverUrl == null) {
+        promise.reject(
+          CommonConstants.ErrorCodeInvalidArgumentError,
+          "Server URL must be a non-null string.");
+        return;
       }
 
-      if (!iceServers.isEmpty()) {
-        iceOptionsBuilder.iceServers(iceServers);
-      }
+      iceServers.add(new IceServer(serverUrl, username, password));
     }
 
     // Ice transport policy logic.
-    final String jsIceTransportPolicy = options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy);
+    final String jsIceTransportPolicy = Optional
+      .ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy))
+      .orElse("");
 
-    if (jsIceTransportPolicy != null) {
-      iceTransportPolicy = switch (jsIceTransportPolicy) {
-        case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
-        case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
-        default -> null;
-      };
+    final IceTransportPolicy iceTransportPolicy = switch (jsIceTransportPolicy) {
+      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+      default -> null;
+    };
 
-      if (iceTransportPolicy != null) {
-        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
-      }
+    // Finally, build the options.
+    final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+
+    if (iceTransportPolicy != null) {
+      iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+    }
+
+    if (!iceServers.isEmpty()) {
+      iceOptionsBuilder.iceServers(iceServers);
     }
 
     if (!iceServers.isEmpty() || iceTransportPolicy != null) {
