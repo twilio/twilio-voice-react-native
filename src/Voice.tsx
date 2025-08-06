@@ -871,6 +871,9 @@ export class Voice extends EventEmitter {
         if (error.code === Constants.ErrorCodeInvalidStateError)
           throw new InvalidStateError(error.message);
 
+        if (error.code === Constants.ErrorCodeInvalidArgumentError)
+          throw new InvalidArgumentError(error.message);
+
         throw error;
       });
   }
