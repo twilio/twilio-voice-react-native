@@ -3,7 +3,6 @@ package com.twiliovoicereactnative;
 import com.twilio.voice.PreflightTest;
 
 import java.util.UUID;
-import java.util.Vector;
 
 public class PreflightTestRecordDatabase {
   public static class PreflightTestRecord {
