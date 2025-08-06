@@ -320,3 +320,4 @@ PreflightReportSelectedIceCandidatePairStats=selectedIceCandidatePairStats
 
 // Error codes
 ErrorCodeInvalidStateError=InvalidStateError
+ErrorCodeInvalidArgumentError=InvalidArgumentError
