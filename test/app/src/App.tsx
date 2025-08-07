@@ -29,6 +29,8 @@ export default function App() {
     callMethod,
     recentCallInvite,
     connectHandler,
+    preflightTestHandler,
+    preflightTestMethods,
     registerHandler,
     unregisterHandler,
     logAudioDevicesHandler,
@@ -66,6 +68,27 @@ export default function App() {
     ),
     [callInfo]
   );
+
+  const preflightTestButtons = React.useMemo(() => (
+    <Grid horizontalGapSize={5} verticalGapSize={5} gridComponents={[
+      [
+        <Button onPress={preflightTestHandler} title="Start Preflight" />,
+        <Button onPress={preflightTestMethods.stop} title="Stop Preflight" />,
+      ],
+      [
+        <Button onPress={preflightTestMethods.getStartTime} title="getStartTime" />,
+        <Button onPress={preflightTestMethods.getEndTime} title="getEndTime" />,
+      ],
+      [
+        <Button onPress={preflightTestMethods.getCallSid} title="getCallSid" />,
+        <Button onPress={preflightTestMethods.getState} title="getState" />,
+      ],
+      [
+        <Button onPress={preflightTestMethods.getLatestSample} title="getLatestSample" />,
+        <Button onPress={preflightTestMethods.getReport} title="getReport" />,
+      ],
+    ]} />
+    ), [preflightTestHandler, preflightTestMethods]);
 
   const callInviteComponent = React.useMemo(
     () => (
@@ -166,6 +189,7 @@ export default function App() {
                 recentCallInvite={recentCallInvite}
               />,
             ],
+            [preflightTestButtons],
             registrationButtons,
             audioDeviceButtons,
             getOngoingButtons,

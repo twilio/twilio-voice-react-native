@@ -12,6 +12,7 @@ import { CallInvite } from './CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
+import { InvalidStateError } from './error/InvalidStateError';
 import type { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
@@ -845,14 +846,15 @@ export class Voice extends EventEmitter {
    * connectivity and bandwidth issues before or during Twilio Voice calls.
    *
    * The PreflightTest performs a test call to Twilio and provides a
-   * {@link PreflightTest.Report} at the end. The report includes information
-   * about the end user's network connection (including jitter, packet loss,
-   * and round trip time) and connection settings.
+   * {@link (PreflightTest:namespace).Report} at the end. The report includes
+   * information about the end user's network connection (including jitter,
+   * packet loss, and round trip time) and connection settings.
    *
    * @returns
    * A Promise that:
    * - Resolves with a {@link (PreflightTest:class)} object.
-   * - Rejects with a {@link TwilioError} if unable to perform a {@link (PreflightTest:class)}.
+   * - Rejects with a {@link TwilioErrors} if unable to perform a
+   *   {@link (PreflightTest:class)}.
    */
   async runPreflight(
     accessToken: string,
@@ -863,7 +865,16 @@ export class Voice extends EventEmitter {
         return new PreflightTest(uuid);
       })
       .catch((error: any): never => {
-        throw constructTwilioError(error.message, error.code);
+        if (typeof error.code === 'number' && error.message)
+          throw constructTwilioError(error.message, error.code);
+
+        if (error.code === Constants.ErrorCodeInvalidStateError)
+          throw new InvalidStateError(error.message);
+
+        if (error.code === Constants.ErrorCodeInvalidArgumentError)
+          throw new InvalidArgumentError(error.message);
+
+        throw error;
       });
   }
 }

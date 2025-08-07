@@ -709,6 +709,7 @@ export class PreflightTest extends EventEmitter {
     getReport(): Promise<PreflightTest.Report>;
     getStartTime(): Promise<number>;
     getState(): Promise<PreflightTest.State>;
+    stop(): Promise<void>;
 }
 
 // @public
@@ -716,15 +717,15 @@ export namespace PreflightTest {
     // (undocumented)
     export enum CallQuality {
         // (undocumented)
-        Degraded = "Degraded",
+        Degraded = "degraded",
         // (undocumented)
-        Excellent = "Excellent",
+        Excellent = "excellent",
         // (undocumented)
-        Fair = "Fair",
+        Fair = "fair",
         // (undocumented)
-        Good = "Good",
+        Good = "good",
         // (undocumented)
-        Great = "Great"
+        Great = "great"
     }
     export enum Event {
         Completed = "completed",
@@ -754,12 +755,12 @@ export namespace PreflightTest {
         // Warning: (ae-forgotten-export) The symbol "CallOptionsType" needs to be exported by the entry point index.d.ts
         [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
         [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
-        [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec;
+        [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
     }
     // (undocumented)
     export interface Report {
         // (undocumented)
-        [Constants.PreflightReportCallQuality]?: CallQuality;
+        [Constants.PreflightReportCallQuality]: CallQuality | null;
         // (undocumented)
         [Constants.PreflightReportCallSid]: string;
         // (undocumented)
@@ -804,6 +805,8 @@ export namespace PreflightTest {
         // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsPort]: number;
         // (undocumented)
+        [Constants.PreflightRTCIceCandidateStatsPriority]: number;
+        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
         // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsRelatedAddress]: string;
@@ -843,7 +846,7 @@ export namespace PreflightTest {
         // (undocumented)
         [Constants.PreflightRTCSampleRtt]: number;
         // (undocumented)
-        [Constants.PreflightRTCSampleTimestamp]: string;
+        [Constants.PreflightRTCSampleTimestamp]: number;
     }
     // (undocumented)
     export interface RTCSelectedIceCandidatePairStats {
