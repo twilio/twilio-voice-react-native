@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E0C49172E5F013000EA5CEB /* TwilioVoiceReactNative+PreflightTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E0C49162E5F013000EA5CEB /* TwilioVoiceReactNative+PreflightTest.m */; };
 		8F19C42D2683AE0200F765F1 /* TwilioVoicePushRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F19C42C2683AE0200F765F1 /* TwilioVoicePushRegistry.m */; };
 		8FC9E80D2B74A4A100F5D778 /* TwilioVoiceReactNative+CallInvite.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FC9E80C2B74A4A100F5D778 /* TwilioVoiceReactNative+CallInvite.m */; };
 		8FC9E80F2B74A57800F5D778 /* TwilioVoiceReactNative+CallMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FC9E80E2B74A57800F5D778 /* TwilioVoiceReactNative+CallMessage.m */; };
@@ -26,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libTwilioVoiceReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTwilioVoiceReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E0C49162E5F013000EA5CEB /* TwilioVoiceReactNative+PreflightTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TwilioVoiceReactNative+PreflightTest.m"; sourceTree = "<group>"; };
 		8F19C42B2683AE0200F765F1 /* TwilioVoicePushRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TwilioVoicePushRegistry.h; sourceTree = "<group>"; };
 		8F19C42C2683AE0200F765F1 /* TwilioVoicePushRegistry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TwilioVoicePushRegistry.m; sourceTree = "<group>"; };
 		8F5ED22E268D428F00572F00 /* TwilioVoiceReactNative+CallKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TwilioVoiceReactNative+CallKit.m"; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 				8F7D343C2AB01BF100B86D94 /* TwilioVoiceReactNativeVersion.h */,
 				134814211AA4EA7D00B7C361 /* Products */,
 				8F53CB6826794330002F8D61 /* Frameworks */,
+				6E0C49162E5F013000EA5CEB /* TwilioVoiceReactNative+PreflightTest.m */,
 			);
 			sourceTree = "<group>";
 		};
@@ -148,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8FC9E80F2B74A57800F5D778 /* TwilioVoiceReactNative+CallMessage.m in Sources */,
+				6E0C49172E5F013000EA5CEB /* TwilioVoiceReactNative+PreflightTest.m in Sources */,
 				8FC9E80D2B74A4A100F5D778 /* TwilioVoiceReactNative+CallInvite.m in Sources */,
 				8F19C42D2683AE0200F765F1 /* TwilioVoicePushRegistry.m in Sources */,
 			);
