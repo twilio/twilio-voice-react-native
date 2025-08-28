@@ -37,6 +37,7 @@ export function useEventLog() {
   const [events, setEvents] = React.useState<EventLogItem[]>([]);
 
   const logEvent = React.useCallback((event: string) => {
+    console.log(event);
     setEvents((_events) => [
       ..._events,
       {
@@ -405,9 +406,15 @@ export function useVoice(token: string) {
   const preflightTestHandler = React.useCallback(async () => {
     try {
       const preflightTestOptions: PreflightTest.Options = {
-        iceServers: [],
+        iceServers: [{
+          username: 'foobar',
+          password: 'boofar',
+          serverUrl: 'bingbong',
+        }],
         iceTransportPolicy: 'all' as any,
-        preferredAudioCodecs: ['opus' as any],
+        preferredAudioCodecs: [{
+          type: 'opus' as any,
+        }],
       };
 
       const _preflightTest = await voice.runPreflight(
