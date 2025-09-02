@@ -180,16 +180,16 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
 - (NSString *)preflightStatusToStateString:(TVOPreflightTestStatus)status {
     switch (status) {
         case TVOPreflightTestStatusCompleted: {
-            return [kTwilioVoiceReactNativePreflightTestStateCompleted copy];
+            return kTwilioVoiceReactNativePreflightTestStateCompleted;
         }
         case TVOPreflightTestStatusConnected: {
-            return [kTwilioVoiceReactNativePreflightTestStateConnected copy];
+            return kTwilioVoiceReactNativePreflightTestStateConnected;
         }
         case TVOPreflightTestStatusConnecting: {
-            return [kTwilioVoiceReactNativePreflightTestStateConnecting copy];
+            return kTwilioVoiceReactNativePreflightTestStateConnecting;
         }
         case TVOPreflightTestStatusFailed: {
-            return [kTwilioVoiceReactNativePreflightTestStateFailed copy];
+            return kTwilioVoiceReactNativePreflightTestStateFailed;
         }
     }
 }
@@ -266,7 +266,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
     if (self.preflightTest != nil) {
         NSLog(@"existing preflight test object with status %lu", self.preflightTest.status);
         if (self.preflightTest.status == TVOPreflightTestStatusConnected || self.preflightTest.status == TVOPreflightTestStatusConnecting) {
-            *errorCode = [kTwilioVoiceReactNativeErrorCodeInvalidStateError copy];
+            *errorCode = kTwilioVoiceReactNativeErrorCodeInvalidStateError;
             *errorMessage = @"Existing preflight test in-progress.";
             return;
         }
