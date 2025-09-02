@@ -37,7 +37,6 @@ export function useEventLog() {
   const [events, setEvents] = React.useState<EventLogItem[]>([]);
 
   const logEvent = React.useCallback((event: string) => {
-    console.log(event);
     setEvents((_events) => [
       ..._events,
       {
