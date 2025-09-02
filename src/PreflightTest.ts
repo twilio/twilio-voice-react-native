@@ -709,7 +709,7 @@ function parseSample(
 }
 
 /**
- * Parse native preflight report on Android platforms.
+ * Parse native preflight report.
  */
 function parseReport(rawReport: string): PreflightTest.Report {
   const unprocessedReport: any = JSON.parse(rawReport);
