@@ -498,29 +498,6 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 
 #pragma mark - Warning event conversion
 
-- (NSString *)warningNameWithNumber:(NSNumber *)warning {
-    if ([warning intValue] < 0 || [warning intValue] > 4) {
-        NSLog(@"Warning number out of TVOCallQualityWarning range");
-        return @"undefined";
-    }
-    
-    TVOCallQualityWarning warningValue = [warning intValue];
-    switch (warningValue) {
-        case TVOCallQualityWarningHighRtt:
-            return @"high-rtt";
-        case TVOCallQualityWarningHighJitter:
-            return @"high-jitter";
-        case TVOCallQualityWarningHighPacketsLostFraction:
-            return @"high-packets-lost-fraction";
-        case TVOCallQualityWarningLowMos:
-            return @"low-mos";
-        case TVOCallQualityWarningConstantAudioInputLevel:
-            return @"constant-audio-input-level";
-        default:
-            return @"undefined";
-    }
-}
-
 - (NSString *)getSimplifiedISO8601FormattedTimestamp:(NSDate *)date {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     NSLocale *locale = [NSLocale currentLocale];

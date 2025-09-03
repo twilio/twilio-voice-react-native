@@ -405,7 +405,7 @@ RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall, kTwilioVoiceReactNativeScopeCallInvite, kTwilioVoiceReactNativeScopeCallMessage];
+    return @[kTwilioVoiceReactNativeScopeVoice, kTwilioVoiceReactNativeScopeCall, kTwilioVoiceReactNativeScopeCallInvite, kTwilioVoiceReactNativeScopeCallMessage, kTwilioVoiceReactNativeScopePreflightTest];
 }
 
 + (BOOL)requiresMainQueueSetup
@@ -1041,6 +1041,38 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
         return TVOCallFeedbackIssueEcho;
     }
     return TVOCallFeedbackIssueNotReported;
+}
+
+- (NSString *)warningNameWithNumber:(NSNumber *)warning {
+    if ([warning intValue] < 0 || [warning intValue] > 4) {
+        NSLog(@"Warning number out of TVOCallQualityWarning range");
+        return @"undefined";
+    }
+    
+    TVOCallQualityWarning warningValue = [warning intValue];
+    switch (warningValue) {
+        case TVOCallQualityWarningHighRtt:
+            return @"high-rtt";
+        case TVOCallQualityWarningHighJitter:
+            return @"high-jitter";
+        case TVOCallQualityWarningHighPacketsLostFraction:
+            return @"high-packets-lost-fraction";
+        case TVOCallQualityWarningLowMos:
+            return @"low-mos";
+        case TVOCallQualityWarningConstantAudioInputLevel:
+            return @"constant-audio-input-level";
+        default:
+            return @"undefined";
+    }
+}
+
+- (NSMutableArray *)callQualityWarningsArrayFromSet:(NSSet<NSNumber *> *)qualityWarnings {
+  NSMutableArray<NSString *> *warningEvents = [NSMutableArray array];
+  for (NSNumber *warning in qualityWarnings) {
+      NSString *event = [self warningNameWithNumber:warning];
+      [warningEvents addObject:event];
+  }
+  return warningEvents;
 }
 
 @end

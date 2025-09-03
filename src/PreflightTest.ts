@@ -585,14 +585,72 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
 /**
  * Parse native call quality enum.
  */
-function parseCallQuality(
+function parseCallQuality(nativeCallQuality: any) {
+  switch (Platform.OS) {
+    case 'android': {
+      return parseCallQualityAndroid(nativeCallQuality);
+    }
+    case 'ios': {
+      return parseCallQualityIos(nativeCallQuality);
+    }
+    default: {
+      throw new InvalidStateError('Invalid platform.');
+    }
+  }
+}
+
+/**
+ * Parse call quality value for Android platform.
+ */
+function parseCallQualityAndroid(
   nativeCallQuality: string | null
 ): PreflightTest.CallQuality | null {
   if (nativeCallQuality === null) {
     return null;
   }
 
-  return nativeCallQuality.toLowerCase() as any as PreflightTest.CallQuality;
+  if (typeof nativeCallQuality !== 'string') {
+    throw new InvalidStateError(
+      `Call quality not of type "string". Found "${typeof nativeCallQuality}".`
+    );
+  }
+
+  const parsedCallQuality = callQualityMap.android.get(nativeCallQuality);
+
+  if (typeof parsedCallQuality !== 'string') {
+    throw new InvalidStateError(
+      `Call quality invalid. Expected a string, found "${nativeCallQuality}".`
+    );
+  }
+
+  return parsedCallQuality;
+}
+
+/**
+ * Parse call quality for iOS platform.
+ */
+function parseCallQualityIos(
+  nativeCallQuality: number | null
+): PreflightTest.CallQuality | null {
+  if (nativeCallQuality === null) {
+    return null;
+  }
+
+  if (typeof nativeCallQuality !== 'number') {
+    throw new InvalidStateError(
+      `Call quality not of type "number". Found "${typeof nativeCallQuality}".`
+    );
+  }
+
+  const parsedCallQuality = callQualityMap.ios.get(nativeCallQuality);
+
+  if (typeof parsedCallQuality !== 'string') {
+    throw new InvalidStateError(
+      `Call quality invalid. Expected [0, 4], found "${nativeCallQuality}".`
+    );
+  }
+
+  return parsedCallQuality;
 }
 
 /**
@@ -653,23 +711,7 @@ function parseSample(
 /**
  * Parse native preflight report.
  */
-function parseReport(report: string): PreflightTest.Report {
-  switch (Platform.OS) {
-    case 'android':
-      return parseAndroidReport(report);
-    case 'ios':
-      return parseAndroidReport(report); // todo
-    default:
-      throw new InvalidStateError(
-        `parseReport invoked for invalid OS: "${Platform.OS}".`
-      );
-  }
-}
-
-/**
- * Parse native preflight report on Android platforms.
- */
-function parseAndroidReport(rawReport: string): PreflightTest.Report {
+function parseReport(rawReport: string): PreflightTest.Report {
   const unprocessedReport: any = JSON.parse(rawReport);
 
   const callSid: string = unprocessedReport.callSid;
@@ -989,3 +1031,23 @@ export namespace PreflightTest {
     [Constants.PreflightReportWarningsCleared]: WarningCleared[];
   }
 }
+
+/**
+ * Map of call quality values from the native layer to the expected JS values.
+ */
+const callQualityMap = {
+  ios: new Map<number, PreflightTest.CallQuality>([
+    [0, PreflightTest.CallQuality.Excellent],
+    [1, PreflightTest.CallQuality.Great],
+    [2, PreflightTest.CallQuality.Good],
+    [3, PreflightTest.CallQuality.Fair],
+    [4, PreflightTest.CallQuality.Degraded],
+  ]),
+  android: new Map<string, PreflightTest.CallQuality>([
+    ['Excellent', PreflightTest.CallQuality.Excellent],
+    ['Great', PreflightTest.CallQuality.Great],
+    ['Good', PreflightTest.CallQuality.Good],
+    ['Fair', PreflightTest.CallQuality.Fair],
+    ['Degraded', PreflightTest.CallQuality.Degraded],
+  ]),
+};
