@@ -20,44 +20,44 @@ RCT_EXPORT_METHOD(voice_runPreflight:(NSString *)accessToken
                   options:(NSDictionary *)jsPreflightOptions
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     NSString *uuid = [NSUUID UUID].UUIDString;
-
+    
     TVOPreflightOptions *preflightOptions = [self parseJsPreflightOptions:accessToken jsPreflightOptions:jsPreflightOptions];
-
+    
     NSString *preflightTestErrorCode = @"";
     NSString *preflightTestErrorMessage = @"";
     [self startPreflightTestWithAccessToken:accessToken preflightOptions:preflightOptions uuid:uuid errorCode:&preflightTestErrorCode errorMessage:&preflightTestErrorMessage];
-
+    
     if (preflightTestErrorCode != nil) {
         reject(preflightTestErrorCode,
                preflightTestErrorMessage,
                nil);
         return;
     }
-
+    
     resolve(uuid);
 }
 
 RCT_EXPORT_METHOD(preflightTest_getCallSid:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     resolve(self.preflightTest.callSid);
 }
 
 RCT_EXPORT_METHOD(preflightTest_getEndTime:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     NSString *endTime = @(self.preflightTest.endTime).stringValue;
     resolve(endTime);
 }
@@ -65,11 +65,11 @@ RCT_EXPORT_METHOD(preflightTest_getEndTime:(NSString *)uuid
 RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     NSString *jsonSample = [self preflightStatsSampleToJsonString:self.preflightTest.latestSample];
     resolve(jsonSample);
 }
@@ -77,11 +77,11 @@ RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
 RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     NSString *jsonReport = [self preflightReportToJsonString:self.preflightTest.preflightReport];
     resolve(jsonReport);
 }
@@ -89,11 +89,11 @@ RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
 RCT_EXPORT_METHOD(preflightTest_getStartTime:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     NSString *startTime = @(self.preflightTest.startTime).stringValue;
     resolve(startTime);
 }
@@ -101,11 +101,11 @@ RCT_EXPORT_METHOD(preflightTest_getStartTime:(NSString *)uuid
 RCT_EXPORT_METHOD(preflightTest_getState:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     NSString *state = [self preflightStatusToStateString:self.preflightTest.status];
     resolve(state);
 }
@@ -113,11 +113,11 @@ RCT_EXPORT_METHOD(preflightTest_getState:(NSString *)uuid
 RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-
+    
     if (![self checkForPreflightTest:uuid rejecter:reject]) {
         return;
     }
-
+    
     [self.preflightTest stop];
     resolve(nil);
 }
@@ -126,14 +126,14 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
     if (self.preflightTest == nil ||
         self.preflightTestUuid == nil ||
         ![self.preflightTestUuid isEqualToString:uuid]) {
-
+        
         NSString *errorMessage = [NSString stringWithFormat:@"No existing preflight test object with UUID \"%@\".", uuid];
         reject(kTwilioVoiceReactNativeErrorCodeInvalidStateError,
                errorMessage,
                nil);
         return false;
     }
-
+    
     return true;
 }
 
@@ -153,7 +153,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
         kTwilioVoiceReactNativePreflightRTCSampleRtt: @(statsSample.rtt),
         kTwilioVoiceReactNativePreflightRTCSampleTimestamp: statsSample.timestamp,
     };
-
+    
     NSError *jsonParseError;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:sampleDict options:NSJSONWritingFragmentsAllowed error:&jsonParseError];
     if (jsonParseError != nil) {
@@ -161,7 +161,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
         NSLog(@"Failed to parse sample as json: %@", jsonParseError);
     }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
+    
     return jsonString;
 }
 
@@ -173,7 +173,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
         NSLog(@"Failed to parse report as json: %@", jsonParseError);
     }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
+    
     return jsonString;
 }
 
@@ -204,7 +204,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
             NSString *password = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyPassword];
             NSString *username = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyUsername];
             NSString *serverUrl = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyServerUrl];
-
+            
             if (serverUrl != nil && username != nil && password != nil) {
                 TVOIceServer *nativeIceServer = [[TVOIceServer alloc] initWithURLString:serverUrl username:username password:password];
                 [nativeIceServers addObject:nativeIceServer];
@@ -216,7 +216,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
         if (nativeIceServers.count > 0) {
             iceOptionsBuilderBlock.servers = nativeIceServers;
         }
-
+        
         // transport policy logic
         NSString *jsIceTransportPolicy = [jsPreflightOptions objectForKey:kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
         if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueAll]) {
@@ -226,7 +226,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
             iceOptionsBuilderBlock.transportPolicy = TVOIceTransportPolicyRelay;
         }
     }];
-
+    
     // preferred audio codecs option
     NSArray<NSDictionary *> *jsPreferredAudioCodecs = [jsPreflightOptions objectForKey:kTwilioVoiceReactNativeCallOptionsKeyPreferredAudioCodecs];
     NSMutableArray *nativePreferredAudioCodecs = [NSMutableArray new];
@@ -246,14 +246,14 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
             [nativePreferredAudioCodecs addObject:[TVOPcmuCodec new]];
         }
     }
-
+    
     TVOPreflightOptions *preflightOptions = [TVOPreflightOptions optionsWithAccessToken:accessToken block:^(TVOPreflightOptionsBuilder *preflightOptionsBuilderBlock) {
         preflightOptionsBuilderBlock.iceOptions = iceOptions;
         if ([nativePreferredAudioCodecs count] > 0) {
             preflightOptionsBuilderBlock.preferredAudioCodecs = nativePreferredAudioCodecs;
         }
     }];
-
+    
     return preflightOptions;
 }
 
@@ -262,7 +262,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
                                      uuid:(NSString *)uuid
                                 errorCode:(NSString **)errorCode
                              errorMessage:(NSString **)errorMessage {
-
+    
     if (self.preflightTest != nil) {
         NSLog(@"existing preflight test object with status %lu", self.preflightTest.status);
         if (self.preflightTest.status == TVOPreflightTestStatusConnected || self.preflightTest.status == TVOPreflightTestStatusConnecting) {
@@ -271,7 +271,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
             return;
         }
     }
-
+    
     self.preflightTestUuid = uuid;
     self.preflightTest = [TwilioVoiceSDK runPreflightTestWithOptions:preflightOptions delegate:self];
 }
@@ -305,7 +305,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
 - (void)preflight:(TVOPreflightTest *)preflightTest didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     NSMutableArray *currentWarningsArr = [self callQualityWarningsArrayFromSet:currentWarnings];
     NSMutableArray *previousWarningsArr = [self callQualityWarningsArrayFromSet:previousWarnings];
-
+    
     [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueQualityWarning,
