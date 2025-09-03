@@ -1,6 +1,7 @@
 package com.twiliovoicereactnative;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.facebook.react.bridge.Arguments;
@@ -14,6 +15,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
@@ -39,11 +41,9 @@ import static com.twiliovoicereactnative.CommonConstants.VoiceEventError;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered;
 import static com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered;
 import static com.twiliovoicereactnative.ConfigurationProperties.isFullScreenNotificationEnabled;
-import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCall;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.serializeCallInvite;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
-import static com.twiliovoicereactnative.VoiceApplicationProxy.getJSEventEmitter;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 
@@ -104,7 +104,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     System.setProperty(SDK_VERSION, ReactNativeVoiceSDKVer);
     Voice.setLogLevel(BuildConfig.DEBUG ? LogLevel.DEBUG : LogLevel.ERROR);
 
-    getJSEventEmitter().setContext(reactContext);
 
     audioSwitchManager = VoiceApplicationProxy.getAudioSwitchManager()
       .setListener((audioDevices, selectedDeviceUuid, selectedDevice) -> {
@@ -114,7 +113,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           selectedDevice
         );
         audioDeviceInfo.putString(VoiceEventType, VoiceEventAudioDevicesUpdated);
-        getJSEventEmitter().sendEvent(ScopeVoice, audioDeviceInfo);
+        sendEvent(ScopeVoice, audioDeviceInfo);
       });
   }
 
@@ -772,7 +771,47 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     return callRecord;
   }
 
+  private static WritableMap constructJSMap(@NonNull Pair<String, Object>...entries) {
+    WritableMap params = Arguments.createMap();
+    for (Pair<String, Object> entry: entries) {
+      if ((entry.second instanceof String)) {
+        params.putString(entry.first, (String) entry.second);
+      } else if (entry.second instanceof ReadableMap) {
+        params.putMap(entry.first, (ReadableMap) entry.second);
+      } else if (entry.second instanceof ReadableArray) {
+        params.putArray(entry.first, (ReadableArray) entry.second);
+      } else if (entry.second instanceof Boolean) {
+        params.putBoolean(entry.first, (Boolean) entry.second);
+      } else if (entry.second instanceof Integer) {
+        params.putInt(entry.first, (Integer) entry.second);
+      } else if (entry.second instanceof Float) {
+        params.putDouble(entry.first, (Float) entry.second);
+      } else if (entry.second instanceof Double) {
+        params.putDouble(entry.first, (Double) entry.second);
+      } else if (entry.second instanceof Long) {
+        params.putDouble(entry.first, (Long) entry.second);
+      } else if (entry.second == null) {
+        logger.debug("constructJSMap: filtering null value");
+      } else {
+        logger.debug(String.format(
+          "constructJSMap: unexpected type %s",
+          entry.second.getClass()
+        ));
+      }
+    }
+    return params;
+  }
+
+  private void sendEvent(String eventName, @Nullable WritableMap params) {
+    ReactApplicationContext context = getReactApplicationContext();
+    if (context.hasActiveCatalystInstance()) {
+      context
+        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+        .emit(eventName, params);
+    }
+  }
+
   private void sendJSEvent(@NonNull WritableMap event) {
-    getJSEventEmitter().sendEvent(ScopeVoice, event);
+    sendEvent(ScopeVoice, event);
   }
 }
