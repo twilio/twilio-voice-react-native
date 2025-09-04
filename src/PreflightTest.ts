@@ -930,104 +930,408 @@ export namespace PreflightTest {
     Failed = 'failed',
   }
 
-  // VBLOCKS-5096
-  // Add docstrings for all the below types.
+  /**
+   * Represents general stats for a specific metric.
+   */
   export interface Stats {
+    /**
+     * The average value for this metric.
+     */
     [Constants.PreflightStatsAverage]: number;
+
+    /**
+     * The maximum value for this metric.
+     */
     [Constants.PreflightStatsMax]: number;
+
+    /**
+     * The minimum value for this metric.
+     */
     [Constants.PreflightStatsMin]: number;
   }
 
+  /**
+   * Represents RTC related stats that are extracted from RTC samples.
+   */
   export interface RTCStats {
+    /**
+     * Packets delay variation.
+     */
     [Constants.PreflightRTCStatsJitter]: Stats;
+
+    /**
+     * Mean opinion score, 1.0 through roughly 4.5.
+     */
     [Constants.PreflightRTCStatsMos]: Stats;
+
+    /**
+     * Round trip time, to the server back to the client.
+     */
     [Constants.PreflightRTCStatsRtt]: Stats;
   }
 
+  /**
+   * Timing measurements that provide operational milestones.
+   */
   export interface TimeMeasurement {
+    /**
+     * Number of milliseconds elapsed for this measurements.
+     */
     [Constants.PreflightTimeMeasurementDuration]: number;
+
+    /**
+     * A millisecond timestamp that represents the end of a PreflightTest.
+     */
     [Constants.PreflightTimeMeasurementEnd]: number;
+
+    /**
+     * A millisecond timestamp that represents the start of a PreflightTest.
+     */
     [Constants.PreflightTimeMeasurementStart]: number;
   }
 
+  /**
+   * Represents network related time measurements.
+   */
   export interface NetworkTiming {
+    /**
+     * Measurements for establishing ICE connection.
+     */
     [Constants.PreflightNetworkTimingIce]: TimeMeasurement;
+
+    /**
+     * Measurements for establishing a PeerConnection.
+     */
     [Constants.PreflightNetworkTimingPeerConnection]: TimeMeasurement;
+
+    /**
+     * Measurements for establishing a signaling connection.
+     */
     [Constants.PreflightNetworkTimingSignaling]: TimeMeasurement;
   }
 
+  /**
+   * A warning that can be raised by the `PreflightTest` and returned in the
+   * `PreflightTest.Report.warnings` field.
+   */
   export interface Warning {
+    /**
+     * Name of the warning.
+     */
     [Constants.PreflightWarningName]: string;
+
+    /**
+     * Threshold value that, when exceeded, will trigger this warning.
+     */
     [Constants.PreflightWarningThreshold]: string;
+
+    /**
+     * Detected values that exceeded the threshold value and triggered this
+     * warning.
+     */
     [Constants.PreflightWarningValues]: string;
+
+    /**
+     * Timestamp of the warning.
+     */
     [Constants.PreflightWarningTimestamp]: number;
   }
 
+  /**
+   * Signifies when a `PreflightTest.Warning` has been cleared. Emitted by the
+   * `PreflightTest` when the warning was cleared and also included in the
+   * `PreflightTest.Report.warningsCleared` field.
+   */
   export interface WarningCleared {
+    /**
+     * The name of the cleared warning.
+     */
     [Constants.PreflightWarningClearedName]: string;
+
+    /**
+     * The timestamp when the warning was cleared.
+     */
     [Constants.PreflightWarningClearedTimestamp]: number;
   }
 
+  /**
+   * Provides information related to the ICE candidate.
+   */
   export interface RTCIceCandidateStats {
+    /**
+     * The type of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsCandidateType]: string;
+
+    /**
+     * Whether or not the candidate was deleted.
+     */
     [Constants.PreflightRTCIceCandidateStatsDeleted]: boolean;
+
+    /**
+     * The IP address of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsIp]: string;
+
+    /**
+     * Whether or not the ICE candidate is remote. True if remote, false if
+     * local.
+     */
     [Constants.PreflightRTCIceCandidateStatsIsRemote]: boolean;
+
+    /**
+     * Represents the network cost of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsNetworkCost]: number;
+
+    /**
+     * The network ID of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsNetworkId]: number;
+
+    /**
+     * The network type of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsNetworkType]: string;
+
+    /**
+     * The port of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsPort]: number;
+
+    /**
+     * The priority of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsPriority]: number;
+
+    /**
+     * The protocol that the ICE candidate is using to communicate.
+     */
     [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
+
+    /**
+     * The related address of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsRelatedAddress]: string;
+
+    /**
+     * The related port of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsRelatedPort]: number;
+
+    /**
+     * The TCP type of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsTcpType]: string;
+
+    /**
+     * The transport ID of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsTransportId]: string;
+
+    /**
+     * The URL of the ICE candidate.
+     */
     [Constants.PreflightRTCIceCandidateStatsUrl]: string;
   }
 
+  /**
+   * The `PreflightTest.RTCIceCandidateStats` of the selected remote and local
+   * ICE candidates.
+   */
   export interface RTCSelectedIceCandidatePairStats {
+    /**
+     * The stats of the local candidate.
+     */
     [Constants.PreflightRTCSelectedIceCandidatePairStatsLocalCandidate]: RTCIceCandidateStats;
+
+    /**
+     * The stats of the remote candidate.
+     */
     [Constants.PreflightRTCSelectedIceCandidatePairStatsRemoteCandidate]: RTCIceCandidateStats;
   }
 
+  /**
+   * A sample generated during the progress of a `PreflightTest`.
+   */
   export interface RTCSample {
+    /**
+     * The audio input level at the time when the sample was taken.
+     */
     [Constants.PreflightRTCSampleAudioInputLevel]: number;
+
+    /**
+     * The audio output level at the time when the sample was taken.
+     */
     [Constants.PreflightRTCSampleAudioOutputLevel]: number;
+
+    /**
+     * The bytes sent at the time when the sample was taken.
+     */
     [Constants.PreflightRTCSampleBytesReceived]: number;
+
+    /**
+     * The bytes received at the time when the sample was taken.
+     */
     [Constants.PreflightRTCSampleBytesSent]: number;
+
+    /**
+     * The codec used by the underlying media connection.
+     */
     [Constants.PreflightRTCSampleCodec]: string;
+
+    /**
+     * The jitter present in the underlying media connection at the time when
+     * the sample was taken.
+     */
     [Constants.PreflightRTCSampleJitter]: number;
+
+    /**
+     * The evaluated MOS score of the underlying media connection at the time
+     * when the sample was taken.
+     */
     [Constants.PreflightRTCSampleMos]: number;
+
+    /**
+     * The number of packets lost during the `PreflightTest`.
+     */
     [Constants.PreflightRTCSamplePacketsLost]: number;
+
+    /**
+     * The fraction of total packets lost during the `PreflightTest`.
+     */
     [Constants.PreflightRTCSamplePacketsLostFraction]: number;
+
+    /**
+     * The number of packets received during the `PreflightTest`.
+     */
     [Constants.PreflightRTCSamplePacketsReceived]: number;
+
+    /**
+     * The number of packets sent during the `PreflightTest`.
+     */
     [Constants.PreflightRTCSamplePacketsSent]: number;
+
+    /**
+     * The round-trip time of a network packet at the time when the sample was
+     * taken.
+     */
     [Constants.PreflightRTCSampleRtt]: number;
+
+    /**
+     * The timestamp of when the RTC sample was taken during the
+     * `PreflightTest`.
+     */
     [Constants.PreflightRTCSampleTimestamp]: number;
   }
 
+  /**
+   * The call quality.
+   */
   export enum CallQuality {
+    /**
+     * Indicates `4.2 < average MOS`.
+     */
     Excellent = Constants.PreflightCallQualityExcellent,
+
+    /**
+     * Indicates `4.1 <= average MOS <= 4.2`.
+     */
     Great = Constants.PreflightCallQualityGreat,
+
+    /**
+     * Indicates `3.7 <= average MOS < 4.1`.
+     */
     Good = Constants.PreflightCallQualityGood,
+
+    /**
+     * Indicates `3.1 <= average MOS < 3.7`.
+     */
     Fair = Constants.PreflightCallQualityFair,
+
+    /**
+     * Indicates `average MOS < 3.1`.
+     */
     Degraded = Constants.PreflightCallQualityDegraded,
   }
 
+  /**
+   * The final report generated by the `PreflightTest` upon completion. Contains
+   * info related to the call quality and RTC statistics generated during the
+   * `PreflightTest`.
+   */
   export interface Report {
+    /**
+     * The `CallSid` of the underlying Twilio call used by the `PreflightTest`.
+     */
     [Constants.PreflightReportCallSid]: string;
+
+    /**
+     * The rated average MOS score of the `PreflightTest`. This value can help
+     * indicate the expected quality of future calls.
+     */
     [Constants.PreflightReportCallQuality]: CallQuality | null;
+
+    /**
+     * The Twilio Edge used by the `Call` in the `PreflightTest`.
+     */
     [Constants.PreflightReportEdge]: string;
+
+    /**
+     * An array of ICE candidates gathered when connecting to media.
+     */
     [Constants.PreflightReportIceCandidateStats]: RTCIceCandidateStats[];
+
+    /**
+     * Whether TURN is required to connect to media.
+     *
+     * This is dependent on the selected ICE candidates, and will be `true` if
+     * either is of type "relay", `false` if both are of another type, or
+     * `null` if there are no selected ICE candidates.
+     *
+     * See `PreflightTest.Options.iceServers` for more details.
+     */
     [Constants.PreflightReportIsTurnRequired]: boolean | null;
+
+    /**
+     * The RTC related stats captured during the `PreflightTest`.
+     */
     [Constants.PreflightReportStats]: RTCStats;
+
+    /**
+     * Network related time measurements.
+     */
     [Constants.PreflightReportNetworkTiming]: NetworkTiming;
+
+    /**
+     * Time measurements of the `PreflightTest` in its entirety.
+     */
     [Constants.PreflightReportTestTiming]: TimeMeasurement;
+
+    /**
+     * RTC samples collected during the `PreflightTest`.
+     */
     [Constants.PreflightReportSamples]: RTCSample[];
+
+    /**
+     * The Twilio Edge value passed when constructing the `PreflightTest`.
+     */
     [Constants.PreflightReportSelectedEdge]: string;
+
+    /**
+     * RTC stats for the ICE candidate pair used to connect to media, if ICE
+     * candidates were selected.
+     */
     [Constants.PreflightReportSelectedIceCandidatePairStats]: RTCSelectedIceCandidatePairStats;
+
+    /**
+     * Array of warnings detected during the `PreflightTest`.
+     */
     [Constants.PreflightReportWarnings]: Warning[];
+
+    /**
+     * Array of warnings cleared during the `PreflightTest.`
+     */
     [Constants.PreflightReportWarningsCleared]: WarningCleared[];
   }
 }

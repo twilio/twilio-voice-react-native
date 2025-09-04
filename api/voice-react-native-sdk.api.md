@@ -714,17 +714,11 @@ export class PreflightTest extends EventEmitter {
 
 // @public
 export namespace PreflightTest {
-    // (undocumented)
     export enum CallQuality {
-        // (undocumented)
         Degraded = "degraded",
-        // (undocumented)
         Excellent = "excellent",
-        // (undocumented)
         Fair = "fair",
-        // (undocumented)
         Good = "good",
-        // (undocumented)
         Great = "great"
     }
     export enum Event {
@@ -742,13 +736,9 @@ export namespace PreflightTest {
         export type QualityWarning = (currentWarnings: Call.QualityWarning[], previousWarnings: Call.QualityWarning[]) => void;
         export type Sample = (sample: RTCSample) => void;
     }
-    // (undocumented)
     export interface NetworkTiming {
-        // (undocumented)
         [Constants.PreflightNetworkTimingIce]: TimeMeasurement;
-        // (undocumented)
         [Constants.PreflightNetworkTimingPeerConnection]: TimeMeasurement;
-        // (undocumented)
         [Constants.PreflightNetworkTimingSignaling]: TimeMeasurement;
     }
     export interface Options {
@@ -757,111 +747,60 @@ export namespace PreflightTest {
         [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
         [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
     }
-    // (undocumented)
     export interface Report {
-        // (undocumented)
         [Constants.PreflightReportCallQuality]: CallQuality | null;
-        // (undocumented)
         [Constants.PreflightReportCallSid]: string;
-        // (undocumented)
         [Constants.PreflightReportEdge]: string;
-        // (undocumented)
         [Constants.PreflightReportIceCandidateStats]: RTCIceCandidateStats[];
-        // (undocumented)
         [Constants.PreflightReportIsTurnRequired]: boolean | null;
-        // (undocumented)
         [Constants.PreflightReportNetworkTiming]: NetworkTiming;
-        // (undocumented)
         [Constants.PreflightReportSamples]: RTCSample[];
-        // (undocumented)
         [Constants.PreflightReportSelectedEdge]: string;
-        // (undocumented)
         [Constants.PreflightReportSelectedIceCandidatePairStats]: RTCSelectedIceCandidatePairStats;
-        // (undocumented)
         [Constants.PreflightReportStats]: RTCStats;
-        // (undocumented)
         [Constants.PreflightReportTestTiming]: TimeMeasurement;
-        // (undocumented)
         [Constants.PreflightReportWarnings]: Warning[];
-        // (undocumented)
         [Constants.PreflightReportWarningsCleared]: WarningCleared[];
     }
-    // (undocumented)
     export interface RTCIceCandidateStats {
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsCandidateType]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsDeleted]: boolean;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsIp]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsIsRemote]: boolean;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsNetworkCost]: number;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsNetworkId]: number;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsNetworkType]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsPort]: number;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsPriority]: number;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsProtocol]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsRelatedAddress]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsRelatedPort]: number;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsTcpType]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsTransportId]: string;
-        // (undocumented)
         [Constants.PreflightRTCIceCandidateStatsUrl]: string;
     }
-    // (undocumented)
     export interface RTCSample {
-        // (undocumented)
         [Constants.PreflightRTCSampleAudioInputLevel]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleAudioOutputLevel]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleBytesReceived]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleBytesSent]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleCodec]: string;
-        // (undocumented)
         [Constants.PreflightRTCSampleJitter]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleMos]: number;
-        // (undocumented)
         [Constants.PreflightRTCSamplePacketsLost]: number;
-        // (undocumented)
         [Constants.PreflightRTCSamplePacketsLostFraction]: number;
-        // (undocumented)
         [Constants.PreflightRTCSamplePacketsReceived]: number;
-        // (undocumented)
         [Constants.PreflightRTCSamplePacketsSent]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleRtt]: number;
-        // (undocumented)
         [Constants.PreflightRTCSampleTimestamp]: number;
     }
-    // (undocumented)
     export interface RTCSelectedIceCandidatePairStats {
-        // (undocumented)
         [Constants.PreflightRTCSelectedIceCandidatePairStatsLocalCandidate]: RTCIceCandidateStats;
-        // (undocumented)
         [Constants.PreflightRTCSelectedIceCandidatePairStatsRemoteCandidate]: RTCIceCandidateStats;
     }
-    // (undocumented)
     export interface RTCStats {
-        // (undocumented)
         [Constants.PreflightRTCStatsJitter]: Stats;
-        // (undocumented)
         [Constants.PreflightRTCStatsMos]: Stats;
-        // (undocumented)
         [Constants.PreflightRTCStatsRtt]: Stats;
     }
     export enum State {
@@ -870,40 +809,24 @@ export namespace PreflightTest {
         Connecting = "connecting",
         Failed = "failed"
     }
-    // (undocumented)
     export interface Stats {
-        // (undocumented)
         [Constants.PreflightStatsAverage]: number;
-        // (undocumented)
         [Constants.PreflightStatsMax]: number;
-        // (undocumented)
         [Constants.PreflightStatsMin]: number;
     }
-    // (undocumented)
     export interface TimeMeasurement {
-        // (undocumented)
         [Constants.PreflightTimeMeasurementDuration]: number;
-        // (undocumented)
         [Constants.PreflightTimeMeasurementEnd]: number;
-        // (undocumented)
         [Constants.PreflightTimeMeasurementStart]: number;
     }
-    // (undocumented)
     export interface Warning {
-        // (undocumented)
         [Constants.PreflightWarningName]: string;
-        // (undocumented)
         [Constants.PreflightWarningThreshold]: string;
-        // (undocumented)
         [Constants.PreflightWarningTimestamp]: number;
-        // (undocumented)
         [Constants.PreflightWarningValues]: string;
     }
-    // (undocumented)
     export interface WarningCleared {
-        // (undocumented)
         [Constants.PreflightWarningClearedName]: string;
-        // (undocumented)
         [Constants.PreflightWarningClearedTimestamp]: number;
     }
 }
