@@ -971,7 +971,7 @@ export namespace PreflightTest {
   }
 
   /**
-   * Timing measurements that provides operational milestones.
+   * Timing measurements that provide operational milestones.
    */
   export interface TimeMeasurement {
     /**
@@ -1273,7 +1273,7 @@ export namespace PreflightTest {
     [Constants.PreflightReportCallQuality]: CallQuality | null;
 
     /**
-     * The Twilio Edge used for the `Call` underlying the `PreflightTest`.
+     * The Twilio Edge used by the `Call` in the `PreflightTest`.
      */
     [Constants.PreflightReportEdge]: string;
 
@@ -1287,7 +1287,7 @@ export namespace PreflightTest {
      *
      * This is dependent on the selected ICE candidates, and will be `true` if
      * either is of type "relay", `false` if both are of another type, or
-     * `undefined` if there are no selected ICE candidates.
+     * `null` if there are no selected ICE candidates.
      *
      * See `PreflightTest.Options.iceServers` for more details.
      */
