@@ -273,6 +273,15 @@ export class PreflightTest extends EventEmitter {
       Constants.ScopePreflightTest,
       this._handleNativeEvent
     );
+
+    // by using a setTimeout here, we let the call stack empty before we flush
+    // the preflight test events. this way, listeners on this object can bind
+    // before flushing
+    setTimeout(() => {
+      if (Platform.OS === 'ios') {
+        NativeModule.preflightTest_flushEvents();
+      }
+    });
   }
 
   /**
