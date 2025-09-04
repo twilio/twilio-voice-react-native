@@ -39,6 +39,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 @property (nonatomic, strong) TVOPreflightTest *preflightTest;
 @property (nonatomic, copy) NSString *preflightTestUuid;
+@property (nonatomic, strong) NSMutableArray *preflightTestEvents;
 
 // Indicates if the disconnect is triggered from app UI, instead of the system Call UI
 @property (nonatomic, assign) BOOL userInitiatedDisconnect;
