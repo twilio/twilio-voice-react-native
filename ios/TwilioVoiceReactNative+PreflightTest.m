@@ -25,8 +25,8 @@ RCT_EXPORT_METHOD(voice_runPreflight:(NSString *)accessToken
     
     TVOPreflightOptions *preflightOptions = [self parseJsPreflightOptions:accessToken jsPreflightOptions:jsPreflightOptions];
     
-    NSString *preflightTestErrorCode = @"";
-    NSString *preflightTestErrorMessage = @"";
+    NSString *preflightTestErrorCode = nil;
+    NSString *preflightTestErrorMessage = nil;
     [self startPreflightTestWithAccessToken:accessToken preflightOptions:preflightOptions uuid:uuid errorCode:&preflightTestErrorCode errorMessage:&preflightTestErrorMessage];
     
     if (preflightTestErrorCode != nil) {
@@ -273,11 +273,40 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
     }
     
     self.preflightTestUuid = uuid;
-    self.preflightTest = [TwilioVoiceSDK runPreflightTestWithAccessToken:accessToken delegate:self];
+    self.preflightTestEvents = [NSMutableArray array];
+    self.preflightTest = [TwilioVoiceSDK runPreflightTestWithOptions:preflightOptions delegate:self];
+}
+
+- (void)sendPreflightEvent:(NSDictionary *)eventPayload {
+    if (self.preflightTestEvents == nil) {
+        // this indicates that the events for this uuid have already been flushed
+        // just send the event instead
+        [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:eventPayload];
+    } else {
+        // otherwise, enqueue the event
+        [self.preflightTestEvents addObject:eventPayload];
+    }
+}
+
+RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    
+    if (self.preflightTestEvents == nil) {
+        // this indicates that the events have already been flushed
+        resolve(nil);
+        return;
+    }
+    
+    for (NSMutableDictionary *event in self.preflightTestEvents) {
+        [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:event];
+    }
+    
+    self.preflightTestEvents = nil;
+    resolve(nil);
 }
 
 - (void)preflight:(nonnull TVOPreflightTest *)preflightTest didCompleteWitReport:(nonnull TVOPreflightReport *)report {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
+    [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueCompleted,
         kTwilioVoiceReactNativePreflightTestCompletedEventKeyReport: [self preflightReportToJsonString:report],
@@ -285,18 +314,18 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
 }
 
 - (void)preflight:(nonnull TVOPreflightTest *)preflightTest didFailWithError:(nonnull NSError *)error {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
+    [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueFailed,
         kTwilioVoiceReactNativePreflightTestFailedEventKeyError: @{
-            kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
+            kTwilioVoiceReactNativeVoiceErrorKeyCode: [NSNumber numberWithLong:error.code],
             kTwilioVoiceReactNativeVoiceErrorKeyMessage: error.localizedDescription,
         },
     }];
 }
 
 - (void)preflightDidConnect:(nonnull TVOPreflightTest *)preflightTest {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
+    [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueConnected,
     }];
@@ -306,7 +335,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
     NSMutableArray *currentWarningsArr = [self callQualityWarningsArrayFromSet:currentWarnings];
     NSMutableArray *previousWarningsArr = [self callQualityWarningsArrayFromSet:previousWarnings];
     
-    [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
+    [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueQualityWarning,
         kTwilioVoiceReactNativePreflightTestQualityWarningEventKeyCurrentWarnings: currentWarningsArr,
@@ -315,7 +344,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
 }
 
 - (void)preflight:(TVOPreflightTest *)preflightTest didReceiveStatsSample:(TVOPreflightStatsSample *)statsSample {
-    [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:@{
+    [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueSample,
         kTwilioVoiceReactNativePreflightTestSampleEventKeySample: [self preflightStatsSampleToJsonString:statsSample],
