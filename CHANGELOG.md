@@ -7,7 +7,7 @@
 
 #### iOS
 
-- Updated the Twilio Voice iOS SDK version to `6.13.3`.
+- Updated the Twilio Voice iOS SDK version to `6.13.3`. This update fixes a Bluetooth device type deprecation warning when building with Xcode 26.
 
 ## Fixes
 
