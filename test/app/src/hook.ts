@@ -405,12 +405,6 @@ export function useVoice(token: string) {
   const preflightTestHandler = React.useCallback(async () => {
     try {
       const preflightTestOptions: PreflightTest.Options = {
-        iceServers: [{
-          username: 'foobar',
-          password: 'boofar',
-          serverUrl: 'bingbong',
-        }],
-        iceTransportPolicy: 'all' as any,
         preferredAudioCodecs: [{
           type: 'opus' as any,
         }],
