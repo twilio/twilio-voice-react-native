@@ -652,6 +652,7 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
       if (jsAudioCodecType.equals(CommonConstants.AudioCodecTypeValueOpus)) {
         if (!jsAudioCodec.hasKey(CommonConstants.AudioCodecOpusKeyMaxAverageBitrate)) {
+          preferredAudioCodecs.add(new OpusCodec());
           continue;
         }
 
