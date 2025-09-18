@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { Platform } from 'react-native';
 import {
+  AudioCodecType,
   AudioDevice,
   Call,
   CallInvite,
   CallMessage,
+  IceTransportPolicy,
   IncomingCallMessage,
   OutgoingCallMessage,
   PreflightTest,
@@ -405,8 +407,9 @@ export function useVoice(token: string) {
   const preflightTestHandler = React.useCallback(async () => {
     try {
       const preflightTestOptions: PreflightTest.Options = {
+        iceTransportPolicy: IceTransportPolicy.All,
         preferredAudioCodecs: [{
-          type: 'opus' as any,
+          type: AudioCodecType.Opus,
         }],
       };
 
