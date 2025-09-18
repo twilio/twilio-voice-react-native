@@ -7,12 +7,13 @@
 
 import { EventEmitter } from 'eventemitter3';
 import type { Call } from './Call';
-import { NativeEventEmitter, NativeModule, Platform } from './common';
+import * as common from './common';
 import { Constants } from './constants';
 import { InvalidStateError, TwilioError } from './error';
 import { constructTwilioError } from './error/utility';
+import type { AudioCodec } from './type/AudioCodec';
+import type { IceServer, IceTransportPolicy } from './type/Ice';
 import type * as PreflightTestType from './type/PreflightTest';
-import type * as CallOptionsType from './type/CallOptions';
 
 export interface PreflightTest {
   /**
@@ -252,12 +253,6 @@ export class PreflightTest extends EventEmitter {
   private _uuid: string;
 
   /**
-   * Internal helper method to invoke a native method and handle the returned
-   * promise from the native method.
-   */
-  private _invokeAndCatchNativeMethod;
-
-  /**
    * PreflightTest constructor.
    *
    * @internal
@@ -267,9 +262,7 @@ export class PreflightTest extends EventEmitter {
 
     this._uuid = uuid;
 
-    this._invokeAndCatchNativeMethod = invokeAndCatchNativeMethod(this._uuid);
-
-    NativeEventEmitter.addListener(
+    common.NativeEventEmitter.addListener(
       Constants.ScopePreflightTest,
       this._handleNativeEvent
     );
@@ -277,11 +270,11 @@ export class PreflightTest extends EventEmitter {
     // by using a setTimeout here, we let the call stack empty before we flush
     // the preflight test events. this way, listeners on this object can bind
     // before flushing
-    setTimeout(() => {
-      if (Platform.OS === 'ios') {
-        NativeModule.preflightTest_flushEvents();
-      }
-    });
+    if (common.Platform.OS === 'ios') {
+      common.setTimeout(() => {
+        common.NativeModule.preflightTest_flushEvents();
+      });
+    }
   }
 
   /**
@@ -466,6 +459,24 @@ export class PreflightTest extends EventEmitter {
   };
 
   /**
+   * Internal helper method to invoke a native method and handle the returned
+   * promise from the native method.
+   */
+  private async _invokeAndCatchNativeMethod<T>(
+    method: (uuid: string) => Promise<T>
+  ) {
+    return method(this._uuid).catch((error: any): never => {
+      if (typeof error.code === 'number' && error.message)
+        throw constructTwilioError(error.message, error.code);
+
+      if (error.code === Constants.ErrorCodeInvalidStateError)
+        throw new InvalidStateError(error.message);
+
+      throw error;
+    });
+  }
+
+  /**
    * Get the CallSid of the underlying Call in the PreflightTest.
    *
    * @returns
@@ -476,7 +487,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getCallSid(): Promise<string> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getCallSid
+      common.NativeModule.preflightTest_getCallSid
     );
   }
 
@@ -491,7 +502,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getEndTime(): Promise<number> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getEndTime
+      common.NativeModule.preflightTest_getEndTime
     ).then(Number);
   }
 
@@ -507,7 +518,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getLatestSample
+      common.NativeModule.preflightTest_getLatestSample
     ).then((sampleStr) => {
       const sampleObj = JSON.parse(sampleStr);
       return parseSample(sampleObj);
@@ -525,7 +536,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getReport(): Promise<PreflightTest.Report> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getReport
+      common.NativeModule.preflightTest_getReport
     ).then(parseReport);
   }
 
@@ -540,7 +551,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getStartTime(): Promise<number> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getStartTime
+      common.NativeModule.preflightTest_getStartTime
     ).then(Number);
   }
 
@@ -554,7 +565,7 @@ export class PreflightTest extends EventEmitter {
    */
   public async getState(): Promise<PreflightTest.State> {
     return this._invokeAndCatchNativeMethod(
-      NativeModule.preflightTest_getState
+      common.NativeModule.preflightTest_getState
     ).then(parseState);
   }
 
@@ -567,7 +578,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async stop(): Promise<void> {
-    return this._invokeAndCatchNativeMethod(NativeModule.preflightTest_stop);
+    return this._invokeAndCatchNativeMethod(
+      common.NativeModule.preflightTest_stop
+    );
   }
 }
 
@@ -595,7 +608,7 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
  * Parse native call quality enum.
  */
 function parseCallQuality(nativeCallQuality: any) {
-  switch (Platform.OS) {
+  switch (common.Platform.OS) {
     case 'android': {
       return parseCallQualityAndroid(nativeCallQuality);
     }
@@ -666,13 +679,17 @@ function parseCallQualityIos(
  * Parse native preflight test state value.
  */
 function parseState(nativeState: string): PreflightTest.State {
-  return nativeState === 'CONNECTING'
-    ? PreflightTest.State.Connecting
-    : nativeState === 'CONNECTED'
-    ? PreflightTest.State.Connected
-    : nativeState === 'COMPLETED'
-    ? PreflightTest.State.Completed
-    : PreflightTest.State.Failed;
+  const parsedState = preflightTestStateMap.get(nativeState);
+
+  if (typeof parsedState !== 'string') {
+    const expectedKeys = Array(preflightTestStateMap.keys()).join(', ');
+    throw new InvalidStateError(
+      'PreflightTest state invalid. ' +
+        `Expected one of "[${expectedKeys}]". Got "${nativeState}".`
+    );
+  }
+
+  return parsedState;
 }
 
 /**
@@ -810,30 +827,9 @@ function constructInvalidValueError(
   actualType: string
 ): InvalidStateError {
   return new InvalidStateError(
-    `Invalid "preflightTest#${eventName}" value type for "${valueName}".` +
+    `Invalid "preflightTest#${eventName}" value type for "${valueName}". ` +
       `Expected "${expectedType}"; actual "${actualType}".`
   );
-}
-
-/**
- * Helper function that returns a function that itself will take a native
- * method and invoke it with a bound UUID. The UUID-bound invoker helper
- * function will also catch and transform errors.
- */
-function invokeAndCatchNativeMethod(uuid: string) {
-  return async function uuidBoundInvoker<T>(
-    method: (uuid: string) => Promise<T>
-  ) {
-    return method(uuid).catch((error: any): never => {
-      if (typeof error.code === 'number' && error.message)
-        throw constructTwilioError(error.message, error.code);
-
-      if (error.code === Constants.ErrorCodeInvalidStateError)
-        throw new InvalidStateError(error.message);
-
-      throw error;
-    });
-  };
 }
 
 /**
@@ -847,18 +843,15 @@ export namespace PreflightTest {
     /**
      * Array of ICE servers to use for the PreflightTest.
      */
-    [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
+    [Constants.CallOptionsKeyIceServers]?: IceServer[];
     /**
      * The ICE transport policy to use for the PreflightTest.
      */
-    [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
+    [Constants.CallOptionsKeyIceTransportPolicy]?: IceTransportPolicy;
     /**
      * The preferred audio codec to use for the PreflightTest.
-     *
-     * @remarks
-     * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
      */
-    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
+    [Constants.CallOptionsKeyPreferredAudioCodecs]?: AudioCodec[];
   }
 
   /**
@@ -1364,3 +1357,14 @@ const callQualityMap = {
     ['Degraded', PreflightTest.CallQuality.Degraded],
   ]),
 };
+
+/**
+ * Map of state values from the native layers/common constants to the expected
+ * JS values.
+ */
+const preflightTestStateMap = new Map<string, PreflightTest.State>([
+  [Constants.PreflightTestStateCompleted, PreflightTest.State.Completed],
+  [Constants.PreflightTestStateConnected, PreflightTest.State.Connected],
+  [Constants.PreflightTestStateConnecting, PreflightTest.State.Connecting],
+  [Constants.PreflightTestStateFailed, PreflightTest.State.Failed],
+]);

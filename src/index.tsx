@@ -10,10 +10,17 @@
  * @packageDocumentation
  */
 export { Voice } from './Voice';
+export {
+  AudioCodec,
+  AudioCodecType,
+  OpusAudioCodec,
+  PCMUAudioCodec,
+} from './type/AudioCodec';
 export { AudioDevice } from './AudioDevice';
 export { Call } from './Call';
 export { CallInvite } from './CallInvite';
 export { CallMessage } from './CallMessage/CallMessage';
+export { IceServer, IceTransportPolicy } from './type/Ice';
 export { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 export { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 export { CustomParameters } from './type/common';
