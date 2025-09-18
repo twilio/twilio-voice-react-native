@@ -16,6 +16,7 @@ import { InvalidStateError } from './error/InvalidStateError';
 import type { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
+import { validatePreflightOptions } from './options/validation';
 import { PreflightTest } from './PreflightTest';
 import type { NativeAudioDeviceInfo } from './type/AudioDevice';
 import type { NativeCallInfo } from './type/Call';
@@ -860,6 +861,11 @@ export class Voice extends EventEmitter {
     accessToken: string,
     options: PreflightTest.Options = {}
   ): Promise<PreflightTest> {
+    const optionValidation = validatePreflightOptions(options);
+    if (optionValidation.status === 'error') {
+      throw optionValidation.error;
+    }
+
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
         return new PreflightTest(uuid);
