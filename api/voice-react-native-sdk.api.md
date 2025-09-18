@@ -6,8 +6,14 @@
 
 import { EventEmitter } from 'eventemitter3';
 
-// @public (undocumented)
+// @public
 type AudioCodec = OpusAudioCodec | PCMUAudioCodec;
+
+// @public
+enum AudioCodecType {
+    Opus = "opus",
+    PCMU = "pcmu"
+}
 
 // @public
 export class AudioDevice {
@@ -520,11 +526,9 @@ type IceServer = Partial<{
     [Constants.IceServerKeyUsername]: string;
 }>;
 
-// @public (undocumented)
+// @public
 enum IceTransportPolicy {
-    // (undocumented)
     All = "all",
-    // (undocumented)
     Relay = "relay"
 }
 
@@ -630,7 +634,7 @@ namespace MediaErrors {
     }
 }
 
-// @public (undocumented)
+// @public
 type OpusAudioCodec = {
     [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValueOpus;
     [Constants.AudioCodecOpusKeyMaxAverageBitrate]?: number;
@@ -668,7 +672,7 @@ export namespace OutgoingCallMessage {
     }
 }
 
-// @public (undocumented)
+// @public
 type PCMUAudioCodec = {
     [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValuePCMU;
 };
@@ -1238,6 +1242,6 @@ export namespace Voice {
 
 // Warnings were encountered during analysis:
 //
-// lib/typescript/type/CallOptions.d.ts:7:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
+// lib/typescript/type/CallOptions.d.ts:16:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```

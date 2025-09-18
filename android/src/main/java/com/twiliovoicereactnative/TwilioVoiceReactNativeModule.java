@@ -636,14 +636,40 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       .orElse(Arguments.createArray());
 
     for (int i = 0; i < jsPreferredAudioCodecs.size(); i++) {
-      final String jsAudioCodec = Optional
-        .ofNullable(jsPreferredAudioCodecs.getString(i))
+      final ReadableMap jsAudioCodec = jsPreferredAudioCodecs.getMap(i);
+      if (jsAudioCodec == null) {
+        continue;
+      }
+
+      final String jsAudioCodecType = Optional
+        .ofNullable(jsAudioCodec.getString(CommonConstants.AudioCodecKeyType))
         .orElse("");
 
-      switch (jsAudioCodec) {
-        case CommonConstants.AudioCodecTypeValueOpus -> preferredAudioCodecs.add(new OpusCodec());
-        case CommonConstants.AudioCodecTypeValuePCMU -> preferredAudioCodecs.add(new PcmuCodec());
-      };
+      if (jsAudioCodecType.equals(CommonConstants.AudioCodecTypeValuePCMU)) {
+        preferredAudioCodecs.add(new PcmuCodec());
+        continue;
+      }
+
+      if (jsAudioCodecType.equals(CommonConstants.AudioCodecTypeValueOpus)) {
+        if (!jsAudioCodec.hasKey(CommonConstants.AudioCodecOpusKeyMaxAverageBitrate)) {
+          continue;
+        }
+
+        final ReadableType maxAvgBitrateType = jsAudioCodec
+          .getDynamic(CommonConstants.AudioCodecOpusKeyMaxAverageBitrate)
+          .getType();
+
+        int maxAvgBitrate = 0;
+
+        if (ReadableType.Number.equals(maxAvgBitrateType)) {
+          maxAvgBitrate = Math.max(
+            maxAvgBitrate,
+            jsAudioCodec.getInt(CommonConstants.AudioCodecOpusKeyMaxAverageBitrate)
+          );
+        }
+
+        preferredAudioCodecs.add(new OpusCodec(maxAvgBitrate));
+      }
     }
 
     if (!preferredAudioCodecs.isEmpty()) {
@@ -813,10 +839,15 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     logger.debug(String.format("preflightTest_getState %s", uuidStr));
 
     invokePreflightMethod(uuidStr, promise, (record) -> {
-      final String state = record.getPreflightTest()
-        .getState()
-        .toString();
-      return state;
+      final PreflightTest.State state = record.getPreflightTest()
+        .getState();
+
+      return switch (state) {
+        case COMPLETED -> CommonConstants.PreflightTestStateCompleted;
+        case CONNECTED -> CommonConstants.PreflightTestStateConnected;
+        case CONNECTING -> CommonConstants.PreflightTestStateConnecting;
+        case FAILED -> CommonConstants.PreflightTestStateFailed;
+      };
     });
   }
 
