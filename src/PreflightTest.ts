@@ -11,7 +11,8 @@ import * as common from './common';
 import { Constants } from './constants';
 import { InvalidStateError, TwilioError } from './error';
 import { constructTwilioError } from './error/utility';
-import type * as CallOptionsType from './type/CallOptions';
+import type { AudioCodec } from './type/AudioCodec';
+import type { IceServer, IceTransportPolicy } from './type/Ice';
 import type * as PreflightTestType from './type/PreflightTest';
 
 export interface PreflightTest {
@@ -461,7 +462,9 @@ export class PreflightTest extends EventEmitter {
    * Internal helper method to invoke a native method and handle the returned
    * promise from the native method.
    */
-  private async _catchNativeMethod<T>(method: (uuid: string) => Promise<T>) {
+  private async _invokeAndCatchNativeMethod<T>(
+    method: (uuid: string) => Promise<T>
+  ) {
     return method(this._uuid).catch((error: any): never => {
       if (typeof error.code === 'number' && error.message)
         throw constructTwilioError(error.message, error.code);
@@ -483,7 +486,7 @@ export class PreflightTest extends EventEmitter {
    *   PreflightTest object.
    */
   public async getCallSid(): Promise<string> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getCallSid
     );
   }
@@ -498,7 +501,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getEndTime(): Promise<number> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getEndTime
     ).then(Number);
   }
@@ -514,7 +517,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getLatestSample
     ).then((sampleStr) => {
       const sampleObj = JSON.parse(sampleStr);
@@ -532,7 +535,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getReport(): Promise<PreflightTest.Report> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getReport
     ).then(parseReport);
   }
@@ -547,7 +550,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getStartTime(): Promise<number> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getStartTime
     ).then(Number);
   }
@@ -561,7 +564,7 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getState(): Promise<PreflightTest.State> {
-    return this._catchNativeMethod(
+    return this._invokeAndCatchNativeMethod(
       common.NativeModule.preflightTest_getState
     ).then(parseState);
   }
@@ -575,7 +578,9 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async stop(): Promise<void> {
-    return this._catchNativeMethod(common.NativeModule.preflightTest_stop);
+    return this._invokeAndCatchNativeMethod(
+      common.NativeModule.preflightTest_stop
+    );
   }
 }
 
@@ -838,18 +843,15 @@ export namespace PreflightTest {
     /**
      * Array of ICE servers to use for the PreflightTest.
      */
-    [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
+    [Constants.CallOptionsKeyIceServers]?: IceServer[];
     /**
      * The ICE transport policy to use for the PreflightTest.
      */
-    [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
+    [Constants.CallOptionsKeyIceTransportPolicy]?: IceTransportPolicy;
     /**
      * The preferred audio codec to use for the PreflightTest.
-     *
-     * @remarks
-     * The default value of this option is {@link CallOptions.AudioCodec.Opus}.
      */
-    [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
+    [Constants.CallOptionsKeyPreferredAudioCodecs]?: AudioCodec[];
   }
 
   /**

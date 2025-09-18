@@ -7,10 +7,10 @@
 import { EventEmitter } from 'eventemitter3';
 
 // @public
-type AudioCodec = OpusAudioCodec | PCMUAudioCodec;
+export type AudioCodec = OpusAudioCodec | PCMUAudioCodec;
 
 // @public
-enum AudioCodecType {
+export enum AudioCodecType {
     Opus = "opus",
     PCMU = "pcmu"
 }
@@ -519,15 +519,15 @@ namespace GeneralErrors {
     }
 }
 
-// @public (undocumented)
-type IceServer = Partial<{
+// @public
+export type IceServer = Partial<{
     [Constants.IceServerKeyPassword]: string;
     [Constants.IceServerKeyServerUrl]: string;
     [Constants.IceServerKeyUsername]: string;
 }>;
 
 // @public
-enum IceTransportPolicy {
+export enum IceTransportPolicy {
     All = "all",
     Relay = "relay"
 }
@@ -635,8 +635,8 @@ namespace MediaErrors {
 }
 
 // @public
-type OpusAudioCodec = {
-    [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValueOpus;
+export type OpusAudioCodec = {
+    [Constants.AudioCodecKeyType]: AudioCodecType.Opus;
     [Constants.AudioCodecOpusKeyMaxAverageBitrate]?: number;
 };
 
@@ -673,8 +673,8 @@ export namespace OutgoingCallMessage {
 }
 
 // @public
-type PCMUAudioCodec = {
-    [Constants.AudioCodecKeyType]: Constants.AudioCodecTypeValuePCMU;
+export type PCMUAudioCodec = {
+    [Constants.AudioCodecKeyType]: AudioCodecType.PCMU;
 };
 
 // @public (undocumented)
@@ -746,10 +746,9 @@ export namespace PreflightTest {
         [Constants.PreflightNetworkTimingSignaling]: TimeMeasurement;
     }
     export interface Options {
-        // Warning: (ae-forgotten-export) The symbol "CallOptionsType" needs to be exported by the entry point index.d.ts
-        [Constants.CallOptionsKeyIceServers]?: CallOptionsType.IceServer[];
-        [Constants.CallOptionsKeyIceTransportPolicy]?: CallOptionsType.IceTransportPolicy;
-        [Constants.CallOptionsKeyPreferredAudioCodecs]?: CallOptionsType.AudioCodec[];
+        [Constants.CallOptionsKeyIceServers]?: IceServer[];
+        [Constants.CallOptionsKeyIceTransportPolicy]?: IceTransportPolicy;
+        [Constants.CallOptionsKeyPreferredAudioCodecs]?: AudioCodec[];
     }
     export interface Report {
         [Constants.PreflightReportCallQuality]: CallQuality | null;
@@ -1242,6 +1241,6 @@ export namespace Voice {
 
 // Warnings were encountered during analysis:
 //
-// lib/typescript/type/CallOptions.d.ts:16:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
+// lib/typescript/type/Ice.d.ts:19:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```
