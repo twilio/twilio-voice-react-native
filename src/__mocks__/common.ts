@@ -61,12 +61,27 @@ export const NativeModule = {
     .mockResolvedValue(undefined),
   voice_unregister: jest.fn().mockResolvedValue(undefined),
 
+  /**
+   * System mocks.
+   */
   system_isFullScreenNotificationEnabled: jest
     .fn()
     .mockResolvedValue(undefined),
   system_requestFullScreenNotificationPermission: jest
     .fn()
     .mockResolvedValue(undefined),
+
+  /**
+   * PreflightTest mocks.
+   */
+  preflightTest_flushEvents: jest.fn(),
+  preflightTest_getCallSid: jest.fn(),
+  preflightTest_getEndTime: jest.fn(),
+  preflightTest_getLatestSample: jest.fn(),
+  preflightTest_getReport: jest.fn(),
+  preflightTest_getStartTime: jest.fn(),
+  preflightTest_getState: jest.fn(),
+  preflightTest_stop: jest.fn(),
 };
 
 export class MockNativeEventEmitter extends EventEmitter {
@@ -111,3 +126,5 @@ class MockPlatform {
 }
 
 export const Platform = new MockPlatform();
+
+export const setTimeout = jest.fn();
