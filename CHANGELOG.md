@@ -13,14 +13,6 @@
 
 - The call contact handle template feature now caches the set value. This fixes an issue where the handle template value would be `null` when an incoming call was received and the React Native JS runtime was not initialized or was restarted by the OS.
 
-## Features
-
-### Platform Specific Features
-
-#### Android
-
-- Added a new API to check for and request Full Screen Notification permissions on Android platforms.
-
 1.6.1 (July 7, 2025)
 ====================
 

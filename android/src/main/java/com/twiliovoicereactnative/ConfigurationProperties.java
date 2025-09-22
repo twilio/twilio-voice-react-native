@@ -27,15 +27,4 @@ class ConfigurationProperties {
     return context.getResources()
       .getBoolean(R.bool.twiliovoicereactnative_firebasemessagingservice_enabled);
   }
-
-  /**
-   * Get configuration boolean, used to determine if full screen notifications are enabled
-   * or not.
-   * @param context the application context
-   * @return a boolean read from the application resources
-   */
-  public static boolean isFullScreenNotificationEnabled(Context context) {
-    return context.getResources()
-      .getBoolean(R.bool.twiliovoicereactnative_fullscreennotification_enabled);
-  }
 }

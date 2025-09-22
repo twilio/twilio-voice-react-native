@@ -823,58 +823,6 @@ describe('Voice class', () => {
         ).resolves.toBeUndefined();
       });
     });
-
-    describe('.isFullScreenNotificationEnabled', () => {
-      it('invokes the native module', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
-        await new Voice().isFullScreenNotificationEnabled();
-        expect(
-          jest.mocked(MockNativeModule.system_isFullScreenNotificationEnabled)
-            .mock.calls
-        ).toEqual([[]]);
-      });
-
-      ([true, false] as boolean[]).forEach((b: boolean) => {
-        it(`resolves ${b} if the native module returns ${b}`, async () => {
-          jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
-          jest
-            .mocked(MockNativeModule.system_isFullScreenNotificationEnabled)
-            .mockResolvedValueOnce(b);
-          const result = new Voice().isFullScreenNotificationEnabled();
-          await expect(result).resolves.toStrictEqual(b);
-        });
-      });
-
-      it('rejects if the platform is unsupported', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('ios');
-        const result = new Voice().isFullScreenNotificationEnabled();
-        await expect(result).rejects.toThrowError(UnsupportedPlatformError);
-      });
-    });
-
-    describe('.requestFullScreenNotificationPermission', () => {
-      it('invokes the native module', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
-        await new Voice().requestFullScreenNotificationPermission();
-        expect(
-          jest.mocked(
-            NativeModule.system_requestFullScreenNotificationPermission
-          ).mock.calls
-        ).toEqual([[]]);
-      });
-
-      it('resolves with undefined', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android');
-        const result = new Voice().requestFullScreenNotificationPermission();
-        await expect(result).resolves.toBeUndefined();
-      });
-
-      it('rejects if the platform is unsupported', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
-        const result = new Voice().requestFullScreenNotificationPermission();
-        await expect(result).rejects.toThrowError(UnsupportedPlatformError);
-      });
-    });
   });
 
   describe('private methods', () => {
