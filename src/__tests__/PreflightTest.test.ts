@@ -539,6 +539,304 @@ describe('PreflightTest', () => {
   });
 
   describe('public methods', () => {
-    it('stub', () => {});
+    let preflight: PreflightTest;
+
+    beforeEach(() => {
+      preflight = new PreflightTest(mockUuid);
+    });
+
+    describe('getCallSid', () => {
+      it('invokes the native module', async () => {
+        const spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_getCallSid')
+          .mockResolvedValue('mock-callsid');
+
+        await preflight.getCallSid();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+    });
+
+    describe('getEndTime', () => {
+      let spy: jest.SpyInstance;
+
+      beforeEach(() => {
+        spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_getEndTime')
+          .mockResolvedValue('100');
+      });
+
+      it('invokes the native module', async () => {
+        await preflight.getEndTime();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+
+      it('returns a number', async () => {
+        const endTime = await preflight.getEndTime();
+
+        expect(endTime).toEqual(100);
+      });
+    });
+
+    describe('getLatestSample', () => {
+      let spy: jest.SpyInstance;
+
+      beforeEach(() => {
+        spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_getLatestSample')
+          .mockResolvedValue(JSON.stringify(mockSample));
+      });
+
+      it('invokes the native module', async () => {
+        await preflight.getLatestSample();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+
+      it('returns a sample', async () => {
+        const sample = await preflight.getLatestSample();
+
+        expect(sample).toEqual({
+          audioInputLevel: 10,
+          audioOutputLevel: 20,
+          bytesReceived: 30,
+          bytesSent: 40,
+          codec: 'mock-codec',
+          jitter: 50,
+          mos: 60,
+          packetsLost: 70,
+          packetsLostFraction: 80,
+          packetsReceived: 90,
+          packetsSent: 100,
+          rtt: 110,
+          timestamp: 120,
+        });
+      });
+    });
+
+    describe('getReport', () => {
+      describe('invalid platform', () => {
+        it('throws an error', async () => {
+          jest
+            .spyOn(Common.Platform, 'OS', 'get')
+            .mockReturnValue('foobar' as any);
+
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockImplementation(async () => '{}');
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+      });
+
+      describe('android', () => {
+        beforeEach(() => {
+          jest.spyOn(Common.Platform, 'OS', 'get').mockReturnValue('android');
+        });
+
+        it('invokes the native module', async () => {
+          const spy = jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
+            );
+          await preflight.getReport();
+          expect(spy.mock.calls).toEqual([[mockUuid]]);
+        });
+
+        it('parses a valid native report', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual(expectedReport);
+        });
+
+        it('handles null native call quality', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: null })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({ ...expectedReport, callQuality: null });
+        });
+
+        it('throws if the native call quality is an invalid string', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if the native call quality is not a string', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 10 })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+      });
+
+      describe('ios', () => {
+        beforeEach(() => {
+          jest.spyOn(Common.Platform, 'OS', 'get').mockReturnValue('ios');
+        });
+
+        it('invokes the native module', async () => {
+          const spy = jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 0 })
+            );
+
+          await preflight.getReport();
+
+          expect(spy.mock.calls).toEqual([[mockUuid]]);
+        });
+
+        it('parses a valid native report', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 0 })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual(expectedReport);
+        });
+
+        it('handles null native call quality', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: null })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({ ...expectedReport, callQuality: null });
+        });
+
+        it('throws if the native call quality is an invalid number', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 100 })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if the native call quality is not a number', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+      });
+    });
+
+    describe('getStartTime', () => {
+      it('invokes the native module', async () => {
+        const spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_getStartTime')
+          .mockImplementation(async () => '10');
+
+        await preflight.getStartTime();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+
+      it('returns a number', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getStartTime')
+          .mockImplementation(async () => '10');
+
+        const startTime = await preflight.getStartTime();
+
+        expect(startTime).toEqual(10);
+      });
+    });
+
+    describe('getState', () => {
+      it('invokes the native module', async () => {
+        const spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_getState')
+          .mockImplementation(async () => 'completed');
+
+        await preflight.getState();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+
+      it('returns a valid state', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getState')
+          .mockImplementation(async () => 'completed');
+
+        const state = await preflight.getState();
+
+        expect(state).toEqual(PreflightTest.State.Completed);
+      });
+
+      it('throws when the native state is not a string', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getState')
+          .mockImplementation(async () => 10 as any);
+
+        expect(async () => {
+          await preflight.getState();
+        }).rejects.toThrowError(InvalidStateError);
+      });
+    });
+
+    describe('stop', () => {
+      it('invokes the native module', async () => {
+        const spy = jest
+          .spyOn(Common.NativeModule, 'preflightTest_stop')
+          .mockImplementation(async () => {});
+
+        await preflight.stop();
+
+        expect(spy.mock.calls).toEqual([[mockUuid]]);
+      });
+
+      it('returns undefined', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_stop')
+          .mockImplementation(async () => {});
+
+        const retVal = await preflight.stop();
+
+        expect(retVal).toBeUndefined();
+      });
+    });
   });
 });
