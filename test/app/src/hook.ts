@@ -19,13 +19,6 @@ import type {
 
 import { generateAccessToken } from './tokenUtility';
 
-export function settlePromise<T>(p: Promise<T>) {
-  const r = p
-    .then((value: T) => ({ status: 'resolved', value }))
-    .catch((value: any) => ({ status: 'rejected', value }));
-  return r;
-}
-
 export function useNoOp(usage: string) {
   return React.useCallback(() => {
     console.log(usage);
@@ -267,7 +260,7 @@ export function useCallInvites(
             removeCallInvite(callInvite.getCallSid());
             try {
               await callInvite.accept();
-            } catch (err: any) {
+            } catch (err) {
               const message = err.message;
               const code = err.code;
               logEvent(
@@ -388,7 +381,7 @@ export function useVoice(token: string) {
           },
         });
         callHandler(call);
-      } catch (err: any) {
+      } catch (err) {
         const message = err.message;
         const code = err.code;
         logEvent(
@@ -481,15 +474,6 @@ export function useVoice(token: string) {
     const bootstrap = async () => {
       if (Platform.OS === 'ios') {
         await voice.initializePushRegistry();
-      }
-
-      if (Platform.OS === 'android') {
-        const isFullScreen = await voice.isFullScreenNotificationEnabled();
-        if (!isFullScreen) {
-          const requestResult =
-            await settlePromise(voice.requestFullScreenNotificationPermission());
-          console.log(requestResult);
-        }
       }
 
       const calls = await voice.getCalls();

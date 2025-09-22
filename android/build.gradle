@@ -4,7 +4,7 @@ buildscript {
     'androidGradlePlugin': '7.4.2',
     'googleServices'     : '4.3.10',
     'voiceAndroid'       : '6.7.1',
-    'androidxCore'       : '1.12.0',
+    'androidxCore'       : '1.10.1',
     'androidxLifecycle'  : '2.2.0',
     'audioSwitch'        : '1.2.2',
     'firebaseMessaging'  : '23.4.0'
