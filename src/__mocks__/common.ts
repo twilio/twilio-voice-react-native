@@ -62,16 +62,6 @@ export const NativeModule = {
   voice_unregister: jest.fn().mockResolvedValue(undefined),
 
   /**
-   * System mocks.
-   */
-  system_isFullScreenNotificationEnabled: jest
-    .fn()
-    .mockResolvedValue(undefined),
-  system_requestFullScreenNotificationPermission: jest
-    .fn()
-    .mockResolvedValue(undefined),
-
-  /**
    * PreflightTest mocks.
    */
   preflightTest_flushEvents: jest.fn(),

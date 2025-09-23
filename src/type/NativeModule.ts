@@ -87,12 +87,6 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_unregister(accessToken: string): Promise<void>;
 
   /**
-   * System/permissions related bindings.
-   */
-  system_isFullScreenNotificationEnabled(): Promise<boolean>;
-  system_requestFullScreenNotificationPermission(): Promise<void>;
-
-  /**
    * Preflight related bindings.
    */
   voice_runPreflight(

@@ -1,4 +1,4 @@
-The functionality detailed in this document was added in `1.6.0` of the
+The functionality detailed in this document was added in `1.7.0` of the
 `@twilio/voice-react-native-sdk`.
 
 # Using Full Screen Notifications on Android
