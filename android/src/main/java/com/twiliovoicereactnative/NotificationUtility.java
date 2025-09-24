@@ -24,7 +24,6 @@ import androidx.core.app.Person;
 
 import com.twilio.voice.CallInvite;
 
-import static com.twiliovoicereactnative.ConfigurationProperties.isFullScreenNotificationEnabled;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_DEFAULT_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_HIGH_IMPORTANCE;
 import static com.twiliovoicereactnative.Constants.VOICE_CHANNEL_LOW_IMPORTANCE;
@@ -166,18 +165,16 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
-    NotificationCompat.Builder builder = constructNotificationBuilder(context, channelImportance)
+    return constructNotificationBuilder(context, channelImportance)
       .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(true)
       .setContentIntent(piForegroundIntent)
+      .setFullScreenIntent(piForegroundIntent, true)
       .addPerson(incomingCaller)
       .setStyle(NotificationCompat.CallStyle.forIncomingCall(
-        incomingCaller, piRejectIntent, piAcceptIntent));
-    if (isFullscreenIntentEnabled(context)) {
-      builder.setFullScreenIntent(piForegroundIntent, true);
-    }
-    return builder.build();
+        incomingCaller, piRejectIntent, piAcceptIntent))
+      .build();
   }
 
   public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
@@ -205,18 +202,16 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
-    NotificationCompat.Builder builder = constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
+    return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
       .setContentIntent(piForegroundIntent)
+      .setFullScreenIntent(piForegroundIntent, true)
       .setOngoing(true)
       .addPerson(activeCaller)
-      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent));
-    if (isFullscreenIntentEnabled(context)) {
-      builder.setFullScreenIntent(piForegroundIntent, true);
-    }
-    return builder.build();
+      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent))
+      .build();
   }
 
   public static Notification createOutgoingCallNotificationWithLowImportance(@NonNull Context context,
@@ -244,18 +239,16 @@ class NotificationUtility {
       callRecord.getUuid());
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
-    NotificationCompat.Builder builder = constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
+    return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
       .setCategory(Notification.CATEGORY_CALL)
       .setAutoCancel(false)
       .setContentIntent(piForegroundIntent)
+      .setFullScreenIntent(piForegroundIntent, true)
       .setOngoing(true)
       .addPerson(activeCaller)
-      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent));
-    if (isFullscreenIntentEnabled(context)) {
-      builder.setFullScreenIntent(piForegroundIntent, true);
-    }
-    return builder.build();
+      .setStyle(NotificationCompat.CallStyle.forOngoingCall(activeCaller, piEndCallIntent))
+      .build();
   }
 
   public static void createNotificationChannels(@NonNull Context context) {
@@ -277,11 +270,6 @@ class NotificationUtility {
   public static void destroyNotificationChannels(@NonNull Context context) {
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
     notificationManager.deleteNotificationChannelGroup(Constants.VOICE_CHANNEL_GROUP);
-  }
-
-  public static boolean isFullscreenIntentEnabled(Context context) {
-    return isFullScreenNotificationEnabled(context) &&
-      NotificationManagerCompat.from(context).canUseFullScreenIntent();
   }
 
   private static NotificationChannelCompat createNotificationChannel(@NonNull Context context,

@@ -1500,10 +1500,10 @@ PODS:
     - React-perflogger (= 0.77.0)
     - React-utils (= 0.77.0)
   - SocketRocket (0.7.1)
-  - twilio-voice-react-native (1.6.2-dev):
+  - twilio-voice-react-native (1.7.0-dev):
     - React-Core
-    - TwilioVoice (= 6.12.1)
-  - TwilioVoice (6.12.1)
+    - TwilioVoice (= 6.13.3)
+  - TwilioVoice (6.13.3)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1786,8 +1786,8 @@ SPEC CHECKSUMS:
   ReactCodegen: 1baa534318b19e95fb0f02db0a1ae1e3c271944d
   ReactCommon: 6014af4276bb2debc350e2620ef1bd856b4d981c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  twilio-voice-react-native: 7fb4641cfe522238086bb4e0e14b29e77d3bca99
-  TwilioVoice: fdf3e90f84023b42d64c204ffbd03c490c86e0cf
+  twilio-voice-react-native: a1a3945d25827bb668f9365ae7bce7b1a319d708
+  TwilioVoice: 0eea89db614225bfea6b25cf2c909728dfcefa59
   Yoga: 78d74e245ed67bb94275a1316cdc170b9b7fe884
 
 PODFILE CHECKSUM: d1a407d27753b643814bebcc66ca9e2baa15d39f

@@ -784,62 +784,6 @@ export class Voice extends EventEmitter {
   }
 
   /**
-   * Returns a boolean representing whether or not Android Full Screen
-   * notifications are enabled.
-   *
-   * @remarks
-   * Unsupported platforms:
-   *   - iOS
-   *
-   * @returns
-   * A `Promise` that
-   * - Resolves `false` if either of the following is true:
-   *   - Full Screen Notifications are disabled in your app's configuration.
-   *     See `docs/disable-full-screen-notifications.md` for more info.
-   *   - The app was not granted Full Screen Notification permissions by the
-   *     operating system.
-   * - Resolves `true` if none of the above is true.
-   * - Rejects if the Android layer encountered an error.
-   */
-  async isFullScreenNotificationEnabled(): Promise<boolean> {
-    switch (Platform.OS) {
-      case 'ios': {
-        throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on Android.`
-        );
-      }
-    }
-
-    return NativeModule.system_isFullScreenNotificationEnabled();
-  }
-
-  /**
-   * Opens the Android System Settings app to attempt to request Full Screen
-   * Notification permissions.
-   *
-   * @remarks
-   * Unsupported platforms:
-   * - iOS
-   *
-   * @returns
-   * A `Promise` that
-   * - Resolves `void` if the Android System Settings app was opened.
-   * - Rejects if the Android system encountered an error while trying to open
-   *   the System Settings app.
-   */
-  async requestFullScreenNotificationPermission(): Promise<void> {
-    switch (Platform.OS) {
-      case 'ios': {
-        throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on Android.`
-        );
-      }
-    }
-
-    return NativeModule.system_requestFullScreenNotificationPermission();
-  }
-
-  /**
    * Starts a PreflightTest.
    *
    * The PreflightTest allows you to anticipate and troubleshoot end users'

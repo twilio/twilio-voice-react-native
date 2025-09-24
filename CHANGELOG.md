@@ -1,17 +1,17 @@
 1.7.0 (In Progress)
 ===================
 
+## Changes
+
+### Platform Specific Changes
+
+#### iOS
+
+- Updated the Twilio Voice iOS SDK version to `6.13.3`. This update fixes a Bluetooth device type deprecation warning when building with Xcode 26.
+
 ## Fixes
 
 - The call contact handle template feature now caches the set value. This fixes an issue where the handle template value would be `null` when an incoming call was received and the React Native JS runtime was not initialized or was restarted by the OS.
-
-## Features
-
-### Platform Specific Features
-
-#### Android
-
-- Added a new API to check for and request Full Screen Notification permissions on Android platforms.
 
 1.6.1 (July 7, 2025)
 ====================
