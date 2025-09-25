@@ -799,9 +799,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         new PreflightTestListenerProxy(uuid));
 
       getPreflightTestRecordDatabase().setRecord(uuid, preflightTest);
-    });
 
-    promise.resolve(uuid.toString());
+      promise.resolve(uuid.toString());
+    });
   }
 
   // PreflightTest
