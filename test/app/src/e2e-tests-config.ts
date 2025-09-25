@@ -1,1 +1,1 @@
-export const suite = 'preflightTest';
+export const suite = 'default';
