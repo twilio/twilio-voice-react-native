@@ -198,6 +198,7 @@ describe('preflightTest', () => {
       describe('successful flow', () => {
         beforeAll(async () => {
           await device.reloadReactNative();
+          await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
 
           await element(by.text('START PREFLIGHT')).tap();
@@ -323,6 +324,7 @@ describe('preflightTest', () => {
       describe('failure flow', () => {
         beforeEach(async () => {
           await device.reloadReactNative();
+          await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
         });
 
@@ -426,6 +428,7 @@ describe('preflightTest', () => {
       describe('stopped preflightTest', () => {
         beforeAll(async () => {
           await device.reloadReactNative();
+          await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
 
           await element(by.text('START PREFLIGHT')).tap();
@@ -502,6 +505,7 @@ describe('preflightTest', () => {
       describe('invalid token preflightTest', () => {
         beforeAll(async () => {
           await device.reloadReactNative();
+          await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
 
           await element(by.text('START PREFLIGHT')).tap();
@@ -581,6 +585,7 @@ describe('preflightTest', () => {
 
         beforeAll(async () => {
           await device.reloadReactNative();
+          await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
 
           startTime = Date.now();

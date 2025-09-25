@@ -6,7 +6,7 @@ import { bootstrapTwilioClient } from '../common/twilioClient';
 import { pollValidateLog, getRegExpMatch } from '../common/logParser';
 
 const DEFAULT_TIMEOUT = 10000;
-const RELAY_SERVER_URL = 'http://localhost:4040'
+const RELAY_SERVER_URL = 'http://localhost:4040';
 
 describe('call', () => {
   let twilioClient: ReturnType<typeof twilio>;
@@ -187,6 +187,7 @@ describe('call', () => {
 
   beforeEach(async () => {
     await device.reloadReactNative();
+    await element(by.text('CALL SUITE')).tap();
 
     if (device.getPlatform() !== 'ios') {
       await toggleLogFormat();
