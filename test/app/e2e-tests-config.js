@@ -1,5 +1,2 @@
 const suite = 'default';
-
-module.exports = {
-  suite,
-};
+module.exports = { suite };
