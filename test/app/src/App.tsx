@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { DefaultSuite } from './DefaultSuite';
 import { PreflightTestSuite } from './PreflightTestSuite';
-import { suite } from './e2e-tests-config';
+
+const { suite } = require('../e2e-tests-config.js');
 
 export default function App() {
   switch (suite as string) {

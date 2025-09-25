@@ -325,17 +325,17 @@ jobs:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
           configuration: <<parameters.detox_configuration>>
-          artifacts: ./detox_artifacts_default_suite
+          artifacts: ./detox_artifacts/default_suite
           screenshots: all
       - run:
           name: Set test suite to preflightTest
           command: |
-            cd test/app/src
-            echo "export const suite = 'preflightTest';" > e2e-tests-config.ts
-            cd ../../..
+            cd test/app
+            echo "export const suite = 'preflightTest';" > e2e-tests-config.js
+            cd ../..
       - detox-test:
           configuration: <<parameters.detox_configuration>>
-          artifacts: ./detox_artifacts_preflightTest_suite
+          artifacts: ./detox_artifacts/preflightTest_suite
           screenshots: all
       - run:
           name: "Save Android logs"
