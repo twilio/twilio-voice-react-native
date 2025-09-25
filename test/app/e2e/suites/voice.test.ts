@@ -8,6 +8,7 @@ describe('voice', () => {
 
   beforeEach(async () => {
     await device.reloadReactNative();
+    await element(by.text('CALL SUITE')).tap();
   });
 
   it('should show a valid SDK version', async () => {

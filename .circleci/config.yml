@@ -448,4 +448,4 @@ workflows:
     jobs:
       - trigger-qe-tests:
           context: sdks-qe
-          name: Test QE Regression Tests Trigger   
+          name: Test QE Regression Tests Trigger

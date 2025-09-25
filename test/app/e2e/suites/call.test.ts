@@ -25,6 +25,7 @@ describe('call', () => {
 
   beforeEach(async () => {
     await device.reloadReactNative();
+    await element(by.text('CALL SUITE')).tap();
   });
 
   if (device.getPlatform() === 'ios') {
@@ -77,7 +78,7 @@ describe('call', () => {
             log.includes('constant-audio-output-level');
 
           return qualityWarningsChangedEvent && (constantAudioInputWarning || constantAudioOutputWarning);
-        }
+        };
 
         // check the call quality warnings every 5 seconds
         // for a total of 30 seconds
