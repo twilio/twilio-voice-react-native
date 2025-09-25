@@ -325,7 +325,17 @@ jobs:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
           configuration: <<parameters.detox_configuration>>
-          artifacts: ./detox_artifacts
+          artifacts: ./detox_artifacts_default_suite
+          screenshots: all
+      - run:
+          name: Set test suite to preflightTest
+          command: |
+            cd test/app/src
+            echo "export const suite = 'preflightTest';" > e2e-tests-config.ts
+            cd ../../..
+      - detox-test:
+          configuration: <<parameters.detox_configuration>>
+          artifacts: ./detox_artifacts_preflightTest_suite
           screenshots: all
       - run:
           name: "Save Android logs"
@@ -448,4 +458,4 @@ workflows:
     jobs:
       - trigger-qe-tests:
           context: sdks-qe
-          name: Test QE Regression Tests Trigger   
+          name: Test QE Regression Tests Trigger
