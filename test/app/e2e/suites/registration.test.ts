@@ -16,6 +16,7 @@ describe('registration', () => {
 
   beforeEach(async () => {
     await device.reloadReactNative();
+    await element(by.text('CALL SUITE')).tap();
   });
 
   it('should start unregistered', async () => {

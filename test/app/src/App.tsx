@@ -1,14 +1,34 @@
 import * as React from 'react';
-import { DefaultSuite } from './DefaultSuite';
+import { Button, View } from 'react-native';
+import { CallSuite } from './CallSuite';
 import { PreflightTestSuite } from './PreflightTestSuite';
 
-const { suite } = require('../e2e-tests-config.js');
+const defaultSuite = 'none';
 
 export default function App() {
-  switch (suite as string) {
-    case 'preflightTest':
-      return <PreflightTestSuite />;
-    default:
-      return <DefaultSuite />;
+  const [selectedSuite, setSelectedSuite] =
+    React.useState<'call' | 'preflightTest' | 'none'>(defaultSuite);
+
+  const suiteSelector = React.useMemo(() => {
+    return (
+      <View>
+        <Button onPress={() => setSelectedSuite('call')} title="Call Suite" />
+        <Button onPress={() => setSelectedSuite('preflightTest')} title="Preflight Test Suite" />
+      </View>
+    );
+  }, []);
+
+  if (selectedSuite === 'none') {
+    return suiteSelector;
   }
+
+  if (selectedSuite === 'call') {
+    return <CallSuite />;
+  }
+
+  if (selectedSuite === 'preflightTest') {
+    return <PreflightTestSuite />;
+  }
+
+  return null;
 }

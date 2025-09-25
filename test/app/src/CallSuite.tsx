@@ -20,7 +20,7 @@ if (!token.length) {
   token = generateAccessToken();
 }
 
-export function DefaultSuite() {
+export function CallSuite() {
   const {
     registered,
     sdkVersion,
