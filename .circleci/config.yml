@@ -331,7 +331,8 @@ jobs:
           name: Set test suite to preflightTest
           command: |
             cd test/app
-            echo "export const suite = 'preflightTest';" > e2e-tests-config.js
+            echo "const suite = 'preflightTest';" > e2e-tests-config.js
+            echo "module.exports = { suite };" >> e2e-tests-config.js
             cd ../..
       - detox-test:
           configuration: <<parameters.detox_configuration>>
