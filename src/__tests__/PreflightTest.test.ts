@@ -13,6 +13,8 @@ import {
   makeMockNativePreflightEvent,
   mockSample,
   mockUuid,
+  mockWarning,
+  mockWarningCleared,
 } from '../__mock-data__/PreflightTest';
 
 jest.mock('../common');
@@ -244,6 +246,9 @@ describe('PreflightTest', () => {
             [Constants.PreflightTestCompletedEventKeyReport]: JSON.stringify({
               ...baseMockReport,
               callQuality: 'Excellent',
+              isTurnRequired: false,
+              warnings: [mockWarning, mockWarning],
+              warningsCleared: [mockWarningCleared, mockWarningCleared],
             }),
           } as any);
 
@@ -271,6 +276,9 @@ describe('PreflightTest', () => {
             [Constants.PreflightTestCompletedEventKeyReport]: JSON.stringify({
               ...baseMockReport,
               callQuality: 0,
+              isTurnRequired: 'false',
+              warnings: [mockWarning, mockWarning],
+              warningsCleared: [mockWarningCleared, mockWarningCleared],
             }),
           } as any);
 
@@ -617,14 +625,43 @@ describe('PreflightTest', () => {
 
     describe('getReport', () => {
       describe('invalid platform', () => {
-        it('throws an error', async () => {
+        it('throws an error in "parseCallQuality"', async () => {
           jest
             .spyOn(Common.Platform, 'OS', 'get')
             .mockReturnValue('foobar' as any);
 
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
-            .mockImplementation(async () => '{}');
+            .mockImplementation(async () =>
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'foobar',
+              })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws an error in "parseIsTurnRequired"', async () => {
+          const mockReturnValues = (function* () {
+            yield 'android';
+            yield 'foobar';
+          })();
+
+          jest
+            .spyOn(Common.Platform, 'OS', 'get')
+            .mockImplementation(() => mockReturnValues.next().value as any);
+
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockImplementation(async () =>
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+              })
+            );
 
           await expect(async () => {
             await preflight.getReport();
@@ -643,7 +680,9 @@ describe('PreflightTest', () => {
             .mockResolvedValue(
               JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
             );
+
           await preflight.getReport();
+
           expect(spy.mock.calls).toEqual([[mockUuid]]);
         });
 
@@ -651,7 +690,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
             );
 
           const report = await preflight.getReport();
@@ -663,7 +708,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: null })
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: null,
+                isTurnRequired: false,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
             );
 
           const report = await preflight.getReport();
@@ -694,6 +745,84 @@ describe('PreflightTest', () => {
             await preflight.getReport();
           }).rejects.toBeInstanceOf(InvalidStateError);
         });
+
+        it('reports an empty warnings array if native warnings is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: undefined,
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warnings: [],
+          });
+        });
+
+        it('reports an empty warningsCleared array if native warningsCleared is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: undefined,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warningsCleared: [],
+          });
+        });
+
+        it('throws if warnings is not an array', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: 'foobar',
+                warningsCleared: undefined,
+              })
+            );
+
+          expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if warningsCleared is not an array', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: undefined,
+                warningsCleared: 'foobar',
+              })
+            );
+
+          expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
       });
 
       describe('ios', () => {
@@ -705,7 +834,13 @@ describe('PreflightTest', () => {
           const spy = jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 0 })
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
             );
 
           await preflight.getReport();
@@ -717,7 +852,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 0 })
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
             );
 
           const report = await preflight.getReport();
@@ -729,7 +870,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: null })
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: null,
+                isTurnRequired: 'false',
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
             );
 
           const report = await preflight.getReport();
@@ -757,6 +904,116 @@ describe('PreflightTest', () => {
             );
 
           await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if the native "isTurnRequired" is not a string', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 10,
+              })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if the native "isTurnRequired" is not valid', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'foobar',
+              })
+            );
+
+          await expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('reports an empty warnings array if native warnings is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: undefined,
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warnings: [],
+          });
+        });
+
+        it('reports an empty warningsCleared array if native warningsCleared is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: undefined,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warningsCleared: [],
+          });
+        });
+
+        it('throws if warnings is not an array', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: 'foobar',
+                warningsCleared: undefined,
+              })
+            );
+
+          expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('throws if warningsCleared is not an array', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: undefined,
+                warningsCleared: 'foobar',
+              })
+            );
+
+          expect(async () => {
             await preflight.getReport();
           }).rejects.toBeInstanceOf(InvalidStateError);
         });

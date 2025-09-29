@@ -63,11 +63,22 @@ export const mockNetworkTiming = {
   preflightTest: mockTiming,
 };
 
+export const mockWarning = {
+  name: 'mock-warningname',
+  threshold: 'mock-warningthreshold',
+  timestamp: 10,
+  values: 'mock-warningvalues',
+};
+
+export const mockWarningCleared = {
+  name: 'mock-warningclearedname',
+  timestamp: 10,
+};
+
 export const baseMockReport = {
   callSid: 'mock-callsid',
   edge: 'mock-edge',
   iceCandidates: [mockRtcIceCandidateStats, mockRtcIceCandidateStats],
-  isTurnRequired: false,
   networkStats: mockPreflightRtcStats,
   networkTiming: mockNetworkTiming,
   statsSamples: [mockSample, mockSample],
@@ -76,30 +87,6 @@ export const baseMockReport = {
     localCandidate: mockRtcIceCandidateStats,
     remoteCandidate: mockRtcIceCandidateStats,
   },
-  warnings: [
-    {
-      name: 'mock-warningname',
-      threshold: 'mock-warningthreshold',
-      timestamp: 10,
-      values: 'mock-warningvalues',
-    },
-    {
-      name: 'mock-warningname',
-      threshold: 'mock-warningthreshold',
-      timestamp: 10,
-      values: 'mock-warningvalues',
-    },
-  ],
-  warningsCleared: [
-    {
-      name: 'mock-warningclearedname',
-      timestamp: 10,
-    },
-    {
-      name: 'mock-warningclearedname',
-      timestamp: 10,
-    },
-  ],
 };
 
 export const expectedReport: PreflightTest.Report = {
