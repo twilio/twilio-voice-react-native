@@ -1,6 +1,12 @@
 1.7.0 (In Progress)
 ===================
 
+## Features
+
+### PreflightTest
+
+- You can now perform a `PreflightTest` to help evaluate the quality of calls made on a device ahead of time. Please see this documentation for more details: [Mobile SDK PreflightTest](https://www.twilio.com/docs/voice/sdks/mobile-preflight-test).
+
 ## Changes
 
 ### Platform Specific Changes

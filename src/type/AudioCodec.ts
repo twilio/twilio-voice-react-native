@@ -23,7 +23,8 @@ export type OpusAudioCodec = {
    */
   [Constants.AudioCodecKeyType]: AudioCodecType.Opus;
   /**
-   * The max average bitrate for the codec.
+   * The max average bitrate for the codec. Value should be in the inclusive
+   * range `[6000, 510000]`.
    */
   [Constants.AudioCodecOpusKeyMaxAverageBitrate]?: number;
 };

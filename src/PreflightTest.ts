@@ -607,7 +607,9 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
 /**
  * Parse native call quality enum.
  */
-function parseCallQuality(nativeCallQuality: any) {
+function parseCallQuality(
+  nativeCallQuality: any
+): PreflightTest.CallQuality | null {
   switch (common.Platform.OS) {
     case 'android': {
       return parseCallQualityAndroid(nativeCallQuality);
@@ -625,9 +627,9 @@ function parseCallQuality(nativeCallQuality: any) {
  * Parse call quality value for Android platform.
  */
 function parseCallQualityAndroid(
-  nativeCallQuality: string | null
+  nativeCallQuality: string | undefined | null
 ): PreflightTest.CallQuality | null {
-  if (nativeCallQuality === null) {
+  if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
   }
 
@@ -652,9 +654,9 @@ function parseCallQualityAndroid(
  * Parse call quality for iOS platform.
  */
 function parseCallQualityIos(
-  nativeCallQuality: number | null
+  nativeCallQuality: number | undefined | null
 ): PreflightTest.CallQuality | null {
-  if (nativeCallQuality === null) {
+  if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
   }
 
@@ -735,6 +737,108 @@ function parseSample(
 }
 
 /**
+ * Parse native "isTurnRequired" value.
+ */
+function parseIsTurnRequired(isTurnRequired: any): boolean | null {
+  switch (common.Platform.OS) {
+    case 'android': {
+      return parseIsTurnRequiredAndroid(isTurnRequired);
+    }
+    case 'ios': {
+      return parseIsTurnRequiredIos(isTurnRequired);
+    }
+    default: {
+      throw new InvalidStateError('Invalid platform.');
+    }
+  }
+}
+
+/**
+ * Parse native "isTurnRequired" value on Android.
+ */
+function parseIsTurnRequiredAndroid(
+  isTurnRequired: boolean | undefined | null
+): boolean | null {
+  if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
+    return null;
+  }
+
+  if (typeof isTurnRequired !== 'boolean') {
+    throw new InvalidStateError(
+      `PreflightTest "isTurnRequired" not valid. Found "${isTurnRequired}".`
+    );
+  }
+
+  return isTurnRequired;
+}
+
+/**
+ * Parse native "isTurnRequired" value on iOS.
+ */
+function parseIsTurnRequiredIos(
+  isTurnRequired: string | undefined | null
+): boolean | null {
+  if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
+    return null;
+  }
+
+  if (typeof isTurnRequired !== 'string') {
+    throw new InvalidStateError(
+      'PreflightTest "isTurnRequired" not of type "string". ' +
+        `Found "${isTurnRequired}".`
+    );
+  }
+
+  const parsedValue = isTurnRequiredMap.ios.get(isTurnRequired);
+
+  if (typeof parsedValue !== 'boolean') {
+    throw new InvalidStateError(
+      `PreflightTest "isTurnRequired" not valid. Found "${isTurnRequired}".`
+    );
+  }
+
+  return parsedValue;
+}
+
+/**
+ * Parse native warnings array.
+ */
+function parseWarnings(
+  warnings: PreflightTest.Warning[] | undefined | null
+): PreflightTest.Warning[] {
+  if (typeof warnings === 'undefined' || warnings === null) {
+    return [];
+  }
+
+  if (!Array.isArray(warnings)) {
+    throw new InvalidStateError(
+      `PreflightTest "warnings" invalid. Found "${warnings}".`
+    );
+  }
+
+  return warnings;
+}
+
+/**
+ * Parse native warningsCleared array.
+ */
+function parseWarningsCleared(
+  warningsCleared: PreflightTest.WarningCleared[] | undefined | null
+): PreflightTest.WarningCleared[] {
+  if (typeof warningsCleared === 'undefined' || warningsCleared === null) {
+    return [];
+  }
+
+  if (!Array.isArray(warningsCleared)) {
+    throw new InvalidStateError(
+      `PreflightTest "warningsCleared" invalid. Found "${warningsCleared}".`
+    );
+  }
+
+  return warningsCleared;
+}
+
+/**
  * Parse native preflight report.
  */
 function parseReport(rawReport: string): PreflightTest.Report {
@@ -754,7 +858,10 @@ function parseReport(rawReport: string): PreflightTest.Report {
   const iceCandidateStats: PreflightTest.RTCIceCandidateStats[] =
     unprocessedReport.iceCandidates;
 
-  const isTurnRequired: boolean = unprocessedReport.isTurnRequired;
+  // Note: iOS returns a string, Android returns a boolean
+  const isTurnRequired: boolean | null = parseIsTurnRequired(
+    unprocessedReport.isTurnRequired
+  );
 
   // Note: key change from `networkStats` to `stats`.
   const stats: PreflightTest.RTCStats = unprocessedReport.networkStats;
@@ -792,10 +899,17 @@ function parseReport(rawReport: string): PreflightTest.Report {
   const selectedIceCandidatePairStats: PreflightTest.RTCSelectedIceCandidatePairStats =
     unprocessedReport.selectedIceCandidatePair;
 
-  const warnings: PreflightTest.Warning[] = unprocessedReport.warnings;
+  // Note: iOS returns undefined where Android returns an empty array
+  // when there were no warnings
+  const warnings: PreflightTest.Warning[] = parseWarnings(
+    unprocessedReport.warnings
+  );
 
-  const warningsCleared: PreflightTest.WarningCleared[] =
-    unprocessedReport.warningsCleared;
+  // Note: iOS returns undefined where Android returns an empty array
+  // when there were no warningsCleared
+  const warningsCleared: PreflightTest.WarningCleared[] = parseWarningsCleared(
+    unprocessedReport.warningsCleared
+  );
 
   const report: PreflightTest.Report = {
     callSid,
@@ -1355,6 +1469,16 @@ const callQualityMap = {
     ['Good', PreflightTest.CallQuality.Good],
     ['Fair', PreflightTest.CallQuality.Fair],
     ['Degraded', PreflightTest.CallQuality.Degraded],
+  ]),
+};
+
+/**
+ * Map of isTurnRequired values from the native layer to the expected JS values.
+ */
+const isTurnRequiredMap = {
+  ios: new Map<string, boolean>([
+    ['true', true],
+    ['false', false],
   ]),
 };
 
