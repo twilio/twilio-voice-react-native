@@ -806,7 +806,7 @@ function parseIsTurnRequiredIos(
 function parseWarnings(
   warnings: PreflightTest.Warning[] | undefined | null
 ): PreflightTest.Warning[] {
-  if (typeof warnings === 'undefined') {
+  if (typeof warnings === 'undefined' || warnings === null) {
     return [];
   }
 
@@ -825,7 +825,7 @@ function parseWarnings(
 function parseWarningsCleared(
   warningsCleared: PreflightTest.WarningCleared[] | undefined | null
 ): PreflightTest.WarningCleared[] {
-  if (typeof warningsCleared === 'undefined') {
+  if (typeof warningsCleared === 'undefined' || warningsCleared === null) {
     return [];
   }
 

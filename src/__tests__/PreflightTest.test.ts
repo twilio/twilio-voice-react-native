@@ -772,6 +772,26 @@ describe('PreflightTest', () => {
           });
         });
 
+        it('reports an empty warnings array if native warnings is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warnings: null,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warnings: [],
+          });
+        });
+
         it('reports an empty warningsCleared array if native warningsCleared is undefined', async () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
@@ -781,6 +801,26 @@ describe('PreflightTest', () => {
                 callQuality: 'Excellent',
                 isTurnRequired: false,
                 warningsCleared: undefined,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warningsCleared: [],
+          });
+        });
+
+        it('reports an empty warningsCleared array if native warningsCleared is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: false,
+                warningsCleared: null,
               })
             );
 
@@ -1067,6 +1107,26 @@ describe('PreflightTest', () => {
           });
         });
 
+        it('reports an empty warnings array if native warnings is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warnings: null,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warnings: [],
+          });
+        });
+
         it('reports an empty warningsCleared array if native warningsCleared is undefined', async () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
@@ -1076,6 +1136,26 @@ describe('PreflightTest', () => {
                 callQuality: 0,
                 isTurnRequired: 'false',
                 warningsCleared: undefined,
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            warningsCleared: [],
+          });
+        });
+
+        it('reports an empty warningsCleared array if native warningsCleared is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: 'false',
+                warningsCleared: null,
               })
             );
 
