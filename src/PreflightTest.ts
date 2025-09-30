@@ -627,7 +627,7 @@ function parseCallQuality(nativeCallQuality: any) {
 function parseCallQualityAndroid(
   nativeCallQuality: string | null
 ): PreflightTest.CallQuality | null {
-  if (nativeCallQuality === null) {
+  if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
   }
 
@@ -654,7 +654,7 @@ function parseCallQualityAndroid(
 function parseCallQualityIos(
   nativeCallQuality: number | null
 ): PreflightTest.CallQuality | null {
-  if (nativeCallQuality === null) {
+  if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
   }
 
@@ -737,10 +737,10 @@ function parseSample(
 /**
  * Parse native "isTurnRequired" value.
  */
-function parseIsTurnRequired(isTurnRequired: any): boolean {
+function parseIsTurnRequired(isTurnRequired: any): boolean | null {
   switch (common.Platform.OS) {
     case 'android': {
-      return isTurnRequired as boolean;
+      return parseIsTurnRequiredAndroid(isTurnRequired);
     }
     case 'ios': {
       return parseIsTurnRequiredIos(isTurnRequired);
@@ -752,9 +752,34 @@ function parseIsTurnRequired(isTurnRequired: any): boolean {
 }
 
 /**
+ * Parse native "isTurnRequired" value on Android.
+ */
+function parseIsTurnRequiredAndroid(
+  isTurnRequired: boolean | undefined
+): boolean | null {
+  if (typeof isTurnRequired === 'undefined') {
+    return null;
+  }
+
+  if (typeof isTurnRequired !== 'boolean') {
+    throw new InvalidStateError(
+      `PreflightTest "isTurnRequired" not valid. Found "${isTurnRequired}".`
+    );
+  }
+
+  return isTurnRequired;
+}
+
+/**
  * Parse native "isTurnRequired" value on iOS.
  */
-function parseIsTurnRequiredIos(isTurnRequired: string): boolean {
+function parseIsTurnRequiredIos(
+  isTurnRequired: string | undefined
+): boolean | null {
+  if (typeof isTurnRequired === 'undefined') {
+    return null;
+  }
+
   if (typeof isTurnRequired !== 'string') {
     throw new InvalidStateError(
       'PreflightTest "isTurnRequired" not of type "string". ' +
@@ -832,7 +857,7 @@ function parseReport(rawReport: string): PreflightTest.Report {
     unprocessedReport.iceCandidates;
 
   // Note: iOS returns a string, Android returns a boolean
-  const isTurnRequired: boolean = parseIsTurnRequired(
+  const isTurnRequired: boolean | null = parseIsTurnRequired(
     unprocessedReport.isTurnRequired
   );
 

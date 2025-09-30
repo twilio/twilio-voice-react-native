@@ -722,6 +722,24 @@ describe('PreflightTest', () => {
           expect(report).toEqual({ ...expectedReport, callQuality: null });
         });
 
+        it('handles undefined native call quality', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: undefined,
+                isTurnRequired: false,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({ ...expectedReport, callQuality: null });
+        });
+
         it('throws if the native call quality is an invalid string', async () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
@@ -823,6 +841,44 @@ describe('PreflightTest', () => {
             await preflight.getReport();
           }).rejects.toBeInstanceOf(InvalidStateError);
         });
+
+        it('throws if "isTurnRequired" is not a boolean', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                isTurnRequired: 10,
+                warnings: [],
+                warningsCleared: [],
+              })
+            );
+
+          expect(async () => {
+            await preflight.getReport();
+          }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('reports null if "isTurnRequired" is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: undefined,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            isTurnRequired: null,
+          });
+        });
       });
 
       describe('ios', () => {
@@ -873,6 +929,24 @@ describe('PreflightTest', () => {
               JSON.stringify({
                 ...baseMockReport,
                 callQuality: null,
+                isTurnRequired: 'false',
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({ ...expectedReport, callQuality: null });
+        });
+
+        it('handles undefined native call quality', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: undefined,
                 isTurnRequired: 'false',
                 warnings: [mockWarning, mockWarning],
                 warningsCleared: [mockWarningCleared, mockWarningCleared],
@@ -938,6 +1012,27 @@ describe('PreflightTest', () => {
           await expect(async () => {
             await preflight.getReport();
           }).rejects.toBeInstanceOf(InvalidStateError);
+        });
+
+        it('reports null if "isTurnRequired" is undefined', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: undefined,
+                warnings: [mockWarning, mockWarning],
+                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            isTurnRequired: null,
+          });
         });
 
         it('reports an empty warnings array if native warnings is undefined', async () => {
