@@ -87,6 +87,8 @@ export const baseMockReport = {
     localCandidate: mockRtcIceCandidateStats,
     remoteCandidate: mockRtcIceCandidateStats,
   },
+  warnings: [mockWarning, mockWarning],
+  warningsCleared: [mockWarningCleared, mockWarningCleared],
 };
 
 export const expectedReport: PreflightTest.Report = {

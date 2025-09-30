@@ -607,7 +607,9 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
 /**
  * Parse native call quality enum.
  */
-function parseCallQuality(nativeCallQuality: any) {
+function parseCallQuality(
+  nativeCallQuality: any
+): PreflightTest.CallQuality | null {
   switch (common.Platform.OS) {
     case 'android': {
       return parseCallQualityAndroid(nativeCallQuality);
@@ -625,7 +627,7 @@ function parseCallQuality(nativeCallQuality: any) {
  * Parse call quality value for Android platform.
  */
 function parseCallQualityAndroid(
-  nativeCallQuality: string | null
+  nativeCallQuality: string | undefined | null
 ): PreflightTest.CallQuality | null {
   if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
@@ -652,7 +654,7 @@ function parseCallQualityAndroid(
  * Parse call quality for iOS platform.
  */
 function parseCallQualityIos(
-  nativeCallQuality: number | null
+  nativeCallQuality: number | undefined | null
 ): PreflightTest.CallQuality | null {
   if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
@@ -755,9 +757,9 @@ function parseIsTurnRequired(isTurnRequired: any): boolean | null {
  * Parse native "isTurnRequired" value on Android.
  */
 function parseIsTurnRequiredAndroid(
-  isTurnRequired: boolean | undefined
+  isTurnRequired: boolean | undefined | null
 ): boolean | null {
-  if (typeof isTurnRequired === 'undefined') {
+  if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
     return null;
   }
 
@@ -774,9 +776,9 @@ function parseIsTurnRequiredAndroid(
  * Parse native "isTurnRequired" value on iOS.
  */
 function parseIsTurnRequiredIos(
-  isTurnRequired: string | undefined
+  isTurnRequired: string | undefined | null
 ): boolean | null {
-  if (typeof isTurnRequired === 'undefined') {
+  if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
     return null;
   }
 
@@ -802,7 +804,7 @@ function parseIsTurnRequiredIos(
  * Parse native warnings array.
  */
 function parseWarnings(
-  warnings: PreflightTest.Warning[] | undefined
+  warnings: PreflightTest.Warning[] | undefined | null
 ): PreflightTest.Warning[] {
   if (typeof warnings === 'undefined') {
     return [];
@@ -821,7 +823,7 @@ function parseWarnings(
  * Parse native warningsCleared array.
  */
 function parseWarningsCleared(
-  warningsCleared: PreflightTest.WarningCleared[] | undefined
+  warningsCleared: PreflightTest.WarningCleared[] | undefined | null
 ): PreflightTest.WarningCleared[] {
   if (typeof warningsCleared === 'undefined') {
     return [];

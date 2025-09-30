@@ -13,8 +13,6 @@ import {
   makeMockNativePreflightEvent,
   mockSample,
   mockUuid,
-  mockWarning,
-  mockWarningCleared,
 } from '../__mock-data__/PreflightTest';
 
 jest.mock('../common');
@@ -247,8 +245,6 @@ describe('PreflightTest', () => {
               ...baseMockReport,
               callQuality: 'Excellent',
               isTurnRequired: false,
-              warnings: [mockWarning, mockWarning],
-              warningsCleared: [mockWarningCleared, mockWarningCleared],
             }),
           } as any);
 
@@ -277,8 +273,6 @@ describe('PreflightTest', () => {
               ...baseMockReport,
               callQuality: 0,
               isTurnRequired: 'false',
-              warnings: [mockWarning, mockWarning],
-              warningsCleared: [mockWarningCleared, mockWarningCleared],
             }),
           } as any);
 
@@ -694,8 +688,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 'Excellent',
                 isTurnRequired: false,
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -712,8 +704,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: null,
                 isTurnRequired: false,
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -730,8 +720,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: undefined,
                 isTurnRequired: false,
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -773,7 +761,6 @@ describe('PreflightTest', () => {
                 callQuality: 'Excellent',
                 isTurnRequired: false,
                 warnings: undefined,
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -793,7 +780,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 'Excellent',
                 isTurnRequired: false,
-                warnings: [mockWarning, mockWarning],
                 warningsCleared: undefined,
               })
             );
@@ -867,8 +853,25 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 'Excellent',
                 isTurnRequired: undefined,
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            isTurnRequired: null,
+          });
+        });
+
+        it('reports null if "isTurnRequired" is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 'Excellent',
+                isTurnRequired: null,
               })
             );
 
@@ -894,8 +897,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 0,
                 isTurnRequired: 'false',
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -912,8 +913,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 0,
                 isTurnRequired: 'false',
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -930,8 +929,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: null,
                 isTurnRequired: 'false',
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -948,8 +945,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: undefined,
                 isTurnRequired: 'false',
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -1022,8 +1017,25 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 0,
                 isTurnRequired: undefined,
-                warnings: [mockWarning, mockWarning],
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
+              })
+            );
+
+          const report = await preflight.getReport();
+
+          expect(report).toEqual({
+            ...expectedReport,
+            isTurnRequired: null,
+          });
+        });
+
+        it('reports null if "isTurnRequired" is null', async () => {
+          jest
+            .spyOn(Common.NativeModule, 'preflightTest_getReport')
+            .mockResolvedValue(
+              JSON.stringify({
+                ...baseMockReport,
+                callQuality: 0,
+                isTurnRequired: null,
               })
             );
 
@@ -1044,7 +1056,6 @@ describe('PreflightTest', () => {
                 callQuality: 0,
                 isTurnRequired: 'false',
                 warnings: undefined,
-                warningsCleared: [mockWarningCleared, mockWarningCleared],
               })
             );
 
@@ -1064,7 +1075,6 @@ describe('PreflightTest', () => {
                 ...baseMockReport,
                 callQuality: 0,
                 isTurnRequired: 'false',
-                warnings: [mockWarning, mockWarning],
                 warningsCleared: undefined,
               })
             );
