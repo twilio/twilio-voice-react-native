@@ -60,6 +60,7 @@ export const NativeModule = {
     .fn()
     .mockResolvedValue(undefined),
   voice_unregister: jest.fn().mockResolvedValue(undefined),
+  voice_runPreflight: jest.fn().mockResolvedValue(undefined),
 
   /**
    * PreflightTest mocks.

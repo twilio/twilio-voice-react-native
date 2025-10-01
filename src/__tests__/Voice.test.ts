@@ -6,8 +6,15 @@ import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
-import { UnsupportedPlatformError } from '../error';
+import {
+  InvalidArgumentError,
+  InvalidStateError,
+  UnsupportedPlatformError,
+} from '../error';
+import { IceTransportPolicy } from '../type/Ice';
+import { AudioCodecType } from '../type/AudioCodec';
 import type { NativeVoiceEventType } from '../type/Voice';
+import * as PreflightTestOptionsModule from '../utility/preflightTestOptions';
 import { Voice } from '../Voice';
 
 const MockNativeEventEmitter =
@@ -821,6 +828,145 @@ describe('Voice class', () => {
         await expect(
           setIncomingCallContactHandleTemplatePromise
         ).resolves.toBeUndefined();
+      });
+    });
+
+    describe('.runPreflight', () => {
+      it('invokes the native module', async () => {
+        await new Voice().runPreflight('token');
+        expect(
+          jest.mocked(MockNativeModule.voice_runPreflight).mock.calls
+        ).toEqual([['token', {}]]);
+      });
+
+      it('invokes the option validator', async () => {
+        const spy = jest.spyOn(
+          PreflightTestOptionsModule,
+          'validatePreflightOptions'
+        );
+
+        await new Voice().runPreflight('token');
+
+        expect(spy.mock.calls).toEqual([[{}]]);
+      });
+
+      it('passes the options to the validator', async () => {
+        const spy = jest.spyOn(
+          PreflightTestOptionsModule,
+          'validatePreflightOptions'
+        );
+
+        const options = {
+          iceServers: [
+            {
+              username: 'foo',
+              password: 'bar',
+              serverUrl: 'bazz',
+            },
+          ],
+          iceTransportPolicy: IceTransportPolicy.All,
+          preferredAudioCodecs: [{ type: AudioCodecType.Opus }],
+        };
+
+        await new Voice().runPreflight('token', options);
+
+        expect(spy.mock.calls).toEqual([[options]]);
+      });
+
+      it('rejects when passing invalid options', async () => {
+        const invalidOptions: any = { preferredAudioCodecs: ['opus'] };
+        await expect(async () => {
+          await new Voice().runPreflight('token', invalidOptions);
+        }).rejects.toBeInstanceOf(InvalidArgumentError);
+      });
+
+      it('rejects with a TwilioError', async () => {
+        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
+          code: 20101,
+          message: 'mock error message about invalid access token',
+        });
+
+        const result = await new Voice()
+          .runPreflight('token')
+          .then(() => ({ status: 'resolved' } as const))
+          .catch(
+            (error) =>
+              ({
+                status: 'rejected',
+                error,
+              } as const)
+          );
+
+        expect(result.status).toEqual('rejected');
+        if (result.status === 'resolved') throw new Error();
+
+        expect(result.error).toBeInstanceOf(MockTwilioError);
+      });
+
+      it('rejects with a InvalidStateError', async () => {
+        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
+          code: Constants.ErrorCodeInvalidStateError,
+        });
+
+        const result = await new Voice()
+          .runPreflight('token')
+          .then(() => ({ status: 'resolved' } as const))
+          .catch(
+            (error) =>
+              ({
+                status: 'rejected',
+                error,
+              } as const)
+          );
+
+        expect(result.status).toEqual('rejected');
+        if (result.status === 'resolved') throw new Error();
+
+        expect(result.error).toBeInstanceOf(InvalidStateError);
+      });
+
+      it('rejects with a InvalidArgumentError', async () => {
+        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
+          code: Constants.ErrorCodeInvalidArgumentError,
+        });
+
+        const result = await new Voice()
+          .runPreflight('token')
+          .then(() => ({ status: 'resolved' } as const))
+          .catch(
+            (error) =>
+              ({
+                status: 'rejected',
+                error,
+              } as const)
+          );
+
+        expect(result.status).toEqual('rejected');
+        if (result.status === 'resolved') throw new Error();
+
+        expect(result.error).toBeInstanceOf(InvalidArgumentError);
+      });
+
+      it('rejects with what the native layer throws', async () => {
+        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
+          foo: 'bar',
+        });
+
+        const result = await new Voice()
+          .runPreflight('token')
+          .then(() => ({ status: 'resolved' } as const))
+          .catch(
+            (error) =>
+              ({
+                status: 'rejected',
+                error,
+              } as const)
+          );
+
+        expect(result.status).toEqual('rejected');
+        if (result.status === 'resolved') throw new Error();
+
+        expect(result.error).toEqual({ foo: 'bar' });
       });
     });
   });

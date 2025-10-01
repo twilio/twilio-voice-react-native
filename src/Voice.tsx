@@ -23,6 +23,7 @@ import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
+import { validatePreflightOptions } from './utility/preflightTestOptions';
 
 /**
  * Defines strict typings for all events emitted by {@link (Voice:class)
@@ -858,6 +859,10 @@ export class Voice extends EventEmitter {
     accessToken: string,
     options: PreflightTest.Options = {}
   ): Promise<PreflightTest> {
+    const optionValidationResult = validatePreflightOptions(options);
+    if (optionValidationResult.status === 'error')
+      throw optionValidationResult.error;
+
     return await NativeModule.voice_runPreflight(accessToken, options)
       .then((uuid: string): PreflightTest => {
         return new PreflightTest(uuid);
