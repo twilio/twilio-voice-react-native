@@ -75,4 +75,7 @@ yarn-error.log
 
 # Secrets
 /src/e2e-tests-token.*.ts
+/src/e2e-preflightTest-token.*.ts
+/src/e2e-tests-token.ts
+/src/e2e-preflightTest-token.ts
 /android/app/google-services.json

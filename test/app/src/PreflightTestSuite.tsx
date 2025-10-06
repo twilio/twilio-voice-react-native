@@ -3,7 +3,6 @@ import {
   Button,
   FlatList,
   ListRenderItemInfo,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -12,11 +11,11 @@ import { useVoice } from './hook';
 import type { EventLogItem } from './type';
 import Grid from './Grid';
 
-import { generateAccessToken } from './tokenUtility';
+import { generatePreflightAccessToken } from './tokenUtility';
 
 let token = '';
 if (!token.length) {
-  token = generateAccessToken();
+  token = generatePreflightAccessToken();
 }
 
 export const PreflightTestSuite = () => {
@@ -57,7 +56,7 @@ export const PreflightTestSuite = () => {
     ), [preflightTestHandler, invalidTokenPreflightTestHandler, preflightTestMethods]);
 
   return (
-    <SafeAreaView style={styles.expand}>
+    <View style={styles.expand}>
       <View style={composedStyles.events}>
         <View style={styles.eventsButtons}>
           <Text>Events</Text>
@@ -88,7 +87,7 @@ export const PreflightTestSuite = () => {
           ]}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -3,7 +3,6 @@ import {
   Button,
   FlatList,
   ListRenderItemInfo,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -120,7 +119,7 @@ export function CallSuite() {
   );
 
   return (
-    <SafeAreaView style={styles.expand}>
+    <View style={styles.expand}>
       <View style={styles.padded}>
         <Text testID="app_info">App Info</Text>
         {headerComponent}
@@ -173,7 +172,7 @@ export function CallSuite() {
           ]}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, View } from 'react-native';
+import { Button, SafeAreaView } from 'react-native';
 import { CallSuite } from './CallSuite';
 import { PreflightTestSuite } from './PreflightTestSuite';
 
@@ -11,10 +11,10 @@ export default function App() {
 
   const suiteSelector = React.useMemo(() => {
     return (
-      <View>
+      <SafeAreaView>
         <Button onPress={() => setSelectedSuite('call')} title="Call Suite" />
         <Button onPress={() => setSelectedSuite('preflightTest')} title="Preflight Test Suite" />
-      </View>
+      </SafeAreaView>
     );
   }, []);
 
