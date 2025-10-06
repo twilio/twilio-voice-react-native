@@ -95,7 +95,7 @@ commands:
           name: "Generate access token"
           command: |
             node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/app/src/e2e-tests-token.ts
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/app/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/app/src/e2e-preflightTest-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
