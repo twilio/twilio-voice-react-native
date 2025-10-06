@@ -12,8 +12,8 @@ export default function App() {
   const suiteSelector = React.useMemo(() => {
     return (
       <SafeAreaView>
-        <Button onPress={() => setSelectedSuite('call')} title="Call Suite" />
-        <Button onPress={() => setSelectedSuite('preflightTest')} title="Preflight Test Suite" />
+        <Button onPress={() => setSelectedSuite('call')} title="CALL SUITE" />
+        <Button onPress={() => setSelectedSuite('preflightTest')} title="PREFLIGHT TEST SUITE" />
       </SafeAreaView>
     );
   }, []);
