@@ -279,9 +279,11 @@ jobs:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
           configuration: <<parameters.detox_configuration>>
-          artifacts: <<parameters.artifacts_location>>
+          artifacts: ./detox_artifacts
+          screenshots: all
       - store_artifacts:
-          path: ./test/app/test-report.html
+          when: always
+          path: ./test/app/detox_artifacts
 
   e2e-android:
     executor:
