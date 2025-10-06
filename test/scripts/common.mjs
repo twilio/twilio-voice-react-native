@@ -25,7 +25,7 @@ export function parseEnvVar(envVarKey) {
  * number of arguments or if an argument is invalid.
  */
 export function parseScriptArgument() {
-  if (process.argv.length !== 4) {
+  if (process.argv.length !== 5) {
     throw new Error('Incorrect number of arguments.');
   }
 
