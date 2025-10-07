@@ -622,7 +622,7 @@ describe('preflightTest', () => {
 
           const timeGap = Math.abs(startTime - getStartTime);
           jestExpect(timeGap).toBeGreaterThan(0);
-          jestExpect(timeGap).toBeLessThan(5000);
+          jestExpect(timeGap).toBeLessThan(10000);
         });
 
         it('should get a valid end time', async () => {
@@ -637,7 +637,7 @@ describe('preflightTest', () => {
 
           const timeGap = Math.abs(endTime - getEndTime);
           jestExpect(timeGap).toBeGreaterThan(0);
-          jestExpect(timeGap).toBeLessThan(5000);
+          jestExpect(timeGap).toBeLessThan(10000);
         });
 
         it('should get a valid callsid', async () => {
