@@ -94,7 +94,8 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY test/app/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/app/src/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/app/src/e2e-preflightTest-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -278,9 +279,11 @@ jobs:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
           configuration: <<parameters.detox_configuration>>
-          artifacts: <<parameters.artifacts_location>>
+          artifacts: ./detox_artifacts
+          screenshots: all
       - store_artifacts:
-          path: ./test/app/test-report.html
+          when: always
+          path: ./test/app/detox_artifacts
 
   e2e-android:
     executor:
@@ -448,4 +451,4 @@ workflows:
     jobs:
       - trigger-qe-tests:
           context: sdks-qe
-          name: Test QE Regression Tests Trigger   
+          name: Test QE Regression Tests Trigger
