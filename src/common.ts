@@ -14,3 +14,5 @@ export const NativeEventEmitter = new ReactNative.NativeEventEmitter(
   NativeModule
 );
 export const Platform = ReactNative.Platform;
+
+export const setTimeout = global.setTimeout;
