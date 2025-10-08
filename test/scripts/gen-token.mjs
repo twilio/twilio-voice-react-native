@@ -9,11 +9,12 @@ const { AccessToken } = twilio.jwt;
 /**
  * Generate a configured access token using environment variables.
  * @param {string} identity The identity to vend the token with.
+ * @param {'call'  | 'preflightTest'} suite The suite to vend the token for.
  * @throws {Error} Will throw if any required environment variable is missing or
  * if the identity is invalid.
  * @returns {AccessToken}
  */
-function generateToken(identity) {
+function generateToken(identity, suite) {
   if (typeof identity !== 'string') {
     throw new Error('Identity not of type "string".');
   }
@@ -24,7 +25,10 @@ function generateToken(identity) {
   const accountSid = parseEnvVar('ACCOUNT_SID');
   const apiKeySid = parseEnvVar('API_KEY_SID');
   const apiKeySecret = parseEnvVar('API_KEY_SECRET');
-  const outgoingApplicationSid = parseEnvVar('OUTGOING_APPLICATION_SID');
+  const outgoingApplicationSid =
+    suite === 'preflightTest'
+      ? parseEnvVar('PREFLIGHT_OUTGOING_APPLICATION_SID')
+      : parseEnvVar('OUTGOING_APPLICATION_SID');
   const pushCredentialSid = parseEnvVar('PUSH_CREDENTIAL_SID');
 
   const accessToken = new AccessToken(accountSid, apiKeySid, apiKeySecret, {
@@ -55,8 +59,8 @@ function templateAccessToken(accessToken) {
  * Main function. Executed on script start.
  */
 function main() {
-  const { identity, path } = parseScriptArgument();
-  const accessToken = generateToken(identity);
+  const { identity, suite, path } = parseScriptArgument();
+  const accessToken = generateToken(identity, suite);
   const accessTokenJwt = accessToken.toJwt();
   const templatedAccessTokenJwt = templateAccessToken(accessTokenJwt);
   writeFileSync(path, templatedAccessTokenJwt, {
