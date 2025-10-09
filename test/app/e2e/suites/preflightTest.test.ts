@@ -182,6 +182,22 @@ const emptyReport = {
   warningsCleared: [],
 };
 
+const emptySample = {
+  audioInputLevel: 0,
+  audioOutputLevel: 0,
+  bytesReceived: 0,
+  bytesSent: 0,
+  codec: '',
+  jitter: 0,
+  mos: 0,
+  packetsLost: 0,
+  packetsLostFraction: 0,
+  packetsReceived: 0,
+  packetsSent: 0,
+  rtt: 0,
+  timestamp: 0,
+};
+
 describe('preflightTest', () => {
   beforeAll(async () => {
     await device.launchApp();
@@ -426,10 +442,15 @@ describe('preflightTest', () => {
 
     describe('public methods', () => {
       describe('stopped preflightTest', () => {
+        let startTime: number;
+        let endTime: number;
+
         beforeAll(async () => {
           await device.reloadReactNative();
           await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
+
+          startTime = Date.now();
 
           await element(by.text('START PREFLIGHT')).tap();
 
@@ -438,6 +459,8 @@ describe('preflightTest', () => {
           const connectedEventRegExp = /^(preflight test connected)$/;
           const connectedEvent = await getRegExpMatch(connectedEventRegExp);
           jestExpect(connectedEvent).toEqual('preflight test connected');
+
+          endTime = Date.now();
 
           await element(by.text('STOP PREFLIGHT')).tap();
 
@@ -499,28 +522,60 @@ describe('preflightTest', () => {
 
           const report = JSON.parse(getReportStr!);
           jestExpect(report).toEqual(emptyReport);
+        });
+
+        it('should get a valid start time', async () => {
+          await element(by.text('GETSTARTTIME')).tap();
+
+          const getStartTimeRegExp = /^preflight test getStartTime "(.*)"$/;
+          const getStartTimeStr = await getRegExpMatch(getStartTimeRegExp);
+          jestExpect(typeof getStartTimeStr).toEqual('string');
+
+          const getStartTime = Number(getStartTimeStr);
+          jestExpect(getStartTime).not.toBeNaN();
+
+          const timeGap = Math.abs(startTime - getStartTime);
+          jestExpect(timeGap).toBeGreaterThan(0);
+          jestExpect(timeGap).toBeLessThan(10000);
+        });
+
+        it('should get a valid end time', async () => {
+          await element(by.text('GETENDTIME')).tap();
+
+          const getEndTimeRegExp = /^preflight test getEndTime "(.*)"$/;
+          const getEndTimeStr = await getRegExpMatch(getEndTimeRegExp);
+          jestExpect(typeof getEndTimeStr).toEqual('string');
+
+          const getEndTime = Number(getEndTimeStr);
+          jestExpect(getEndTime).not.toBeNaN();
+
+          const timeGap = Math.abs(endTime - getEndTime);
+          jestExpect(timeGap).toBeGreaterThan(0);
+          jestExpect(timeGap).toBeLessThan(10000);
+        });
+
+        it('should get a valid callsid', async () => {
+          await element(by.text('GETCALLSID')).tap();
+
+          const getCallSidRegExp = /^preflight test getCallSid "(CA.*)"$/;
+          const getCallSid = await getRegExpMatch(getCallSidRegExp);
+          expectNonEmptyString(getCallSid);
         });
       });
 
       describe('invalid token preflightTest', () => {
+        let startTime: number;
+
         beforeAll(async () => {
           await device.reloadReactNative();
           await element(by.text('PREFLIGHT TEST SUITE')).tap();
           await element(by.text('TOGGLE LOG FORMAT')).tap();
 
-          await element(by.text('START PREFLIGHT')).tap();
+          startTime = Date.now();
+
+          await element(by.text('INVALID PREFLIGHT')).tap();
 
           await new Promise((r) => setTimeout(r, 5000));
-
-          const connectedEventRegExp = /^(preflight test connected)$/;
-          const connectedEvent = await getRegExpMatch(connectedEventRegExp);
-          jestExpect(connectedEvent).toEqual('preflight test connected');
-
-          await element(by.text('STOP PREFLIGHT')).tap();
-
-          const stoppedEventRegExp = /^(preflight test stopped)$/;
-          const stoppedEvent = await getRegExpMatch(stoppedEventRegExp);
-          jestExpect(stoppedEvent).toEqual('preflight test stopped');
 
           const failedEventRegExp = /^preflight test failed "(.*)"$/;
           const failedEvent = await getRegExpMatch(failedEventRegExp);
@@ -556,7 +611,7 @@ describe('preflightTest', () => {
           jestExpect(isStateFailed).toEqual(true);
         });
 
-        it('should get a valid sample', async () => {
+        it('should get a valid empty sample', async () => {
           await element(by.text('GETLATESTSAMPLE')).tap();
 
           const getSampleRegExp = /^preflight test getLatestSample "(.*)"$/;
@@ -564,7 +619,7 @@ describe('preflightTest', () => {
           jestExpect(typeof getSampleStr).toEqual('string');
 
           const sample = JSON.parse(getSampleStr!);
-          expectSample(sample);
+          jestExpect(sample).toEqual(emptySample);
         });
 
         it('should get an empty report', async () => {
@@ -576,6 +631,41 @@ describe('preflightTest', () => {
 
           const report = JSON.parse(getReportStr!);
           jestExpect(report).toEqual(emptyReport);
+        });
+
+        it('should get a valid start time', async () => {
+          await element(by.text('GETSTARTTIME')).tap();
+
+          const getStartTimeRegExp = /^preflight test getStartTime "(.*)"$/;
+          const getStartTimeStr = await getRegExpMatch(getStartTimeRegExp);
+          jestExpect(typeof getStartTimeStr).toEqual('string');
+
+          const getStartTime = Number(getStartTimeStr);
+          jestExpect(getStartTime).not.toBeNaN();
+
+          const timeGap = Math.abs(startTime - getStartTime);
+          jestExpect(timeGap).toBeGreaterThan(0);
+          jestExpect(timeGap).toBeLessThan(10000);
+        });
+
+        it('should get a zero end time', async () => {
+          await element(by.text('GETENDTIME')).tap();
+
+          const getEndTimeRegExp = /^preflight test getEndTime "(.*)"$/;
+          const getEndTimeStr = await getRegExpMatch(getEndTimeRegExp);
+          jestExpect(typeof getEndTimeStr).toEqual('string');
+
+          const getEndTime = Number(getEndTimeStr);
+          jestExpect(getEndTime).toEqual(0);
+        });
+
+        it('should get an empty callsid', async () => {
+          await element(by.text('GETCALLSID')).tap();
+
+          const getCallSidRegExp = /^preflight test getCallSid "(.*)"$/;
+          const getCallSid = await getRegExpMatch(getCallSidRegExp);
+          jestExpect(typeof getCallSid).toEqual('string');
+          jestExpect(getCallSid).toHaveLength(0);
         });
       });
 
