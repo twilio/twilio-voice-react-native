@@ -1,0 +1,13 @@
+diff --git a/react-native.config.js b/react-native.config.js
+new file mode 100644
+index 00000000..22b2e13d
+--- /dev/null
++++ b/react-native.config.js
+@@ -0,0 +1,7 @@
++module.exports = {
++  dependency: {
++    platforms: {
++      android: null,
++    },
++  },
++};
