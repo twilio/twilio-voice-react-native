@@ -1,0 +1,228 @@
+diff --git a/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt b/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt
+new file mode 100644
+index 00000000..6af8651a
+--- /dev/null
++++ b/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt
+@@ -0,0 +1,222 @@
++package com.twiliovoicereactnative
++
++import android.util.Log
++import android.util.Pair
++import com.facebook.react.bridge.WritableMap
++import com.google.android.gms.tasks.OnCompleteListener
++import com.google.android.gms.tasks.Task
++import com.google.firebase.messaging.FirebaseMessaging
++import com.twilio.voice.ConnectOptions
++import com.twilio.voice.PreflightTest
++import com.twilio.voice.PreflightOptions
++import com.twilio.voice.RegistrationException
++import com.twilio.voice.RegistrationListener
++import com.twilio.voice.UnregistrationListener
++import com.twilio.voice.Voice
++import com.twiliovoicereactnative.CommonConstants.ScopeVoice
++import com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError
++import com.twiliovoicereactnative.CommonConstants.VoiceEventError
++import com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered
++import com.twiliovoicereactnative.CommonConstants.VoiceEventType
++import com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered
++import com.twiliovoicereactnative.JSEventEmitter.constructJSMap
++import expo.modules.kotlin.Promise
++import expo.modules.kotlin.exception.CodedException
++import expo.modules.kotlin.exception.toCodedException
++import expo.modules.kotlin.modules.Module
++import expo.modules.kotlin.modules.ModuleDefinition
++import java.util.UUID
++
++
++class ExpoModule : Module() {
++  private val TAG: String = "TwilioVoiceExpoModule"
++
++  override fun definition() = ModuleDefinition {
++    Name("TwilioVoiceExpo")
++
++    Function("voice_getVersion") {
++      return@Function Voice.getVersion()
++    }
++
++    AsyncFunction("voice_connect_android") {
++      accessToken: String,
++      promise: Promise ->
++
++      val parsedTwimlParams: HashMap<String, String> = HashMap<String, String>()
++      val callRecipient: String = "Call Recipient Placeholder"
++      val notificationDisplayName: String = "Notification Display Name Placeholder"
++
++      val uuid: UUID = UUID.randomUUID()
++      val connectOptions: ConnectOptions = ConnectOptions.Builder(accessToken)
++        .enableDscp(true)
++        .params(parsedTwimlParams)
++        .callMessageListener(CallMessageListenerProxy())
++        .build()
++      try {
++        val callListenerProxy: CallListenerProxy = CallListenerProxy(
++          uuid,
++          VoiceApplicationProxy.getVoiceServiceApi().serviceContext
++        )
++
++        val callRecord: CallRecordDatabase.CallRecord = CallRecordDatabase.CallRecord(
++          uuid,
++          VoiceApplicationProxy.getVoiceServiceApi().connect(
++            connectOptions,
++            callListenerProxy
++          ),
++          callRecipient,
++          parsedTwimlParams,
++          CallRecordDatabase.CallRecord.Direction.OUTGOING,
++          notificationDisplayName
++        )
++
++        VoiceApplicationProxy.getCallRecordDatabase().add(callRecord)
++
++        promise.resolve(ReactNativeArgumentsSerializer.serializeCall(callRecord))
++      } catch (error: SecurityException) {
++        promise.reject(error.toCodedException())
++      }
++    }
++
++    AsyncFunction("voice_runPreflight") {
++      accessToken: String,
++      promise: Promise ->
++
++      val uuid: UUID = UUID.randomUUID()
++
++      val preflightOptions: PreflightOptions = PreflightOptions.Builder(accessToken)
++        .build()
++
++      val context = appContext.reactContext
++
++      if (context == null) {
++        promise.reject(CodedException("context is null"))
++        return@AsyncFunction
++      }
++
++      val preflightTest: PreflightTest = Voice.runPreflight(
++        context,
++        preflightOptions,
++        PreflightTestListenerProxy(uuid)
++      )
++      VoiceApplicationProxy.getPreflightTestRecordDatabase().setRecord(uuid, preflightTest)
++      promise.resolve(uuid.toString())
++    }
++
++    AsyncFunction("voice_register") {
++      accessToken: String,
++      promise: Promise ->
++
++      FirebaseMessaging.getInstance().getToken()
++        .addOnCompleteListener(OnCompleteListener { task: Task<String?>? ->
++          if (!task!!.isSuccessful()) {
++            val warningMsg: String = appContext
++              .reactContext
++              ?.getString(
++                R.string.fcm_token_registration_fail,
++                task.getException()
++              )
++              .orEmpty()
++
++            Log.e(TAG, warningMsg)
++            promise.reject(CodedException(warningMsg))
++
++            return@OnCompleteListener
++          }
++          // Get new FCM registration token
++          val fcmToken = task.getResult()
++
++          if (fcmToken == null) {
++            val warningMsg: String = appContext
++              .reactContext
++              ?.getString(R.string.fcm_token_null)
++              .orEmpty()
++
++            Log.e(TAG, warningMsg)
++            promise.reject(CodedException(warningMsg))
++
++            return@OnCompleteListener
++          }
++
++          // Log and toast
++          Log.d(TAG, "Registering with FCM with token " + fcmToken)
++          val registrationListener = createRegistrationListener(promise)
++          Voice.register(accessToken, Voice.RegistrationChannel.FCM, fcmToken, registrationListener)
++        })
++    }
++  }
++
++  private fun sendJSEvent(event: WritableMap) {
++    VoiceApplicationProxy.getJSEventEmitter().sendEvent(ScopeVoice, event)
++  }
++
++  private fun createRegistrationListener(promise: Promise): RegistrationListener {
++    return object : RegistrationListener {
++      override fun onRegistered(accessToken: String, fcmToken: String) {
++        Log.d(TAG, "Successfully registered FCM")
++        sendJSEvent(constructJSMap(Pair(VoiceEventType, VoiceEventRegistered)))
++        promise.resolve(null)
++      }
++
++      override fun onError(
++        registrationException: RegistrationException,
++        accessToken: String,
++        fcmToken: String
++      ) {
++        val errorMessage: String = appContext.reactContext?.getString(
++            R.string.registration_error,
++            registrationException.getErrorCode(),
++            registrationException.message
++        ).orEmpty()
++        Log.e(TAG, errorMessage)
++
++        sendJSEvent(
++          JSEventEmitter.constructJSMap(
++            Pair(VoiceEventType, VoiceEventError),
++            Pair(
++              VoiceErrorKeyError,
++              ReactNativeArgumentsSerializer.serializeVoiceException(registrationException)
++            )
++          )
++        )
++
++        promise.reject(CodedException(errorMessage))
++      }
++    }
++  }
++
++  private fun createUnregistrationListener(promise: Promise): UnregistrationListener {
++    return object : UnregistrationListener {
++      override fun onUnregistered(accessToken: String?, fcmToken: String?) {
++        Log.d(TAG, "Successfully unregistered FCM")
++        sendJSEvent(constructJSMap(Pair(VoiceEventType, VoiceEventUnregistered)))
++        promise.resolve(null)
++      }
++
++      override fun onError(
++        registrationException: RegistrationException,
++        accessToken: String?,
++        fcmToken: String?
++      ) {
++        val errorMessage: String = appContext.reactContext?.getString(
++          R.string.unregistration_error,
++          registrationException.getErrorCode(),
++          registrationException.message
++        ).orEmpty()
++        Log.e(TAG, errorMessage)
++
++        sendJSEvent(
++          JSEventEmitter.constructJSMap(
++            Pair(VoiceEventType, VoiceEventError),
++            Pair(
++              VoiceErrorKeyError,
++              ReactNativeArgumentsSerializer.serializeVoiceException(registrationException)
++            )
++          )
++        )
++
++        promise.reject(CodedException(errorMessage))
++      }
++    }
++  }
++}
