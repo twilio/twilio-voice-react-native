@@ -29,8 +29,8 @@ file.
 ```
 
 Consider modifying the `"NSMicrophoneUsageDescription"` string value for your
-use case and setting the APS environment to `"production"` for production
-builds.
+use case and setting the `"aps-environment"` value to `"production"` for
+production builds.
 
 ### Android
 
