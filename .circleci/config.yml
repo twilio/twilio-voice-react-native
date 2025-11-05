@@ -45,6 +45,13 @@ commands:
       - attach_workspace:
           at: ~/project
 
+  enable-corepack:
+    steps:
+      - run:
+          name: Enable corepack
+          command: |
+            corepack enable
+
   install-dependencies:
     steps:
       - run:
@@ -160,6 +167,7 @@ jobs:
     steps:
       - checkout
       - attach_project
+      - enable-corepack
       - restore_cache:
           keys:
             - dependencies-{{ checksum "package.json" }}
@@ -183,6 +191,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Lint files
           command: |
@@ -192,6 +201,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Typecheck files
           command: |
@@ -201,6 +211,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Run unit tests
           command: |
@@ -213,6 +224,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build package
           command: |
@@ -222,6 +234,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build docs and check for API changes
           command: |
@@ -232,6 +245,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build errors and check for changes
           command: |
@@ -247,6 +261,7 @@ jobs:
         default: true
     steps:
       - checkout
+      - enable-corepack
       - install-dependencies
       - when:
           condition: << parameters.dry-run >>
@@ -268,6 +283,7 @@ jobs:
         type: string
     steps:
       - checkout
+      - enable-corepack
       - install-dependencies
       - generate-client-identity
       - setup-e2e-creds
@@ -296,6 +312,7 @@ jobs:
       - android/change-java-version:
           java-version: 17
       - checkout
+      - enable-corepack
       - install-dependencies
       - generate-client-identity
       - setup-e2e-creds
