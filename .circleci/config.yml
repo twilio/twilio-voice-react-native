@@ -29,7 +29,7 @@ parameters:
 executors:
   default:
     docker:
-      - image: cimg/node:18.19
+      - image: cimg/node:22.21
     working_directory: ~/project
   ios-executor:
     macos:
@@ -51,7 +51,6 @@ commands:
           name: Install dependencies
           command: |
             yarn run build:constants
-            cd test/TwilioVoiceExampleNewArch && npm ci && cd ../..
             yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
             yarn run build:errors
