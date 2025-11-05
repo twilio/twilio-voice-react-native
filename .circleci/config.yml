@@ -50,7 +50,7 @@ commands:
       - run:
           name: Enable corepack
           command: |
-            corepack enable
+            sudo corepack enable
 
   install-dependencies:
     steps:
