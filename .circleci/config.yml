@@ -60,7 +60,7 @@ commands:
             yarn install --frozen-lockfile
             yarn run build:constants
             yarn run build:errors
-            yarn install --cwd test/app --frozen-lockfile
+            yarn --cwd test/app install --frozen-lockfile
 
   setup-pods:
     description: Setup pods used for ios builds
