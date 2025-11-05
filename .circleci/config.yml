@@ -304,7 +304,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
-      tag: 2024.04.1
+      tag: 2025.10.1
     parameters:
       detox_configuration:
         type: string
