@@ -312,7 +312,10 @@ jobs:
       - android/change-java-version:
           java-version: 17
       - checkout
-      - enable-corepack
+      - run:
+          name: Enable corepack (without sudo)
+          command: |
+            corepack enable
       - install-dependencies
       - generate-client-identity
       - setup-e2e-creds
