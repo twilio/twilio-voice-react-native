@@ -57,10 +57,10 @@ commands:
       - run:
           name: Install dependencies
           command: |
-            yarn run build:constants
-            yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
+            yarn run build:constants
             yarn run build:errors
+            yarn install --cwd test/app --frozen-lockfile
 
   setup-pods:
     description: Setup pods used for ios builds
