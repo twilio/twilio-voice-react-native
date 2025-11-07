@@ -29,7 +29,7 @@ parameters:
 executors:
   default:
     docker:
-      - image: cimg/node:18.19
+      - image: cimg/node:22.21
     working_directory: ~/project
   ios-executor:
     macos:
@@ -45,16 +45,22 @@ commands:
       - attach_workspace:
           at: ~/project
 
+  enable-corepack:
+    steps:
+      - run:
+          name: Enable corepack
+          command: |
+            sudo corepack enable
+
   install-dependencies:
     steps:
       - run:
           name: Install dependencies
           command: |
-            yarn run build:constants
-            cd test/TwilioVoiceExampleNewArch && npm ci && cd ../..
-            yarn install --cwd test/app --frozen-lockfile
             yarn install --frozen-lockfile
+            yarn run build:constants
             yarn run build:errors
+            yarn --cwd test/app install --frozen-lockfile
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -161,6 +167,7 @@ jobs:
     steps:
       - checkout
       - attach_project
+      - enable-corepack
       - restore_cache:
           keys:
             - dependencies-{{ checksum "package.json" }}
@@ -184,6 +191,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Lint files
           command: |
@@ -193,6 +201,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Typecheck files
           command: |
@@ -202,6 +211,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Run unit tests
           command: |
@@ -214,6 +224,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build package
           command: |
@@ -223,6 +234,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build docs and check for API changes
           command: |
@@ -233,6 +245,7 @@ jobs:
     executor: default
     steps:
       - attach_project
+      - enable-corepack
       - run:
           name: Build errors and check for changes
           command: |
@@ -248,6 +261,7 @@ jobs:
         default: true
     steps:
       - checkout
+      - enable-corepack
       - install-dependencies
       - when:
           condition: << parameters.dry-run >>
@@ -269,6 +283,7 @@ jobs:
         type: string
     steps:
       - checkout
+      - enable-corepack
       - install-dependencies
       - generate-client-identity
       - setup-e2e-creds
@@ -289,7 +304,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
-      tag: 2024.04.1
+      tag: 2025.10.1
     parameters:
       detox_configuration:
         type: string
@@ -297,6 +312,10 @@ jobs:
       - android/change-java-version:
           java-version: 17
       - checkout
+      - run:
+          name: Enable corepack (without sudo)
+          command: |
+            corepack enable
       - install-dependencies
       - generate-client-identity
       - setup-e2e-creds
