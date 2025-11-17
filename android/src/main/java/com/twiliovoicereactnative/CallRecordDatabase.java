@@ -13,7 +13,6 @@ import java.util.Map;
 
 import androidx.annotation.NonNull;
 
-import com.facebook.react.bridge.Promise;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 import com.twilio.voice.CallInvite;
@@ -32,8 +31,8 @@ class CallRecordDatabase  {
     private CallInvite callInvite = null;
     private CallInviteState callInviteState = NONE;
     private CancelledCallInvite cancelledCallInvite = null;
-    private Promise callAcceptedPromise = null;
-    private Promise callRejectedPromise = null;
+    private ModuleProxy.UniversalPromise callAcceptedPromise = null;
+    private ModuleProxy.UniversalPromise callRejectedPromise = null;
     private CallException callException = null;
     private Map<String, String> customParameters = null;
     private String notificationDisplayName = null;
@@ -103,16 +102,18 @@ class CallRecordDatabase  {
     public CancelledCallInvite getCancelledCallInvite() {
       return this.cancelledCallInvite;
     }
-    public Promise getCallAcceptedPromise() {
+    public ModuleProxy.UniversalPromise getCallAcceptedPromise() {
       return this.callAcceptedPromise;
     }
-    public Promise getCallRejectedPromise() {
+    public ModuleProxy.UniversalPromise getCallRejectedPromise() {
       return this.callRejectedPromise;
     }
     public CallException getCallException() {
       return this.callException;
     }
-    public String getCallRecipient() { return this.callRecipient; }
+    public String getCallRecipient() {
+      return this.callRecipient;
+    }
     public void setNotificationId(int notificationId) {
       this.notificationId = notificationId;
     }
@@ -124,7 +125,9 @@ class CallRecordDatabase  {
       this.voiceCall = voiceCall;
     }
     public void setCallInviteUsedState() {
-      this.callInviteState = (this.callInviteState == ACTIVE) ? USED : this.callInviteState;
+      this.callInviteState = this.callInviteState == ACTIVE
+        ? USED
+        : this.callInviteState;
     }
     public void setCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite) {
       this.callSid = cancelledCallInvite.getCallSid();
@@ -132,10 +135,10 @@ class CallRecordDatabase  {
       this.callInvite = null;
       this.callInviteState = NONE;
     }
-    public void setCallAcceptedPromise(@NonNull Promise callAcceptedPromise) {
+    public void setCallAcceptedPromise(@NonNull ModuleProxy.UniversalPromise callAcceptedPromise) {
       this.callAcceptedPromise = callAcceptedPromise;
     }
-    public void setCallRejectedPromise(@NonNull Promise callRejectedPromise) {
+    public void setCallRejectedPromise(@NonNull ModuleProxy.UniversalPromise callRejectedPromise) {
       this.callRejectedPromise = callRejectedPromise;
     }
     public void setCallException(CallException callException) {
