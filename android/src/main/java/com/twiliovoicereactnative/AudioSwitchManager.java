@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyEarpiece;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySpeaker;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyBluetooth;
@@ -69,6 +70,7 @@ class AudioSwitchManager {
   }
 
   public void start() {
+    twilioVoiceLogInvoke("AudioSwitchManager start");
     audioSwitch.start((devices, selectedDevice) -> {
 
       audioDevices.clear();
@@ -88,6 +90,7 @@ class AudioSwitchManager {
   }
 
   public void stop() {
+    twilioVoiceLogInvoke("AudioSwitchManager stop");
     audioSwitch.stop();
   }
 

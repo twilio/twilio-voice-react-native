@@ -52,7 +52,10 @@ import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallInvite;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -183,6 +186,18 @@ class ReactNativeArgumentsSerializer {
         new Pair<>(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.get(type)));
     }
     return null;
+  }
+
+  public static Map<String, String> serializeAudioDeviceToMap(@Nullable AudioDevice audioDevice) {
+    if (audioDevice == null) return null;
+
+    String type = audioDevice.getClass().getSimpleName();
+
+    Map<String, String> result = new HashMap<>();
+    result.put(AudioDeviceKeyName, audioDevice.getName());
+    result.put(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.get(type));
+
+    return result;
   }
 
   /**

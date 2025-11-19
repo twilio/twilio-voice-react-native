@@ -1,5 +1,7 @@
 package com.twiliovoicereactnative;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
+
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageFailure;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageReceived;
 import static com.twiliovoicereactnative.CommonConstants.CallEventMessageSent;
@@ -41,6 +43,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   @Override
   public void onMessageFailure(String callSid, String voiceEventSID, VoiceException voiceException) {
     logger.debug("onMessageFailure");
+    twilioVoiceLogInvoke("CallMessageListenerProxy onMessageFailure");
 
     // notify JS layer
     sendJSEvent(
@@ -55,6 +58,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   @Override
   public void onMessageSent(String callSid, String voiceEventSID) {
     logger.debug("onMessageSent");
+    twilioVoiceLogInvoke("CallMessageListenerProxy onMessageSent");
 
     // notify JS layer
     sendJSEvent(
@@ -67,6 +71,7 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   @Override
   public void onMessageReceived(String callSid, CallMessage callMessage) {
     logger.debug("onMessageReceived");
+    twilioVoiceLogInvoke("CallMessageListenerProxy onMessageReceived");
 
     //final call record
     final CallRecord callRecord =

@@ -1,5 +1,8 @@
 package com.twiliovoicereactnative;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.mgoCallInfoLog;
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
+
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 
@@ -27,6 +30,8 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onCallInvite(@NonNull CallInvite callInvite) {
       logger.log(String.format("onCallInvite %s", callInvite.getCallSid()));
+      mgoCallInfoLog("call invite received", "twilio_voice_call_invite_received", null, null,
+        callInvite.getCallSid());
 
       final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
@@ -38,6 +43,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
     public void onCancelledCallInvite(@NonNull CancelledCallInvite cancelledCallInvite,
                                       @Nullable CallException callException) {
       logger.log(String.format("onCancelledCallInvite %s", cancelledCallInvite.getCallSid()));
+      twilioVoiceLogInvoke("VoiceFirebaseMessagingService onCancelledCallInvite");
 
       CallRecord callRecord = Objects.requireNonNull(
         getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));

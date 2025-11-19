@@ -11,6 +11,7 @@
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
 #import "TwilioVoiceStatsReport.h"
+#import <MoegoLogger/MGOTwilioVoiceHelper.h>
 
 NSString * const kTwilioVoiceReactNativeVoiceError = @"Voice error";
 dispatch_time_t const kPushRegistryDeviceTokenRetryTimeout = 3;
@@ -272,8 +273,18 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 }
 
 - (BOOL)selectAudioDevice:(NSString *)uuid {
+    TwilioVoiceLogInvoke();
     if (!self.audioDevices[uuid]) {
         NSLog(@"No matching audio device found for %@", uuid);
+        NSString *msg = [NSString stringWithFormat:@"No matching audio device found for %@", uuid];
+        NSLog(@"%@", msg);
+        MGOLogEvent *event = [MGOLogEvent errorWithMessage:msg
+                                                   eventId:@"twilio_voice_select_audio_device_failure"
+                                                    params:@{@"uuid": uuid}
+                                                     error:msg
+                                                   context:self.audioDevices
+                                                       tag:kTwilioVoiceLoggerTag];
+        [MGOLogger logEvent: event];
         return NO;
     }
 
@@ -281,7 +292,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     NSString *portUid = device[kTwilioVoiceAudioDeviceUid];
     NSString *portType = device[kTwilioVoiceReactNativeAudioDeviceKeyType];
 
-    NSLog(@"Selecting %@(%@), %@", device[kTwilioVoiceReactNativeAudioDeviceKeyName], device[kTwilioVoiceReactNativeAudioDeviceKeyType], device[kTwilioVoiceAudioDeviceUid]);
+    NSString *msg = [NSString stringWithFormat:@"Selecting %@(%@), %@", device[kTwilioVoiceReactNativeAudioDeviceKeyName], device[kTwilioVoiceReactNativeAudioDeviceKeyType], device[kTwilioVoiceAudioDeviceUid]];
+    NSLog(@"%@", msg);
 
     AVAudioSessionPortDescription *portDescription = nil;
     if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyEarpiece]) {
@@ -295,6 +307,13 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         if (!portDescription) {
             NSLog(@"Built-in mic not found");
+            MGOLogEvent *event = [MGOLogEvent errorWithMessage:@"Built-in mic not found"
+                                                       eventId:@"twilio_voice_select_audio_device_failure"
+                                                        params:device
+                                                         error:@"Built-in mic not found"
+                                                       context:nil
+                                                        tag:kTwilioVoiceLoggerTag];
+            [MGOLogger logEvent: event];
             return NO;
         }
     } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyBluetooth]) {
@@ -307,7 +326,15 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         }
 
         if (!portDescription) {
-            NSLog(@"Bluetooth device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
+            NSString *msg = [NSString stringWithFormat:@"Bluetooth device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]];
+            NSLog(@"%@", msg);
+            MGOLogEvent *event = [MGOLogEvent errorWithMessage:msg
+                                                       eventId:@"twilio_voice_select_audio_device_failure"
+                                                        params:device
+                                                         error:msg
+                                                       context:nil
+                                                        tag:kTwilioVoiceLoggerTag];
+            [MGOLogger logEvent: event];
             return NO;
         }
     }
@@ -316,7 +343,15 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     NSError *inputError;
     [[AVAudioSession sharedInstance] setPreferredInput:portDescription error:&inputError];
     if (inputError) {
-        NSLog(@"Failed to set preferred input: %@", inputError);
+        NSString *msg = [NSString stringWithFormat:@"Failed to set preferred input: %@", inputError];
+        NSLog(@"%@", msg);
+        MGOLogEvent *event = [MGOLogEvent errorWithMessage:@"Failed to set preferred input"
+                                                   eventId:@"twilio_voice_select_audio_device_failure"
+                                                    params:device
+                                                     error:inputError
+                                                   context:nil
+                                                    tag:kTwilioVoiceLoggerTag];
+        [MGOLogger logEvent: event];
         return NO;
     }
 
@@ -324,13 +359,38 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeySpeaker]) {
         AVAudioSessionPortOverride outputOverride = AVAudioSessionPortOverrideSpeaker;
         NSError *outputError;
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
+                    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
+                          error:&outputError];
+        if (outputError) {
+            NSLog(@"Failed to set categoryPlayAndRecord : %@", outputError);
+            outputError = nil;
+        }
         [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
         if (outputError) {
             NSLog(@"Failed to override output port: %@", outputError);
+            NSString *msg = [NSString stringWithFormat:@"Failed to override output port: %@", outputError];
+            NSLog(@"%@", msg);
+            MGOLogEvent *event = [MGOLogEvent errorWithMessage:@"Failed to override output port"
+                                                       eventId:@"twilio_voice_select_audio_device_failure"
+                                                        params:device
+                                                         error:outputError
+                                                       context:nil
+                                                           tag:kTwilioVoiceLoggerTag];
+            [MGOLogger logEvent: event];
             return NO;
         }
     }
 
+    MGOLogEvent *event = [MGOLogEvent infoWithMessage:@"select audio device success"
+                                              eventId:@"twilio_voice_select_audio_device_success"
+                                               params:device
+                                               result:nil
+                                              context:nil
+                                                  tag:kTwilioVoiceLoggerTag];
+    [MGOLogger logEvent: event];
+
+    [MGOTwilioVoiceHelper sendAudioStatusEvent];
     return YES;
 }
 
@@ -442,6 +502,7 @@ RCT_EXPORT_METHOD(voice_getVersion:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.deviceTokenData) {
         const char *tokenBytes = (const char *)[self.deviceTokenData bytes];
         NSMutableString *deviceTokenString = [NSMutableString string];
@@ -457,6 +518,7 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_initializePushRegistry:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     [self initializePushRegistry];
     resolve(nil);
 }
@@ -465,6 +527,7 @@ RCT_EXPORT_METHOD(voice_setCallKitConfiguration:(NSDictionary *)configuration
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     [self initializeCallKitWithConfiguration:configuration];
     resolve(nil);
 }
@@ -473,6 +536,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
 #if TARGET_IPHONE_SIMULATOR
     if (!self.deviceTokenData) {
         NSLog(@"Please note that PushKit and incoming call are not supported on simulators");
@@ -480,7 +544,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
-
+    
     if (self.registrationInProgress) {
         reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
         return;
@@ -498,18 +562,42 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                 if (error) {
                     NSString *errorMessage = [NSString stringWithFormat:@"Failed to register: %@", error];
                     NSLog(@"%@", errorMessage);
+                    MGOLogEvent *event = [MGOLogEvent errorWithMessage:errorMessage
+                                                               eventId:@"twilio_voice_register_failure"
+                                                                params:nil
+                                                                 error:error
+                                                               context:nil
+                                                                   tag:kTwilioVoiceLoggerTag];
+                    [MGOLogger logEvent: event];
+                    
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
                                               kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
                     reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
                 } else {
+                    MGOLogEvent *event = [MGOLogEvent infoWithMessage:@"register success"
+                                                              eventId:@"twilio_voice_register_success"
+                                                               params:nil
+                                                               result:nil
+                                                              context:nil
+                                                                  tag:kTwilioVoiceLoggerTag];
+                    [MGOLogger logEvent: event];
+                    
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventRegistered}];
                     resolve(nil);
                 }
             }];
         } else {
+            MGOLogEvent *event = [MGOLogEvent errorWithMessage:@"Failed to register: no pushKit device token"
+                                                       eventId:@"twilio_voice_register_failure"
+                                                        params:nil
+                                                         error:@"no pushKit device token"
+                                                       context:nil
+                                                           tag:kTwilioVoiceLoggerTag];
+            [MGOLogger logEvent: event];
+            
             self.registrationInProgress = NO;
             reject(kTwilioVoiceReactNativeVoiceError, @"Failed to initialize PushKit device token", nil);
         }
@@ -518,6 +606,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
 
 - (void)asyncPushRegistryInitialization:(dispatch_time_t)timeout
                              completion:(void(^)(NSData *deviceTokenData))completion {
+    TwilioVoiceLogInvoke();
     if (self.deviceTokenData) {
         completion(self.deviceTokenData);
         return;
@@ -540,6 +629,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
 #if TARGET_IPHONE_SIMULATOR
     if (!self.deviceTokenData) {
         NSLog(@"Please note that PushKit and incoming call are not supported on simulators");
@@ -547,7 +637,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
         self.deviceTokenData = [testDeviceToken dataUsingEncoding:NSUTF8StringEncoding];
     }
 #endif
-
+    
     if (self.registrationInProgress) {
         reject(kTwilioVoiceReactNativeVoiceError, @"Registration in progress. Please try again later", nil);
         return;
@@ -565,18 +655,42 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                 if (error) {
                     NSString *errorMessage = [NSString stringWithFormat:@"Failed to unregister: %@", error];
                     NSLog(@"%@", errorMessage);
+                    MGOLogEvent *event = [MGOLogEvent errorWithMessage:errorMessage
+                                                               eventId:@"twilio_voice_unregister_failure"
+                                                                params:nil
+                                                                 error:error
+                                                               context:nil
+                                                                   tag:kTwilioVoiceLoggerTag];
+                    [MGOLogger logEvent: event];
+                    
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
                                               kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
                     reject(kTwilioVoiceReactNativeVoiceError, errorMessage, nil);
                 } else {
+                    MGOLogEvent *event = [MGOLogEvent infoWithMessage:@"unregister success"
+                                                              eventId:@"twilio_voice_unregister_success"
+                                                               params:nil
+                                                               result:nil
+                                                              context:nil
+                                                                  tag:kTwilioVoiceLoggerTag];
+                    [MGOLogger logEvent: event];
+                    
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice
                                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventUnregistered}];
                     resolve(nil);
                 }
             }];
         } else {
+            MGOLogEvent *event = [MGOLogEvent errorWithMessage:@"Failed to unregister: no pushKit device token"
+                                                       eventId:@"twilio_voice_unregister_failure"
+                                                        params:nil
+                                                         error:@"no pushKit device token"
+                                                       context:nil
+                                                           tag:kTwilioVoiceLoggerTag];
+            [MGOLogger logEvent: event];
+            
             self.registrationInProgress = NO;
             reject(kTwilioVoiceReactNativeVoiceError, @"Failed to initialize PushKit device token", nil);
         }
@@ -589,6 +703,7 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle];
     self.callPromiseResolver = resolve;
 }
@@ -596,6 +711,7 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
 RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     NSMutableArray *callInfoArray = [NSMutableArray array];
     for (NSString *uuid in [self.callMap allKeys]) {
         TVOCall *call = self.callMap[uuid];
@@ -607,6 +723,7 @@ RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     NSMutableArray *callInviteInfoArray = [NSMutableArray array];
     for (NSString *uuid in [self.callInviteMap allKeys]) {
         TVOCallInvite *callInvite = self.callInviteMap[uuid];
@@ -618,6 +735,7 @@ RCT_EXPORT_METHOD(voice_getCallInvites:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(voice_getAudioDevices:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     NSMutableArray *nativeAudioDeviceInfos = [NSMutableArray array];
     for (NSString *key in [self.audioDevices allKeys]) {
         [nativeAudioDeviceInfos addObject:self.audioDevices[key]];
@@ -630,6 +748,7 @@ RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if ([self selectAudioDevice:uuid]) {
         resolve(nil);
     } else {
@@ -640,6 +759,7 @@ RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
 RCT_EXPORT_METHOD(voice_showNativeAvRoutePicker:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVRNAVRoutePickerView *routePicker = [[TVRNAVRoutePickerView alloc] initWithFrame:CGRectZero];
 
     UIWindow *window = [UIApplication sharedApplication].windows[0];
@@ -665,6 +785,7 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.callMap[uuid]) {
         [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
         resolve(nil);
@@ -677,6 +798,7 @@ RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     NSString *state = @"";
     if (call) {
@@ -690,6 +812,7 @@ RCT_EXPORT_METHOD(call_getSid:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     NSString *callSid = (call && call.state != TVOCallStateConnecting)? call.sid : @"";
 
@@ -700,6 +823,7 @@ RCT_EXPORT_METHOD(call_getFrom:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     NSString *from = (call && [call.from length] > 0)? call.from : @"";
 
@@ -710,6 +834,7 @@ RCT_EXPORT_METHOD(call_getTo:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     NSString *to = (call && [call.to length] > 0)? call.to : @"";
 
@@ -721,6 +846,7 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setOnHold:onHold];
@@ -734,6 +860,7 @@ RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         resolve(@(call.isOnHold));
@@ -747,6 +874,7 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call setMuted:muted];
@@ -760,6 +888,7 @@ RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         resolve(@(call.isMuted));
@@ -773,6 +902,7 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call sendDigits:digits];
@@ -788,6 +918,7 @@ RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call postFeedback:[self scoreFromString:score] issue:[self issueFromString:issue]];
@@ -801,6 +932,7 @@ RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCall *call = self.callMap[uuid];
     if (call) {
         [call getStatsWithBlock:^(NSArray<TVOStatsReport *> *statsReports) {
@@ -820,6 +952,7 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     TVOCallInvite *callInvite = self.callInviteMap[uuid];
     TVOCall *call = self.callMap[uuid];
     if (call) {
@@ -829,6 +962,7 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
             builder.contentType = contentType;
         }];
         NSString *voiceEventSid = [call sendMessage:callMessage];
+        
         resolve(voiceEventSid);
     } else if (callInvite) {
         TVOCallMessage *callMessage = [TVOCallMessage messageWithContent:content
@@ -850,6 +984,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:callInviteUuid]
                 completion:^(BOOL success) {
         if (success) {
@@ -875,6 +1010,7 @@ RCT_EXPORT_METHOD(callInvite_reject:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:callInviteUuid]];
     resolve(nil);
 }
@@ -883,6 +1019,7 @@ RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     resolve(@(YES));
 }
 
@@ -890,6 +1027,7 @@ RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.callInviteMap[callInviteUuid]) {
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.callSid);
@@ -902,6 +1040,7 @@ RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.callInviteMap[callInviteUuid]) {
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.from);
@@ -914,6 +1053,7 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.callInviteMap[callInviteUuid]) {
         TVOCallInvite *callInvite = self.callInviteMap[callInviteUuid];
         resolve(callInvite.to);
@@ -927,6 +1067,7 @@ RCT_EXPORT_METHOD(callInvite_updateCallerHandle:(NSString *)callInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.callInviteMap[callInviteUuid]) {
         [self updateCall:callInviteUuid callerHandle:handle];
         resolve(nil);
@@ -939,6 +1080,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)cancelledCallInvite
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.callSid);
@@ -951,6 +1093,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)cancelledCallInviteUui
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.from);
@@ -963,6 +1106,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuid
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     if (self.cancelledCallInviteMap[cancelledCallInviteUuid]) {
         TVOCancelledCallInvite *cancelledCallInvite = self.cancelledCallInviteMap[cancelledCallInviteUuid];
         resolve(cancelledCallInvite.to);
@@ -976,6 +1120,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)cancelledCallInviteUuid
 RCT_EXPORT_METHOD(util_generateId:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     resolve([NSUUID UUID].UUIDString);
 }
 
@@ -983,6 +1128,7 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+    TwilioVoiceLogInvoke();
     NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
     NSString *preferenceKey = @"incomingCallContactHandleTemplate";
     [preferences setObject:template forKey:preferenceKey];

@@ -9,6 +9,7 @@
 
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
+#import <MoegoLogger/MGOTwilioVoiceHelper.h>
 
 @interface TwilioVoiceReactNative (CallInvite) <TVONotificationDelegate>
 
@@ -17,6 +18,10 @@
 @implementation TwilioVoiceReactNative (CallInvite)
 
 - (void)callInviteReceived:(TVOCallInvite *)callInvite {
+    mgoCallInfoLog(@"call invite received", @"twilio_voice_call_invite_received", nil, nil, callInvite.callSid);
+    
+    [MGOTwilioVoiceHelper sendAudioStatusEvent];
+    
     self.callInviteMap[callInvite.uuid.UUIDString] = callInvite;
     
     [self reportNewIncomingCall:callInvite];
@@ -28,6 +33,7 @@
 }
 
 - (void)cancelledCallInviteReceived:(TVOCancelledCallInvite *)cancelledCallInvite error:(NSError *)error {
+    TwilioVoiceLogInvoke();
     NSString *uuid;
     for (NSString *uuidKey in [self.callInviteMap allKeys]) {
         TVOCallInvite *callInvite = self.callInviteMap[uuidKey];
@@ -38,6 +44,10 @@
     }
     NSAssert(uuid, @"No matching call invite");
     self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
+    
+    mgoCallInfoLog(@"call cancelled", @"twilio_voice_call_cancelled", nil, nil, cancelledCallInvite.callSid);
+    // 取消通话移除context
+    [MGOTwilioVoiceHelper removeIncomingContext:cancelledCallInvite.callSid];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
                        body:@{

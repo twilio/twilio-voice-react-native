@@ -1,5 +1,6 @@
 package com.twiliovoicereactnative;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
 import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 import java.util.List;
@@ -28,15 +29,18 @@ public class VoiceApplicationProxy {
   private final ServiceConnection voiceServiceObserver = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
+      twilioVoiceLogInvoke("VoiceApplicationProxy onServiceConnected");
       if (name.getClassName().equals(VoiceService.class.getName()))
         voiceServiceApi = (VoiceService.VoiceServiceAPI)service;
     }
     @Override
     public void onServiceDisconnected(ComponentName name) {
+      twilioVoiceLogInvoke("VoiceApplicationProxy onServiceDisconnected");
       voiceServiceApi = null;
     }
   };
   public abstract static class VoiceReactNativeHost extends ReactNativeHost {
+
     public VoiceReactNativeHost(Application application) {
       super(application);
     }
@@ -64,6 +68,7 @@ public class VoiceApplicationProxy {
     context = reactNativeHost.getAssociatedApplication();
   }
   public void onCreate() {
+    twilioVoiceLogInvoke("VoiceApplicationProxy onCreate");
     logger.debug("onCreate(..) invoked");
     // construct JS event engine
     jsEventEmitter = new JSEventEmitter();
@@ -80,6 +85,7 @@ public class VoiceApplicationProxy {
     audioSwitchManager.start();
   }
   public void onTerminate() {
+    twilioVoiceLogInvoke("VoiceApplicationProxy onTerminate");
     logger.debug("onTerminate(..) invoked");
     // shutdown notificaiton channels
     NotificationUtility.destroyNotificationChannels(context);

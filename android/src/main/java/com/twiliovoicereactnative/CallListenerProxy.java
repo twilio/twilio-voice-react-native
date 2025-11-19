@@ -6,10 +6,16 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.moego.logger.helper.MGOTwilioVoiceHelper;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.mgoCallErrorLog;
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.mgoCallInfoLog;
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
+import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.Direction.INCOMING;
 import static com.twiliovoicereactnative.CommonConstants.CallEventConnected;
 import static com.twiliovoicereactnative.CommonConstants.CallEventDisconnected;
 import static com.twiliovoicereactnative.CommonConstants.CallEventReconnected;
@@ -34,9 +40,11 @@ import static com.twiliovoicereactnative.ReactNativeArgumentsSerializer.*;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 import java.util.Date;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Collections;
 
 class CallListenerProxy implements Call.Listener {
   private static final SDKLog logger = new SDKLog(CallListenerProxy.class);
@@ -51,16 +59,23 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnectFailure(@NonNull Call call, @NonNull CallException callException) {
     debug("onConnectFailure");
+    twilioVoiceLogInvoke("CallListenerProxy onConnectFailure");
 
     // stop sound and routing
     getMediaPlayerManager().stop();
     getAudioSwitchManager().getAudioSwitch().deactivate();
 
-    // find call record & remove
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
+    // find & remove call record (fallback to Call when missing)
+    CallRecord callRecord = removeOrBuildRecord(call);
 
     // take down notification
     getVoiceServiceApi().cancelActiveCallNotification(callRecord);
+
+    if (callRecord.getDirection() == INCOMING) {
+      mgoCallErrorLog("call connect failure", "twilio_voice_call_connect_failure", null,
+              serializeVoiceException(callException), callRecord.getCallSid());
+    }
+    MGOTwilioVoiceHelper.removeIncomingContext(callRecord.getCallSid());
 
     // serialize and notify JS
     sendJSEvent(
@@ -73,10 +88,10 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onRinging(@NonNull Call call) {
     debug("onRinging");
+    twilioVoiceLogInvoke("CallListenerProxy onRinging");
 
-    // find call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
-    callRecord.setCall(call);
+    // find call record (fallback to Call when missing)
+    CallRecord callRecord = findOrBuildRecord(call);
 
     // create notification & sound
     callRecord.setNotificationId(NotificationUtility.createNotificationIdentifier());
@@ -94,12 +109,19 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onConnected(@NonNull Call call) {
     debug("onConnected");
+    twilioVoiceLogInvoke("CallListenerProxy onConnected");
 
-    // find call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
-    callRecord.setCall(call);
+    // find & update call record (fallback to Call when missing)
+    CallRecord callRecord = findOrBuildRecord(call);
+
     callRecord.setTimestamp(new Date());
     getMediaPlayerManager().stop();
+
+    if (callRecord.getDirection() == INCOMING) {
+      mgoCallInfoLog("call connect success", "twilio_voice_call_connect_success", null, null,
+              callRecord.getCallSid());
+    }
+    MGOTwilioVoiceHelper.sendAudioStatusEvent(context);
 
     // notify JS layer
     sendJSEvent(
@@ -111,9 +133,12 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onReconnecting(@NonNull Call call, @NonNull CallException callException) {
     debug("onReconnecting");
+    // find & update call record (fallback to Call when missing)
+    CallRecord callRecord = findOrBuildRecord(call);
 
-    // find & update call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    if (callRecord.getDirection() == INCOMING) {
+      mgoCallErrorLog("call reconnecting", "twilio_voice_call_reconnecting", null, serializeVoiceException(callException), callRecord.getCallSid());
+    }
 
     // notify JS layer
     sendJSEvent(
@@ -126,9 +151,12 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onReconnected(@NonNull Call call) {
     debug("onReconnected");
+    // find & update call record (fallback to Call when missing)
+    CallRecord callRecord = findOrBuildRecord(call);
 
-    // find & update call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    if (callRecord.getDirection() == INCOMING) {
+      mgoCallInfoLog("call reconnected", "twilio_voice_call_reconnected", null, null, callRecord.getCallSid());
+    }
 
     // notify JS layer
     sendJSEvent(
@@ -140,15 +168,26 @@ class CallListenerProxy implements Call.Listener {
   @Override
   public void onDisconnected(@NonNull Call call, @Nullable CallException callException) {
     debug("onDisconnected");
+    twilioVoiceLogInvoke("CallListenerProxy onDisconnected");
+    MGOTwilioVoiceHelper.sendAudioStatusEvent(context);
 
-    // find & remove call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().remove(new CallRecord(uuid)));
+    // find & remove call record (fallback to Call when missing)
+    CallRecord callRecord = removeOrBuildRecord(call);
 
     // stop audio & cancel notification
     getMediaPlayerManager().stop();
-    getMediaPlayerManager().play(MediaPlayerManager.SoundTable.DISCONNECT);
     getAudioSwitchManager().getAudioSwitch().deactivate();
+    getMediaPlayerManager().play(MediaPlayerManager.SoundTable.DISCONNECT);
     getVoiceServiceApi().cancelActiveCallNotification(callRecord);
+
+    if (callRecord.getDirection() == INCOMING) {
+      if (callException == null) {
+        mgoCallInfoLog("call disconnect success", "twilio_voice_call_disconnect_success", null, null, callRecord.getCallSid());
+      } else {
+        mgoCallErrorLog("call disconnect failure", "twilio_voice_call_disconnect_failure", null, null, callRecord.getCallSid());
+      }
+    }
+    MGOTwilioVoiceHelper.removeIncomingContext(callRecord.getCallSid());
 
     // notify JS layer
     sendJSEvent(
@@ -164,16 +203,18 @@ class CallListenerProxy implements Call.Listener {
                                            @NonNull Set<Call.CallQualityWarning> previousWarnings) {
     debug("onCallQualityWarningsChanged");
 
-    // find call record
-    CallRecord callRecord = Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(uuid)));
+    CallRecord callRecord = findOrBuildRecord(call);
 
-    // notify JS layer
+    WritableArray currentArray = serializeCallQualityWarnings(currentWarnings);
+    WritableArray previousArray = serializeCallQualityWarnings(previousWarnings);
+
+    // Notify JS
     sendJSEvent(
       constructJSMap(
         new Pair<>(VoiceEventType, CallEventQualityWarningsChanged),
         new Pair<>(JS_EVENT_KEY_CALL_INFO, serializeCall(callRecord)),
-        new Pair<>(CallEventCurrentWarnings, serializeCallQualityWarnings(currentWarnings)),
-        new Pair<>(CallEventPreviousWarnings, serializeCallQualityWarnings(previousWarnings))));
+        new Pair<>(CallEventCurrentWarnings, currentArray),
+        new Pair<>(CallEventPreviousWarnings, previousArray)));
   }
 
   private void sendJSEvent(@NonNull WritableMap event) {
@@ -182,5 +223,37 @@ class CallListenerProxy implements Call.Listener {
 
   private void debug(final String message) {
     logger.debug(String.format("%s UUID:%s", message, uuid.toString()));
+  }
+
+  // Helpers to safely fetch or remove CallRecord with fallback to Call fields when missing
+  private CallRecord buildFallbackRecordFromCall(@NonNull Call call) {
+    logger.warning("Building fallback CallRecord from Call for UUID:" + uuid);
+    return new CallRecord(
+      uuid,
+      call,
+      "",
+      Collections.<String, String>emptyMap(),
+      CallRecord.Direction.INCOMING,
+      null
+    );
+  }
+
+  private CallRecord findOrBuildRecord(@NonNull Call call) {
+    CallRecord rec = getCallRecordDatabase().get(new CallRecord(uuid));
+    if (rec == null) {
+      logger.warning("CallRecord not found for UUID:" + uuid + " (find), using fallback Call data");
+      return buildFallbackRecordFromCall(call);
+    }
+    rec.setCall(call);
+    return rec;
+  }
+
+  private CallRecord removeOrBuildRecord(@NonNull Call call) {
+    CallRecord rec = getCallRecordDatabase().remove(new CallRecord(uuid));
+    if (rec == null) {
+      logger.warning("CallRecord not found for UUID:" + uuid + " (remove), using fallback Call data");
+      return buildFallbackRecordFromCall(call);
+    }
+    return rec;
   }
 }

@@ -1,5 +1,7 @@
 package com.twiliovoicereactnative;
 
+import static com.moego.logger.helper.MGOTwilioVoiceHelperKt.twilioVoiceLogInvoke;
+
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -36,6 +38,7 @@ class MediaPlayerManager {
   }
 
   public void play(final SoundTable sound) {
+    twilioVoiceLogInvoke("MediaPlayerManager play");
     activeStream = soundPool.play(
       soundMap.get(sound),
       1.f,
@@ -46,6 +49,7 @@ class MediaPlayerManager {
   }
 
   public void stop() {
+    twilioVoiceLogInvoke("MediaPlayerManager stop");
     soundPool.stop(activeStream);
     activeStream = 0;
   }

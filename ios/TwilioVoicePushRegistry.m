@@ -12,6 +12,7 @@
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
+#import <MoegoLogger/MGOTwilioVoiceHelper.h>
 
 NSString * const kTwilioVoicePushRegistryNotification = @"TwilioVoicePushRegistryNotification";
 NSString * const kTwilioVoicePushRegistryEventType = @"type";
@@ -32,6 +33,7 @@ NSString * const kTwilioVoicePushRegistryNotificationIncomingPushPayload = @"inc
 #pragma mark - TwilioVoicePushRegistry methods
 
 - (void)updatePushRegistry {
+    TwilioVoiceLogInvoke();
     self.voipRegistry = [[PKPushRegistry alloc] initWithQueue:dispatch_get_main_queue()];
     self.voipRegistry.delegate = self;
     self.voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
@@ -54,6 +56,8 @@ didUpdatePushCredentials:(PKPushCredentials *)credentials
 didReceiveIncomingPushWithPayload:(PKPushPayload *)payload
              forType:(PKPushType)type
 withCompletionHandler:(void (^)(void))completion {
+    [MGOTwilioVoiceHelper setIncomingContext:payload.dictionaryPayload];
+    mgoCallInfoLog(@"push received", @"twilio_voice_incoming_push_received", nil, nil, payload.dictionaryPayload[@"twi_call_sid"]);
     if ([type isEqualToString:PKPushTypeVoIP]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:kTwilioVoicePushRegistryNotification
                                                             object:nil
@@ -66,6 +70,7 @@ withCompletionHandler:(void (^)(void))completion {
 
 - (void)pushRegistry:(PKPushRegistry *)registry
         didInvalidatePushTokenForType:(NSString *)type {
+    TwilioVoiceLogInvoke();
     // TODO: notify view-controller to emit event that the push-registry has been invalidated
 }
 

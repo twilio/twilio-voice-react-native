@@ -10,6 +10,7 @@
 
 #import "TwilioVoiceReactNative.h"
 #import "TwilioVoiceReactNativeConstants.h"
+#import <MoegoLogger/MGOTwilioVoiceHelper.h>
 
 NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native";
 
@@ -68,6 +69,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (NSString *)getDisplayName:(NSString *)template
             customParameters:(NSDictionary<NSString *, NSString *> *)customParameters {
+    TwilioVoiceLogInvoke();
     NSString *processedTemplate = template;
     for (NSString *paramKey in customParameters) {
         NSString *paramValue = customParameters[paramKey];
@@ -102,27 +104,36 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     callUpdate.supportsGrouping = NO;
     callUpdate.supportsUngrouping = NO;
     callUpdate.hasVideo = NO;
+    
+    mgoCallInfoLog(@"show incoming call", @"twilio_voice_show_incoming_call", nil, nil, callInvite.callSid);
+
 
     [self.callKitProvider reportNewIncomingCallWithUUID:callInvite.uuid update:callUpdate completion:^(NSError *error) {
         if (!error) {
             NSLog(@"Incoming call successfully reported.");
+            mgoCallInfoLog(@"show incoming call success", @"twilio_voice_show_incoming_call_success", nil, nil, callInvite.callSid);
         } else {
             NSLog(@"Failed to report incoming call: %@.", error);
+            mgoCallErrorLog(@"show incoming call failure: report error", @"twilio_voice_show_incoming_call_failure", nil, error, callInvite.callSid);
         }
     }];
 }
 
 - (void)answerCallInvite:(NSUUID *)uuid
               completion:(void(^)(BOOL success))completionHandler {
+    TwilioVoiceLogInvoke();
     self.callKitCompletionCallback = completionHandler;
     CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:answerCallAction];
 
+    TVOCallInvite *callInvite = self.callInviteMap[uuid.UUIDString];
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
             NSLog(@"Failed to submit answer-call transaction request: %@", error);
+            mgoCallErrorLog(@"answer call transaction failed", @"twilio_voice_answer_call_transaction_failed", nil, error, callInvite.callSid);
         } else {
             NSLog(@"Answer-call transaction successfully done");
+            mgoCallInfoLog(@"answer call transaction success", @"twilio_voice_answer_call_transaction_success", nil, nil, callInvite.callSid);
         }
     }];
 }
@@ -143,6 +154,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle {
+    TwilioVoiceLogInvoke();
     self.accessToken = accessToken;
     self.twimlParams = params;
     
@@ -155,7 +167,6 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     NSUUID *uuid = [NSUUID UUID];
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
-
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
             NSLog(@"StartCallAction transaction request failed: %@", [error localizedDescription]);
@@ -179,6 +190,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 - (void)performVoiceCallWithUUID:(NSUUID *)uuid
                           client:(NSString *)client
                       completion:(void(^)(BOOL success))completionHandler {
+    TwilioVoiceLogInvoke();
     TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:self.accessToken block:^(TVOConnectOptionsBuilder *builder) {
         builder.params = self.twimlParams;
         builder.uuid = uuid;
@@ -194,9 +206,16 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)performAnswerVoiceCallWithUUID:(NSUUID *)uuid
                             completion:(void(^)(BOOL success))completionHandler {
-    NSAssert(self.callInviteMap[uuid.UUIDString], @"No call invite");
-    
+    // NSAssert(self.callInviteMap[uuid.UUIDString], @"No call invite");
+    TwilioVoiceLogInvoke();
     TVOCallInvite *callInvite = self.callInviteMap[uuid.UUIDString];
+    
+    if (!callInvite) {
+        mgoCallErrorLog(@"answer call failure: No call invite", @"twilio_voice_call_answer_failure", nil, @"No call invite", callInvite.callSid);
+        completionHandler(NO);
+        return;
+    }
+    
     TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:callInvite block:^(TVOAcceptOptionsBuilder *builder) {
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
@@ -206,18 +225,23 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
     if (!call) {
         completionHandler(NO);
+        mgoCallErrorLog(@"answer voice call failure: accept call is nil", @"twilio_voice_call_answer_failure", nil, @"accept call is nil", callInvite.callSid);
     } else {
+        completionHandler(YES);
+        mgoCallInfoLog(@"call answer success", @"twilio_voice_call_answer_success", nil, nil, callInvite.callSid);
+        
         self.callMap[call.uuid.UUIDString] = call;
+        
+        [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
+                           body:@{
+                             kTwilioVoiceReactNativeCallInviteEventKeyType: kTwilioVoiceReactNativeCallInviteEventTypeValueAccepted,
+                             kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callInvite.callSid,
+                             kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
     }
-
-    [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
-                       body:@{
-                         kTwilioVoiceReactNativeCallInviteEventKeyType: kTwilioVoiceReactNativeCallInviteEventTypeValueAccepted,
-                         kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callInvite.callSid,
-                         kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
 }
 
 - (void)updateCall:(NSString *)uuid callerHandle:(NSString *)handle {
+    TwilioVoiceLogInvoke();
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:handle];
     CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
     callUpdate.remoteHandle = callHandle;
@@ -236,40 +260,51 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
+    TwilioVoiceLogInvoke();
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)providerDidBegin:(CXProvider *)provider {
-    
+    TwilioVoiceLogInvoke();
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession {
+    TwilioVoiceLogInvoke();
     [TwilioVoiceReactNative twilioAudioDevice].enabled = YES;
 }
 
 - (void)provider:(CXProvider *)provider didDeactivateAudioSession:(AVAudioSession *)audioSession {
+    TwilioVoiceLogInvoke();
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(CXEndCallAction *)action {
+    TwilioVoiceLogInvoke();
     if (self.callMap[action.callUUID.UUIDString]) {
         TVOCall *call = self.callMap[action.callUUID.UUIDString];
         [call disconnect];
     } else if (self.callInviteMap[action.callUUID.UUIDString]) {
         TVOCallInvite *callInvite = self.callInviteMap[action.callUUID.UUIDString];
         [callInvite reject];
+        
+        mgoCallInfoLog(@"call reject", @"twilio_voice_call_reject", nil, nil, callInvite.callSid);
+        
         [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
                            body:@{
                              kTwilioVoiceReactNativeCallInviteEventKeyType: kTwilioVoiceReactNativeCallInviteEventTypeValueRejected,
                              kTwilioVoiceReactNativeCallInviteEventKeyCallSid: callInvite.callSid,
                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
         [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
+        
+        // 拒接时移除context
+        [MGOTwilioVoiceHelper removeIncomingContext:callInvite.callSid];
     }
     
     [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action {
+    TwilioVoiceLogInvoke();
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
     [TwilioVoiceReactNative twilioAudioDevice].block();
 
@@ -290,6 +325,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
+    TwilioVoiceLogInvoke();
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
     [TwilioVoiceReactNative twilioAudioDevice].block();
     
@@ -305,6 +341,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performSetHeldCallAction:(CXSetHeldCallAction *)action {
+    TwilioVoiceLogInvoke();
     if (self.callMap[action.callUUID.UUIDString]) {
         TVOCall *call = self.callMap[action.callUUID.UUIDString];
         [call setOnHold:action.isOnHold];
@@ -315,6 +352,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performSetMutedCallAction:(CXSetMutedCallAction *)action {
+    TwilioVoiceLogInvoke();
     if (self.callMap[action.callUUID.UUIDString]) {
         TVOCall *call = self.callMap[action.callUUID.UUIDString];
         [call setMuted:action.isMuted];
@@ -325,6 +363,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performPlayDTMFCallAction:(CXPlayDTMFCallAction *)action {
+    TwilioVoiceLogInvoke();
     if (self.callMap[action.callUUID.UUIDString]) {
         TVOCall *call = self.callMap[action.callUUID.UUIDString];
         [call sendDigits:action.digits];
@@ -337,6 +376,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 #pragma mark - TVOCallDelegate
 
 - (void)callDidStartRinging:(TVOCall *)call {
+    TwilioVoiceLogInvoke();
     [self playRingback];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
@@ -348,6 +388,12 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     self.callConnectMap[call.uuid.UUIDString] = [self getSimplifiedISO8601FormattedTimestamp:[NSDate date]];
 
     [self stopRingback];
+    
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    if (callInvite) {
+        mgoCallInfoLog(@"call connect success", @"twilio_voice_call_connect_success", nil, nil, callInvite.callSid);
+        [MGOTwilioVoiceHelper sendAudioStatusEvent];
+    }
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnected,
@@ -360,16 +406,29 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)call:(TVOCall *)call didDisconnectWithError:(NSError *)error {
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    
     NSDictionary *messageBody = [NSDictionary dictionary];
     if (error) {
+        if (callInvite) {
+            mgoCallErrorLog(@"call disconnect failure", @"twilio_voice_call_disconnect_failure", nil, error, callInvite.callSid);
+        }
+        
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
                         kTwilioVoiceReactNativeVoiceErrorKeyError: @{kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                                                                      kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}};
     } else {
+        if (callInvite) {
+            mgoCallInfoLog(@"call disconnect success", @"twilio_voice_call_disconnect_success", nil, nil, callInvite.callSid);
+        }
+        
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]};
     }
+    
+    // 通话结束移除context
+    [MGOTwilioVoiceHelper removeIncomingContext:call.sid];
     
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall body:messageBody];
     
@@ -383,9 +442,29 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     }
     
     [self callDisconnected:call];
+
+    // bugfix: 在 twilio call bindDevice 选择了 听筒，然后挂掉电话再选了 speaker 播放一段音频，虽然扬声器有声音，但音量变小了
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSError *audioError = nil;
+    // 将会话类别设置为通用的媒体播放模式
+    [session setCategory:AVAudioSessionCategoryPlayback
+                    mode:AVAudioSessionModeDefault
+                 options: AVAudioSessionCategoryOptionAllowBluetoothA2DP | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowAirPlay
+                   error:&audioError];
+    if (audioError) {
+        NSLog(@"[TwilioVoice] Error setting category after disconnect: %@", audioError);
+    }
 }
 
 - (void)call:(TVOCall *)call didFailToConnectWithError:(NSError *)error {
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    if (callInvite) {
+        mgoCallErrorLog(@"call connect failure", @"twilio_voice_call_connect_failure", nil, error, callInvite.callSid);
+    }
+    
+    // 建连失败移除context
+    [MGOTwilioVoiceHelper removeIncomingContext:call.sid];
+    
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventConnectFailure,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
@@ -410,7 +489,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             break;
         }
     }
-
+    
     // Remove the corresponding call invite only when the incoming call is finished.
     [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
     
@@ -419,6 +498,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)call:(TVOCall *)call isReconnectingWithError:(NSError *)error {
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    if (callInvite) {
+        mgoCallErrorLog(@"call reconnecting", @"twilio_voice_call_reconnecting", nil, error, callInvite.callSid);
+    }
+    
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnecting,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call],
@@ -427,6 +511,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)callDidReconnect:(TVOCall *)call {
+    TVOCallInvite *callInvite = self.callInviteMap[call.uuid.UUIDString];
+    if (callInvite) {
+        mgoCallInfoLog(@"call reconnected", @"twilio_voice_call_reconnected", nil, nil, callInvite.callSid);
+    }
+    
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventReconnected,
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
@@ -457,6 +546,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 #pragma mark - Ringback
 
 - (void)playRingback {
+    TwilioVoiceLogInvoke();
     NSString *ringtonePath = [[NSBundle mainBundle] pathForResource:@"ringtone" ofType:@"wav"];
     if ([ringtonePath length] <= 0) {
         NSLog(@"Can't find sound file");
@@ -477,6 +567,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 }
 
 - (void)stopRingback {
+    TwilioVoiceLogInvoke();
     if (!self.ringbackPlayer.isPlaying) {
         return;
     }
@@ -485,6 +576,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 }
 
 - (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+    TwilioVoiceLogInvoke();
     if (flag) {
         NSLog(@"Audio player finished playing successfully");
     } else {
@@ -493,6 +585,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 }
 
 - (void)audioPlayerDecodeErrorDidOccur:(AVAudioPlayer *)player error:(NSError *)error {
+    TwilioVoiceLogInvoke();
     NSLog(@"Decode error occurred: %@", error);
 }
 
