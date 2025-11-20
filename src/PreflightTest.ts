@@ -294,9 +294,7 @@ export class PreflightTest extends EventEmitter {
       return;
     }
 
-    // VBLOCKS-5083
-    // Update this member access when we upgrade typescript for this project.
-    switch (nativePreflightTestEvent.preflightTestEventKeyType) {
+    switch (nativePreflightTestEvent[Constants.PreflightTestEventKeyType]) {
       case Constants.PreflightTestEventTypeValueCompleted: {
         return this._handleCompletedEvent(nativePreflightTestEvent);
       }
