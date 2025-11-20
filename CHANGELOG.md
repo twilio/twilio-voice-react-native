@@ -1,3 +1,10 @@
+1.8.0 (In Progress)
+===================
+
+## Changes
+
+- Updated local Typescript version used by the library.
+
 1.7.0 (October 8, 2025)
 =======================
 
