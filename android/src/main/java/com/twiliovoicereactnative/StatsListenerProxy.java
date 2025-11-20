@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import org.json.JSONException;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.IceCandidatePairState;
@@ -26,9 +25,11 @@ import static com.twiliovoicereactnative.JSEventEmitter.constructJSArray;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
 class StatsListenerProxy implements StatsListener {
-  private final Promise promise;
+  private final SDKLog logger = new SDKLog(StatsListenerProxy.class);
 
-  public StatsListenerProxy(String uuid, Context context, Promise promise) {
+  private final ModuleProxy.UniversalPromise promise;
+
+  public StatsListenerProxy(ModuleProxy.UniversalPromise promise) {
     this.promise = promise;
   }
 
@@ -36,10 +37,11 @@ class StatsListenerProxy implements StatsListener {
   public void onStats(@NonNull List<StatsReport> statsReports) {
     try {
       WritableArray statsReportsArray = Arguments.createArray();
-      for(StatsReport statsReport: statsReports)  {
-        statsReportsArray.pushMap(
-          constructJSMap(
-          new Pair<>(CommonConstants.PeerConnectionId, statsReport.getPeerConnectionId()),
+      for (StatsReport statsReport : statsReports)  {
+        statsReportsArray.pushMap(constructJSMap(
+          new Pair<>(
+            CommonConstants.PeerConnectionId,
+            statsReport.getPeerConnectionId()),
           new Pair<>(
             CommonConstants.LocalAudioTrackStats,
             constructJSArray(jsonWithLocalAudioTrackStats(statsReport.getLocalAudioTrackStats()))),
@@ -54,9 +56,9 @@ class StatsListenerProxy implements StatsListener {
             constructJSArray(jsonWithIceCandidateStats(statsReport.getIceCandidateStats())))));
       }
       promise.resolve(statsReportsArray);
-    } catch (JSONException e) {
-      promise.reject(StatsListenerProxy.class.getSimpleName(), e.getMessage());
-      e.printStackTrace();
+    } catch (JSONException exception) {
+      logger.warning(exception.toString());
+      promise.rejectWithName(CommonConstants.ErrorCodeInvalidStateError, exception.getMessage());
     }
   }
 
@@ -160,19 +162,12 @@ class StatsListenerProxy implements StatsListener {
   }
 
   private String stringWithIceCandidatePairState(IceCandidatePairState state) {
-    switch (state) {
-      case STATE_FAILED:
-        return CommonConstants.StateFailed;
-      case STATE_FROZEN:
-        return CommonConstants.StateFrozen;
-      case STATE_IN_PROGRESS:
-        return CommonConstants.StateInProgress;
-      case STATE_SUCCEEDED:
-        return CommonConstants.StateSucceeded;
-      case STATE_WAITING:
-        return CommonConstants.StateWaiting;
-      default:
-        return CommonConstants.StateUnknown;
-    }
+    return switch (state) {
+      case STATE_FAILED -> CommonConstants.StateFailed;
+      case STATE_FROZEN -> CommonConstants.StateFrozen;
+      case STATE_IN_PROGRESS -> CommonConstants.StateInProgress;
+      case STATE_SUCCEEDED -> CommonConstants.StateSucceeded;
+      case STATE_WAITING -> CommonConstants.StateWaiting;
+    };
   }
 }
