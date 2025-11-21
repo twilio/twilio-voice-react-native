@@ -18,108 +18,123 @@
 
 RCT_EXPORT_METHOD(voice_runPreflight:(NSString *)accessToken
                   options:(NSDictionary *)jsPreflightOptions
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
     NSString *uuid = [NSUUID UUID].UUIDString;
     
     TVOPreflightOptions *preflightOptions = [self parseJsPreflightOptions:accessToken jsPreflightOptions:jsPreflightOptions];
     
-    NSString *preflightTestErrorCode = nil;
+    NSString *preflightTestErrorName = nil;
     NSString *preflightTestErrorMessage = nil;
-    [self startPreflightTestWithAccessToken:accessToken preflightOptions:preflightOptions uuid:uuid errorCode:&preflightTestErrorCode errorMessage:&preflightTestErrorMessage];
+    [self startPreflightTestWithAccessToken:accessToken preflightOptions:preflightOptions uuid:uuid errorName:&preflightTestErrorName errorMessage:&preflightTestErrorMessage];
     
-    if (preflightTestErrorCode != nil) {
-        reject(preflightTestErrorCode,
-               preflightTestErrorMessage,
-               nil);
+    if (preflightTestErrorName != nil) {
+        [self rejectPromiseWithName:resolver name:preflightTestErrorName message:preflightTestErrorMessage];
         return;
     }
     
-    resolve(uuid);
+    [self resolvePromise:resolver value:uuid];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getCallSid:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
-    resolve(self.preflightTest.callSid);
+    [self resolvePromise:resolver value:self.preflightTest.callSid];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getEndTime:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     NSString *endTime = @(self.preflightTest.endTime).stringValue;
-    resolve(endTime);
+    [self resolvePromise:resolver value:endTime];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     NSString *jsonSample = [self preflightStatsSampleToJsonString:self.preflightTest.latestSample];
-    resolve(jsonSample);
+    [self resolvePromise:resolver value:jsonSample];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     NSString *jsonReport = [self preflightReportToJsonString:self.preflightTest.preflightReport];
-    resolve(jsonReport);
+    [self resolvePromise:resolver value:jsonReport];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getStartTime:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     NSString *startTime = @(self.preflightTest.startTime).stringValue;
-    resolve(startTime);
+    [self resolvePromise:resolver value:startTime];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getState:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     NSString *state = [self preflightStatusToStateString:self.preflightTest.status];
-    resolve(state);
+    [self resolvePromise:resolver value:state];
 }
 
 RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:reject]) {
+    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
         return;
     }
     
     [self.preflightTest stop];
-    resolve(nil);
+    [self resolvePromise:resolver value:[NSNull null]];
+}
+
+RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter) {
+    
+    if (self.preflightTestEvents == nil) {
+        // this indicates that the events have already been flushed
+        [self resolvePromise:resolver value:[NSNull null]];
+        return;
+    }
+    
+    for (NSMutableDictionary *event in self.preflightTestEvents) {
+        [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:event];
+    }
+    
+    self.preflightTestEvents = nil;
+    [self resolvePromise:resolver value:[NSNull null]];
 }
 
 - (bool)checkForPreflightTest:(NSString *)uuid rejecter:(RCTPromiseRejectBlock)reject {
@@ -260,13 +275,13 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
 - (void)startPreflightTestWithAccessToken:(NSString *)accessToken
                          preflightOptions:(TVOPreflightOptions *)preflightOptions
                                      uuid:(NSString *)uuid
-                                errorCode:(NSString **)errorCode
+                                errorName:(NSString **)errorName
                              errorMessage:(NSString **)errorMessage {
     
     if (self.preflightTest != nil) {
         NSLog(@"existing preflight test object with status %lu", self.preflightTest.status);
         if (self.preflightTest.status == TVOPreflightTestStatusConnected || self.preflightTest.status == TVOPreflightTestStatusConnecting) {
-            *errorCode = kTwilioVoiceReactNativeErrorCodeInvalidStateError;
+            *errorName = kTwilioVoiceReactNativeErrorCodeInvalidStateError;
             *errorMessage = @"Existing preflight test in-progress.";
             return;
         }
@@ -286,23 +301,6 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
         // otherwise, enqueue the event
         [self.preflightTestEvents addObject:eventPayload];
     }
-}
-
-RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-    
-    if (self.preflightTestEvents == nil) {
-        // this indicates that the events have already been flushed
-        resolve(nil);
-        return;
-    }
-    
-    for (NSMutableDictionary *event in self.preflightTestEvents) {
-        [self sendEventWithName:kTwilioVoiceReactNativeScopePreflightTest body:event];
-    }
-    
-    self.preflightTestEvents = nil;
-    resolve(nil);
 }
 
 - (void)preflight:(nonnull TVOPreflightTest *)preflightTest didCompleteWitReport:(nonnull TVOPreflightReport *)report {

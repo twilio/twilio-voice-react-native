@@ -34,7 +34,7 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSDictionary *twimlParams;
-@property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL);
+@property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL, NSError *error);
 @property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
 
 @property (nonatomic, strong) TVOPreflightTest *preflightTest;
@@ -71,12 +71,20 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */
 - (void)answerCallInvite:(NSUUID *)uuid
-              completion:(void(^)(BOOL success))completionHandler;
+              completion:(void(^)(BOOL success, NSError *error))completionHandler;
 - (void)updateCall:(NSString *)uuid callerHandle:(NSString *)handle;
 
 /* Utility */
 - (NSDictionary *)callInfo:(TVOCall *)call;
 - (NSDictionary *)callInviteInfo:(TVOCallInvite *)callInvite;
 - (NSDictionary *)cancelledCallInviteInfo:(TVOCancelledCallInvite *)cancelledCallInvite;
+
+@end
+
+@interface TwilioVoiceReactNative (PromiseAdapter)
+
+- (void)resolvePromise:(RCTPromiseResolveBlock)resolver value:(id)value;
+- (void)rejectPromiseWithCode:(RCTPromiseResolveBlock)resolver code:(NSNumber *)code message:(NSString *)message;
+- (void)rejectPromiseWithName:(RCTPromiseResolveBlock)resolver name:(NSString *)name message:(NSString *)message;
 
 @end

@@ -113,7 +113,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)answerCallInvite:(NSUUID *)uuid
-              completion:(void(^)(BOOL success))completionHandler {
+              completion:(void(^)(BOOL success, NSError *error))completionHandler {
     self.callKitCompletionCallback = completionHandler;
     CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:answerCallAction];
@@ -178,7 +178,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)performVoiceCallWithUUID:(NSUUID *)uuid
                           client:(NSString *)client
-                      completion:(void(^)(BOOL success))completionHandler {
+                      completion:(void(^)(BOOL success, NSError *error))completionHandler {
     TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:self.accessToken block:^(TVOConnectOptionsBuilder *builder) {
         builder.params = self.twimlParams;
         builder.uuid = uuid;
@@ -187,7 +187,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     if (call) {
         self.callMap[call.uuid.UUIDString] = call;
-        self.callPromiseResolver([self callInfo:call]);
+        [self resolvePromise:self.callPromiseResolver value:[self callInfo:call]];
     }
     self.callKitCompletionCallback = completionHandler;
 }
@@ -276,7 +276,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     [self.callKitProvider reportOutgoingCallWithUUID:action.callUUID startedConnectingAtDate:[NSDate date]];
     
     __weak typeof(self) weakSelf = self;
-    [self performVoiceCallWithUUID:action.callUUID client:nil completion:^(BOOL success) {
+    [self performVoiceCallWithUUID:action.callUUID client:nil completion:^(BOOL success, NSError *error) {
         __strong typeof(self) strongSelf = weakSelf;
         if (success) {
             NSLog(@"performVoiceCallWithUUID successful");
@@ -354,7 +354,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
                               kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]}];
 
     if (self.callKitCompletionCallback) {
-        self.callKitCompletionCallback(YES);
+        self.callKitCompletionCallback(YES, nil);
         self.callKitCompletionCallback = nil;
     }
 }
@@ -393,7 +393,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
                                                                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
 
     if (self.callKitCompletionCallback) {
-        self.callKitCompletionCallback(NO);
+        self.callKitCompletionCallback(NO, error);
         self.callKitCompletionCallback = nil;
     }
     [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:CXCallEndedReasonFailed];
