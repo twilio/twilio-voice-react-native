@@ -41,7 +41,7 @@ RCT_EXPORT_METHOD(preflightTest_getCallSid:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -52,7 +52,7 @@ RCT_EXPORT_METHOD(preflightTest_getEndTime:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -64,7 +64,7 @@ RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -76,7 +76,7 @@ RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -88,7 +88,7 @@ RCT_EXPORT_METHOD(preflightTest_getStartTime:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -100,7 +100,7 @@ RCT_EXPORT_METHOD(preflightTest_getState:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -112,7 +112,7 @@ RCT_EXPORT_METHOD(preflightTest_stop:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter) {
     
-    if (![self checkForPreflightTest:uuid rejecter:rejecter]) {
+    if (![self checkForPreflightTest:uuid resolver:resolver]) {
         return;
     }
     
@@ -137,15 +137,13 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
     [self resolvePromise:resolver value:[NSNull null]];
 }
 
-- (bool)checkForPreflightTest:(NSString *)uuid rejecter:(RCTPromiseRejectBlock)reject {
+- (bool)checkForPreflightTest:(NSString *)uuid resolver:(RCTPromiseResolveBlock)resolver {
     if (self.preflightTest == nil ||
         self.preflightTestUuid == nil ||
         ![self.preflightTestUuid isEqualToString:uuid]) {
         
         NSString *errorMessage = [NSString stringWithFormat:@"No existing preflight test object with UUID \"%@\".", uuid];
-        reject(kTwilioVoiceReactNativeErrorCodeInvalidStateError,
-               errorMessage,
-               nil);
+        [self rejectPromiseWithName:resolver name:kTwilioVoiceReactNativeErrorCodeInvalidStateError message:errorMessage];
         return false;
     }
     
