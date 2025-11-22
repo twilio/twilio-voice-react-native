@@ -583,8 +583,8 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                     NSDictionary *payload = @{
                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
                         kTwilioVoiceReactNativeVoiceErrorKeyError: @{
-                            kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
-                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]
+                            kTwilioVoiceReactNativeVoiceErrorKeyCode: errorCode,
+                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: errorMessage
                         }
                     };
                     
@@ -940,7 +940,6 @@ RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    // NOTE(mhuynh): do we need this method?
     [self resolvePromise:resolver value:@(YES)];
 }
 

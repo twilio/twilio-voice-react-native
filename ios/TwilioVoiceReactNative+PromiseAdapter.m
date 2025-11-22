@@ -1,5 +1,5 @@
 //
-//  TwilioVoiceReactNative+JsSerialization.m
+//  TwilioVoiceReactNative+PromiseAdapter.m
 //  TwilioVoiceReactNative
 //
 //  Copyright © 2025 Twilio, Inc. All rights reserved.
