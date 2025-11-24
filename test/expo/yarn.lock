@@ -2380,6 +2380,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@twilio/voice-errors@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@twilio/voice-errors@npm:1.8.0"
+  checksum: 10c0/0ee051b95a73a74538dc1d62dc4e8df1c0bd7ad35236bf3edd372cfad5af50cb1a6dfb1e0c5e9347a0750c358536b841f11304ef1302f584813583f63f0d4a2c
+  languageName: node
+  linkType: hard
+
+"@twilio/voice-react-native-sdk@portal:../../::locator=twiliovoiceexpoexample%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@twilio/voice-react-native-sdk@portal:../../::locator=twiliovoiceexpoexample%40workspace%3A."
+  dependencies:
+    "@twilio/voice-errors": "npm:1.8.0"
+    eventemitter3: "npm:^4.0.7"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  languageName: node
+  linkType: soft
+
 "@types/babel__core@npm:^7.1.14":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -4285,6 +4308,13 @@ __metadata:
   version: 5.0.1
   resolution: "event-target-shim@npm:5.0.1"
   checksum: 10c0/0255d9f936215fd206156fd4caa9e8d35e62075d720dc7d847e89b417e5e62cf1ce6c9b4e0a1633a9256de0efefaf9f8d26924b1f3c8620cffb9db78e7d3076b
+  languageName: node
+  linkType: hard
+
+"eventemitter3@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "eventemitter3@npm:4.0.7"
+  checksum: 10c0/5f6d97cbcbac47be798e6355e3a7639a84ee1f7d9b199a07017f1d2f1e2fe236004d14fa5dfaeba661f94ea57805385e326236a6debbc7145c8877fbc0297c6b
   languageName: node
   linkType: hard
 
@@ -9389,6 +9419,7 @@ __metadata:
     "@expo/vector-icons": "npm:~14.0.4"
     "@react-navigation/bottom-tabs": "npm:^7.2.0"
     "@react-navigation/native": "npm:^7.0.14"
+    "@twilio/voice-react-native-sdk": "portal:../../"
     "@types/jest": "npm:^29.5.12"
     "@types/react": "npm:~18.3.12"
     "@types/react-test-renderer": "npm:^18.3.0"
