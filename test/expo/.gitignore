@@ -37,3 +37,10 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# prebuild files
+android/
+ios/
+
+# secrets
+google-services.json
