@@ -1,4 +1,6 @@
-{
+const secrets = require('./secrets.json');
+
+module.exports = {
   "expo": {
     "name": "TwilioVoiceExpoExample",
     "slug": "TwilioVoiceExpoExample",
@@ -9,13 +11,24 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.twilio.TwilioVoiceReactNativeExample",
+      "appleTeamId": secrets.appleTeamId,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "foobar",
+        "UIBackgroundModes": ["audio", "voip"]
+      },
+      "entitlements": {
+        "aps-environment": "development"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.example.twiliovoicereactnative",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",

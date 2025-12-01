@@ -35,4 +35,13 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# secrets
+google-services.json
+secrets.json
+constants/token*.ts
+
+# prebuild
+android/
+ios/
+
 app-example
