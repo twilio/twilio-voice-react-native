@@ -1,228 +1,318 @@
 diff --git a/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt b/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt
 new file mode 100644
-index 00000000..6af8651a
+index 00000000..9156c32f
 --- /dev/null
 +++ b/android/src/main/java/com/twiliovoicereactnative/ExpoModule.kt
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,312 @@
 +package com.twiliovoicereactnative
 +
 +import android.util.Log
-+import android.util.Pair
-+import com.facebook.react.bridge.WritableMap
-+import com.google.android.gms.tasks.OnCompleteListener
-+import com.google.android.gms.tasks.Task
-+import com.google.firebase.messaging.FirebaseMessaging
-+import com.twilio.voice.ConnectOptions
-+import com.twilio.voice.PreflightTest
++
++import com.facebook.react.bridge.ReactApplicationContext
++import com.facebook.react.bridge.Arguments
 +import com.twilio.voice.PreflightOptions
-+import com.twilio.voice.RegistrationException
-+import com.twilio.voice.RegistrationListener
-+import com.twilio.voice.UnregistrationListener
-+import com.twilio.voice.Voice
-+import com.twiliovoicereactnative.CommonConstants.ScopeVoice
-+import com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyError
-+import com.twiliovoicereactnative.CommonConstants.VoiceEventError
-+import com.twiliovoicereactnative.CommonConstants.VoiceEventRegistered
-+import com.twiliovoicereactnative.CommonConstants.VoiceEventType
-+import com.twiliovoicereactnative.CommonConstants.VoiceEventUnregistered
-+import com.twiliovoicereactnative.JSEventEmitter.constructJSMap
++
 +import expo.modules.kotlin.Promise
-+import expo.modules.kotlin.exception.CodedException
-+import expo.modules.kotlin.exception.toCodedException
 +import expo.modules.kotlin.modules.Module
 +import expo.modules.kotlin.modules.ModuleDefinition
-+import java.util.UUID
 +
 +
 +class ExpoModule : Module() {
-+  private val TAG: String = "TwilioVoiceExpoModule"
-+
-+  override fun definition() = ModuleDefinition {
-+    Name("TwilioVoiceExpo")
-+
-+    Function("voice_getVersion") {
-+      return@Function Voice.getVersion()
++  private class PromiseAdapter(private val promise: Promise) : ModuleProxy.UniversalPromise {
++    override fun resolve(value: Any?) {
++      promise.resolve(
++        ReactNativeArgumentsSerializer.serializePromiseResolution(value)
++      )
 +    }
 +
-+    AsyncFunction("voice_connect_android") {
-+      accessToken: String,
++    override fun rejectWithCode(code: Int, message: String) {
++      promise.resolve(
++        ReactNativeArgumentsSerializer.serializePromiseErrorWithCode(code, message)
++      )
++    }
++
++    override fun rejectWithName(name: String, message: String) {
++      promise.resolve(
++        ReactNativeArgumentsSerializer.serializePromiseErrorWithName(name, message)
++      )
++    }
++  }
++
++  private val NAME: String = "TwilioVoiceExpoModule"
++
++  private lateinit var moduleProxy: ModuleProxy
++
++  override fun definition() = ModuleDefinition {
++    Name(NAME)
++
++    OnCreate {
++      Log.d(NAME, String.format("context %s", this@ExpoModule.appContext.reactContext))
++
++      val reactApplicationContext = this@ExpoModule.appContext.reactContext as ReactApplicationContext?
++      if (reactApplicationContext != null) {
++        this@ExpoModule.moduleProxy = ModuleProxy(reactApplicationContext)
++      }
++    }
++
++    /**
++     * Call API
++     */
++
++    AsyncFunction("call_disconnect") {
++      uuid: String,
 +      promise: Promise ->
 +
-+      val parsedTwimlParams: HashMap<String, String> = HashMap<String, String>()
-+      val callRecipient: String = "Call Recipient Placeholder"
-+      val notificationDisplayName: String = "Notification Display Name Placeholder"
++      this@ExpoModule.moduleProxy.call.disconnect(uuid, PromiseAdapter(promise))
++    }
 +
-+      val uuid: UUID = UUID.randomUUID()
-+      val connectOptions: ConnectOptions = ConnectOptions.Builder(accessToken)
-+        .enableDscp(true)
-+        .params(parsedTwimlParams)
-+        .callMessageListener(CallMessageListenerProxy())
-+        .build()
-+      try {
-+        val callListenerProxy: CallListenerProxy = CallListenerProxy(
-+          uuid,
-+          VoiceApplicationProxy.getVoiceServiceApi().serviceContext
-+        )
++    AsyncFunction("call_getState") {
++      uuid: String,
++      promise: Promise ->
 +
-+        val callRecord: CallRecordDatabase.CallRecord = CallRecordDatabase.CallRecord(
-+          uuid,
-+          VoiceApplicationProxy.getVoiceServiceApi().connect(
-+            connectOptions,
-+            callListenerProxy
-+          ),
-+          callRecipient,
-+          parsedTwimlParams,
-+          CallRecordDatabase.CallRecord.Direction.OUTGOING,
-+          notificationDisplayName
-+        )
++      this@ExpoModule.moduleProxy.call.getState(uuid, PromiseAdapter(promise))
++    }
 +
-+        VoiceApplicationProxy.getCallRecordDatabase().add(callRecord)
++    AsyncFunction("call_getStats") {
++      uuid: String,
++      promise: Promise ->
 +
-+        promise.resolve(ReactNativeArgumentsSerializer.serializeCall(callRecord))
-+      } catch (error: SecurityException) {
-+        promise.reject(error.toCodedException())
-+      }
++      this@ExpoModule.moduleProxy.call.getStats(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_hold") {
++      uuid: String,
++      hold: Boolean,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.hold(uuid, hold, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_isMuted") {
++        uuid: String,
++        promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.isMuted(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_isOnHold") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.isOnHold(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_mute") {
++      uuid: String,
++      mute: Boolean,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.mute(uuid, mute, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_postFeedback") {
++      uuid: String,
++      score: String,
++      issue: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.postFeedback(uuid, score, issue, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_sendDigits") {
++      uuid: String,
++      digits: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.sendDigits(uuid, digits, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("call_sendMessage") {
++      uuid: String,
++      content: String,
++      contentType: String,
++      messageType: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.call.sendMessage(
++        uuid,
++        content,
++        contentType,
++        messageType,
++        PromiseAdapter(promise)
++      )
++    }
++
++    /**
++     * CallInvite API
++     */
++
++    AsyncFunction("callInvite_accept") {
++      uuid: String,
++      options: Map<String, Any>,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.callInvite.accept(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("callInvite_reject") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.callInvite.reject(uuid, PromiseAdapter(promise))
++    }
++
++    /**
++     * PreflightTest API
++     */
++
++    AsyncFunction("preflightTest_getCallSid") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getCallSid(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_getEndTime") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getEndTime(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_getLatestSample") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getLatestSample(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_getReport") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getReport(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_getStartTime") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getStartTime(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_getState") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.getState(uuid, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("preflightTest_stop") {
++      uuid: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.preflightTest.stop(uuid, PromiseAdapter(promise))
++    }
++
++    /**
++     * Voice API
++     */
++
++    AsyncFunction("voice_connect_android") {
++        accessToken: String,
++        twimlParams: Map<String, String>,
++        notificationDisplayName: String?,
++        promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.connect(
++        accessToken,
++        twimlParams,
++        notificationDisplayName,
++        PromiseAdapter(promise)
++      )
++    }
++
++    AsyncFunction("voice_getAudioDevices") {
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.getAudioDevices(PromiseAdapter(promise))
++    }
++
++
++    AsyncFunction("voice_getCalls") {
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.getCalls(PromiseAdapter(promise))
++    }
++
++    AsyncFunction("voice_getCallInvites") {
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.getCallInvites(PromiseAdapter(promise))
++    }
++
++    AsyncFunction("voice_getDeviceToken") {
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.getDeviceToken(PromiseAdapter(promise))
++    }
++
++    AsyncFunction("voice_getVersion") {
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.getVersion(PromiseAdapter(promise))
++    }
++
++    AsyncFunction("voice_handleEvent") {
++      eventData: Map<String, String>,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.handleEvent(eventData, PromiseAdapter(promise))
++    }
++
++    AsyncFunction("voice_register") {
++        accessToken: String,
++        promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.register(accessToken, PromiseAdapter(promise))
 +    }
 +
 +    AsyncFunction("voice_runPreflight") {
 +      accessToken: String,
++      jsPreflightOptions: Map<String, Any>,
 +      promise: Promise ->
 +
-+      val uuid: UUID = UUID.randomUUID()
++//      Log.d(TAG, jsPreflightOptions.toString())
++//
++//      val jsIceServers = jsPreflightOptions.get("iceServers") as ArrayList<*>?
++//      val jsIceServer = jsIceServers?.get(0) as LinkedHashMap<*, *>?
 +
-+      val preflightOptions: PreflightOptions = PreflightOptions.Builder(accessToken)
-+        .build()
++      val preflightOptions = PreflightOptions.Builder(accessToken).build()
++      this@ExpoModule.moduleProxy.voice.runPreflight(preflightOptions, PromiseAdapter(promise))
++    }
 +
-+      val context = appContext.reactContext
++    AsyncFunction("voice_selectAudioDevice") {
++      uuid: String,
++      promise: Promise ->
 +
-+      if (context == null) {
-+        promise.reject(CodedException("context is null"))
-+        return@AsyncFunction
-+      }
++      this@ExpoModule.moduleProxy.voice.selectAudioDevice(uuid, PromiseAdapter(promise))
++    }
 +
-+      val preflightTest: PreflightTest = Voice.runPreflight(
-+        context,
-+        preflightOptions,
-+        PreflightTestListenerProxy(uuid)
++    AsyncFunction("voice_setIncomingCallContactHandleTemplate") {
++      template: String,
++      promise: Promise ->
++
++      this@ExpoModule.moduleProxy.voice.setIncomingCallContactHandleTemplate(
++        template,
++        PromiseAdapter(promise)
 +      )
-+      VoiceApplicationProxy.getPreflightTestRecordDatabase().setRecord(uuid, preflightTest)
-+      promise.resolve(uuid.toString())
 +    }
 +
-+    AsyncFunction("voice_register") {
-+      accessToken: String,
++    AsyncFunction("voice_unregister") {
++      token: String,
 +      promise: Promise ->
 +
-+      FirebaseMessaging.getInstance().getToken()
-+        .addOnCompleteListener(OnCompleteListener { task: Task<String?>? ->
-+          if (!task!!.isSuccessful()) {
-+            val warningMsg: String = appContext
-+              .reactContext
-+              ?.getString(
-+                R.string.fcm_token_registration_fail,
-+                task.getException()
-+              )
-+              .orEmpty()
-+
-+            Log.e(TAG, warningMsg)
-+            promise.reject(CodedException(warningMsg))
-+
-+            return@OnCompleteListener
-+          }
-+          // Get new FCM registration token
-+          val fcmToken = task.getResult()
-+
-+          if (fcmToken == null) {
-+            val warningMsg: String = appContext
-+              .reactContext
-+              ?.getString(R.string.fcm_token_null)
-+              .orEmpty()
-+
-+            Log.e(TAG, warningMsg)
-+            promise.reject(CodedException(warningMsg))
-+
-+            return@OnCompleteListener
-+          }
-+
-+          // Log and toast
-+          Log.d(TAG, "Registering with FCM with token " + fcmToken)
-+          val registrationListener = createRegistrationListener(promise)
-+          Voice.register(accessToken, Voice.RegistrationChannel.FCM, fcmToken, registrationListener)
-+        })
-+    }
-+  }
-+
-+  private fun sendJSEvent(event: WritableMap) {
-+    VoiceApplicationProxy.getJSEventEmitter().sendEvent(ScopeVoice, event)
-+  }
-+
-+  private fun createRegistrationListener(promise: Promise): RegistrationListener {
-+    return object : RegistrationListener {
-+      override fun onRegistered(accessToken: String, fcmToken: String) {
-+        Log.d(TAG, "Successfully registered FCM")
-+        sendJSEvent(constructJSMap(Pair(VoiceEventType, VoiceEventRegistered)))
-+        promise.resolve(null)
-+      }
-+
-+      override fun onError(
-+        registrationException: RegistrationException,
-+        accessToken: String,
-+        fcmToken: String
-+      ) {
-+        val errorMessage: String = appContext.reactContext?.getString(
-+            R.string.registration_error,
-+            registrationException.getErrorCode(),
-+            registrationException.message
-+        ).orEmpty()
-+        Log.e(TAG, errorMessage)
-+
-+        sendJSEvent(
-+          JSEventEmitter.constructJSMap(
-+            Pair(VoiceEventType, VoiceEventError),
-+            Pair(
-+              VoiceErrorKeyError,
-+              ReactNativeArgumentsSerializer.serializeVoiceException(registrationException)
-+            )
-+          )
-+        )
-+
-+        promise.reject(CodedException(errorMessage))
-+      }
-+    }
-+  }
-+
-+  private fun createUnregistrationListener(promise: Promise): UnregistrationListener {
-+    return object : UnregistrationListener {
-+      override fun onUnregistered(accessToken: String?, fcmToken: String?) {
-+        Log.d(TAG, "Successfully unregistered FCM")
-+        sendJSEvent(constructJSMap(Pair(VoiceEventType, VoiceEventUnregistered)))
-+        promise.resolve(null)
-+      }
-+
-+      override fun onError(
-+        registrationException: RegistrationException,
-+        accessToken: String?,
-+        fcmToken: String?
-+      ) {
-+        val errorMessage: String = appContext.reactContext?.getString(
-+          R.string.unregistration_error,
-+          registrationException.getErrorCode(),
-+          registrationException.message
-+        ).orEmpty()
-+        Log.e(TAG, errorMessage)
-+
-+        sendJSEvent(
-+          JSEventEmitter.constructJSMap(
-+            Pair(VoiceEventType, VoiceEventError),
-+            Pair(
-+              VoiceErrorKeyError,
-+              ReactNativeArgumentsSerializer.serializeVoiceException(registrationException)
-+            )
-+          )
-+        )
-+
-+        promise.reject(CodedException(errorMessage))
-+      }
++      this@ExpoModule.moduleProxy.voice.unregister(token, PromiseAdapter(promise))
 +    }
 +  }
 +}
