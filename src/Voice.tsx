@@ -12,7 +12,6 @@ import { CallInvite } from './CallInvite';
 import { NativeEventEmitter, NativeModule, Platform } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
-import { InvalidStateError } from './error/InvalidStateError';
 import type { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
 import { constructTwilioError } from './error/utility';
@@ -24,6 +23,7 @@ import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
 import { validatePreflightOptions } from './utility/preflightTestOptions';
+import { settleNativePromise } from './utility/nativePromise';
 
 /**
  * Defines strict typings for all events emitted by {@link (Voice:class)
@@ -295,25 +295,11 @@ export class Voice extends EventEmitter {
     params: CustomParameters,
     notificationDisplayName: string | undefined
   ) {
-    const connectResult = await NativeModule.voice_connect_android(
-      token,
-      params,
-      notificationDisplayName
-    )
-      .then((callInfo) => {
-        return { type: 'ok', callInfo } as const;
-      })
-      .catch((error) => {
-        const code = error.userInfo.code;
-        const message = error.userInfo.message;
-        return { type: 'err', message, code } as const;
-      });
+    const callInfo = await settleNativePromise(
+      NativeModule.voice_connect_android(token, params, notificationDisplayName)
+    );
 
-    if (connectResult.type === 'err') {
-      throw constructTwilioError(connectResult.message, connectResult.code);
-    }
-
-    return new Call(connectResult.callInfo);
+    return new Call(callInfo);
   }
 
   /**
@@ -326,11 +312,11 @@ export class Voice extends EventEmitter {
   ) {
     const parsedContactHandle =
       contactHandle === '' ? 'Default Contact' : contactHandle;
-    const callInfo = await NativeModule.voice_connect_ios(
-      token,
-      params,
-      parsedContactHandle
+
+    const callInfo = await settleNativePromise(
+      NativeModule.voice_connect_ios(token, params, parsedContactHandle)
     );
+
     return new Call(callInfo);
   }
 
@@ -534,8 +520,9 @@ export class Voice extends EventEmitter {
    * A `Promise` that
    *  - Resolves with a string representing the version of the native SDK.
    */
-  getVersion(): Promise<string> {
-    return NativeModule.voice_getVersion();
+  async getVersion(): Promise<string> {
+    const version = await settleNativePromise(NativeModule.voice_getVersion());
+    return version;
   }
 
   /**
@@ -543,8 +530,11 @@ export class Voice extends EventEmitter {
    * @returns a Promise that resolves with a string representing the Device
    * token.
    */
-  getDeviceToken(): Promise<string> {
-    return NativeModule.voice_getDeviceToken();
+  async getDeviceToken(): Promise<string> {
+    const deviceToken = await settleNativePromise(
+      NativeModule.voice_getDeviceToken()
+    );
+    return deviceToken;
   }
 
   /**
@@ -555,13 +545,15 @@ export class Voice extends EventEmitter {
    *  - Resolves with a mapping of `Uuid`s to {@link (Call:class)}s.
    */
   async getCalls(): Promise<ReadonlyMap<Uuid, Call>> {
-    const callInfos = await NativeModule.voice_getCalls();
+    const callInfos = await settleNativePromise(NativeModule.voice_getCalls());
+
     const callsMap = new Map<Uuid, Call>(
       callInfos.map((callInfo: NativeCallInfo) => [
         callInfo.uuid,
         new Call(callInfo),
       ])
     );
+
     return callsMap;
   }
 
@@ -577,13 +569,17 @@ export class Voice extends EventEmitter {
    *  - Resolves with a mapping of `Uuid`s to {@link (CallInvite:class)}s.
    */
   async getCallInvites(): Promise<ReadonlyMap<Uuid, CallInvite>> {
-    const callInviteInfos = await NativeModule.voice_getCallInvites();
+    const callInviteInfos = await settleNativePromise(
+      NativeModule.voice_getCallInvites()
+    );
+
     const callInvitesMap = new Map<Uuid, CallInvite>(
       callInviteInfos.map((callInviteInfo: NativeCallInviteInfo) => [
         callInviteInfo.uuid,
         new CallInvite(callInviteInfo, CallInvite.State.Pending),
       ])
     );
+
     return callInvitesMap;
   }
 
@@ -609,14 +605,16 @@ export class Voice extends EventEmitter {
   async handleFirebaseMessage(remoteMessage: Record<string, string>) {
     switch (Platform.OS) {
       case 'android':
-        break;
+        const result = await settleNativePromise(
+          NativeModule.voice_handleEvent(remoteMessage)
+        );
+        return result;
       default:
         throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on Android.`
+          `Unsupported platform "${Platform.OS}". ` +
+            'This method is only supported on Android.'
         );
     }
-
-    return await NativeModule.voice_handleEvent(remoteMessage);
   }
 
   /**
@@ -626,8 +624,8 @@ export class Voice extends EventEmitter {
    * A `Promise` that
    *  - Resolves when the device has been registered.
    */
-  register(token: string): Promise<void> {
-    return NativeModule.voice_register(token);
+  async register(token: string): Promise<void> {
+    await settleNativePromise(NativeModule.voice_register(token));
   }
 
   /**
@@ -637,8 +635,8 @@ export class Voice extends EventEmitter {
    * A `Promise` that
    *  - Resolves when the device has been unregistered.
    */
-  unregister(token: string): Promise<void> {
-    return NativeModule.voice_unregister(token);
+  async unregister(token: string): Promise<void> {
+    await settleNativePromise(NativeModule.voice_unregister(token));
   }
 
   /**
@@ -655,7 +653,7 @@ export class Voice extends EventEmitter {
     const {
       audioDevices: audioDeviceInfos,
       selectedDevice: selectedDeviceInfo,
-    } = await NativeModule.voice_getAudioDevices();
+    } = await settleNativePromise(NativeModule.voice_getAudioDevices());
 
     const audioDevices = audioDeviceInfos.map(
       (audioDeviceInfo: NativeAudioDeviceInfo) =>
@@ -685,8 +683,17 @@ export class Voice extends EventEmitter {
    * A `Promise` that
    *  - Resolves when the AV Route Picker View is shown.
    */
-  showAvRoutePickerView(): Promise<void> {
-    return NativeModule.voice_showNativeAvRoutePicker();
+  async showAvRoutePickerView(): Promise<void> {
+    switch (Platform.OS) {
+      case 'ios':
+        await settleNativePromise(NativeModule.voice_showNativeAvRoutePicker());
+        return;
+      default:
+        throw new UnsupportedPlatformError(
+          `Unsupported platform "${Platform.OS}". ` +
+            'This method is only supported on iOS.'
+        );
+    }
   }
 
   /**
@@ -711,10 +718,12 @@ export class Voice extends EventEmitter {
   async initializePushRegistry(): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
-        return NativeModule.voice_initializePushRegistry();
+        await settleNativePromise(NativeModule.voice_initializePushRegistry());
+        return;
       default:
         throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+          `Unsupported platform "${Platform.OS}". ` +
+            'This method is only supported on iOS.'
         );
     }
   }
@@ -740,10 +749,14 @@ export class Voice extends EventEmitter {
   ): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
-        return NativeModule.voice_setCallKitConfiguration(configuration);
+        await settleNativePromise(
+          NativeModule.voice_setCallKitConfiguration(configuration)
+        );
+        return;
       default:
         throw new UnsupportedPlatformError(
-          `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`
+          `Unsupported platform "${Platform.OS}". ` +
+            'This method is only supported on iOS.'
         );
     }
   }
@@ -860,25 +873,15 @@ export class Voice extends EventEmitter {
     options: PreflightTest.Options = {}
   ): Promise<PreflightTest> {
     const optionValidationResult = validatePreflightOptions(options);
-    if (optionValidationResult.status === 'error')
+    if (optionValidationResult.status === 'error') {
       throw optionValidationResult.error;
+    }
 
-    return await NativeModule.voice_runPreflight(accessToken, options)
-      .then((uuid: string): PreflightTest => {
-        return new PreflightTest(uuid);
-      })
-      .catch((error: any): never => {
-        if (typeof error.code === 'number' && error.message)
-          throw constructTwilioError(error.message, error.code);
+    const preflightTestUuid = await settleNativePromise(
+      NativeModule.voice_runPreflight(accessToken, options)
+    );
 
-        if (error.code === Constants.ErrorCodeInvalidStateError)
-          throw new InvalidStateError(error.message);
-
-        if (error.code === Constants.ErrorCodeInvalidArgumentError)
-          throw new InvalidArgumentError(error.message);
-
-        throw error;
-      });
+    return new PreflightTest(preflightTestUuid);
   }
 }
 

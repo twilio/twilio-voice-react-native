@@ -16,6 +16,11 @@ import { AudioCodecType } from '../type/AudioCodec';
 import type { NativeVoiceEventType } from '../type/Voice';
 import * as PreflightTestOptionsModule from '../utility/preflightTestOptions';
 import { Voice } from '../Voice';
+import {
+  mockNativePromiseResolutionValue,
+  mockNativePromiseRejectionWithCodeValue,
+  mockNativePromiseRejectionWithNameValue,
+} from '../__mocks__/common';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -429,16 +434,14 @@ describe('Voice class', () => {
         it('rejects when the native layer rejects', async () => {
           const someMockErrorMessage = 'some mock error message';
           const someMockErrorCode = 31401;
-          const someMockError = {
-            userInfo: {
-              code: someMockErrorCode,
-              message: someMockErrorMessage,
-            },
-          };
+          const someMockError = mockNativePromiseRejectionWithCodeValue(
+            someMockErrorCode,
+            someMockErrorMessage
+          );
 
           jest
             .mocked(MockNativeModule.voice_connect_android)
-            .mockRejectedValueOnce(someMockError);
+            .mockResolvedValueOnce(someMockError);
 
           expect.assertions(1);
           await new Voice().connect(token).catch((error) => {
@@ -735,10 +738,12 @@ describe('Voice class', () => {
       it('returns undefined when the native selected audio device info is undefined', async () => {
         jest
           .mocked(MockNativeModule.voice_getAudioDevices)
-          .mockResolvedValueOnce({
-            ...createNativeAudioDevicesInfo(),
-            selectedDevice: undefined,
-          });
+          .mockResolvedValueOnce(
+            mockNativePromiseResolutionValue({
+              ...createNativeAudioDevicesInfo(),
+              selectedDevice: undefined,
+            })
+          );
 
         const { selectedDevice } = await new Voice().getAudioDevices();
 
@@ -758,6 +763,13 @@ describe('Voice class', () => {
         const showAvRoutePickerViewPromise =
           new Voice().showAvRoutePickerView();
         await expect(showAvRoutePickerViewPromise).resolves.toBeUndefined();
+      });
+
+      it('rejects on android', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
+        await expect(new Voice().showAvRoutePickerView()).rejects.toThrowError(
+          UnsupportedPlatformError
+        );
       });
     });
 
@@ -881,10 +893,13 @@ describe('Voice class', () => {
       });
 
       it('rejects with a TwilioError', async () => {
-        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
-          code: 20101,
-          message: 'mock error message about invalid access token',
-        });
+        const errorPayload = mockNativePromiseRejectionWithCodeValue(
+          20101,
+          'mock error messsage about invalid access token'
+        );
+        jest
+          .spyOn(NativeModule, 'voice_runPreflight')
+          .mockResolvedValueOnce(errorPayload);
 
         const result = await new Voice()
           .runPreflight('token')
@@ -904,9 +919,13 @@ describe('Voice class', () => {
       });
 
       it('rejects with a InvalidStateError', async () => {
-        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
-          code: Constants.ErrorCodeInvalidStateError,
-        });
+        const errorPayload = mockNativePromiseRejectionWithNameValue(
+          Constants.ErrorCodeInvalidStateError,
+          'some mock error message about invalid state'
+        );
+        jest
+          .spyOn(NativeModule, 'voice_runPreflight')
+          .mockResolvedValueOnce(errorPayload);
 
         const result = await new Voice()
           .runPreflight('token')
@@ -926,9 +945,13 @@ describe('Voice class', () => {
       });
 
       it('rejects with a InvalidArgumentError', async () => {
-        jest.spyOn(NativeModule, 'voice_runPreflight').mockRejectedValue({
-          code: Constants.ErrorCodeInvalidArgumentError,
-        });
+        const errorPayload = mockNativePromiseRejectionWithNameValue(
+          Constants.ErrorCodeInvalidArgumentError,
+          'some mock error message about invalid arugments'
+        );
+        jest
+          .spyOn(NativeModule, 'voice_runPreflight')
+          .mockResolvedValue(errorPayload);
 
         const result = await new Voice()
           .runPreflight('token')

@@ -62,8 +62,8 @@ export class AudioDevice {
    *      selected as the active audio device.
    *    - Rejects if the audio device cannot be selected.
    */
-  select(): Promise<void> {
-    return NativeModule.voice_selectAudioDevice(this.uuid);
+  async select(): Promise<void> {
+    await NativeModule.voice_selectAudioDevice(this.uuid);
   }
 }
 
