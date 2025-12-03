@@ -14,6 +14,7 @@ import { constructTwilioError } from './error/utility';
 import type { AudioCodec } from './type/AudioCodec';
 import type { IceServer, IceTransportPolicy } from './type/Ice';
 import type * as PreflightTestType from './type/PreflightTest';
+import { settleNativePromise } from './utility/nativePromise';
 
 export interface PreflightTest {
   /**
@@ -457,24 +458,6 @@ export class PreflightTest extends EventEmitter {
   };
 
   /**
-   * Internal helper method to invoke a native method and handle the returned
-   * promise from the native method.
-   */
-  private async _invokeAndCatchNativeMethod<T>(
-    method: (uuid: string) => Promise<T>
-  ) {
-    return method(this._uuid).catch((error: any): never => {
-      if (typeof error.code === 'number' && error.message)
-        throw constructTwilioError(error.message, error.code);
-
-      if (error.code === Constants.ErrorCodeInvalidStateError)
-        throw new InvalidStateError(error.message);
-
-      throw error;
-    });
-  }
-
-  /**
    * Get the CallSid of the underlying Call in the PreflightTest.
    *
    * @returns
@@ -484,9 +467,10 @@ export class PreflightTest extends EventEmitter {
    *   PreflightTest object.
    */
   public async getCallSid(): Promise<string> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getCallSid
+    const callSid = await settleNativePromise(
+      common.NativeModule.preflightTest_getCallSid(this._uuid)
     );
+    return callSid;
   }
 
   /**
@@ -499,9 +483,10 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getEndTime(): Promise<number> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getEndTime
+    const endTime = await settleNativePromise(
+      common.NativeModule.preflightTest_getEndTime(this._uuid)
     ).then(Number);
+    return endTime;
   }
 
   /**
@@ -515,12 +500,13 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getLatestSample
+    const sample = await settleNativePromise(
+      common.NativeModule.preflightTest_getLatestSample(this._uuid)
     ).then((sampleStr) => {
       const sampleObj = JSON.parse(sampleStr);
       return parseSample(sampleObj);
     });
+    return sample;
   }
 
   /**
@@ -533,9 +519,10 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getReport(): Promise<PreflightTest.Report> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getReport
+    const report = await settleNativePromise(
+      common.NativeModule.preflightTest_getReport(this._uuid)
     ).then(parseReport);
+    return report;
   }
 
   /**
@@ -548,9 +535,10 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getStartTime(): Promise<number> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getStartTime
+    const startTime = await settleNativePromise(
+      common.NativeModule.preflightTest_getStartTime(this._uuid)
     ).then(Number);
+    return startTime;
   }
 
   /**
@@ -562,9 +550,10 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async getState(): Promise<PreflightTest.State> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_getState
+    const state = await settleNativePromise(
+      common.NativeModule.preflightTest_getState(this._uuid)
     ).then(parseState);
+    return state;
   }
 
   /**
@@ -576,8 +565,8 @@ export class PreflightTest extends EventEmitter {
    * - Rejects if the native layer encountered an error.
    */
   public async stop(): Promise<void> {
-    return this._invokeAndCatchNativeMethod(
-      common.NativeModule.preflightTest_stop
+    await settleNativePromise(
+      common.NativeModule.preflightTest_stop(this._uuid)
     );
   }
 }

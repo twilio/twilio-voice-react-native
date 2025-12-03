@@ -10,6 +10,32 @@ import type {
 import type { NativeCallInviteInfo } from './CallInvite';
 import type { Uuid } from './common';
 import type { RTCStats } from './RTCStats';
+import type { Constants } from '../constants';
+
+export type NativePromiseResolution<T> = {
+  [Constants.PromiseKeyStatus]: Constants.PromiseStatusValueResolved;
+  [Constants.PromiseKeyValue]: T;
+};
+
+export type NativePromiseNamedRejection = {
+  [Constants.PromiseKeyStatus]: Constants.PromiseStatusValueRejectedWithName;
+  [Constants.PromiseKeyErrorName]:
+    | Constants.ErrorCodeInvalidArgumentError
+    | Constants.ErrorCodeInvalidStateError;
+  [Constants.PromiseKeyErrorMessage]: string;
+};
+
+export type NativePromiseCodedRejection = {
+  [Constants.PromiseKeyStatus]: Constants.PromiseStatusValueRejectedWithCode;
+  [Constants.PromiseKeyErrorCode]: number;
+  [Constants.PromiseKeyErrorMessage]: string;
+};
+
+export type NativePromise<T> = Promise<
+  | NativePromiseResolution<T>
+  | NativePromiseCodedRejection
+  | NativePromiseNamedRejection
+>;
 
 export interface TwilioVoiceReactNative extends NativeModulesStatic {
   /**
@@ -24,24 +50,24 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   /**
    * Call bindings.
    */
-  call_disconnect(callUuid: Uuid): Promise<void>;
-  call_getStats(callUuid: Uuid): Promise<RTCStats.StatsReport>;
-  call_hold(callUuid: Uuid, hold: boolean): Promise<boolean>;
-  call_isOnHold(callUuid: Uuid): Promise<boolean>;
-  call_isMuted(callUuid: Uuid): Promise<boolean>;
-  call_mute(callUuid: Uuid, mute: boolean): Promise<boolean>;
+  call_disconnect(callUuid: Uuid): NativePromise<void>;
+  call_getStats(callUuid: Uuid): NativePromise<RTCStats.StatsReport>;
+  call_hold(callUuid: Uuid, hold: boolean): NativePromise<boolean>;
+  call_isOnHold(callUuid: Uuid): NativePromise<boolean>;
+  call_isMuted(callUuid: Uuid): NativePromise<boolean>;
+  call_mute(callUuid: Uuid, mute: boolean): NativePromise<boolean>;
   call_postFeedback(
     callUuid: Uuid,
     score: NativeCallFeedbackScore,
     issue: NativeCallFeedbackIssue
-  ): Promise<void>;
-  call_sendDigits(callUuid: Uuid, digits: string): Promise<void>;
+  ): NativePromise<void>;
+  call_sendDigits(callUuid: Uuid, digits: string): NativePromise<void>;
   call_sendMessage(
     callUuid: Uuid,
     content: string,
     contentType: string,
     messageType: string
-  ): Promise<string>;
+  ): NativePromise<string>;
 
   /**
    * Call Invite bindings.
@@ -49,13 +75,13 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   callInvite_accept(
     callInviteUuid: Uuid,
     acceptOptions: CallInvite.AcceptOptions
-  ): Promise<NativeCallInfo>;
-  callInvite_isValid(callInviteUuid: Uuid): Promise<boolean>;
-  callInvite_reject(callInviteUuid: Uuid): Promise<void>;
+  ): NativePromise<NativeCallInfo>;
+  callInvite_isValid(callInviteUuid: Uuid): NativePromise<boolean>;
+  callInvite_reject(callInviteUuid: Uuid): NativePromise<void>;
   callInvite_updateCallerHandle(
     callInviteUuid: Uuid,
     handle: string
-  ): Promise<void>;
+  ): NativePromise<void>;
 
   /**
    * Voice bindings.
@@ -64,27 +90,31 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
     token: string,
     twimlParams: Record<string, any>,
     notificationDisplayName: string | undefined
-  ): Promise<NativeCallInfo>;
+  ): NativePromise<NativeCallInfo>;
   voice_connect_ios(
     token: string,
     twimlParams: Record<string, any>,
     contactHandle: string
-  ): Promise<NativeCallInfo>;
-  voice_initializePushRegistry(): Promise<void>;
+  ): NativePromise<NativeCallInfo>;
+  voice_initializePushRegistry(): NativePromise<void>;
   voice_setCallKitConfiguration(
     configuration: Record<string, any>
-  ): Promise<void>;
-  voice_setIncomingCallContactHandleTemplate(template?: string): Promise<void>;
-  voice_getAudioDevices(): Promise<NativeAudioDevicesInfo>;
-  voice_getCalls(): Promise<NativeCallInfo[]>;
-  voice_getCallInvites(): Promise<NativeCallInviteInfo[]>;
-  voice_getDeviceToken(): Promise<string>;
-  voice_getVersion(): Promise<string>;
-  voice_handleEvent(remoteMessage: Record<string, string>): Promise<boolean>;
-  voice_register(accessToken: string): Promise<void>;
-  voice_selectAudioDevice(audioDeviceUuid: Uuid): Promise<void>;
-  voice_showNativeAvRoutePicker(): Promise<void>;
-  voice_unregister(accessToken: string): Promise<void>;
+  ): NativePromise<void>;
+  voice_setIncomingCallContactHandleTemplate(
+    template?: string
+  ): NativePromise<void>;
+  voice_getAudioDevices(): NativePromise<NativeAudioDevicesInfo>;
+  voice_getCalls(): NativePromise<NativeCallInfo[]>;
+  voice_getCallInvites(): NativePromise<NativeCallInviteInfo[]>;
+  voice_getDeviceToken(): NativePromise<string>;
+  voice_getVersion(): NativePromise<string>;
+  voice_handleEvent(
+    remoteMessage: Record<string, string>
+  ): NativePromise<boolean>;
+  voice_register(accessToken: string): NativePromise<void>;
+  voice_selectAudioDevice(audioDeviceUuid: Uuid): NativePromise<void>;
+  voice_showNativeAvRoutePicker(): NativePromise<void>;
+  voice_unregister(accessToken: string): NativePromise<void>;
 
   /**
    * Preflight related bindings.
@@ -92,15 +122,15 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_runPreflight(
     accessToken: string,
     options: PreflightTest.Options
-  ): Promise<Uuid>;
+  ): NativePromise<Uuid>;
 
-  preflightTest_getCallSid(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getEndTime(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getLatestSample(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getReport(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getStartTime(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_getState(preflightTestUuid: Uuid): Promise<string>;
-  preflightTest_stop(preflightTestUuid: Uuid): Promise<void>;
+  preflightTest_getCallSid(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getEndTime(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getLatestSample(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getReport(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getStartTime(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getState(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_stop(preflightTestUuid: Uuid): NativePromise<void>;
 
-  preflightTest_flushEvents(): Promise<void>;
+  preflightTest_flushEvents(): NativePromise<void>;
 }

@@ -9,58 +9,99 @@ import { createNativeAudioDevicesInfo } from './AudioDevice';
 import { createNativeCallInfo } from './Call';
 import { createNativeCallInviteInfo } from './CallInvite';
 import { createStatsReport } from './RTCStats';
+import { Constants } from '../constants';
+
+export function mockNativePromiseResolutionValue(value: any) {
+  return {
+    [Constants.PromiseKeyStatus]: Constants.PromiseStatusValueResolved as const,
+    [Constants.PromiseKeyValue]: value,
+  };
+}
+
+export function mockNativePromiseRejectionWithNameValue(
+  name:
+    | Constants.ErrorCodeInvalidArgumentError
+    | Constants.ErrorCodeInvalidStateError,
+  message: string
+) {
+  return {
+    [Constants.PromiseKeyStatus]:
+      Constants.PromiseStatusValueRejectedWithName as const,
+    [Constants.PromiseKeyErrorName]: name,
+    [Constants.PromiseKeyErrorMessage]: message,
+  };
+}
+
+export function mockNativePromiseRejectionWithCodeValue(
+  code: number,
+  message: string
+) {
+  return {
+    [Constants.PromiseKeyStatus]:
+      Constants.PromiseStatusValueRejectedWithCode as const,
+    [Constants.PromiseKeyErrorCode]: code,
+    [Constants.PromiseKeyErrorMessage]: message,
+  };
+}
+
+function createMockWithResolvedValue(value: any) {
+  return jest.fn().mockResolvedValue(mockNativePromiseResolutionValue(value));
+}
 
 export const NativeModule = {
   /**
    * Call Mocks
    */
-  call_disconnect: jest.fn().mockResolvedValue(undefined),
-  call_getStats: jest.fn().mockResolvedValue(createStatsReport()),
-  call_hold: jest.fn((_uuid: Uuid, hold: boolean) => Promise.resolve(hold)),
-  call_isMuted: jest.fn().mockResolvedValue(false),
-  call_isOnHold: jest.fn().mockResolvedValue(false),
-  call_mute: jest.fn((_uuid: Uuid, mute: boolean) => Promise.resolve(mute)),
-  call_postFeedback: jest.fn().mockResolvedValue(undefined),
-  call_sendDigits: jest.fn().mockResolvedValue(undefined),
-  call_sendMessage: jest
-    .fn()
-    .mockResolvedValue('mock-nativemodule-tracking-id'),
+  call_disconnect: createMockWithResolvedValue(undefined),
+  call_getStats: createMockWithResolvedValue(createStatsReport()),
+  call_hold: jest.fn((_uuid: Uuid, hold: boolean) =>
+    Promise.resolve(mockNativePromiseResolutionValue(hold))
+  ),
+  call_isMuted: createMockWithResolvedValue(false),
+  call_isOnHold: createMockWithResolvedValue(false),
+  call_mute: jest.fn((_uuid: Uuid, mute: boolean) =>
+    Promise.resolve(mockNativePromiseResolutionValue(mute))
+  ),
+  call_postFeedback: createMockWithResolvedValue(undefined),
+  call_sendDigits: createMockWithResolvedValue(undefined),
+  call_sendMessage: createMockWithResolvedValue(
+    'mock-nativemodule-tracking-id'
+  ),
 
   /**
    * Call Invite Mocks
    */
-  callInvite_accept: jest.fn().mockResolvedValue(createNativeCallInfo()),
-  callInvite_isValid: jest.fn().mockResolvedValue(false),
-  callInvite_reject: jest.fn().mockResolvedValue(undefined),
-  callInvite_updateCallerHandle: jest.fn().mockResolvedValue(undefined),
+  callInvite_accept: createMockWithResolvedValue(createNativeCallInfo()),
+  callInvite_isValid: createMockWithResolvedValue(false),
+  callInvite_reject: createMockWithResolvedValue(undefined),
+  callInvite_updateCallerHandle: createMockWithResolvedValue(undefined),
 
   /**
    * Voice Mocks
    */
-  voice_connect_android: jest.fn().mockResolvedValue(createNativeCallInfo()),
-  voice_connect_ios: jest.fn().mockResolvedValue(createNativeCallInfo()),
-  voice_getAudioDevices: jest
-    .fn()
-    .mockResolvedValue(createNativeAudioDevicesInfo()),
-  voice_getCalls: jest.fn().mockResolvedValue([createNativeCallInfo()]),
-  voice_getCallInvites: jest
-    .fn()
-    .mockResolvedValue([createNativeCallInviteInfo()]),
-  voice_getDeviceToken: jest
-    .fn()
-    .mockResolvedValue('mock-nativemodule-devicetoken'),
-  voice_getVersion: jest.fn().mockResolvedValue('mock-nativemodule-version'),
-  voice_handleEvent: jest.fn().mockResolvedValue(true),
-  voice_initializePushRegistry: jest.fn().mockResolvedValue(undefined),
-  voice_register: jest.fn().mockResolvedValue(undefined),
-  voice_selectAudioDevice: jest.fn().mockResolvedValue(undefined),
-  voice_setCallKitConfiguration: jest.fn().mockResolvedValue(undefined),
-  voice_showNativeAvRoutePicker: jest.fn().mockResolvedValue(undefined),
-  voice_setIncomingCallContactHandleTemplate: jest
-    .fn()
-    .mockResolvedValue(undefined),
-  voice_unregister: jest.fn().mockResolvedValue(undefined),
-  voice_runPreflight: jest.fn().mockResolvedValue(undefined),
+  voice_connect_android: createMockWithResolvedValue(createNativeCallInfo()),
+  voice_connect_ios: createMockWithResolvedValue(createNativeCallInfo()),
+  voice_getAudioDevices: createMockWithResolvedValue(
+    createNativeAudioDevicesInfo()
+  ),
+  voice_getCalls: createMockWithResolvedValue([createNativeCallInfo()]),
+  voice_getCallInvites: createMockWithResolvedValue([
+    createNativeCallInviteInfo(),
+  ]),
+  voice_getDeviceToken: createMockWithResolvedValue(
+    'mock-nativemodule-devicetoken'
+  ),
+  voice_getVersion: createMockWithResolvedValue('mock-nativemodule-version'),
+  voice_handleEvent: createMockWithResolvedValue(true),
+  voice_initializePushRegistry: createMockWithResolvedValue(undefined),
+  voice_register: createMockWithResolvedValue(undefined),
+  voice_selectAudioDevice: createMockWithResolvedValue(undefined),
+  voice_setCallKitConfiguration: createMockWithResolvedValue(undefined),
+  voice_showNativeAvRoutePicker: createMockWithResolvedValue(undefined),
+  voice_setIncomingCallContactHandleTemplate:
+    createMockWithResolvedValue(undefined),
+  voice_unregister: createMockWithResolvedValue(undefined),
+  voice_runPreflight: createMockWithResolvedValue(undefined),
 
   /**
    * PreflightTest mocks.

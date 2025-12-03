@@ -14,6 +14,7 @@ import {
   mockSample,
   mockUuid,
 } from '../__mock-data__/PreflightTest';
+import { mockNativePromiseResolutionValue } from '../__mocks__/common';
 
 jest.mock('../common');
 
@@ -468,76 +469,6 @@ describe('PreflightTest', () => {
         ]);
       });
     });
-
-    describe('_invokeAndCatchNativeMethod', () => {
-      it('passes the uuid to the wrapped method', () => {
-        const preflight = new PreflightTest(mockUuid);
-
-        const spy = jest.fn(async () => {});
-
-        preflight['_invokeAndCatchNativeMethod'](spy);
-
-        expect(spy.mock.calls).toEqual([[mockUuid]]);
-      });
-
-      it('does not affect the resolved value', async () => {
-        const preflight = new PreflightTest(mockUuid);
-
-        const spy = jest.fn(async () => ({ biff: 'bazz' }));
-
-        await expect(
-          preflight['_invokeAndCatchNativeMethod'](spy)
-        ).resolves.toEqual({
-          biff: 'bazz',
-        });
-      });
-
-      it('handles a valid code and message', async () => {
-        const preflight = new PreflightTest(mockUuid);
-
-        const spy = jest.fn(async () => {
-          throw {
-            code: 100,
-            message: 'foobar',
-          };
-        });
-
-        await expect(
-          preflight['_invokeAndCatchNativeMethod'](spy)
-        ).rejects.toBeInstanceOf(TwilioError);
-      });
-
-      it('handles an invalid state error', async () => {
-        const preflight = new PreflightTest(mockUuid);
-
-        const spy = jest.fn(async () => {
-          throw {
-            code: Constants.ErrorCodeInvalidStateError,
-            message: 'foobar',
-          };
-        });
-
-        await expect(
-          preflight['_invokeAndCatchNativeMethod'](spy)
-        ).rejects.toBeInstanceOf(InvalidStateError);
-      });
-
-      it('handles any other type of error', async () => {
-        const preflight = new PreflightTest(mockUuid);
-
-        const spy = jest.fn(async () => {
-          throw {
-            foo: 'bar',
-          };
-        });
-
-        await expect(
-          preflight['_invokeAndCatchNativeMethod'](spy)
-        ).rejects.toEqual({
-          foo: 'bar',
-        });
-      });
-    });
   });
 
   describe('public methods', () => {
@@ -551,7 +482,7 @@ describe('PreflightTest', () => {
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getCallSid')
-          .mockResolvedValue('mock-callsid');
+          .mockResolvedValue(mockNativePromiseResolutionValue('mock-callsid'));
 
         await preflight.getCallSid();
 
@@ -565,7 +496,7 @@ describe('PreflightTest', () => {
       beforeEach(() => {
         spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getEndTime')
-          .mockResolvedValue('100');
+          .mockResolvedValue(mockNativePromiseResolutionValue('100'));
       });
 
       it('invokes the native module', async () => {
@@ -587,7 +518,9 @@ describe('PreflightTest', () => {
       beforeEach(() => {
         spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getLatestSample')
-          .mockResolvedValue(JSON.stringify(mockSample));
+          .mockResolvedValue(
+            mockNativePromiseResolutionValue(JSON.stringify(mockSample))
+          );
       });
 
       it('invokes the native module', async () => {
@@ -627,10 +560,12 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockImplementation(async () =>
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'foobar',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'foobar',
+                })
+              )
             );
 
           await expect(async () => {
@@ -651,10 +586,12 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockImplementation(async () =>
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                })
+              )
             );
 
           await expect(async () => {
@@ -672,7 +609,9 @@ describe('PreflightTest', () => {
           const spy = jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({ ...baseMockReport, callQuality: 'Excellent' })
+              )
             );
 
           await preflight.getReport();
@@ -684,11 +623,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -700,11 +641,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: null,
-                isTurnRequired: false,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: null,
+                  isTurnRequired: false,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -716,11 +659,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: undefined,
-                isTurnRequired: false,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: undefined,
+                  isTurnRequired: false,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -732,7 +677,9 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+              )
             );
 
           await expect(async () => {
@@ -744,7 +691,9 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 10 })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({ ...baseMockReport, callQuality: 10 })
+              )
             );
 
           await expect(async () => {
@@ -756,12 +705,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warnings: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warnings: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -776,12 +727,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warnings: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warnings: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -796,12 +749,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warningsCleared: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warningsCleared: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -816,12 +771,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warningsCleared: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warningsCleared: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -836,13 +793,15 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warnings: 'foobar',
-                warningsCleared: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warnings: 'foobar',
+                  warningsCleared: undefined,
+                })
+              )
             );
 
           expect(async () => {
@@ -854,13 +813,15 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: false,
-                warnings: undefined,
-                warningsCleared: 'foobar',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
+                  warnings: undefined,
+                  warningsCleared: 'foobar',
+                })
+              )
             );
 
           expect(async () => {
@@ -872,12 +833,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                isTurnRequired: 10,
-                warnings: [],
-                warningsCleared: [],
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  isTurnRequired: 10,
+                  warnings: [],
+                  warningsCleared: [],
+                })
+              )
             );
 
           expect(async () => {
@@ -889,11 +852,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -908,11 +873,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 'Excellent',
-                isTurnRequired: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 'Excellent',
+                  isTurnRequired: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -933,11 +900,13 @@ describe('PreflightTest', () => {
           const spy = jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                })
+              )
             );
 
           await preflight.getReport();
@@ -949,11 +918,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -965,11 +936,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: null,
-                isTurnRequired: 'false',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: null,
+                  isTurnRequired: 'false',
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -981,11 +954,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: undefined,
-                isTurnRequired: 'false',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: undefined,
+                  isTurnRequired: 'false',
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -997,7 +972,9 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 100 })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({ ...baseMockReport, callQuality: 100 })
+              )
             );
 
           await expect(async () => {
@@ -1009,7 +986,9 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({ ...baseMockReport, callQuality: 'foobar' })
+              )
             );
 
           await expect(async () => {
@@ -1021,11 +1000,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 10,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 10,
+                })
+              )
             );
 
           await expect(async () => {
@@ -1037,11 +1018,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'foobar',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'foobar',
+                })
+              )
             );
 
           await expect(async () => {
@@ -1053,11 +1036,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1072,11 +1057,13 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1091,12 +1078,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warnings: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warnings: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1111,12 +1100,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warnings: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warnings: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1131,12 +1122,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warningsCleared: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warningsCleared: undefined,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1151,12 +1144,14 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warningsCleared: null,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warningsCleared: null,
+                })
+              )
             );
 
           const report = await preflight.getReport();
@@ -1171,13 +1166,15 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warnings: 'foobar',
-                warningsCleared: undefined,
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warnings: 'foobar',
+                  warningsCleared: undefined,
+                })
+              )
             );
 
           expect(async () => {
@@ -1189,13 +1186,15 @@ describe('PreflightTest', () => {
           jest
             .spyOn(Common.NativeModule, 'preflightTest_getReport')
             .mockResolvedValue(
-              JSON.stringify({
-                ...baseMockReport,
-                callQuality: 0,
-                isTurnRequired: 'false',
-                warnings: undefined,
-                warningsCleared: 'foobar',
-              })
+              mockNativePromiseResolutionValue(
+                JSON.stringify({
+                  ...baseMockReport,
+                  callQuality: 0,
+                  isTurnRequired: 'false',
+                  warnings: undefined,
+                  warningsCleared: 'foobar',
+                })
+              )
             );
 
           expect(async () => {
@@ -1209,7 +1208,9 @@ describe('PreflightTest', () => {
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getStartTime')
-          .mockImplementation(async () => '10');
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue('10')
+          );
 
         await preflight.getStartTime();
 
@@ -1219,7 +1220,9 @@ describe('PreflightTest', () => {
       it('returns a number', async () => {
         jest
           .spyOn(Common.NativeModule, 'preflightTest_getStartTime')
-          .mockImplementation(async () => '10');
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue('10')
+          );
 
         const startTime = await preflight.getStartTime();
 
@@ -1231,7 +1234,9 @@ describe('PreflightTest', () => {
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getState')
-          .mockImplementation(async () => 'completed');
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue('completed')
+          );
 
         await preflight.getState();
 
@@ -1241,7 +1246,9 @@ describe('PreflightTest', () => {
       it('returns a valid state', async () => {
         jest
           .spyOn(Common.NativeModule, 'preflightTest_getState')
-          .mockImplementation(async () => 'completed');
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue('completed')
+          );
 
         const state = await preflight.getState();
 
@@ -1263,7 +1270,9 @@ describe('PreflightTest', () => {
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_stop')
-          .mockImplementation(async () => {});
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue(undefined)
+          );
 
         await preflight.stop();
 
@@ -1273,7 +1282,9 @@ describe('PreflightTest', () => {
       it('returns undefined', async () => {
         jest
           .spyOn(Common.NativeModule, 'preflightTest_stop')
-          .mockImplementation(async () => {});
+          .mockImplementation(async () =>
+            mockNativePromiseResolutionValue(undefined)
+          );
 
         const retVal = await preflight.stop();
 

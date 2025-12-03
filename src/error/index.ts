@@ -1,5 +1,6 @@
 export { InvalidArgumentError } from './InvalidArgumentError';
 export { InvalidStateError } from './InvalidStateError';
+export { UnexpectedNativeError } from './UnexpectedNativeError';
 export { UnsupportedPlatformError } from './UnsupportedPlatformError';
 export { TwilioError } from './TwilioError';
 export {

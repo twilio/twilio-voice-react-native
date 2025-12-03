@@ -3,7 +3,10 @@ import {
   createNativeCallInviteInfo,
   createMockNativeCallInviteEvents,
 } from '../__mocks__/CallInvite';
-import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mocks__/common';
+import {
+  mockNativePromiseRejectionWithCodeValue,
+  NativeEventEmitter as MockNativeEventEmitterType,
+} from '../__mocks__/common';
 import { Call } from '../Call';
 import { CallInvite } from '../CallInvite';
 import { IncomingCallMessage } from '../CallMessage/IncomingCallMessage';
@@ -293,12 +296,14 @@ describe('CallInvite class', () => {
         CallInvite.State.Pending
       );
 
-      jest.mocked(NativeModule.callInvite_accept).mockRejectedValueOnce({
-        userInfo: {
-          code: 31401,
-          message: 'Missing permissions.',
-        },
-      });
+      const errorPayload = mockNativePromiseRejectionWithCodeValue(
+        31401,
+        'Missing permissions.'
+      );
+
+      jest
+        .mocked(NativeModule.callInvite_accept)
+        .mockResolvedValueOnce(errorPayload);
 
       expect.assertions(1);
       await callPromise.accept(acceptOptions).catch((error) => {
