@@ -691,7 +691,7 @@ export class Call extends EventEmitter {
    *    - Rejects if the native layer cannot disconnect the call.
    */
   async disconnect(): Promise<void> {
-    await NativeModule.call_disconnect(this._uuid);
+    await settleNativePromise(NativeModule.call_disconnect(this._uuid));
   }
 
   /**

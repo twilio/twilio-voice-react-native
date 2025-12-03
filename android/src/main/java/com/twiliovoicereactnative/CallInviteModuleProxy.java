@@ -6,6 +6,7 @@ import android.os.Looper;
 import com.facebook.react.bridge.ReactApplicationContext;
 
 import java.util.function.Consumer;
+import java.util.UUID;
 
 class CallInviteModuleProxy {
   private static final SDKLog logger = new SDKLog(CallInviteModuleProxy.class);
@@ -18,8 +19,14 @@ class CallInviteModuleProxy {
     this.reactApplicationContext = reactApplicationContext;
   }
 
-  private void getCallRecord(String uuid, ModuleProxy.UniversalPromise promise, Consumer<CallRecordDatabase.CallRecord> onSuccess) {
-    logger.debug(String.format(".getCallRecord(%s)", uuid));
+  private void getCallRecord(
+    String uuidStr,
+    ModuleProxy.UniversalPromise promise,
+    Consumer<CallRecordDatabase.CallRecord> onSuccess
+  ) {
+    logger.debug(String.format(".getCallRecord(%s)", uuidStr));
+
+    final UUID uuid = UUID.fromString(uuidStr);
 
     CallRecordDatabase.CallRecord callRecord = VoiceApplicationProxy
       .getCallRecordDatabase()
