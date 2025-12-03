@@ -24,6 +24,7 @@ import { CallMessage, validateCallMessage } from './CallMessage/CallMessage';
 import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 import { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 import { Constants } from './constants';
+import { settleNativePromise } from './utility/nativePromise';
 
 /**
  * Defines strict typings for all events emitted by {@link (CallInvite:class)
@@ -449,24 +450,11 @@ export class CallInvite extends EventEmitter {
       );
     }
 
-    const acceptResult = await NativeModule.callInvite_accept(
-      this._uuid,
-      options
-    )
-      .then((callInfo) => {
-        return { type: 'ok', callInfo } as const;
-      })
-      .catch((error) => {
-        const code = error.userInfo.code;
-        const message = error.userInfo.message;
-        return { type: 'err', message, code } as const;
-      });
+    const callInfo = await settleNativePromise(
+      NativeModule.callInvite_accept(this._uuid, options)
+    );
 
-    if (acceptResult.type === 'err') {
-      throw constructTwilioError(acceptResult.message, acceptResult.code);
-    }
-
-    return new Call(acceptResult.callInfo);
+    return new Call(callInfo);
   }
 
   /**
@@ -494,8 +482,11 @@ export class CallInvite extends EventEmitter {
    *
    * @alpha
    */
-  isValid(): Promise<boolean> {
-    return NativeModule.callInvite_isValid(this._uuid);
+  async isValid(): Promise<boolean> {
+    const isValid = await settleNativePromise(
+      NativeModule.callInvite_isValid(this._uuid)
+    );
+    return isValid;
   }
 
   /**
@@ -572,11 +563,13 @@ export class CallInvite extends EventEmitter {
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
     const { content, contentType, messageType } = validateCallMessage(message);
 
-    const voiceEventSid = await NativeModule.call_sendMessage(
-      this._uuid,
-      content,
-      contentType,
-      messageType
+    const voiceEventSid = await settleNativePromise(
+      NativeModule.call_sendMessage(
+        this._uuid,
+        content,
+        contentType,
+        messageType
+      )
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
@@ -610,10 +603,10 @@ export class CallInvite extends EventEmitter {
   async updateCallerHandle(newHandle: string): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
-        return NativeModule.callInvite_updateCallerHandle(
-          this._uuid,
-          newHandle
+        await settleNativePromise(
+          NativeModule.callInvite_updateCallerHandle(this._uuid, newHandle)
         );
+        return;
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". This method is only supported on iOS.`

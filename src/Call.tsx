@@ -23,6 +23,7 @@ import { constructTwilioError } from './error/utility';
 import { CallMessage, validateCallMessage } from './CallMessage/CallMessage';
 import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 import { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
+import { settleNativePromise } from './utility/nativePromise';
 
 /**
  * Defines strict typings for all events emitted by {@link (Call:class)
@@ -689,8 +690,8 @@ export class Call extends EventEmitter {
    *    - Resolves when the call has disconnected.
    *    - Rejects if the native layer cannot disconnect the call.
    */
-  disconnect(): Promise<void> {
-    return NativeModule.call_disconnect(this._uuid);
+  async disconnect(): Promise<void> {
+    await NativeModule.call_disconnect(this._uuid);
   }
 
   /**
@@ -775,8 +776,11 @@ export class Call extends EventEmitter {
    *    - Rejects when a {@link RTCStats.StatsReport} cannot be generated for a
    *      call.
    */
-  getStats(): Promise<RTCStats.StatsReport> {
-    return NativeModule.call_getStats(this._uuid);
+  async getStats(): Promise<RTCStats.StatsReport> {
+    const stats = await settleNativePromise(
+      NativeModule.call_getStats(this._uuid)
+    );
+    return stats;
   }
 
   /**
@@ -814,7 +818,9 @@ export class Call extends EventEmitter {
    *    - Rejects when the call is not able to be put on hold or not on hold.
    */
   async hold(hold: boolean): Promise<boolean> {
-    this._isOnHold = await NativeModule.call_hold(this._uuid, hold);
+    this._isOnHold = await settleNativePromise(
+      NativeModule.call_hold(this._uuid, hold)
+    );
     return this._isOnHold;
   }
 
@@ -843,7 +849,9 @@ export class Call extends EventEmitter {
    *    - Rejects when the call is not able to be muted or unmuted.
    */
   async mute(mute: boolean): Promise<boolean> {
-    this._isMuted = await NativeModule.call_mute(this._uuid, mute);
+    this._isMuted = await settleNativePromise(
+      NativeModule.call_mute(this._uuid, mute)
+    );
     return this._isMuted;
   }
 
@@ -869,8 +877,8 @@ export class Call extends EventEmitter {
    *    - Resolves when the DTMF digits have been sent.
    *    - Rejects when DTMF tones are not able to be sent.
    */
-  sendDigits(digits: string): Promise<void> {
-    return NativeModule.call_sendDigits(this._uuid, digits);
+  async sendDigits(digits: string): Promise<void> {
+    await settleNativePromise(NativeModule.call_sendDigits(this._uuid, digits));
   }
 
   /**
@@ -904,11 +912,13 @@ export class Call extends EventEmitter {
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
     const { content, contentType, messageType } = validateCallMessage(message);
 
-    const voiceEventSid = await NativeModule.call_sendMessage(
-      this._uuid,
-      content,
-      contentType,
-      messageType
+    const voiceEventSid = await settleNativePromise(
+      NativeModule.call_sendMessage(
+        this._uuid,
+        content,
+        contentType,
+        messageType
+      )
     );
 
     const outgoingCallMessage = new OutgoingCallMessage({
@@ -954,7 +964,9 @@ export class Call extends EventEmitter {
     const nativeScore = scoreMap[score];
     const nativeIssue = issueMap[issue];
 
-    return NativeModule.call_postFeedback(this._uuid, nativeScore, nativeIssue);
+    await settleNativePromise(
+      NativeModule.call_postFeedback(this._uuid, nativeScore, nativeIssue)
+    );
   }
 }
 
