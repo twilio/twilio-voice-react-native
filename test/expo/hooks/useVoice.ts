@@ -2,10 +2,7 @@ import React from 'react';
 
 import { Call, PreflightTest, Voice } from '@twilio/voice-react-native-sdk';
 
-import { NativeEventEmitter, NativeModules } from 'react-native';
-import { requireNativeModule } from 'expo-modules-core';
-
-// @ts-ignore-next-line
+// @ts-ignore
 import { token } from '@/constants/token';
 
 export function useVoice() {
@@ -21,16 +18,19 @@ export function useVoice() {
     });
 
     voice.addListener(Voice.Event.Error, (error) => {
-      console.log('voice error event', error)
+      console.log('voice error event', error);
     });
-  }, []);
+  }, [voice]);
 
   const voiceRegister = async () => {
-    voice.register(token).then(() => {
-      console.log('register resolved');
-    }).catch((error) => {
-      console.log('register rejected', error);
-    });
+    voice
+      .register(token)
+      .then(() => {
+        console.log('register resolved');
+      })
+      .catch((error) => {
+        console.log('register rejected', error);
+      });
   };
 
   const voiceStartPreflight = async () => {
@@ -47,14 +47,15 @@ export function useVoice() {
     //   }],
     // };
 
-    const preflightTestPromise = await voice.runPreflight(token)
-      .then((preflightTest) => ({ status: 'resolved', preflightTest }) as const)
-      .catch((error) => ({ status: 'rejected', error }) as const);
+    const preflightTestPromise = await voice
+      .runPreflight(token)
+      .then((preflightTest) => ({ status: 'resolved', preflightTest } as const))
+      .catch((error) => ({ status: 'rejected', error } as const));
 
     if (preflightTestPromise.status === 'rejected') {
       console.log('preflight rejected');
       return;
-    };
+    }
 
     console.log('preflight resolved');
 
@@ -72,9 +73,16 @@ export function useVoice() {
       console.log('preflight failed', error);
     });
 
-    preflightTest.on(PreflightTest.Event.QualityWarning, (currentWarnings, previousWarnings) => {
-      console.log('preflight quality warning', currentWarnings, previousWarnings)
-    });
+    preflightTest.on(
+      PreflightTest.Event.QualityWarning,
+      (currentWarnings, previousWarnings) => {
+        console.log(
+          'preflight quality warning',
+          currentWarnings,
+          previousWarnings
+        );
+      }
+    );
 
     preflightTest.on(PreflightTest.Event.Sample, (sample) => {
       console.log('preflight sample', sample);
@@ -88,9 +96,10 @@ export function useVoice() {
   const callDisconnect = async () => {};
 
   const voiceConnect = async () => {
-    const callPromise = await voice.connect(token)
-      .then((call) => ({ status: 'resolved', call }) as const)
-      .catch((error) => ({ status: 'rejected', error }) as const);
+    const callPromise = await voice
+      .connect(token)
+      .then((call) => ({ status: 'resolved', call } as const))
+      .catch((error) => ({ status: 'rejected', error } as const));
 
     if (callPromise.status === 'rejected') {
       console.log('connect rejected', callPromise.error);

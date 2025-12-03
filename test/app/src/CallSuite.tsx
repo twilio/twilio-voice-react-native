@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  SafeAreaView,
 } from 'react-native';
 import { useVoice } from './hook';
 import type { EventLogItem } from './type';
@@ -119,60 +120,62 @@ export function CallSuite() {
   );
 
   return (
-    <View style={styles.expand}>
-      <View style={styles.padded}>
-        <Text testID="app_info">App Info</Text>
-        {headerComponent}
-      </View>
-      <View style={styles.padded}>
-        <Text>Call Info</Text>
-        {callComponent}
-      </View>
-      <View style={styles.padded}>
-        <Text>Call Invite</Text>
-        {callInviteComponent}
-      </View>
-      <View style={composedStyles.events}>
-        <View style={styles.eventsButtons}>
-          <Text>Events</Text>
-          <Button
-            title="Toggle Log Format"
-            onPress={() => setEventLogFormat((_f) => !_f)}
+    <SafeAreaView style={styles.expand}>
+      <View style={styles.expand}>
+        <View style={styles.padded}>
+          <Text testID="app_info">App Info</Text>
+          {headerComponent}
+        </View>
+        <View style={styles.padded}>
+          <Text>Call Info</Text>
+          {callComponent}
+        </View>
+        <View style={styles.padded}>
+          <Text>Call Invite</Text>
+          {callInviteComponent}
+        </View>
+        <View style={composedStyles.events}>
+          <View style={styles.eventsButtons}>
+            <Text>Events</Text>
+            <Button
+              title="Toggle Log Format"
+              onPress={() => setEventLogFormat((_f) => !_f)}
+            />
+          </View>
+          <View style={composedStyles.eventsList}>
+            {eventLogFormat ? (
+              <FlatList
+                testID="event_log"
+                data={events}
+                renderItem={eventLogItemRender}
+              />
+            ) : (
+              <Text testID="event_log" style={styles.eventLog}>
+                {JSON.stringify(events)}
+              </Text>
+            )}
+          </View>
+        </View>
+        <View style={styles.padded}>
+          <Grid
+            verticalGapSize={5}
+            gridComponents={[
+              [
+                <Dialer
+                  callInfo={callInfo}
+                  callMethod={callMethod}
+                  onConnect={connectHandler}
+                  recentCallInvite={recentCallInvite}
+                />,
+              ],
+              registrationButtons,
+              audioDeviceButtons,
+              getOngoingButtons,
+            ]}
           />
         </View>
-        <View style={composedStyles.eventsList}>
-          {eventLogFormat ? (
-            <FlatList
-              testID="event_log"
-              data={events}
-              renderItem={eventLogItemRender}
-            />
-          ) : (
-            <Text testID="event_log" style={styles.eventLog}>
-              {JSON.stringify(events)}
-            </Text>
-          )}
-        </View>
       </View>
-      <View style={styles.padded}>
-        <Grid
-          verticalGapSize={5}
-          gridComponents={[
-            [
-              <Dialer
-                callInfo={callInfo}
-                callMethod={callMethod}
-                onConnect={connectHandler}
-                recentCallInvite={recentCallInvite}
-              />,
-            ],
-            registrationButtons,
-            audioDeviceButtons,
-            getOngoingButtons,
-          ]}
-        />
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
