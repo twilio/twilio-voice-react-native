@@ -26,6 +26,7 @@ describe('call', () => {
   beforeEach(async () => {
     await device.reloadReactNative();
     await element(by.text('CALL SUITE')).tap();
+    await element(by.text('TOGGLE LOG FORMAT')).tap();
   });
 
   if (device.getPlatform() === 'ios') {
@@ -103,8 +104,6 @@ describe('call', () => {
       });
 
       it('should get valid rtc stats', async () => {
-        await element(by.text('TOGGLE LOG FORMAT')).tap();
-
         await element(by.text('CONNECT')).tap();
         await waitFor(element(by.text('Call State: connected')))
           .toBeVisible()
@@ -216,8 +215,6 @@ describe('call', () => {
       });
 
       it('should get valid rtc stats', async () => {
-        await element(by.text('TOGGLE LOG FORMAT')).tap();
-
         await register();
 
         const testCall = await twilioClient.calls.create({
