@@ -259,7 +259,7 @@ export function useCallInvites(
             removeCallInvite(callInvite.getCallSid());
             try {
               await callInvite.accept();
-            } catch (err) {
+            } catch (err: any) {
               const message = err.message;
               const code = err.code;
               logEvent(
@@ -376,7 +376,7 @@ export function useVoice(token: string) {
           },
         });
         callHandler(call);
-      } catch (err) {
+      } catch (err: any) {
         const message = err.message;
         const code = err.code;
         logEvent(
@@ -431,7 +431,7 @@ export function useVoice(token: string) {
       );
 
       setPreflightTest(() => _preflightTest);
-    } catch (error) {
+    } catch (error: any) {
       logEvent(`preflight test error "${JSON.stringify({
         error,
         message: error.message,
@@ -572,6 +572,12 @@ export function useVoice(token: string) {
         console.log('existing call invite', callInvite.getCallSid());
         callInviteHandler(callInvite);
       }
+
+      (new PreflightTest('foobar')).getCallSid().then(() => {
+        console.log('this should not happen! call sid success');
+      }).catch((error) => {
+        console.log('this is correct, here is the error', error);
+      });
     };
 
     bootstrap();

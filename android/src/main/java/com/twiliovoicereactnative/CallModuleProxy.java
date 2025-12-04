@@ -7,8 +7,9 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.twilio.voice.Call;
 import com.twilio.voice.CallMessage;
 
-import java.util.Map;
 import java.util.function.Consumer;
+import java.util.Map;
+import java.util.UUID;
 
 class CallModuleProxy {
   /**
@@ -67,11 +68,13 @@ class CallModuleProxy {
   }
 
   private void getCallRecord(
-    String uuid,
+    String uuidStr,
     ModuleProxy.UniversalPromise promise,
     Consumer<CallRecordDatabase.CallRecord> onSuccess
   ) {
-    logger.debug(".getCallRecord()");
+    logger.debug(String.format(".getCallRecord(%s)", uuidStr));
+
+    final UUID uuid = UUID.fromString(uuidStr);
 
     final CallRecordDatabase.CallRecord callRecord = VoiceApplicationProxy
       .getCallRecordDatabase()
@@ -126,7 +129,7 @@ class CallModuleProxy {
   }
 
   public void disconnect(String uuid, ModuleProxy.UniversalPromise promise) {
-    logger.debug(".disconnect()");
+    logger.debug(String.format(".disconnect(%s)", uuid));
 
     getCallRecord(uuid, promise, (callRecord) -> {
       callRecord

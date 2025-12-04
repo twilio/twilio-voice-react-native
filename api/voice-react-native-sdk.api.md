@@ -1112,6 +1112,7 @@ declare namespace TwilioErrors {
     export {
         InvalidArgumentError,
         InvalidStateError,
+        UnexpectedNativeError,
         UnsupportedPlatformError,
         TwilioError,
         AuthorizationErrors,
@@ -1140,6 +1141,17 @@ namespace TwiMLErrors {
         name: string;
         solutions: string[];
     }
+}
+
+// @public
+class UnexpectedNativeError extends TwilioError {
+    constructor(message: string, miscellaneousInfo?: any);
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    explanation: string;
+    // (undocumented)
+    miscellaneousInfo: any;
 }
 
 // @public
