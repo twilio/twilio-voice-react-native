@@ -23,19 +23,24 @@ describe('call', () => {
     await device.launchApp();
   });
 
-  beforeEach(async () => {
-    await device.reloadReactNative();
-    await element(by.text('CALL SUITE')).tap();
-    await element(by.text('TOGGLE LOG FORMAT')).tap();
-  });
-
   if (device.getPlatform() === 'ios') {
+    beforeEach(async () => {
+      await device.reloadReactNative();
+      await element(by.text('CALL SUITE')).tap();
+    });
+
     it('should pass the dummy test', () => {
       // by default jest does not pass a test suite if there are no tests
     });
   }
 
   if (device.getPlatform() === 'android') {
+    beforeEach(async () => {
+      await device.reloadReactNative();
+      await element(by.text('CALL SUITE')).tap();
+      await element(by.text('TOGGLE LOG FORMAT')).tap();
+    });
+
     describe('outgoing call', () => {
       it('should make an outgoing call and then disconnect', async () => {
         await element(by.text('CONNECT')).tap();
