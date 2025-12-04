@@ -146,7 +146,7 @@ class CallModuleProxy {
       callRecord
         .getVoiceCall()
         .hold(hold);
-      promise.resolve(null);
+      promise.resolve(hold);
     });
   }
 
@@ -157,7 +157,7 @@ class CallModuleProxy {
       callRecord
         .getVoiceCall()
         .mute(mute);
-      promise.resolve(null);
+      promise.resolve(mute);
     });
   }
 
