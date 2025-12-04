@@ -572,12 +572,6 @@ export function useVoice(token: string) {
         console.log('existing call invite', callInvite.getCallSid());
         callInviteHandler(callInvite);
       }
-
-      (new PreflightTest('foobar')).getCallSid().then(() => {
-        console.log('this should not happen! call sid success');
-      }).catch((error) => {
-        console.log('this is correct, here is the error', error);
-      });
     };
 
     bootstrap();
