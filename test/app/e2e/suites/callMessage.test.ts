@@ -8,7 +8,7 @@ import { pollValidateLog, getRegExpMatch } from '../common/logParser';
 const DEFAULT_TIMEOUT = 10000;
 const RELAY_SERVER_URL = 'http://localhost:4040';
 
-describe('call', () => {
+describe('call message', () => {
   let twilioClient: ReturnType<typeof twilio>;
   let clientId: string;
 
