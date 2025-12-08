@@ -1,0 +1,312 @@
+package com.twiliovoicereactnative
+
+import android.util.Log
+
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.Arguments
+import com.twilio.voice.PreflightOptions
+
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.modules.ModuleDefinition
+
+
+class ExpoModule : Module() {
+  private class PromiseAdapter(private val promise: Promise) : ModuleProxy.UniversalPromise {
+    override fun resolve(value: Any?) {
+      promise.resolve(
+        ReactNativeArgumentsSerializer.serializePromiseResolution(value)
+      )
+    }
+
+    override fun rejectWithCode(code: Int, message: String) {
+      promise.resolve(
+        ReactNativeArgumentsSerializer.serializePromiseErrorWithCode(code, message)
+      )
+    }
+
+    override fun rejectWithName(name: String, message: String) {
+      promise.resolve(
+        ReactNativeArgumentsSerializer.serializePromiseErrorWithName(name, message)
+      )
+    }
+  }
+
+  private val NAME: String = "TwilioVoiceExpoModule"
+
+  private lateinit var moduleProxy: ModuleProxy
+
+  override fun definition() = ModuleDefinition {
+    Name(NAME)
+
+    OnCreate {
+      Log.d(NAME, String.format("context %s", this@ExpoModule.appContext.reactContext))
+
+      val reactApplicationContext = this@ExpoModule.appContext.reactContext as ReactApplicationContext?
+      if (reactApplicationContext != null) {
+        this@ExpoModule.moduleProxy = ModuleProxy(reactApplicationContext)
+      }
+    }
+
+    /**
+     * Call API
+     */
+
+    AsyncFunction("call_disconnect") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.disconnect(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_getState") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.getState(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_getStats") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.getStats(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_hold") {
+      uuid: String,
+      hold: Boolean,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.hold(uuid, hold, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_isMuted") {
+        uuid: String,
+        promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.isMuted(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_isOnHold") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.isOnHold(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_mute") {
+      uuid: String,
+      mute: Boolean,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.mute(uuid, mute, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_postFeedback") {
+      uuid: String,
+      score: String,
+      issue: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.postFeedback(uuid, score, issue, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_sendDigits") {
+      uuid: String,
+      digits: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.sendDigits(uuid, digits, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("call_sendMessage") {
+      uuid: String,
+      content: String,
+      contentType: String,
+      messageType: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.call.sendMessage(
+        uuid,
+        content,
+        contentType,
+        messageType,
+        PromiseAdapter(promise)
+      )
+    }
+
+    /**
+     * CallInvite API
+     */
+
+    AsyncFunction("callInvite_accept") {
+      uuid: String,
+      options: Map<String, Any>,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.callInvite.accept(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("callInvite_reject") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.callInvite.reject(uuid, PromiseAdapter(promise))
+    }
+
+    /**
+     * PreflightTest API
+     */
+
+    AsyncFunction("preflightTest_getCallSid") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getCallSid(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_getEndTime") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getEndTime(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_getLatestSample") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getLatestSample(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_getReport") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getReport(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_getStartTime") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getStartTime(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_getState") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.getState(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("preflightTest_stop") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.preflightTest.stop(uuid, PromiseAdapter(promise))
+    }
+
+    /**
+     * Voice API
+     */
+
+    AsyncFunction("voice_connect_android") {
+        accessToken: String,
+        twimlParams: Map<String, String>,
+        notificationDisplayName: String?,
+        promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.connect(
+        accessToken,
+        twimlParams,
+        notificationDisplayName,
+        PromiseAdapter(promise)
+      )
+    }
+
+    AsyncFunction("voice_getAudioDevices") {
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.getAudioDevices(PromiseAdapter(promise))
+    }
+
+
+    AsyncFunction("voice_getCalls") {
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.getCalls(PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_getCallInvites") {
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.getCallInvites(PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_getDeviceToken") {
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.getDeviceToken(PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_getVersion") {
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.getVersion(PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_handleEvent") {
+      eventData: Map<String, String>,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.handleEvent(eventData, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_register") {
+        accessToken: String,
+        promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.register(accessToken, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_runPreflight") {
+      accessToken: String,
+      jsPreflightOptions: Map<String, Any>,
+      promise: Promise ->
+
+//      Log.d(TAG, jsPreflightOptions.toString())
+//
+//      val jsIceServers = jsPreflightOptions.get("iceServers") as ArrayList<*>?
+//      val jsIceServer = jsIceServers?.get(0) as LinkedHashMap<*, *>?
+
+      val preflightOptions = PreflightOptions.Builder(accessToken).build()
+      this@ExpoModule.moduleProxy.voice.runPreflight(preflightOptions, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_selectAudioDevice") {
+      uuid: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.selectAudioDevice(uuid, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("voice_setIncomingCallContactHandleTemplate") {
+      template: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.setIncomingCallContactHandleTemplate(
+        template,
+        PromiseAdapter(promise)
+      )
+    }
+
+    AsyncFunction("voice_unregister") {
+      token: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.unregister(token, PromiseAdapter(promise))
+    }
+  }
+}
