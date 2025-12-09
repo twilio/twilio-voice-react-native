@@ -3,12 +3,20 @@ package com.twiliovoicereactnative
 import android.util.Log
 
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.Arguments
+import com.twilio.voice.AudioCodec
+import com.twilio.voice.OpusCodec
+import com.twilio.voice.PcmuCodec
 import com.twilio.voice.PreflightOptions
+import com.twilio.voice.IceOptions
+import com.twilio.voice.IceServer
+import com.twilio.voice.IceTransportPolicy
 
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+
+import java.util.ArrayList
+import java.util.HashSet
 
 
 class ExpoModule : Module() {
@@ -276,12 +284,88 @@ class ExpoModule : Module() {
       jsPreflightOptions: Map<String, Any>,
       promise: Promise ->
 
-//      Log.d(TAG, jsPreflightOptions.toString())
-//
-//      val jsIceServers = jsPreflightOptions.get("iceServers") as ArrayList<*>?
-//      val jsIceServer = jsIceServers?.get(0) as LinkedHashMap<*, *>?
+      val preflightOptionsBuilder = PreflightOptions.Builder(accessToken)
 
-      val preflightOptions = PreflightOptions.Builder(accessToken).build()
+      val iceOptionsBuilder = IceOptions.Builder()
+
+      val iceServers = HashSet<IceServer>()
+
+      val jsIceServers = jsPreflightOptions[CommonConstants.CallOptionsKeyIceServers] as ArrayList<*>?
+
+      jsIceServers?.forEach {
+        jsIceServer: Any ->
+
+        if (jsIceServer !is LinkedHashMap<*, *>) {
+          return@forEach
+        }
+
+        val iceServerUrl = jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
+        val iceServerPassword = jsIceServer[CommonConstants.IceServerKeyPassword] as String?
+        val iceServerUsername = jsIceServer[CommonConstants.IceServerKeyUsername] as String?
+
+        if (iceServerUrl != null && iceServerPassword != null && iceServerUsername != null) {
+          iceServers.add(IceServer(iceServerUrl, iceServerUsername, iceServerPassword))
+        } else if (iceServerUrl != null) {
+          iceServers.add(IceServer(iceServerUrl))
+        }
+      }
+
+      val jsIceTransportPolicy = jsPreflightOptions[CommonConstants.CallOptionsKeyIceTransportPolicy]
+
+      val iceTransportPolicy = when (jsIceTransportPolicy) {
+        CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
+        CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
+        else -> null
+      }
+
+      if (iceServers.isNotEmpty()) {
+        iceOptionsBuilder.iceServers(iceServers)
+      }
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy)
+      }
+
+      if (iceServers.isNotEmpty() || iceTransportPolicy != null) {
+        preflightOptionsBuilder.iceOptions(iceOptionsBuilder.build())
+      }
+
+      val preferredAudioCodecs = ArrayList<AudioCodec>()
+
+      val jsPreferredAudioCodecs = jsPreflightOptions[CommonConstants.CallOptionsKeyPreferredAudioCodecs] as ArrayList<*>?
+
+      jsPreferredAudioCodecs?.forEach {
+        jsPreferredAudioCodec: Any ->
+
+        if (jsPreferredAudioCodec !is LinkedHashMap<*, *>) {
+          return@forEach
+        }
+
+        val jsPreferredAudioCodecType = jsPreferredAudioCodec[CommonConstants.AudioCodecKeyType] as String?
+
+        if (jsPreferredAudioCodecType == CommonConstants.AudioCodecTypeValuePCMU) {
+          preferredAudioCodecs.add(PcmuCodec())
+        }
+
+        if (jsPreferredAudioCodecType == CommonConstants.AudioCodecTypeValueOpus) {
+          val jsAudioCodecBitrate = jsPreferredAudioCodec[CommonConstants.AudioCodecOpusKeyMaxAverageBitrate] as Double?
+
+          val audioCodec = if (jsAudioCodecBitrate == null) {
+            OpusCodec()
+          } else {
+            OpusCodec(jsAudioCodecBitrate.toInt())
+          }
+
+          preferredAudioCodecs.add(audioCodec)
+        }
+      }
+
+      if (preferredAudioCodecs.isNotEmpty()) {
+        preflightOptionsBuilder.preferAudioCodecs(preferredAudioCodecs)
+      }
+
+      val preflightOptions = preflightOptionsBuilder.build()
+
       this@ExpoModule.moduleProxy.voice.runPreflight(preflightOptions, PromiseAdapter(promise))
     }
 
