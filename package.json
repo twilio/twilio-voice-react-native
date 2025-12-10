@@ -41,6 +41,9 @@
     "react-native": "0.79.1",
     "release-it": "^19.0.4"
   },
+  "resolutions": {
+    "jest-expo": "~53.0.11"
+  },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
