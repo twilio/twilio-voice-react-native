@@ -3,7 +3,7 @@ package com.twiliovoicereactnative
 import android.app.Application
 import expo.modules.core.interfaces.ApplicationLifecycleListener
 
-class ExpoApplicationLifecycleListener : ApplicationLifecycleListener{
+class ExpoApplicationLifecycleListener : ApplicationLifecycleListener {
     private var voiceApplicationProxy: VoiceApplicationProxy? = null
 
     override fun onCreate(application: Application?) {

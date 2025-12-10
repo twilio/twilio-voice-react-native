@@ -35,16 +35,20 @@ export function useVoice() {
 
   const voiceStartPreflight = async () => {
     // const preflightOptions: PreflightTest.Options = {
-    //   iceServers: [{
-    //     password: 'foo',
-    //     username: 'bar',
-    //     serverUrl: 'biff',
-    //   }],
+    //   iceServers: [
+    //     {
+    //       password: 'foo',
+    //       username: 'bar',
+    //       serverUrl: 'biff',
+    //     },
+    //   ],
     //   iceTransportPolicy: IceTransportPolicy.All,
-    //   preferredAudioCodecs: [{
-    //     type: AudioCodecType.Opus,
-    //     maxAverageBitrate: 1000,
-    //   }],
+    //   preferredAudioCodecs: [
+    //     {
+    //       type: AudioCodecType.Opus,
+    //       maxAverageBitrate: 1000,
+    //     },
+    //   ],
     // };
 
     const preflightTestPromise = await voice
@@ -53,7 +57,7 @@ export function useVoice() {
       .catch((error) => ({ status: 'rejected', error } as const));
 
     if (preflightTestPromise.status === 'rejected') {
-      console.log('preflight rejected');
+      console.log('preflight rejected', preflightTestPromise.error);
       return;
     }
 
