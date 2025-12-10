@@ -1,157 +1,644 @@
-import React from 'react';
+import * as React from 'react';
+import { Platform } from 'react-native';
+import {
+  AudioDevice,
+  Call,
+  CallInvite,
+  CallMessage,
+  IncomingCallMessage,
+  OutgoingCallMessage,
+  PreflightTest,
+  Voice,
+  TwilioErrors,
+} from '@twilio/voice-react-native-sdk';
 
-import { Call, PreflightTest, Voice } from '@twilio/voice-react-native-sdk';
+export interface BoundCallMethod {
+  disconnect: () => void;
+  getStats: () => void;
+  hold: () => void;
+  mute: () => void;
+  postFeedback: (score: Call.Score, issue: Call.Issue) => () => void;
+  sendDigits: (digits: string) => void;
+  sendMessage: (message: CallMessage) => void;
+}
 
-// @ts-ignore
-import { token } from '@/constants/token';
+export interface BoundCallInfo {
+  customParameters: Record<any, any>;
+  from?: string;
+  to?: string;
+  state?: Call.State;
+  sid?: string;
+  initialConnectedTimestamp?: Date;
+  isMuted?: boolean;
+  isOnHold?: boolean;
+}
 
-export function useVoice() {
+export interface BoundCallInvite {
+  accept: () => void;
+  callSid: string;
+  customParameters: Record<any, any>;
+  from: string;
+  to: string;
+  reject: () => void;
+  sendMessage: (message: CallMessage) => void;
+}
+
+export interface EventLogItem {
+  id: string;
+  content: string;
+}
+
+export function useNoOp(usage: string) {
+  return React.useCallback(() => {
+    console.log(usage);
+  }, [usage]);
+}
+
+export function useEventLog() {
+  const [events, setEvents] = React.useState<EventLogItem[]>([]);
+
+  const logEvent = React.useCallback((event: string) => {
+    setEvents((_events) => [
+      ..._events,
+      {
+        id: `${_events.length}`,
+        content: event,
+      },
+    ]);
+  }, []);
+
+  return {
+    logEvent,
+    events,
+    setEvents,
+  };
+}
+
+export function useCall(logEvent: (event: string) => void) {
+  const [callInfo, setCallInfo] = React.useState<BoundCallInfo | null>(null);
+  const [callMethod, setCallMethod] = React.useState<BoundCallMethod | null>(
+    null
+  );
+
+  const callHandler = React.useCallback(
+    async (call: Call) => {
+      setCallInfo({
+        customParameters: call.getCustomParameters(),
+        from: call.getFrom(),
+        initialConnectedTimestamp: call.getInitialConnectedTimestamp(),
+        isMuted: call.isMuted(),
+        isOnHold: call.isOnHold(),
+        state: call.getState(),
+        sid: call.getSid(),
+        to: call.getTo(),
+      });
+
+      Object.values(Call.Event).forEach((callEventName) => {
+        call.on(callEventName, async (...callEvent) => {
+          const _callInfo: BoundCallInfo = {
+            customParameters: call.getCustomParameters(),
+            from: call.getFrom(),
+            initialConnectedTimestamp: call.getInitialConnectedTimestamp(),
+            isMuted: call.isMuted(),
+            isOnHold: call.isOnHold(),
+            state: call.getState(),
+            sid: call.getSid(),
+            to: call.getTo(),
+          };
+          let message = `call event ${_callInfo.sid}: ${callEventName}`;
+          if (callEvent.length) {
+            message += '\n' + JSON.stringify(callEvent, null, 2);
+          }
+          if (callEventName === Call.Event.Connected) {
+            message +=
+              '\n' +
+              'initial connected timestamp: ' +
+              JSON.stringify(
+                {
+                  iso: _callInfo.initialConnectedTimestamp?.toISOString(),
+                  locale: _callInfo.initialConnectedTimestamp?.toLocaleString(),
+                },
+                null,
+                2
+              );
+          }
+
+          call.addListener(
+            Call.Event.MessageReceived,
+            (_message: IncomingCallMessage) => {
+              logEvent(`Call Message Received: ${_message.getContent()}`);
+            }
+          );
+
+          logEvent(message);
+          setCallInfo(_callInfo);
+        });
+      });
+
+      setCallMethod({
+        disconnect: () => call.disconnect(),
+        getStats: async () => {
+          const statsReport = await call.getStats();
+          logEvent(`call stats: ${JSON.stringify(statsReport, null, 2)}`);
+        },
+        hold: async () => {
+          let isOnHold = call.isOnHold();
+          isOnHold = await call.hold(!isOnHold);
+          setCallInfo((_callInfo) =>
+            _callInfo
+              ? {
+                  ..._callInfo,
+                  isOnHold,
+                }
+              : null
+          );
+        },
+        mute: async () => {
+          let isMuted = call.isMuted();
+          isMuted = await call.mute(!isMuted);
+          setCallInfo((_callInfo) =>
+            _callInfo
+              ? {
+                  ..._callInfo,
+                  isMuted,
+                }
+              : null
+          );
+        },
+        postFeedback: (_score: Call.Score, _issue: Call.Issue) => () =>
+          call.postFeedback(_score, _issue),
+        sendDigits: (_digits: string) => () => call.sendDigits(_digits),
+        sendMessage: async (_message: CallMessage) => {
+          const outgoingCallMessage: OutgoingCallMessage =
+            await call.sendMessage(_message);
+          outgoingCallMessage.addListener(
+            OutgoingCallMessage.Event.Failure,
+            (error) => {
+              const errorInfo = `${error.name}(${error.code}): ${error.message}`;
+              const msg = `call message failure ${outgoingCallMessage.getSid()}: ${errorInfo}`;
+              logEvent(msg);
+            }
+          );
+          outgoingCallMessage.addListener(
+            OutgoingCallMessage.Event.Sent,
+            () => {
+              const msg = `call message sent ${outgoingCallMessage.getSid()}`;
+              logEvent(msg);
+            }
+          );
+        },
+      });
+
+      logEvent(`call sid: ${call.getSid()}`);
+      logEvent(
+        `call custom params: ${JSON.stringify(
+          call.getCustomParameters(),
+          null,
+          2
+        )}`
+      );
+    },
+    [logEvent]
+  );
+
+  return {
+    callInfo,
+    callMethod,
+    callHandler,
+  };
+}
+
+export function useCallInvites(
+  logEvent: (event: string) => void,
+  callHandler: (call: Call) => void
+) {
+  const [callInvites, setCallInvites] = React.useState<BoundCallInvite[]>([]);
+
+  const removeCallInvite = React.useCallback((callSid: string) => {
+    setCallInvites((_callInvites) =>
+      _callInvites.filter(({ callSid: _callSid }) => _callSid !== callSid)
+    );
+  }, []);
+
+  const callInviteAcceptedHandler = React.useCallback(
+    async (callInvite: CallInvite, call: Call) => {
+      const callSid = callInvite.getCallSid();
+      logEvent(`call invite accepted: ${callSid}`);
+      removeCallInvite(callSid);
+      callHandler(call);
+    },
+    [callHandler, logEvent, removeCallInvite]
+  );
+
+  const callInviteNotificationTappedHandler = React.useCallback(() => {
+    logEvent('call invite notification tapped');
+  }, [logEvent]);
+
+  const callInviteRejectedHandler = React.useCallback(
+    async (callInvite: CallInvite) => {
+      const callSid = callInvite.getCallSid();
+      logEvent(`call invite rejected: ${callSid}`);
+      removeCallInvite(callSid);
+    },
+    [logEvent, removeCallInvite]
+  );
+
+  const callInviteCancelledHandler = React.useCallback(
+    async (callInvite: CallInvite, error?: TwilioErrors.TwilioError) => {
+      const callSid = callInvite.getCallSid();
+      logEvent(`cancelled call invite: ${callSid}`);
+      if (error) {
+        logEvent(
+          `cancelled call invite error: ${JSON.stringify({
+            message: error.message,
+            code: error.code,
+          })}`
+        );
+      }
+      removeCallInvite(callSid);
+    },
+    [logEvent, removeCallInvite]
+  );
+
+  const callInviteHandler = React.useCallback(
+    async (callInvite: CallInvite) => {
+      const callSid = callInvite.getCallSid();
+      const from = callInvite.getFrom();
+      const to = callInvite.getTo();
+
+      callInvite.on(CallInvite.Event.Accepted, (call: Call) => {
+        callInviteAcceptedHandler(callInvite, call);
+      });
+
+      callInvite.on(CallInvite.Event.Rejected, () => {
+        callInviteRejectedHandler(callInvite);
+      });
+
+      callInvite.on(CallInvite.Event.Cancelled, (error) => {
+        callInviteCancelledHandler(callInvite, error);
+      });
+
+      callInvite.on(CallInvite.Event.NotificationTapped, () => {
+        callInviteNotificationTappedHandler();
+      });
+
+      setCallInvites((_callInvites) => [
+        ..._callInvites,
+        {
+          accept: async () => {
+            removeCallInvite(callInvite.getCallSid());
+            try {
+              await callInvite.accept();
+            } catch (err: any) {
+              const message = err.message;
+              const code = err.code;
+              logEvent(
+                `accept rejected: ${JSON.stringify({ message, code }, null, 2)}`
+              );
+            }
+          },
+          callSid,
+          customParameters: callInvite.getCustomParameters(),
+          from,
+          to,
+          reject: async () => {
+            removeCallInvite(callInvite.getCallSid());
+            await callInvite.reject();
+          },
+          sendMessage: async (_message: CallMessage) => {
+            const outgoingCallMessage: OutgoingCallMessage =
+              await callInvite.sendMessage(_message);
+            outgoingCallMessage.addListener(
+              OutgoingCallMessage.Event.Failure,
+              (error) => {
+                const errorInfo = `${error.name}(${error.code}): ${error.message}`;
+                const msg = `call message failure ${outgoingCallMessage.getSid()}: ${errorInfo}`;
+                logEvent(msg);
+              }
+            );
+            outgoingCallMessage.addListener(
+              OutgoingCallMessage.Event.Sent,
+              () => {
+                const msg = `call invite message sent ${outgoingCallMessage.getSid()}`;
+                logEvent(msg);
+              }
+            );
+          },
+        },
+      ]);
+
+      callInvite.addListener(
+        CallInvite.Event.MessageReceived,
+        (message: IncomingCallMessage) => {
+          logEvent(`Call Invite Message Received: ${message.getContent()}`);
+        }
+      );
+
+      logEvent(`call invite: ${callSid}`);
+      logEvent(
+        `call invite custom params: ${JSON.stringify(
+          callInvite.getCustomParameters(),
+          null,
+          2
+        )}`
+      );
+    },
+    [
+      logEvent,
+      removeCallInvite,
+      callInviteAcceptedHandler,
+      callInviteCancelledHandler,
+      callInviteNotificationTappedHandler,
+      callInviteRejectedHandler,
+    ]
+  );
+
+  const recentCallInvite = React.useMemo(
+    () => (callInvites.length ? callInvites[callInvites.length - 1] : null),
+    [callInvites]
+  );
+
+  return {
+    callInvites,
+    callInviteHandler,
+    recentCallInvite,
+  };
+}
+
+export function useVoice(token: string) {
   const voice = React.useMemo(() => new Voice(), []);
 
-  React.useEffect(() => {
-    voice.addListener(Voice.Event.Registered, () => {
-      console.log('voice registered event');
-    });
+  const [registered, setRegistered] = React.useState<boolean>(false);
+  const [sdkVersion, setSdkVersion] = React.useState<string>('unknown');
+  const [audioDeviceIdx, setAudioDeviceIdx] = React.useState<number>(0);
 
-    voice.addListener(Voice.Event.Unregistered, () => {
-      console.log('voice unregistered event');
-    });
+  const { events, logEvent } = useEventLog();
+  const { callInfo, callMethod, callHandler } = useCall(logEvent);
+  const { callInviteHandler, recentCallInvite } = useCallInvites(
+    logEvent,
+    callHandler
+  );
 
-    voice.addListener(Voice.Event.Error, (error) => {
-      console.log('voice error event', error);
-    });
-  }, [voice]);
+  const logVoiceErrorHandler = React.useCallback<Voice.Listener.Error>(
+    (error) => {
+      const msg = {
+        causes: error.causes,
+        code: error.code,
+        description: error.description,
+        explanation: error.explanation,
+        message: error.message,
+        name: error.name,
+        solutions: error.solutions,
+      };
+      logEvent(JSON.stringify(msg, null, 2));
+    },
+    [logEvent]
+  );
 
-  const voiceRegister = async () => {
+  const connectHandler = React.useCallback(
+    async (to: string) => {
+      try {
+        const call = await voice.connect(token, {
+          params: {
+            answerOnBridge: 'true',
+            recipientType: 'client',
+            to,
+          },
+        });
+        callHandler(call);
+      } catch (err: any) {
+        const message = err.message;
+        const code = err.code;
+        logEvent(
+          `connect rejected: ${JSON.stringify({ message, code }, null, 2)}`
+        );
+      }
+    },
+    [callHandler, token, voice, logEvent]
+  );
+
+  const [preflightTest, setPreflightTest] = React.useState<PreflightTest>();
+
+  const createPreflightTestHandler = React.useCallback((_token: string) => async () => {
+    try {
+      const preflightTestOptions: PreflightTest.Options = {
+        preferredAudioCodecs: [{
+          type: 'opus' as any,
+        }],
+      };
+
+      const _preflightTest = await voice.runPreflight(
+        _token,
+        preflightTestOptions
+      );
+
+      _preflightTest.on(PreflightTest.Event.Completed, (report) => {
+        logEvent(`preflight test completed "${JSON.stringify(report)}"`);
+      });
+
+      _preflightTest.on(PreflightTest.Event.Sample, (sample) => {
+        logEvent(`preflight test sample "${JSON.stringify(sample)}"`);
+      });
+
+      _preflightTest.on(PreflightTest.Event.Connected, () => {
+        logEvent('preflight test connected');
+      });
+
+      _preflightTest.on(PreflightTest.Event.Failed, (error) => {
+        logEvent(`preflight test failed "${JSON.stringify(error)}"`);
+      });
+
+      _preflightTest.on(
+        PreflightTest.Event.QualityWarning,
+        (currentWarnings, previousWarnings) => {
+          logEvent(
+            `preflight test quality warnings "${JSON.stringify({
+              currentWarnings,
+              previousWarnings,
+            })}"`
+          );
+        }
+      );
+
+      setPreflightTest(() => _preflightTest);
+    } catch (error: any) {
+      logEvent(`preflight test error "${JSON.stringify({
+        error,
+        message: error.message,
+      })}"`);
+    }
+  }, [logEvent, voice]);
+
+  const invalidTokenPreflightTestHandler = React.useMemo(
+    () => createPreflightTestHandler('foobar'),
+    [createPreflightTestHandler]
+  );
+
+  const preflightTestHandler = React.useMemo(
+    () => createPreflightTestHandler(token),
+    [createPreflightTestHandler, token],
+  );
+
+  const preflightTestMethods = React.useMemo(() => {
+    return {
+      getCallSid: () => preflightTest?.getCallSid().then((callSid) =>
+        logEvent(`preflight test getCallSid "${callSid}"`)
+      ),
+      getEndTime: () => preflightTest?.getEndTime().then((endTime) =>
+        logEvent(`preflight test getEndTime "${endTime}"`)
+      ),
+      getLatestSample: () => preflightTest?.getLatestSample().then((sample) =>
+        logEvent(`preflight test getLatestSample "${JSON.stringify(sample)}"`)
+      ),
+      getReport: () => preflightTest?.getReport().then((report) =>
+        logEvent(`preflight test getReport "${JSON.stringify(report)}"`)
+      ),
+      getStartTime: () => preflightTest?.getStartTime().then((startTime) =>
+        logEvent(`preflight test getStartTime "${startTime}"`)
+      ),
+      getState: () => preflightTest?.getState().then((state) =>
+        logEvent(`preflight test getState "${state}"`)
+      ),
+      stop: () => preflightTest?.stop().then(() =>
+        logEvent('preflight test stopped')
+      ),
+    };
+  }, [logEvent, preflightTest]);
+
+  const registerHandler = React.useCallback(() => {
     voice
       .register(token)
       .then(() => {
-        console.log('register resolved');
+        setRegistered(true);
       })
       .catch((error) => {
-        console.log('register rejected', error);
+        logEvent(error);
       });
-  };
+  }, [logEvent, token, voice]);
 
-  const voiceStartPreflight = async () => {
-    // const preflightOptions: PreflightTest.Options = {
-    //   iceServers: [
-    //     {
-    //       password: 'foo',
-    //       username: 'bar',
-    //       serverUrl: 'biff',
-    //     },
-    //   ],
-    //   iceTransportPolicy: IceTransportPolicy.All,
-    //   preferredAudioCodecs: [
-    //     {
-    //       type: AudioCodecType.Opus,
-    //       maxAverageBitrate: 1000,
-    //     },
-    //   ],
-    // };
-
-    const preflightTestPromise = await voice
-      .runPreflight(token)
-      .then((preflightTest) => ({ status: 'resolved', preflightTest } as const))
-      .catch((error) => ({ status: 'rejected', error } as const));
-
-    if (preflightTestPromise.status === 'rejected') {
-      console.log('preflight rejected', preflightTestPromise.error);
-      return;
-    }
-
-    console.log('preflight resolved');
-
-    const preflightTest = preflightTestPromise.preflightTest;
-
-    preflightTest.on(PreflightTest.Event.Connected, () => {
-      console.log('preflight connected');
+  const unregisterHandler = React.useCallback(() => {
+    voice.unregister(token).then(() => {
+      setRegistered(false);
     });
+  }, [token, voice]);
 
-    preflightTest.on(PreflightTest.Event.Completed, (report) => {
-      console.log('preflight completed', report);
+  const logAudioDevicesHandler = React.useCallback(() => {
+    voice
+      .getAudioDevices()
+      .then((audioDevices) =>
+        logEvent('get audio devices ' + JSON.stringify(audioDevices, null, 2))
+      );
+  }, [voice, logEvent]);
+
+  const selectAudioDeviceHandler = React.useCallback(() => {
+    const idx = audioDeviceIdx + 1;
+    logEvent(`setting audio device idx ${idx}`);
+    voice.getAudioDevices().then(({ audioDevices }) => {
+      const dev = audioDevices[idx % audioDevices.length];
+      const { name, type, uuid } = dev;
+      logEvent(
+        'device to select ' + JSON.stringify({ name, type, uuid }, null, 2)
+      );
+      return dev.select();
     });
+    setAudioDeviceIdx(idx);
+  }, [voice, audioDeviceIdx, setAudioDeviceIdx, logEvent]);
 
-    preflightTest.on(PreflightTest.Event.Failed, (error) => {
-      console.log('preflight failed', error);
-    });
+  const audioDevicesUpdateHandler = React.useCallback(
+    (audioDevices: AudioDevice[], selectedDevice?: AudioDevice) => {
+      logEvent(
+        'AudioDevicesUpdated event\n' +
+          JSON.stringify({ audioDevices, selectedDevice }, null, 2)
+      );
+    },
+    [logEvent]
+  );
 
-    preflightTest.on(
-      PreflightTest.Event.QualityWarning,
-      (currentWarnings, previousWarnings) => {
-        console.log(
-          'preflight quality warning',
-          currentWarnings,
-          previousWarnings
-        );
+  const getCallsHandler = React.useCallback(() => {
+    voice.getCalls().then((callsMap) => {
+      const readableCalls: Record<string, any> = {};
+      for (const [callUuid, _callInfo] of callsMap.entries()) {
+        readableCalls[callUuid] = {
+          sid: _callInfo.getSid(),
+          state: _callInfo.getState(),
+          initialConnectedTimestamp: _callInfo.getInitialConnectedTimestamp(),
+        };
       }
-    );
-
-    preflightTest.on(PreflightTest.Event.Sample, (sample) => {
-      console.log('preflight sample', sample);
+      logEvent(JSON.stringify(readableCalls, null, 2));
     });
-  };
+  }, [voice, logEvent]);
 
-  const voiceUnregister = async () => {
-    await voice.unregister(token);
-  };
-
-  const callDisconnect = async () => {};
-
-  const voiceConnect = async () => {
-    const callPromise = await voice
-      .connect(token)
-      .then((call) => ({ status: 'resolved', call } as const))
-      .catch((error) => ({ status: 'rejected', error } as const));
-
-    if (callPromise.status === 'rejected') {
-      console.log('connect rejected', callPromise.error);
-      return;
-    }
-
-    const call = callPromise.call;
-
-    call.on(Call.Event.Connected, () => {
-      console.log('call connected');
+  const getCallInvitesHandler = React.useCallback(() => {
+    voice.getCallInvites().then((callInvitesMap) => {
+      const readableCallInvites: Record<string, any> = {};
+      for (const [
+        callInviteUuid,
+        _callInviteInfo,
+      ] of callInvitesMap.entries()) {
+        readableCallInvites[callInviteUuid] = _callInviteInfo.getCallSid();
+      }
+      logEvent(JSON.stringify(readableCallInvites, null, 2));
     });
+  }, [voice, logEvent]);
 
-    call.on(Call.Event.ConnectFailure, () => {
-      console.log('call connectFailure');
-    });
+  React.useEffect(() => {
+    voice.getVersion().then(setSdkVersion);
 
-    call.on(Call.Event.Disconnected, () => {
-      console.log('call disconnected');
-    });
+    const bootstrap = async () => {
+      if (Platform.OS === 'ios') {
+        await voice.initializePushRegistry();
+      }
 
-    call.on(Call.Event.MessageReceived, (message) => {
-      console.log('call message received', message);
-    });
+      const calls = await voice.getCalls();
 
-    call.on(Call.Event.QualityWarningsChanged, (current, previous) => {
-      console.log('call quality warnings changed', current, previous);
-    });
+      for (const call of calls.values()) {
+        console.log('existing call', call.getSid(), call.getState());
+        callHandler(call);
+      }
 
-    call.on(Call.Event.Reconnected, () => {
-      console.log('call reconnected');
-    });
+      const callInvites = await voice.getCallInvites();
 
-    call.on(Call.Event.Reconnecting, () => {
-      console.log('call reconnecting');
-    });
+      for (const callInvite of callInvites.values()) {
+        console.log('existing call invite', callInvite.getCallSid());
+        callInviteHandler(callInvite);
+      }
+    };
 
-    call.on(Call.Event.Ringing, () => {
-      console.log('call ringing');
-    });
+    bootstrap();
 
-    console.log('connect resolved');
-  };
+    voice.on(Voice.Event.CallInvite, callInviteHandler);
+    voice.on(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
+    voice.on(Voice.Event.Error, logVoiceErrorHandler);
+
+    return () => {
+      voice.off(Voice.Event.CallInvite, callInviteHandler);
+      voice.off(Voice.Event.AudioDevicesUpdated, audioDevicesUpdateHandler);
+      voice.off(Voice.Event.Error, logVoiceErrorHandler);
+    };
+  }, [
+    audioDevicesUpdateHandler,
+    callHandler,
+    callInviteHandler,
+    logVoiceErrorHandler,
+    voice,
+  ]);
 
   return {
-    callDisconnect,
-    voiceConnect,
-    voiceRegister,
-    voiceStartPreflight,
-    voiceUnregister,
+    registered,
+    sdkVersion,
+    events,
+    callInfo,
+    callMethod,
+    recentCallInvite,
+    connectHandler,
+    invalidTokenPreflightTestHandler,
+    preflightTestHandler,
+    preflightTestMethods,
+    registerHandler,
+    unregisterHandler,
+    logAudioDevicesHandler,
+    selectAudioDeviceHandler,
+    getCallsHandler,
+    getCallInvitesHandler,
   };
 }
