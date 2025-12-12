@@ -123,13 +123,6 @@ export function useCall(logEvent: (event: string) => void) {
               );
           }
 
-          call.addListener(
-            Call.Event.MessageReceived,
-            (_message: IncomingCallMessage) => {
-              logEvent(`Call Message Received: ${_message.getContent()}`);
-            }
-          );
-
           logEvent(message);
           setCallInfo(_callInfo);
         });
@@ -592,14 +585,21 @@ export function useVoice(token: string) {
       const calls = await voice.getCalls();
 
       for (const call of calls.values()) {
-        console.log('existing call', call.getSid(), call.getState());
+        const message = `existing call ${JSON.stringify({
+          sid: call.getSid(),
+          state: call.getState(),
+        }, null, 2)}`;
+        logEvent(message);
         callHandler(call);
       }
 
       const callInvites = await voice.getCallInvites();
 
       for (const callInvite of callInvites.values()) {
-        console.log('existing call invite', callInvite.getCallSid());
+        const message = `existing call invite ${JSON.stringify({
+          callSid: callInvite.getCallSid()
+        }, null, 2)}`
+        logEvent(message);
         callInviteHandler(callInvite);
       }
     };
