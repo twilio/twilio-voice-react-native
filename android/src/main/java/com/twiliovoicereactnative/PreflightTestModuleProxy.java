@@ -59,7 +59,7 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getEndTime(%s) > runnable", uuid));
-      return preflightTest.getEndTime();
+      return String.valueOf(preflightTest.getEndTime());
     });
   }
 
@@ -86,7 +86,7 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getStartTime(%s) > runnable", uuid));
-      return preflightTest.getStartTime();
+      return String.valueOf(preflightTest.getStartTime());
     });
   }
 
