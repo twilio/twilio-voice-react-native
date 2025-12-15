@@ -139,6 +139,7 @@
     "node_modules/",
     "lib/",
     "test/app/",
+    "test/expo/",
     "src/error/generated.ts",
     "coverage/"
   ],

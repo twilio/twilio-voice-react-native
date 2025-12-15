@@ -38,7 +38,8 @@ yarn-error.*
 # secrets
 google-services.json
 secrets.json
-constants/token*.ts
+constants/e2e-tests-token*.ts
+constants/e2e-preflightTest-token*.ts
 
 # prebuild
 android/
