@@ -688,6 +688,11 @@ export class Voice extends EventEmitter {
       case 'ios':
         await settleNativePromise(NativeModule.voice_showNativeAvRoutePicker());
         return;
+      case 'android':
+        // NOTE(mhuynh)
+        // Consider throwing here instead.
+        // VBLOCKS-5784
+        return;
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". ` +
