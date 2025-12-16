@@ -416,10 +416,13 @@ workflows:
           context:
             - vblocks-js
           detox_configuration: ios.sim.release
-      - e2e-android:
-          context:
-            - vblocks-js
-          detox_configuration: android.emu.release
+      ###
+      # NOTE(mhuynh): disable while we work on Expo. VBLOCKS-5799
+      ###
+      # - e2e-android:
+      #     context:
+      #       - vblocks-js
+      #     detox_configuration: android.emu.release
 
   ###
   # Release workflow
