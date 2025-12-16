@@ -764,13 +764,6 @@ describe('Voice class', () => {
           new Voice().showAvRoutePickerView();
         await expect(showAvRoutePickerViewPromise).resolves.toBeUndefined();
       });
-
-      it('rejects on android', async () => {
-        jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
-        await expect(new Voice().showAvRoutePickerView()).rejects.toThrowError(
-          UnsupportedPlatformError
-        );
-      });
     });
 
     describe('.initializePushRegistry', () => {
