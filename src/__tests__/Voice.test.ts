@@ -294,6 +294,21 @@ describe('Voice class', () => {
   });
 
   describe('public methods', () => {
+    const performTestForPlatforms = (
+      platforms: ('android' | 'ios' | 'foobar')[],
+      testTitle: string,
+      testFn: () => Promise<void>
+    ) => {
+      platforms.forEach((os) => {
+        describe(`${os} platform`, () => {
+          beforeEach(() => {
+            jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os as any);
+          });
+          it(testTitle, testFn);
+        });
+      });
+    };
+
     describe('.connect', () => {
       let token: string;
       let options: { params?: Record<string, string>; contactHandle?: string };
@@ -309,21 +324,8 @@ describe('Voice class', () => {
         };
       });
 
-      const performPlatformAgnosticTest = (
-        testTitle: string,
-        testFn: () => Promise<void>
-      ) => {
-        (['android', 'ios'] as const).forEach((os) => {
-          describe(`${os} platform`, () => {
-            beforeEach(() => {
-              jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os);
-            });
-            it(testTitle, testFn);
-          });
-        });
-      };
-
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'throws when token is not a string',
         async () => {
           for (const invalidToken of [undefined, null, {}, 101, false]) {
@@ -336,7 +338,8 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'throws when params is defined and not an object',
         async () => {
           for (const invalidParams of ['string', 101, false]) {
@@ -351,7 +354,8 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'throws when one or more params is not a string',
         async () => {
           for (const invalidParamValue of [{}, 101, false, []]) {
@@ -368,7 +372,8 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'throws when contactHandle is defined and not a string',
         async () => {
           for (const invalidContactHandle of [null, {}, 101, false]) {
@@ -383,7 +388,8 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'succeeds when params is explicitly undefined',
         async () => {
           options.params = undefined;
@@ -393,7 +399,8 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'succeeds when contactHandle is explicitly undefined',
         async () => {
           options.contactHandle = undefined;
@@ -403,18 +410,23 @@ describe('Voice class', () => {
         }
       );
 
-      performPlatformAgnosticTest(
+      performTestForPlatforms(
+        ['android', 'ios'],
         'succeeds when options are not passed',
         async () => {
           await expect(new Voice().connect(token)).resolves.toBeTruthy();
         }
       );
 
-      performPlatformAgnosticTest('returns a Promise<Call>', async () => {
-        await expect(
-          new Voice().connect(token, options)
-        ).resolves.toBeInstanceOf(MockCall);
-      });
+      performTestForPlatforms(
+        ['android', 'ios'],
+        'returns a Promise<Call>',
+        async () => {
+          await expect(
+            new Voice().connect(token, options)
+          ).resolves.toBeInstanceOf(MockCall);
+        }
+      );
 
       describe('android platform', () => {
         beforeEach(() => {
@@ -635,21 +647,6 @@ describe('Voice class', () => {
     });
 
     describe('.handleFirebaseMessage', () => {
-      const performTestForPlatforms = (
-        platforms: ('android' | 'ios')[],
-        testTitle: string,
-        testFn: () => Promise<void>
-      ) => {
-        platforms.forEach((os) => {
-          describe(`${os} platform`, () => {
-            beforeEach(() => {
-              jest.spyOn(Platform, 'OS', 'get').mockReturnValue(os);
-            });
-            it(testTitle, testFn);
-          });
-        });
-      };
-
       performTestForPlatforms(
         ['android'],
         'it invokes the native module',
@@ -764,6 +761,25 @@ describe('Voice class', () => {
           new Voice().showAvRoutePickerView();
         await expect(showAvRoutePickerViewPromise).resolves.toBeUndefined();
       });
+
+      performTestForPlatforms(['android'], 'performs a no-op', async () => {
+        await expect(
+          new Voice().showAvRoutePickerView()
+        ).resolves.toBeUndefined();
+        expect(
+          jest.mocked(MockNativeModule.voice_showNativeAvRoutePicker).mock.calls
+        ).toEqual([]);
+      });
+
+      performTestForPlatforms(
+        ['foobar'],
+        'rejects with an UnsupportedPlatformError',
+        async () => {
+          await expect(
+            new Voice().showAvRoutePickerView()
+          ).rejects.toBeInstanceOf(UnsupportedPlatformError);
+        }
+      );
     });
 
     describe('.initializePushRegistry', () => {

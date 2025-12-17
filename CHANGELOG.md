@@ -1,5 +1,11 @@
-1.8.0 (In Progress)
-===================
+2.0.0-preview.1 (In Progress)
+=============================
+
+## Features
+
+- Preview support for the Expo framework. See this [doc](./docs/expo/app-config.md) for more information on how to configure your `app.json` or `app.config.js`.
+
+  Note that as of `2.0.0-preview.1` the Twilio Voice React Native SDK is not compatible with frameworkless ("bare") React Native applications.
 
 ## Changes
 
