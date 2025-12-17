@@ -572,6 +572,42 @@ describe('CallInvite class', () => {
         expect(processedContent.content).toStrictEqual(JSON.stringify(content));
       });
     });
+
+    it('invokes callInvite_sendMessage on android', async () => {
+      jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('android');
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage({
+        content: 'foo',
+        contentType,
+        messageType,
+      });
+
+      expect(
+        jest.mocked(MockNativeModule.callInvite_sendMessage).mock.calls
+      ).toEqual([
+        ['mock-nativecallinviteinfo-uuid', 'foo', contentType, messageType],
+      ]);
+    });
+
+    it('invokes call_sendMessage on ios', async () => {
+      jest.spyOn(Platform, 'OS', 'get').mockReturnValueOnce('ios');
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).sendMessage({
+        content: 'foo',
+        contentType,
+        messageType,
+      });
+
+      expect(jest.mocked(MockNativeModule.call_sendMessage).mock.calls).toEqual(
+        [['mock-nativecallinviteinfo-uuid', 'foo', contentType, messageType]]
+      );
+    });
   });
 
   describe('private methods', () => {
