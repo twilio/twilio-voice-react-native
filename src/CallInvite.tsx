@@ -563,14 +563,24 @@ export class CallInvite extends EventEmitter {
   async sendMessage(message: CallMessage): Promise<OutgoingCallMessage> {
     const { content, contentType, messageType } = validateCallMessage(message);
 
-    const voiceEventSid = await settleNativePromise(
-      NativeModule.call_sendMessage(
-        this._uuid,
-        content,
-        contentType,
-        messageType
-      )
-    );
+    // NOTE(mhuynh): VBLOCKS-5824
+    // create a callInvite_sendMessage method for iOS
+    const nativePromise =
+      Platform.OS === 'android'
+        ? NativeModule.callInvite_sendMessage(
+            this._uuid,
+            content,
+            contentType,
+            messageType
+          )
+        : NativeModule.call_sendMessage(
+            this._uuid,
+            content,
+            contentType,
+            messageType
+          );
+
+    const voiceEventSid = await settleNativePromise(nativePromise);
 
     const outgoingCallMessage = new OutgoingCallMessage({
       content,

@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.twilio.voice.CallMessage;
 
 import java.util.function.Consumer;
 import java.util.UUID;
@@ -77,6 +78,37 @@ class CallInviteModuleProxy {
       VoiceApplicationProxy
         .getVoiceServiceApi()
         .rejectCall(callRecord);
+    });
+  }
+
+  public void sendMessage(
+    String uuid,
+    String content,
+    String contentType,
+    String messageType,
+    ModuleProxy.UniversalPromise promise
+  ) {
+    logger.debug(String.format(".sendMessage(%s)", uuid));
+
+    getCallRecord(uuid, promise, (callRecord) -> {
+      logger.debug(String.format(".sendMessage(%s) > runnable", uuid));
+
+      final CallMessage callMessage = new CallMessage.Builder(messageType)
+        .contentType(contentType)
+        .content(content)
+        .build();
+
+      if (CallRecordDatabase.CallRecord.CallInviteState.ACTIVE != callRecord.getCallInviteState()) {
+        promise.rejectWithName(
+          CommonConstants.ErrorCodeInvalidStateError,
+          "Attempt to send call message on settled call invite"
+        );
+        return;
+      }
+
+      final String callMessageSid = callRecord.getCallInvite().sendMessage(callMessage);
+
+      promise.resolve(callMessageSid);
     });
   }
 }
