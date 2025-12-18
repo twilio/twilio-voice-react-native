@@ -163,6 +163,22 @@ class ExpoModule : Module() {
       this@ExpoModule.moduleProxy.callInvite.reject(uuid, PromiseAdapter(promise))
     }
 
+    AsyncFunction("callInvite_sendMessage") {
+      uuid: String,
+      content: String,
+      contentType: String,
+      messageType: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.callInvite.sendMessage(
+        uuid,
+        content,
+        contentType,
+        messageType,
+        PromiseAdapter(promise)
+      )
+    }
+
     /**
      * PreflightTest API
      */

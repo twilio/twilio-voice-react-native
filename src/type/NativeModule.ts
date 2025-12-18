@@ -78,6 +78,12 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   ): NativePromise<NativeCallInfo>;
   callInvite_isValid(callInviteUuid: Uuid): NativePromise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): NativePromise<void>;
+  callInvite_sendMessage(
+    callInviteUuid: Uuid,
+    content: string,
+    contentType: string,
+    messageType: string
+  ): NativePromise<string>;
   callInvite_updateCallerHandle(
     callInviteUuid: Uuid,
     handle: string

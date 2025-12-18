@@ -182,6 +182,23 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     this.moduleProxy.callInvite.reject(uuid, new PromiseAdapter(promise));
   }
 
+  @ReactMethod
+  public void callInvite_sendMessage(
+    String uuid,
+    String content,
+    String contentType,
+    String messageType,
+    Promise promise
+  ) {
+    this.moduleProxy.callInvite.sendMessage(
+      uuid,
+      content,
+      contentType,
+      messageType,
+      new PromiseAdapter(promise)
+    );
+  }
+
   /**
    * PreflightTest API
    */

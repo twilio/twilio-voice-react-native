@@ -74,6 +74,9 @@ export const NativeModule = {
   callInvite_accept: createMockWithResolvedValue(createNativeCallInfo()),
   callInvite_isValid: createMockWithResolvedValue(false),
   callInvite_reject: createMockWithResolvedValue(undefined),
+  callInvite_sendMessage: createMockWithResolvedValue(
+    'mock-nativemodule-tracking-id'
+  ),
   callInvite_updateCallerHandle: createMockWithResolvedValue(undefined),
 
   /**
