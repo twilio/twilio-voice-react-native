@@ -1,4 +1,4 @@
-2.0.0-preview.1 (December 23, 2025)
+2.0.0-preview.1 (In Progress)
 ===================================
 
 ## Features
