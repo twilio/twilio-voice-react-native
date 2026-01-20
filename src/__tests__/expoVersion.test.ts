@@ -7,12 +7,12 @@ function setExpoManifest(manifest: any) {
 }
 
 describe('getExpoVersion', () => {
-  it('should get the version from a expo manifest object', () => {
+  it('should get the version if the expo manifest is an object', () => {
     setExpoManifest({ sdkVersion: 'foobar' });
     expect(getExpoVersion()).toBe('foobar');
   });
 
-  it('should get the version from a expo manifest string', () => {
+  it('should get the version if the expo manifest is a valid json string', () => {
     setExpoManifest(JSON.stringify({ sdkVersion: 'foobar' }));
     expect(getExpoVersion()).toBe('foobar');
   });
