@@ -100,6 +100,7 @@ export const NativeModule = {
   voice_register: createMockWithResolvedValue(undefined),
   voice_selectAudioDevice: createMockWithResolvedValue(undefined),
   voice_setCallKitConfiguration: createMockWithResolvedValue(undefined),
+  voice_setExpoVersion: createMockWithResolvedValue(undefined),
   voice_showNativeAvRoutePicker: createMockWithResolvedValue(undefined),
   voice_setIncomingCallContactHandleTemplate:
     createMockWithResolvedValue(undefined),
@@ -163,3 +164,5 @@ class MockPlatform {
 export const Platform = new MockPlatform();
 
 export const setTimeout = jest.fn();
+
+export const getExpoVersion = jest.fn().mockReturnValue('52.0.0');

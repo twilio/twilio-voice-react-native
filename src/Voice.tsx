@@ -9,7 +9,12 @@ import { EventEmitter } from 'eventemitter3';
 import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
-import { NativeEventEmitter, NativeModule, Platform } from './common';
+import {
+  getExpoVersion,
+  NativeEventEmitter,
+  NativeModule,
+  Platform,
+} from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
 import type { TwilioError } from './error/TwilioError';
@@ -22,8 +27,8 @@ import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
-import { validatePreflightOptions } from './utility/preflightTestOptions';
 import { settleNativePromise } from './utility/nativePromise';
+import { validatePreflightOptions } from './utility/preflightTestOptions';
 
 /**
  * Defines strict typings for all events emitted by {@link (Voice:class)
@@ -285,6 +290,8 @@ export class Voice extends EventEmitter {
       Constants.ScopeVoice,
       this._handleNativeEvent
     );
+
+    NativeModule.voice_setExpoVersion(getExpoVersion());
   }
 
   /**

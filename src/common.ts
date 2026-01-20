@@ -8,6 +8,7 @@
 import { requireNativeModule } from 'expo-modules-core';
 import * as ReactNative from 'react-native';
 import type { TwilioVoiceReactNative as TwilioVoiceReactNativeType } from './type/NativeModule';
+import { getExpoVersion } from './utility/expoVersion';
 
 export const Platform = ReactNative.Platform;
 
@@ -22,3 +23,5 @@ export const NativeEventEmitter =
     : new ReactNative.NativeEventEmitter(NativeModule);
 
 export const setTimeout = global.setTimeout;
+
+export { getExpoVersion };

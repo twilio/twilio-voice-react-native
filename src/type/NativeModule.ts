@@ -106,6 +106,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_setCallKitConfiguration(
     configuration: Record<string, any>
   ): NativePromise<void>;
+  voice_setExpoVersion(expoVersion: string | undefined): NativePromise<void>;
   voice_setIncomingCallContactHandleTemplate(
     template?: string
   ): NativePromise<void>;
