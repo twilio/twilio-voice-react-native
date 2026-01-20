@@ -1,5 +1,5 @@
 export function getExpoVersion(): string | undefined {
-  const expoManifest = global.expo.modules.ExponentConstants.manifest;
+  const expoManifest = global.expo?.modules?.ExponentConstants?.manifest;
 
   // NOTE: iOS manifest value is a JS object.
   if (

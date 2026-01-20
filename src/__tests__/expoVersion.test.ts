@@ -41,4 +41,24 @@ describe('getExpoVersion', () => {
     setExpoManifest(JSON.stringify(10));
     expect(getExpoVersion()).toBe(undefined);
   });
+
+  it('should return undefined if the expo object is not in the global scope', () => {
+    global.expo = undefined as any;
+    expect(getExpoVersion()).toBe(undefined);
+  });
+
+  it('should return undefined if the modules member is not in the expo object', () => {
+    global.expo = {} as any;
+    expect(getExpoVersion()).toBe(undefined);
+  });
+
+  it('should return undefined if the ExponentConstants member is not in the modules object', () => {
+    global.expo = { modules: {} } as any;
+    expect(getExpoVersion()).toBe(undefined);
+  });
+
+  it('should return undefined if the manifest member is not in the ExponentConstants object', () => {
+    global.expo = { modules: { ExponentConstants: {} } } as any;
+    expect(getExpoVersion()).toBe(undefined);
+  });
 });
