@@ -61,6 +61,7 @@ commands:
             yarn run build:constants
             yarn run build:errors
             yarn --cwd test/app install --frozen-lockfile
+            yarn --cwd test/expo install --frozen-lockfile
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -176,6 +177,10 @@ jobs:
           keys:
             - dependencies-test-application-{{ checksum "test/app/package.json" }}
             - dependencies-test-application-
+      - restore_cache:
+          keys:
+            - dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
+            - dependencies-test-expo-application-
       - install-dependencies
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
@@ -183,6 +188,9 @@ jobs:
       - save_cache:
           key: dependencies-test-application-{{ checksum "test/app/package.json" }}
           paths: test/app/node_modules
+      - save_cache:
+          key: dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
+          paths: test/expo/node_modules
       - persist_to_workspace:
           root: .
           paths: .
