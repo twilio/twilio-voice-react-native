@@ -1,50 +1,57 @@
-# Welcome to your Expo app 👋
-
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Twilio Voice React Native Expo Test App
 
 ## Get started
 
 1. Install dependencies
 
    ```bash
-   npm install
+   yarn install
    ```
 
-2. Start the app
+3. Prebuild the app for the platform(s) you wish to test on
+
+  ```bash
+  yarn run expo prebuild --clean --platform=android
+  ```
+
+  ```bash
+  yarn run expo prebuild --clean --platform=ios
+  ```
+
+  If you want to run the automated e2e tests, you must patch the Detox changes:
+
+  ```bash
+  bash detox/scripts/patch-all.bash
+  ```
+
+  See the section below on why we do this.
+
+3. Start the bundler
 
    ```bash
-    npx expo start
+   yarn run start
    ```
 
-In the output, you'll find options to open the app in a
+4. Open and run the app in Android Studio or Xcode
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+  ```bash
+  studio android/
+  ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+  ```bash
+  open ios/TwilioVoiceExpoExample.xcworkspace/
+  ```
 
-## Get a fresh project
+  Note that you may need to expose the bundler to the Android Virtual Device (AVD):
 
-When you're ready, run:
+  ```bash
+  adb reverse tcp:8081 tcp:8081
+  ```
 
-```bash
-npm run reset-project
-```
+## Why do we have post-prebuild Detox patches?
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+One of the primary benefits of using Expo is that we can prebuild native files. This means that it is reasonable for an Expo codebase to not track any native files at all. Indeed, a fresh Expo project contains no native files until the prebuild step is performed.
 
-## Learn more
+In our CI pipelines, it would be ideal to test that our SDK works out-of-the-box with absolutely no native code changes. Therefore, by not tracking any native code in this codebase, we can more closely replicate a fresh out-of-the-box Expo app experience.
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Since Detox requires native code changes, we post-prebuild patch the native files with the necessary changes for Detox to work.

@@ -1,0 +1,5 @@
+40a41,44
+> 
+>         maven {
+>             url("$rootDir/../node_modules/detox/Detox-android")
+>         }
