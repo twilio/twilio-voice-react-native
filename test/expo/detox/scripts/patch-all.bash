@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Please see `test/expo/README.md` for info on why this script exists
+
 bash detox/scripts/verify-checksums.bash
 if [[ $? -ne 0 ]]; then
   echo "Checksum validation failed"
