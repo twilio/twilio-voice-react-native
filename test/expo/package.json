@@ -9,7 +9,10 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "prebuild": "expo prebuild"
+    "prebuild": "expo prebuild",
+    "detox:build": "detox build",
+    "detox:test": "detox test",
+    "detox:relay-server": "node ./e2e/relay/server.js"
   },
   "jest": {
     "preset": "jest-expo"

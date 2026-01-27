@@ -100,8 +100,8 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/app/src/e2e-tests-token.ts
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/app/src/e2e-preflightTest-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/expo/constants/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/expo/constants/e2e-preflightTest-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -125,7 +125,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd test/app
+            cd test/expo
             yarn detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
@@ -154,7 +154,7 @@ commands:
       - run:
           name: Detox Test
           command: |
-            cd test/app
+            cd test/expo
             yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
@@ -298,7 +298,7 @@ jobs:
           screenshots: all
       - store_artifacts:
           when: always
-          path: ./test/app/detox_artifacts
+          path: ./test/expo/detox_artifacts
 
   e2e-android:
     executor:
@@ -333,14 +333,14 @@ jobs:
       - run:
           name: "Save Google Services"
           command: |
-            cd test/app/android/app
+            cd test/expo
             echo $GOOGLE_SERVICES_JSON > google-services.json
-            cd ../../../..
+            cd ../..
       - run:
           name: "Start relay server"
           background: true
           command: |
-            cd test/app
+            cd test/expo
             yarn run detox:relay-server
             cd ../..
       - detox-build:
@@ -353,12 +353,12 @@ jobs:
           name: "Save Android logs"
           when: always
           command: |
-            cd test/app
+            cd test/expo
             adb logcat -d > ./detox_artifacts/logcat.txt
             cd ../..
       - store_artifacts:
           when: always
-          path: ./test/app/detox_artifacts
+          path: ./test/expo/detox_artifacts
 
   trigger-qe-tests:
     executor:
