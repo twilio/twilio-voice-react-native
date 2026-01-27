@@ -1,4 +1,4 @@
-import type { EventLogItem } from '../../src/type';
+import type { EventLogItem } from '../../hooks/useVoice';
 
 export const getLog = async (): Promise<Array<EventLogItem>> => {
   const eventLogAttr = await element(by.id('event_log')).getAttributes();
