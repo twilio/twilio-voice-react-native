@@ -345,6 +345,12 @@ jobs:
             echo $GOOGLE_SERVICES_JSON > google-services.json
             cd ../..
       - run:
+          name: "Save Expo test app secrets"
+          command: |
+            cd test/expo
+            echo $EXPO_TEST_APP_SECRETS_JSON | base64 -d > secrets.json
+            cd ../..
+      - run:
           name: "Start relay server"
           background: true
           command: |
