@@ -351,6 +351,13 @@ jobs:
             cd test/expo
             yarn run detox:relay-server
             cd ../..
+      - run:
+          name: "Prebuild native folder"
+          command: |
+            cd test/expo
+            yarn run expo prebuild --clean --platform=android
+            bash detox/scripts/patch-all.bash
+            cd ../..
       - detox-build:
           configuration: <<parameters.detox_configuration>>
       - detox-test:
