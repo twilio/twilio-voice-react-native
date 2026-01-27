@@ -54,4 +54,4 @@ One of the primary benefits of using Expo is that we can prebuild native files. 
 
 In our CI pipelines, it would be ideal to test that our SDK works out-of-the-box with absolutely no native code changes. Therefore, by not tracking any native code in this codebase, we can more closely replicate a fresh out-of-the-box Expo app experience.
 
-But since Detox requires native code changes, we post-prebuild patch the native files with the necessary changes for Detox to work.
+Since Detox requires native code changes, we post-prebuild patch the native files with the necessary changes for Detox to work.
