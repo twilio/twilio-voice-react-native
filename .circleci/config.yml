@@ -311,7 +311,7 @@ jobs:
   e2e-android:
     executor:
       name: android/android-machine
-      resource-class: large
+      resource-class: xlarge
       tag: 2025.10.1
     parameters:
       detox_configuration:
