@@ -297,6 +297,12 @@ jobs:
       - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
+      - run:
+          name: "Prebuild native folder"
+          command: |
+            cd test/expo
+            yarn run expo prebuild --clean --platform=ios
+            cd ../..
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
