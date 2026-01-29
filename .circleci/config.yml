@@ -70,12 +70,6 @@ commands:
           name: "Install Cocoapods 1.11.3"
           command: |
             sudo gem install cocoapods -v 1.11.3
-      - run:
-          name: Install cocoapods if cache does not exist
-          command: |
-            cd test/app/ios
-            pod install
-            cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
