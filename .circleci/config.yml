@@ -298,6 +298,18 @@ jobs:
       - setup-pods
       - simulator-dependencies
       - run:
+          name: "Save Google Services"
+          command: |
+            cd test/expo
+            echo $GOOGLE_SERVICES_JSON > google-services.json
+            cd ../..
+      - run:
+          name: "Save Expo test app secrets"
+          command: |
+            cd test/expo
+            echo $EXPO_TEST_APP_SECRETS_JSON | base64 -d > secrets.json
+            cd ../..
+      - run:
           name: "Prebuild native folder"
           command: |
             cd test/expo
