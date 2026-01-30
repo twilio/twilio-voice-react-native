@@ -302,6 +302,11 @@ class VoiceModuleProxy {
     promise.resolve(null);
   }
 
+  public void setExpoVersion(String expoVersion, ModuleProxy.UniversalPromise promise) {
+    logger.debug(String.format(".setExpoVersion(%s)", expoVersion));
+    System.setProperty(Constants.EXPO_VERSION, expoVersion);
+    promise.resolve(null);
+  }
   public void unregister(String token, ModuleProxy.UniversalPromise promise) {
     logger.debug(".unregister()");
 

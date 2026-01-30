@@ -402,6 +402,16 @@ class ExpoModule : Module() {
       )
     }
 
+    AsyncFunction("voice_setExpoVersion") {
+      expoVersion: String,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.setExpoVersion(
+        expoVersion,
+        PromiseAdapter(promise)
+      )
+    }
+
     AsyncFunction("voice_unregister") {
       token: String,
       promise: Promise ->
