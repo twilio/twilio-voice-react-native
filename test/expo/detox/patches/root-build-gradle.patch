@@ -1,4 +1,22 @@
-40a41,44
+2a3,19
+> subprojects {
+>     afterEvaluate({ project ->
+>         if (
+>             project.getPlugins().hasPlugin('android') ||
+>             project.getPlugins().hasPlugin('android-library')
+>         ) {
+>             project.configure(project.android) {
+>                 packagingOptions {
+>                     pickFirst 'lib/*/libfbjni.so'
+>                     pickFirst 'lib/*/libc++_shared.so'
+>                     pickFirst 'lib/*/libreactnative.so'
+>                 }
+>             }
+>         }
+>     })
+> }
+> 
+40a58,61
 > 
 >         maven {
 >             url("$rootDir/../node_modules/detox/Detox-android")
