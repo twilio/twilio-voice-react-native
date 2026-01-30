@@ -61,6 +61,7 @@ commands:
             yarn run build:constants
             yarn run build:errors
             yarn --cwd test/app install --frozen-lockfile
+            yarn --cwd test/expo install --frozen-lockfile
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -69,12 +70,6 @@ commands:
           name: "Install Cocoapods 1.11.3"
           command: |
             sudo gem install cocoapods -v 1.11.3
-      - run:
-          name: Install cocoapods if cache does not exist
-          command: |
-            cd test/app/ios
-            pod install
-            cd ../../..
 
   simulator-dependencies:
     description: "Install iOS simulator dependencies"
@@ -100,8 +95,8 @@ commands:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/app/src/e2e-tests-token.ts
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/app/src/e2e-preflightTest-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/expo/constants/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/expo/constants/e2e-preflightTest-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -125,7 +120,7 @@ commands:
       - run:
           name: Detox Build
           command: |
-            cd test/app
+            cd test/expo
             yarn detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
@@ -154,7 +149,7 @@ commands:
       - run:
           name: Detox Test
           command: |
-            cd test/app
+            cd test/expo
             yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
@@ -176,6 +171,10 @@ jobs:
           keys:
             - dependencies-test-application-{{ checksum "test/app/package.json" }}
             - dependencies-test-application-
+      - restore_cache:
+          keys:
+            - dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
+            - dependencies-test-expo-application-
       - install-dependencies
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
@@ -183,6 +182,9 @@ jobs:
       - save_cache:
           key: dependencies-test-application-{{ checksum "test/app/package.json" }}
           paths: test/app/node_modules
+      - save_cache:
+          key: dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
+          paths: test/expo/node_modules
       - persist_to_workspace:
           root: .
           paths: .
@@ -289,6 +291,24 @@ jobs:
       - setup-e2e-creds
       - setup-pods
       - simulator-dependencies
+      - run:
+          name: "Save Google Services"
+          command: |
+            cd test/expo
+            echo $GOOGLE_SERVICES_JSON > google-services.json
+            cd ../..
+      - run:
+          name: "Save Expo test app secrets"
+          command: |
+            cd test/expo
+            echo $EXPO_TEST_APP_SECRETS_JSON | base64 -d > secrets.json
+            cd ../..
+      - run:
+          name: "Prebuild iOS native folder"
+          command: |
+            cd test/expo
+            yarn run expo prebuild --clean --platform=ios
+            cd ../..
       # run E2E tests
       - detox-build:
           configuration: <<parameters.detox_configuration>>
@@ -298,12 +318,12 @@ jobs:
           screenshots: all
       - store_artifacts:
           when: always
-          path: ./test/app/detox_artifacts
+          path: ./test/expo/detox_artifacts
 
   e2e-android:
     executor:
       name: android/android-machine
-      resource-class: large
+      resource-class: xlarge
       tag: 2025.10.1
     parameters:
       detox_configuration:
@@ -333,15 +353,28 @@ jobs:
       - run:
           name: "Save Google Services"
           command: |
-            cd test/app/android/app
+            cd test/expo
             echo $GOOGLE_SERVICES_JSON > google-services.json
-            cd ../../../..
+            cd ../..
+      - run:
+          name: "Save Expo test app secrets"
+          command: |
+            cd test/expo
+            echo $EXPO_TEST_APP_SECRETS_JSON | base64 -d > secrets.json
+            cd ../..
       - run:
           name: "Start relay server"
           background: true
           command: |
-            cd test/app
+            cd test/expo
             yarn run detox:relay-server
+            cd ../..
+      - run:
+          name: "Prebuild Android native folder"
+          command: |
+            cd test/expo
+            yarn run expo prebuild --clean --platform=android
+            bash detox/scripts/patch-all.bash
             cd ../..
       - detox-build:
           configuration: <<parameters.detox_configuration>>
@@ -353,12 +386,12 @@ jobs:
           name: "Save Android logs"
           when: always
           command: |
-            cd test/app
+            cd test/expo
             adb logcat -d > ./detox_artifacts/logcat.txt
             cd ../..
       - store_artifacts:
           when: always
-          path: ./test/app/detox_artifacts
+          path: ./test/expo/detox_artifacts
 
   trigger-qe-tests:
     executor:
@@ -416,13 +449,10 @@ workflows:
           context:
             - vblocks-js
           detox_configuration: ios.sim.release
-      ###
-      # NOTE(mhuynh): disable while we work on Expo. VBLOCKS-5799
-      ###
-      # - e2e-android:
-      #     context:
-      #       - vblocks-js
-      #     detox_configuration: android.emu.release
+      - e2e-android:
+          context:
+            - vblocks-js
+          detox_configuration: android.emu.release
 
   ###
   # Release workflow

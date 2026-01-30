@@ -34,4 +34,6 @@ patch android/build.gradle detox/patches/root-build-gradle.patch &&
 
 patch android/app/build.gradle detox/patches/app-build-gradle.patch &&
 
-patch android/app/src/main/AndroidManifest.xml detox/patches/manifest.patch
+patch android/app/src/main/AndroidManifest.xml detox/patches/manifest.patch &&
+
+patch android/gradle.properties detox/patches/gradle-properties.patch

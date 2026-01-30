@@ -9,7 +9,10 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "prebuild": "expo prebuild"
+    "prebuild": "expo prebuild",
+    "detox:build": "detox build",
+    "detox:test": "detox test",
+    "detox:relay-server": "node ./e2e/relay/server.js"
   },
   "jest": {
     "preset": "jest-expo"
@@ -34,10 +37,10 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
-    "react-native-gesture-handler": "~2.30.0",
+    "react-native-gesture-handler": "~2.20.2",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.13.0",
+    "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5"
   },
