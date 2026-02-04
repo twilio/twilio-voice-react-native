@@ -454,6 +454,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void voice_setExpoVersion(String expoVersion, Promise promise) {
+    this.moduleProxy.voice.setExpoVersion(expoVersion, new PromiseAdapter(promise));
+  }
+
+  @ReactMethod
   public void voice_unregister(String token, Promise promise) {
     this.moduleProxy.voice.unregister(token, new PromiseAdapter(promise));
   }
