@@ -34,7 +34,7 @@ executors:
   ios-executor:
     macos:
       xcode: 16.2.0
-      resource_class: m4pro.medium
+    resource_class: m4pro.medium
 
 ###
 # Commands
