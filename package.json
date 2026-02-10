@@ -168,5 +168,5 @@
     "@twilio/voice-errors": "1.8.0",
     "eventemitter3": "^4.0.7"
   },
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.12.0"
 }
