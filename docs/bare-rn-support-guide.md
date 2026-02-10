@@ -1,17 +1,25 @@
-# Using the 2.x Twilio Voice React Native SDK with framework-less (bare) React Native applications
+# Using the Twilio Voice React Native SDK (v2.x) with Bare React Native Applications
 
-The Twilio Voice React Native SDK out-of-the-box supports only Expo applications as of version `2.0.0-preview.1`. In order to use the Twilio Voice React Native SDK in framework-less (bare) React Native applications, our team has written this guide to help users who wish to fork this repo and modify their fork for usage in a bare RN app.
+As of version `2.0.0-preview.1`, the Twilio Voice React Native SDK officially supports **Expo** applications out of the box. If you're building a **framework-less (bare) React Native** application, some additional steps are required.
 
-# Common Changes for supporting both iOS and Android
+This guide walks through the changes needed to fork the SDK and adapt it for use in a bare React Native application on **both iOS and Android**.
 
-- Modify `src/common.ts`:
+## Common Changes (iOS and Android)
 
-  1. Remove this import:
+### Update `src/common.ts`
+
+1. **Remove Expo dependency import**
+
+  Delete the following line:
+
   ```typescript
   import { requireNativeModule } from 'expo-modules-core';
   ```
 
-  2. Remove the existing exports:
+2. **Remove the existing exports**
+
+  Remove this code block:
+
   ```typescript
   export const NativeModule: TwilioVoiceReactNativeType =
     Platform.OS === 'android'
@@ -24,7 +32,10 @@ The Twilio Voice React Native SDK out-of-the-box supports only Expo applications
       : new ReactNative.NativeEventEmitter(NativeModule);
   ```
 
-  3. Add the following exports:
+3. **Add bare React Native-compatible exports**
+
+  Replace the removed code block with the following:
+
   ```typescript
   export const NativeModule: TwilioVoiceReactNativeType =
     ReactNative.NativeModules.TwilioVoiceReactNative;
@@ -34,11 +45,13 @@ The Twilio Voice React Native SDK out-of-the-box supports only Expo applications
   );
   ```
 
-## Android specific changes
+## Android-Specific changes
 
-- Remove the `react-native.config.js` file from the root folder of your fork.
+### Remove Expo-related configuration and modules
 
-- Remove these files from your `android/src/main/java/com/twiliovoicereactnative/` folder:
+- Delete the `react-native.config.js` file from the root of your fork.
+
+- Remove the following files from the `android/src/main/java/com/twiliovoicereactnative/` folder:
 
   ```
   ExpoActivityLifecycleListener.kt
@@ -46,21 +59,43 @@ The Twilio Voice React Native SDK out-of-the-box supports only Expo applications
   ExpoModule.kt
   ExpoPackage.kt
   ```
+### Upgrade Gradle dependencies
 
-- Modify `android/build.gradle`:
+- Edit the `android/build.gradle` file and remove this line:
 
-  Remove this line from the gradle file.
   ```gradle
   implementation project(':expo-modules-core')
   ```
 
-- Follow the Android getting started guide as usual for Bare RN apps. This includes adding the Google Services gradle plugin into both your root gradle build file, your app gradle build file, and adding the proxies and hooks to your `MainApplication` and `MainActivity`.
+### Complete Bare React Native Android setup
 
-- If you see an error similar to:
+Follow the standard Android setup steps for using the Twilio Voice React Native SDK in a **bare React Native app**, including:
 
-  ```
-  voice_getVersion` is null
-  ```
+- Adding the Google Services Gradle plugin to:
+  - The root `build.gradle`.
+  - The app `build.gradle`.
 
-  Please try a gradle build clean to force the RN CLI to autolink the RN SDK package again.
+- Wiring required hooks and proxies into the following classes:
+  - `MainApplication`
+  - `MainActivity`
 
+### Troubleshooting
+
+If you encounter an error similar to:
+
+```
+voice_getVersion` is null
+```
+
+Run a clean task to force the React Native CLI to re-autolink the package:
+
+```
+cd android
+./gradlew clean
+```
+
+Then rebuild the app.
+
+---
+
+With these changes applied, the Twilio Voice React Native SDK should function correctly in a bare React Native application on both iOS and Android.
