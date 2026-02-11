@@ -33,6 +33,10 @@ With the release of `2.x` versions (including our preview versions available thr
 
 After installing the Twilio Voice React Native SDK to your Expo application, please follow this [doc](./docs/expo/app-config.md) for steps on configuring your Expo app with the proper permissions and grants to use Twilio Voice features.
 
+### Using 2.x in a framework-less (bare) React Native application
+
+Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
+
 ## 1.x Documentation
 
 ### Getting Started
