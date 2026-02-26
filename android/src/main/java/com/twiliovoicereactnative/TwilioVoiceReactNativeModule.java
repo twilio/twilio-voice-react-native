@@ -249,11 +249,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     String notificationDisplayName,
     Promise promise
   ) {
+
+    final ModuleProxy.UniversalPromise uPromise = new PromiseAdapter(promise);
+
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
     ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
     while (iterator.hasNextKey()) {
       String key = iterator.nextKey();
+
+      if (key.equals(CommonConstants.CallOptionsKeyIceServers) || 
+          key.equals(CommonConstants.CallOptionsKeyIceTransportPolicy)) {
+        continue;
+      }
+
       ReadableType readableType = twimlParams.getType(key);
       switch (readableType) {
         case Boolean:
@@ -272,11 +281,78 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       }
     }
 
+    final Set<IceServer> iceServers = new HashSet<>();
+
+    final ReadableArray jsIceServers = Optional
+      .ofNullable(
+        twimlParams.hasKey(CommonConstants.CallOptionsKeyIceServers)
+          ? twimlParams.getArray(CommonConstants.CallOptionsKeyIceServers)
+          : null
+      )
+      .orElse(Arguments.createArray());
+
+    for (int i = 0; i < jsIceServers.size(); i++) {
+      final ReadableMap jsIceServer = Optional
+        .ofNullable(jsIceServers.getMap(i))
+        .orElse(Arguments.createMap());
+
+      final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
+
+      final String username = Optional
+        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyUsername))
+        .orElse("");
+
+      final String password = Optional
+        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyPassword))
+        .orElse("");
+
+      if (serverUrl == null) {
+        uPromise.rejectWithName(
+          CommonConstants.ErrorCodeInvalidArgumentError,
+          "Server URL must be a non-null string."
+        );
+        return;
+      }
+
+      iceServers.add(new IceServer(serverUrl, username, password));
+    }
+
+    final String jsIceTransportPolicy = Optional
+      .ofNullable(
+        twimlParams.hasKey(CommonConstants.CallOptionsKeyIceTransportPolicy)
+          ? twimlParams.getString(CommonConstants.CallOptionsKeyIceTransportPolicy)
+          : null
+      )
+      .orElse("");
+
+    final IceTransportPolicy iceTransportPolicy = switch (jsIceTransportPolicy) {
+      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+      default -> null;
+    };
+
+    IceOptions iceOptions = null;
+
+    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
+      final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+      }
+
+      if (!iceServers.isEmpty()) {
+        iceOptionsBuilder.iceServers(iceServers);
+      }
+
+      iceOptions = iceOptionsBuilder.build();
+    }
+
     this.moduleProxy.voice.connect(
       accessToken,
       parsedTwimlParams,
       notificationDisplayName,
-      new PromiseAdapter(promise)
+      iceOptions,
+      uPromise
     );
   }
 

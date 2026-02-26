@@ -16,6 +16,8 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 import java.util.ArrayList
+import java.util.LinkedHashMap
+import java.util.HashMap
 import java.util.HashSet
 
 
@@ -237,15 +239,72 @@ class ExpoModule : Module() {
      */
 
     AsyncFunction("voice_connect_android") {
-        accessToken: String,
-        twimlParams: Map<String, String>,
-        notificationDisplayName: String?,
-        promise: Promise ->
+      accessToken: String,
+      twimlParams: Map<String, Any>,
+      notificationDisplayName: String?,
+      promise: Promise ->
+
+      val cleanParams = HashMap<String, String>()
+
+      val iceServers = HashSet<IceServer>()
+      var iceTransportPolicy: IceTransportPolicy? = null
+
+      twimlParams.forEach { (key, value) ->
+        when (key) {
+          CommonConstants.CallOptionsKeyIceServers -> {
+            val jsIceServers = value as? ArrayList<*>
+            jsIceServers?.forEach { jsIceServer ->
+              if (jsIceServer !is LinkedHashMap<*, *>) return@forEach
+
+              val serverUrl =
+                jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
+              val username =
+                jsIceServer[CommonConstants.IceServerKeyUsername] as String?
+              val password =
+                jsIceServer[CommonConstants.IceServerKeyPassword] as String?
+
+              if (serverUrl != null && username != null && password != null) {
+                iceServers.add(IceServer(serverUrl, username, password))
+              } else if (serverUrl != null) {
+                iceServers.add(IceServer(serverUrl))
+              }
+            }
+          }
+
+          CommonConstants.CallOptionsKeyIceTransportPolicy -> {
+            iceTransportPolicy = when (value) {
+              CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
+              CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
+              else -> null
+            }
+          }
+
+          else -> {
+            cleanParams[key] = value.toString()
+          }
+        }
+      }
+
+      var iceOptions: IceOptions? = null
+      if (iceServers.isNotEmpty() || iceTransportPolicy != null) {
+        val iceOptionsBuilder = IceOptions.Builder()
+
+        if (iceServers.isNotEmpty()) {
+          iceOptionsBuilder.iceServers(iceServers)
+        }
+
+        iceTransportPolicy?.let {
+          iceOptionsBuilder.iceTransportPolicy(it)
+        }
+
+        iceOptions = iceOptionsBuilder.build()
+      }
 
       this@ExpoModule.moduleProxy.voice.connect(
         accessToken,
-        twimlParams,
+        cleanParams,
         notificationDisplayName,
+        iceOptions,
         PromiseAdapter(promise)
       )
     }

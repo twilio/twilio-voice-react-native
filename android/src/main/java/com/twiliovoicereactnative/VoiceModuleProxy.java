@@ -11,6 +11,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
+import com.twilio.voice.IceOptions;
 import com.twilio.voice.PreflightOptions;
 import com.twilio.voice.PreflightTest;
 import com.twilio.voice.RegistrationListener;
@@ -42,6 +43,7 @@ class VoiceModuleProxy {
     String accessToken,
     Map<String, String> twimlParams,
     String notificationDisplayName,
+    IceOptions iceOptions,
     ModuleProxy.UniversalPromise promise
   ) {
     logger.debug(".connect()");
@@ -55,11 +57,16 @@ class VoiceModuleProxy {
         twimlParams.containsKey("to") && !(Objects.requireNonNull(twimlParams.get("to")).isBlank())
           ? twimlParams.get("to")
           : this.reactApplicationContext.getString(R.string.unknown_call_recipient);
-      ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
+      ConnectOptions.Builder builder = new ConnectOptions.Builder(accessToken)
         .enableDscp(true)
         .params(twimlParams)
-        .callMessageListener(new CallMessageListenerProxy())
-        .build();
+        .callMessageListener(new CallMessageListenerProxy());
+
+      if (iceOptions != null) {
+        builder.iceOptions(iceOptions);
+      }
+       
+      ConnectOptions connectOptions = builder.build();
       try {
         final Call call = VoiceApplicationProxy.getVoiceServiceApi().connect(
           connectOptions,

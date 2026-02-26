@@ -12,7 +12,7 @@ export type ValidOptions<T> = { status: 'ok' } & T;
 
 export type OptionValidation<T> = InvalidOptions | ValidOptions<T>;
 
-function validateIceTransportPolicy(
+export function validateIceTransportPolicy(
   iceTransportPolicy: IceTransportPolicy
 ): OptionValidation<{ iceTransportPolicy: IceTransportPolicy }> {
   if (
@@ -104,7 +104,7 @@ function validateIceServer(
   };
 }
 
-function validateIceServers(
+export function validateIceServers(
   iceServers: IceServer[]
 ): OptionValidation<{ iceServers: IceServer[] }> {
   if (!Array.isArray(iceServers)) {
