@@ -247,8 +247,11 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     String accessToken,
     ReadableMap twimlParams,
     String notificationDisplayName,
+    ReadableArray jsIceServers,
+    String jsIceTransportPolicy,
     Promise promise
   ) {
+    logger.debug(".voice_connect_android");
 
     final ModuleProxy.UniversalPromise uPromise = new PromiseAdapter(promise);
 
@@ -257,19 +260,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
     while (iterator.hasNextKey()) {
       String key = iterator.nextKey();
-
-      if (key.equals(CommonConstants.CallOptionsKeyIceServers) || 
-          key.equals(CommonConstants.CallOptionsKeyIceTransportPolicy)) {
-        continue;
-      }
-
       ReadableType readableType = twimlParams.getType(key);
       switch (readableType) {
         case Boolean:
           parsedTwimlParams.put(key, String.valueOf(twimlParams.getBoolean(key)));
           break;
         case Number:
-          // Can be int or double.
           parsedTwimlParams.put(key, String.valueOf(twimlParams.getDouble(key)));
           break;
         case String:
@@ -283,28 +279,25 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     final Set<IceServer> iceServers = new HashSet<>();
 
-    final ReadableArray jsIceServers = Optional
-      .ofNullable(
-        twimlParams.hasKey(CommonConstants.CallOptionsKeyIceServers)
-          ? twimlParams.getArray(CommonConstants.CallOptionsKeyIceServers)
-          : null
-      )
+    final ReadableArray parsedJsIceServers = Optional
+      .ofNullable(jsIceServers)
       .orElse(Arguments.createArray());
 
-    for (int i = 0; i < jsIceServers.size(); i++) {
+    for (int i = 0; i < parsedJsIceServers.size(); i++) {
       final ReadableMap jsIceServer = Optional
-        .ofNullable(jsIceServers.getMap(i))
+        .ofNullable(parsedJsIceServers.getMap(i))
         .orElse(Arguments.createMap());
 
-      final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
+      final String serverUrl =
+        jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
 
-      final String username = Optional
-        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyUsername))
-        .orElse("");
+      final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)
+        : null;
 
-      final String password = Optional
-        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyPassword))
-        .orElse("");
+      final String password = jsIceServer.hasKey(CommonConstants.IceServerKeyPassword)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyPassword)
+        : null;
 
       if (serverUrl == null) {
         uPromise.rejectWithName(
@@ -314,18 +307,18 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         return;
       }
 
-      iceServers.add(new IceServer(serverUrl, username, password));
+      if (username != null && password != null) {
+        iceServers.add(new IceServer(serverUrl, username, password));
+      } else {
+        iceServers.add(new IceServer(serverUrl));
+      }
     }
 
-    final String jsIceTransportPolicy = Optional
-      .ofNullable(
-        twimlParams.hasKey(CommonConstants.CallOptionsKeyIceTransportPolicy)
-          ? twimlParams.getString(CommonConstants.CallOptionsKeyIceTransportPolicy)
-          : null
-      )
+    final String parsedJsIceTransportPolicy = Optional
+      .ofNullable(jsIceTransportPolicy)
       .orElse("");
 
-    final IceTransportPolicy iceTransportPolicy = switch (jsIceTransportPolicy) {
+    final IceTransportPolicy iceTransportPolicy = switch (parsedJsIceTransportPolicy) {
       case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
       case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
       default -> null;
@@ -336,12 +329,12 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     if (!iceServers.isEmpty() || iceTransportPolicy != null) {
       final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
 
-      if (iceTransportPolicy != null) {
-        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
-      }
-
       if (!iceServers.isEmpty()) {
         iceOptionsBuilder.iceServers(iceServers);
+      }
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
       }
 
       iceOptions = iceOptionsBuilder.build();

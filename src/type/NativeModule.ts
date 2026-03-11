@@ -11,6 +11,7 @@ import type { NativeCallInviteInfo } from './CallInvite';
 import type { Uuid } from './common';
 import type { RTCStats } from './RTCStats';
 import type { Constants } from '../constants';
+import type { IceServer, IceTransportPolicy } from './Ice';
 
 export type NativePromiseResolution<T> = {
   [Constants.PromiseKeyStatus]: Constants.PromiseStatusValueResolved;
@@ -95,12 +96,16 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
   voice_connect_android(
     token: string,
     twimlParams: Record<string, any>,
-    notificationDisplayName: string | undefined
+    notificationDisplayName: string | undefined,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ): NativePromise<NativeCallInfo>;
   voice_connect_ios(
     token: string,
     twimlParams: Record<string, any>,
-    contactHandle: string
+    contactHandle: string,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ): NativePromise<NativeCallInfo>;
   voice_initializePushRegistry(): NativePromise<void>;
   voice_setCallKitConfiguration(

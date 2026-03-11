@@ -242,15 +242,6 @@ export declare interface Voice {
  * @public
  */
 
-/**
- * Internal type used for passing parameters to the native layer.
- * Extends string-based TwiML params with optional ICE configuration.
- */
-type NativeConnectParams = Record<string, string> & {
-  [Constants.CallOptionsKeyIceServers]?: IceServer[];
-  [Constants.CallOptionsKeyIceTransportPolicy]?: IceTransportPolicy;
-};
-
 export class Voice extends EventEmitter {
   /**
    * Handlers for native voice events. Set upon construction so we can
@@ -308,10 +299,18 @@ export class Voice extends EventEmitter {
   private async _connect_android(
     token: string,
     params: CustomParameters,
-    notificationDisplayName: string | undefined
+    notificationDisplayName: string | undefined,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ) {
     const callInfo = await settleNativePromise(
-      NativeModule.voice_connect_android(token, params, notificationDisplayName)
+      NativeModule.voice_connect_android(
+        token,
+        params,
+        notificationDisplayName,
+        iceServers,
+        iceTransportPolicy
+      )
     );
 
     return new Call(callInfo);
@@ -323,13 +322,21 @@ export class Voice extends EventEmitter {
   private async _connect_ios(
     token: string,
     params: CustomParameters,
-    contactHandle: string
+    contactHandle: string,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ) {
     const parsedContactHandle =
       contactHandle === '' ? 'Default Contact' : contactHandle;
 
     const callInfo = await settleNativePromise(
-      NativeModule.voice_connect_ios(token, params, parsedContactHandle)
+      NativeModule.voice_connect_ios(
+        token,
+        params,
+        parsedContactHandle,
+        iceServers,
+        iceTransportPolicy
+      )
     );
 
     return new Call(callInfo);
@@ -519,7 +526,7 @@ export class Voice extends EventEmitter {
       notificationDisplayName = undefined,
       params = {},
       iceServers,
-      iceTransportPolicy
+      iceTransportPolicy,
     }: Voice.ConnectOptions = {}
   ): Promise<Call> {
     if (typeof token !== 'string') {
@@ -551,25 +558,22 @@ export class Voice extends EventEmitter {
 
     this._validateConnectOptions({ iceServers, iceTransportPolicy });
 
-    const finalParams: NativeConnectParams = { ...params };
-
-    if (iceServers !== undefined) {
-      finalParams[Constants.CallOptionsKeyIceServers] = iceServers;
-    }
-
-    if (iceTransportPolicy !== undefined) {
-      finalParams[Constants.CallOptionsKeyIceTransportPolicy] =
-        iceTransportPolicy;
-    }
-
     switch (Platform.OS) {
       case 'ios':
-        return this._connect_ios(token, finalParams, contactHandle);
+        return this._connect_ios(
+          token,
+          params,
+          contactHandle,
+          iceServers,
+          iceTransportPolicy
+        );
       case 'android':
         return this._connect_android(
           token,
-          finalParams,
-          notificationDisplayName
+          params,
+          notificationDisplayName,
+          iceServers,
+          iceTransportPolicy
         );
       default:
         throw new UnsupportedPlatformError(

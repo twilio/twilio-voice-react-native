@@ -142,9 +142,13 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
-                  contactHandle:(NSString *)contactHandle {
+                  contactHandle:(NSString *)contactHandle
+                     iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
+             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy {
     self.accessToken = accessToken;
     self.twimlParams = params;
+    self.iceServers = iceServers;
+    self.iceTransportPolicy = iceTransportPolicy;
     
     NSString *handle = @"Default Contact";
     if ([contactHandle length] > 0) {
@@ -180,10 +184,8 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
                           client:(NSString *)client
                       completion:(void(^)(BOOL success, NSError *error))completionHandler {
 
-    NSArray<NSDictionary *> *jsIceServers =
-        [self.twimlParams objectForKey:kTwilioVoiceReactNativeCallOptionsKeyIceServers];
-    NSString *jsIceTransportPolicy =
-        [self.twimlParams objectForKey:kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
+    NSArray<NSDictionary *> *jsIceServers = self.iceServers;
+    NSString *jsIceTransportPolicy = self.iceTransportPolicy;
 
     __block TVOIceOptions *iceOptions = nil;
     if (jsIceServers || jsIceTransportPolicy) {
@@ -218,14 +220,10 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
         }];
     }
 
-    NSMutableDictionary *cleanParams = [self.twimlParams mutableCopy];
-    [cleanParams removeObjectForKey:kTwilioVoiceReactNativeCallOptionsKeyIceServers];
-    [cleanParams removeObjectForKey:kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
-
     TVOConnectOptions *connectOptions =
     [TVOConnectOptions optionsWithAccessToken:self.accessToken
                                         block:^(TVOConnectOptionsBuilder *builder) {
-        builder.params = cleanParams;
+        builder.params = self.twimlParams;
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
 

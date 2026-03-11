@@ -431,7 +431,7 @@ describe('Voice class', () => {
       describe('ICE options', () => {
         it('invokes ICE validators when options are provided', async () => {
           jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android' as any);
-
+      
           const validateIceServersSpy = jest.spyOn(
             PreflightTestOptionsModule,
             'validateIceServers'
@@ -440,7 +440,7 @@ describe('Voice class', () => {
             PreflightTestOptionsModule,
             'validateIceTransportPolicy'
           );
-
+      
           const iceServers = [
             {
               username: 'foo',
@@ -449,33 +449,33 @@ describe('Voice class', () => {
             },
           ];
           const iceTransportPolicy = IceTransportPolicy.Relay;
-
+      
           await new Voice().connect(token, {
             ...options,
             iceServers,
             iceTransportPolicy,
           } as any);
-
+      
           expect(validateIceServersSpy).toHaveBeenCalledWith(iceServers);
           expect(validateIceTransportPolicySpy).toHaveBeenCalledWith(
             iceTransportPolicy
           );
         });
-
+      
         it('rejects when validateIceServers returns an error', async () => {
           jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android' as any);
-
+      
           const validationError = new InvalidArgumentError(
             'mock invalid iceServers'
           );
-
+      
           jest
             .spyOn(PreflightTestOptionsModule, 'validateIceServers')
             .mockReturnValueOnce({
               status: 'error',
               error: validationError,
             } as any);
-
+      
           await expect(
             new Voice().connect(token, {
               ...options,
@@ -483,21 +483,21 @@ describe('Voice class', () => {
             } as any)
           ).rejects.toBe(validationError);
         });
-
+      
         it('rejects when validateIceTransportPolicy returns an error', async () => {
           jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android' as any);
-
+      
           const validationError = new InvalidArgumentError(
             'mock invalid iceTransportPolicy'
           );
-
+      
           jest
             .spyOn(PreflightTestOptionsModule, 'validateIceTransportPolicy')
             .mockReturnValueOnce({
               status: 'error',
               error: validationError,
             } as any);
-
+      
           await expect(
             new Voice().connect(token, {
               ...options,
@@ -505,12 +505,12 @@ describe('Voice class', () => {
             } as any)
           ).rejects.toBe(validationError);
         });
-
+      
         describe('android platform', () => {
           beforeEach(() => {
             jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android' as any);
           });
-
+      
           it('forwards ICE options to the android native module', async () => {
             const iceServers = [
               {
@@ -520,67 +520,59 @@ describe('Voice class', () => {
               },
             ];
             const iceTransportPolicy = IceTransportPolicy.Relay;
-
+      
             await new Voice().connect(token, {
               ...options,
               iceServers,
               iceTransportPolicy,
             } as any);
-
-            const nativeCalls = jest.mocked(
-              MockNativeModule.voice_connect_android
-            ).mock.calls;
-            expect(nativeCalls.length).toBe(1);
-
-            const nativeParams = nativeCalls[0][1];
-            expect(nativeParams).toEqual(
-              expect.objectContaining({
-                ...options.params,
-                [Constants.CallOptionsKeyIceServers]: iceServers,
-                [Constants.CallOptionsKeyIceTransportPolicy]:
-                  iceTransportPolicy,
-              })
-            );
-          });
-          describe('ios platform', () => {
-            beforeEach(() => {
-              jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios' as any);
-            });
-
-            it('forwards ICE options to the ios native module', async () => {
-              const iceServers = [
-                {
-                  username: 'foo',
-                  password: 'bar',
-                  serverUrl: 'turn:turn.example.com:3478',
-                },
-              ];
-              const iceTransportPolicy = IceTransportPolicy.All;
-
-              await new Voice().connect(token, {
-                ...options,
+      
+            expect(
+              jest.mocked(MockNativeModule.voice_connect_android).mock.calls
+            ).toEqual([
+              [
+                token,
+                options.params,
+                undefined,
                 iceServers,
                 iceTransportPolicy,
-              } as any);
-
-              const nativeCalls = jest.mocked(
-                MockNativeModule.voice_connect_ios
-              ).mock.calls;
-              expect(nativeCalls.length).toBe(1);
-
-              const nativeParams = nativeCalls[0][1];
-              const nativeContactHandle = nativeCalls[0][2];
-
-              expect(nativeParams).toEqual(
-                expect.objectContaining({
-                  ...options.params,
-                  [Constants.CallOptionsKeyIceServers]: iceServers,
-                  [Constants.CallOptionsKeyIceTransportPolicy]:
-                    iceTransportPolicy,
-                })
-              );
-              expect(nativeContactHandle).toBe(options.contactHandle);
-            });
+              ],
+            ]);
+          });
+        });
+      
+        describe('ios platform', () => {
+          beforeEach(() => {
+            jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios' as any);
+          });
+      
+          it('forwards ICE options to the ios native module', async () => {
+            const iceServers = [
+              {
+                username: 'foo',
+                password: 'bar',
+                serverUrl: 'turn:turn.example.com:3478',
+              },
+            ];
+            const iceTransportPolicy = IceTransportPolicy.All;
+      
+            await new Voice().connect(token, {
+              ...options,
+              iceServers,
+              iceTransportPolicy,
+            } as any);
+      
+            expect(
+              jest.mocked(MockNativeModule.voice_connect_ios).mock.calls
+            ).toEqual([
+              [
+                token,
+                options.params,
+                options.contactHandle,
+                iceServers,
+                iceTransportPolicy,
+              ],
+            ]);
           });
         });
       });
