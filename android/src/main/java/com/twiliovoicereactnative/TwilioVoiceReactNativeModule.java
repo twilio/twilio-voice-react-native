@@ -289,7 +289,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
         .orElse(Arguments.createMap());
 
       final String serverUrl =
-        jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
+        jsIceServer.hasKey(CommonConstants.IceServerKeyServerUrl)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyServerUrl)
+        : null;
 
       final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
         ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)

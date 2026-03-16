@@ -18,7 +18,6 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import java.util.HashMap
-import java.util.HashSet
 
 
 class ExpoModule : Module() {

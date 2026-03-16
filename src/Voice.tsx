@@ -31,6 +31,33 @@ import { settleNativePromise } from './utility/nativePromise';
 import type { IceServer, IceTransportPolicy } from './type/Ice';
 
 /**
+ * Validates ICE servers and ICE transport policy for a connect call.
+ *
+ * This is an internal helper used by {@link (Voice:class).connect} to ensure
+ * that the `iceServers` array and `iceTransportPolicy` string are properly
+ * structured and typed according to SDK rules.
+ *
+ * @param options - The connect options containing `iceServers` and/or
+ * `iceTransportPolicy`.
+ * @throws {InvalidArgumentError} If any ICE server or transport policy is invalid.
+ * @internal
+ */
+function validateConnectOptions({
+  iceServers,
+  iceTransportPolicy,
+}: Voice.ConnectOptions) {
+  if (typeof iceServers !== 'undefined') {
+    const result = validateIceServers(iceServers);
+    if (result.status === 'error') throw result.error;
+  }
+
+  if (typeof iceTransportPolicy !== 'undefined') {
+    const result = validateIceTransportPolicy(iceTransportPolicy);
+    if (result.status === 'error') throw result.error;
+  }
+}
+
+/**
  * Defines strict typings for all events emitted by {@link (Voice:class)
  * | Voice objects}.
  *
@@ -464,33 +491,6 @@ export class Voice extends EventEmitter {
   };
 
   /**
-   * Validates ICE servers and ICE transport policy for a connect call.
-   *
-   * This is an internal helper used by {@link (Voice:class).connect} to ensure
-   * that the `iceServers` array and `iceTransportPolicy` string are properly
-   * structured and typed according to SDK rules.
-   *
-   * @param options - The connect options containing `iceServers` and/or
-   * `iceTransportPolicy`.
-   * @throws {InvalidArgumentError} If any ICE server or transport policy is invalid.
-   * @internal
-   */
-  private _validateConnectOptions({
-    iceServers,
-    iceTransportPolicy,
-  }: Voice.ConnectOptions) {
-    if (iceServers) {
-      const result = validateIceServers(iceServers);
-      if (result.status === 'error') throw result.error;
-    }
-
-    if (iceTransportPolicy) {
-      const result = validateIceTransportPolicy(iceTransportPolicy);
-      if (result.status === 'error') throw result.error;
-    }
-  }
-
-  /**
    * Create an outgoing call.
    *
    * @remarks
@@ -556,7 +556,7 @@ export class Voice extends EventEmitter {
       }
     }
 
-    this._validateConnectOptions({ iceServers, iceTransportPolicy });
+    validateConnectOptions({ iceServers, iceTransportPolicy });
 
     switch (Platform.OS) {
       case 'ios':
