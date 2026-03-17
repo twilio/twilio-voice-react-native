@@ -262,6 +262,23 @@ export class Voice extends EventEmitter {
   constructor() {
     super();
 
+    const realm = 'stage' as 'prod' | 'stage';
+
+    switch (realm) {
+      case 'prod': {
+        NativeModule?.env_setProduction?.().then(console.log);
+        break;
+      }
+      case 'stage': {
+        NativeModule?.env_setStaging?.().then(console.log);
+        break;
+      }
+      default: {
+        const invalidRealm: never = realm;
+        console.warn(`invalid realm "${invalidRealm}"`);
+      }
+    }
+
     this._nativeEventHandler = {
       /**
        * Common

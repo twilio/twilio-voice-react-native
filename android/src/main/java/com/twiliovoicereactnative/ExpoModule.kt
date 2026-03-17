@@ -10,6 +10,7 @@ import com.twilio.voice.PreflightOptions
 import com.twilio.voice.IceOptions
 import com.twilio.voice.IceServer
 import com.twilio.voice.IceTransportPolicy
+import com.twilio.androidenv.Env
 
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
@@ -417,6 +418,22 @@ class ExpoModule : Module() {
       promise: Promise ->
 
       this@ExpoModule.moduleProxy.voice.unregister(token, PromiseAdapter(promise))
+    }
+
+    AsyncFunction("env_setStaging") {
+      promise: Promise ->
+
+      Env.set(this@ExpoModule.appContext.reactContext, "TWILIO_ENVIRONMENT", "Staging", true)
+
+      PromiseAdapter(promise).resolve("set staging")
+    }
+
+    AsyncFunction("env_setProduction") {
+      promise: Promise ->
+
+      Env.set(this@ExpoModule.appContext.reactContext, "TWILIO_ENVIRONMENT", "Production", true)
+
+      PromiseAdapter(promise).resolve("set production")
     }
   }
 }
