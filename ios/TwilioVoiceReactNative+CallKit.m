@@ -214,7 +214,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueAll]) {
                 iceOptionsBuilderBlock.transportPolicy = TVOIceTransportPolicyAll;
             }
-            if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueRelay]) {
+            else if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueRelay]) {
                 iceOptionsBuilderBlock.transportPolicy = TVOIceTransportPolicyRelay;
             }
         }];
