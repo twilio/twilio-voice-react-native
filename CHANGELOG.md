@@ -3,13 +3,9 @@
 
 ## Features
 
-- Preview support for the Expo framework. See this [doc](./docs/expo/app-config.md) for more information on how to configure your `app.json` or `app.config.js`.
+- Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
 
-  **Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
-
-  - **Using 2.x in a framework-less (bare) React Native application**
-
-    Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
+  If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
 
 ## Changes
 
