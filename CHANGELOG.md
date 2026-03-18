@@ -5,8 +5,6 @@
 
 - Preview support for the Expo framework. See this [doc](./docs/expo/app-config.md) for more information on how to configure your `app.json` or `app.config.js`.
 
-  Note that as of `2.0.0-preview.1` the Twilio Voice React Native SDK is not compatible with frameworkless ("bare") React Native applications.
-
   **Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
 
   - **Using 2.x in a framework-less (bare) React Native application**
