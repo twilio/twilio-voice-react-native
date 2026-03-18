@@ -9,7 +9,7 @@
 
   **Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
 
-  - ### Using 2.x in a framework-less (bare) React Native application
+  - **Using 2.x in a framework-less (bare) React Native application**
 
     Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
 
