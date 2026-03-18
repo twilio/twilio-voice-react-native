@@ -7,6 +7,12 @@
 
   Note that as of `2.0.0-preview.1` the Twilio Voice React Native SDK is not compatible with frameworkless ("bare") React Native applications.
 
+  **Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
+
+  - ### Using 2.x in a framework-less (bare) React Native application
+
+    Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
+
 ## Changes
 
 - Updated local Typescript version used by the library.
