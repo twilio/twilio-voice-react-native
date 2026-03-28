@@ -272,8 +272,8 @@ describe('PreflightTest', () => {
           preflight['_handleCompletedEvent']({
             [Constants.PreflightTestCompletedEventKeyReport]: JSON.stringify({
               ...baseMockReport,
-              callQuality: 0,
-              isTurnRequired: 'false',
+              callQuality: 'Excellent',
+              isTurnRequired: false,
             }),
           } as any);
 
@@ -573,31 +573,6 @@ describe('PreflightTest', () => {
           }).rejects.toBeInstanceOf(InvalidStateError);
         });
 
-        it('throws an error in "parseIsTurnRequired"', async () => {
-          const mockReturnValues = (function* () {
-            yield 'android';
-            yield 'foobar';
-          })();
-
-          jest
-            .spyOn(Common.Platform, 'OS', 'get')
-            .mockImplementation(() => mockReturnValues.next().value as any);
-
-          jest
-            .spyOn(Common.NativeModule, 'preflightTest_getReport')
-            .mockImplementation(async () =>
-              mockNativePromiseResolutionValue(
-                JSON.stringify({
-                  ...baseMockReport,
-                  callQuality: 'Excellent',
-                })
-              )
-            );
-
-          await expect(async () => {
-            await preflight.getReport();
-          }).rejects.toBeInstanceOf(InvalidStateError);
-        });
       });
 
       describe('android', () => {
@@ -903,8 +878,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                 })
               )
             );
@@ -921,8 +896,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                 })
               )
             );
@@ -940,7 +915,7 @@ describe('PreflightTest', () => {
                 JSON.stringify({
                   ...baseMockReport,
                   callQuality: null,
-                  isTurnRequired: 'false',
+                  isTurnRequired: false,
                 })
               )
             );
@@ -958,7 +933,7 @@ describe('PreflightTest', () => {
                 JSON.stringify({
                   ...baseMockReport,
                   callQuality: undefined,
-                  isTurnRequired: 'false',
+                  isTurnRequired: false,
                 })
               )
             );
@@ -1003,7 +978,7 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
+                  callQuality: 'Excellent',
                   isTurnRequired: 10,
                 })
               )
@@ -1021,7 +996,7 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
+                  callQuality: 'Excellent',
                   isTurnRequired: 'foobar',
                 })
               )
@@ -1039,7 +1014,7 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
+                  callQuality: 'Excellent',
                   isTurnRequired: undefined,
                 })
               )
@@ -1060,7 +1035,7 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
+                  callQuality: 'Excellent',
                   isTurnRequired: null,
                 })
               )
@@ -1081,8 +1056,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warnings: undefined,
                 })
               )
@@ -1103,8 +1078,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warnings: null,
                 })
               )
@@ -1125,8 +1100,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warningsCleared: undefined,
                 })
               )
@@ -1147,8 +1122,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warningsCleared: null,
                 })
               )
@@ -1169,8 +1144,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warnings: 'foobar',
                   warningsCleared: undefined,
                 })
@@ -1189,8 +1164,8 @@ describe('PreflightTest', () => {
               mockNativePromiseResolutionValue(
                 JSON.stringify({
                   ...baseMockReport,
-                  callQuality: 0,
-                  isTurnRequired: 'false',
+                  callQuality: 'Excellent',
+                  isTurnRequired: false,
                   warnings: undefined,
                   warningsCleared: 'foobar',
                 })
