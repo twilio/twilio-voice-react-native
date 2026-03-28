@@ -572,7 +572,6 @@ describe('PreflightTest', () => {
             await preflight.getReport();
           }).rejects.toBeInstanceOf(InvalidStateError);
         });
-
       });
 
       describe('android', () => {
