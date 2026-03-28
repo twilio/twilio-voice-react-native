@@ -46,6 +46,14 @@ module.exports = {
           backgroundColor: '#ffffff',
         },
       ],
+      [
+        'expo-build-properties',
+        {
+          android: {
+            minSdkVersion: 25,
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
