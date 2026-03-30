@@ -16,7 +16,8 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 import java.util.ArrayList
-import java.util.HashSet
+import java.util.LinkedHashMap
+import java.util.HashMap
 
 
 class ExpoModule : Module() {
@@ -237,15 +238,59 @@ class ExpoModule : Module() {
      */
 
     AsyncFunction("voice_connect_android") {
-        accessToken: String,
-        twimlParams: Map<String, String>,
-        notificationDisplayName: String?,
-        promise: Promise ->
+      accessToken: String,
+      twimlParams: Map<String, String>,
+      notificationDisplayName: String?,
+      jsIceServers: List<Any>?,
+      jsIceTransportPolicy: String?,
+      promise: Promise ->
+
+      val iceServers = HashSet<IceServer>()
+
+      jsIceServers?.forEach { jsIceServer ->
+        if (jsIceServer !is LinkedHashMap<*, *>) return@forEach
+
+        val serverUrl =
+          jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
+        val username =
+          jsIceServer[CommonConstants.IceServerKeyUsername] as String?
+        val password =
+          jsIceServer[CommonConstants.IceServerKeyPassword] as String?
+
+        if (serverUrl != null && username != null && password != null) {
+          iceServers.add(IceServer(serverUrl, username, password))
+        } else if (serverUrl != null) {
+          iceServers.add(IceServer(serverUrl))
+        }
+      }
+
+      val iceTransportPolicy = when (jsIceTransportPolicy) {
+        CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
+        CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
+        else -> null
+      }
+
+      var iceOptions: IceOptions? = null
+
+      if (iceServers.isNotEmpty() || iceTransportPolicy != null) {
+        val iceOptionsBuilder = IceOptions.Builder()
+
+        if (iceServers.isNotEmpty()) {
+          iceOptionsBuilder.iceServers(iceServers)
+        }
+
+        iceTransportPolicy?.let {
+          iceOptionsBuilder.iceTransportPolicy(it)
+        }
+
+        iceOptions = iceOptionsBuilder.build()
+      }
 
       this@ExpoModule.moduleProxy.voice.connect(
         accessToken,
         twimlParams,
         notificationDisplayName,
+        iceOptions,
         PromiseAdapter(promise)
       )
     }

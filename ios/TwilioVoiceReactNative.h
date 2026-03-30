@@ -34,6 +34,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSDictionary *twimlParams;
+@property (nonatomic, copy, nullable) NSArray<NSDictionary *> *iceServers;
+@property (nonatomic, copy, nullable) NSString *iceTransportPolicy;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL, NSError *error);
 @property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
 
@@ -66,7 +68,9 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (void)initializeCallKitWithConfiguration:(NSDictionary *)configuration;
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
-                  contactHandle:(NSString *)contactHandle;
+                  contactHandle:(NSString *)contactHandle
+                     iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
+             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */

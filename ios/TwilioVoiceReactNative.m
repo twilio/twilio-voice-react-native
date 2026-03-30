@@ -613,10 +613,16 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
 RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle
+                  iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
+                  iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    [self makeCallWithAccessToken:accessToken params:params contactHandle:contactHandle];
+    [self makeCallWithAccessToken:accessToken 
+                           params:params 
+                    contactHandle:contactHandle
+                       iceServers:iceServers
+               iceTransportPolicy:iceTransportPolicy];
     self.callPromiseResolver = resolver;
 }
 

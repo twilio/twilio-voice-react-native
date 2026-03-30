@@ -3,6 +3,7 @@
 
 ## Features
 
+- Added support for configuring custom ICE servers and ICE transport policy when creating outgoing calls using `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
 - Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
 
   If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).

@@ -247,8 +247,14 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
     String accessToken,
     ReadableMap twimlParams,
     String notificationDisplayName,
+    ReadableArray jsIceServers,
+    String jsIceTransportPolicy,
     Promise promise
   ) {
+    logger.debug(".voice_connect_android");
+
+    final ModuleProxy.UniversalPromise uPromise = new PromiseAdapter(promise);
+
     HashMap<String, String> parsedTwimlParams = new HashMap<>();
 
     ReadableMapKeySetIterator iterator = twimlParams.keySetIterator();
@@ -260,7 +266,6 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
           parsedTwimlParams.put(key, String.valueOf(twimlParams.getBoolean(key)));
           break;
         case Number:
-          // Can be int or double.
           parsedTwimlParams.put(key, String.valueOf(twimlParams.getDouble(key)));
           break;
         case String:
@@ -272,11 +277,77 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       }
     }
 
+    final Set<IceServer> iceServers = new HashSet<>();
+
+    final ReadableArray parsedJsIceServers = Optional
+      .ofNullable(jsIceServers)
+      .orElse(Arguments.createArray());
+
+    for (int i = 0; i < parsedJsIceServers.size(); i++) {
+      final ReadableMap jsIceServer = Optional
+        .ofNullable(parsedJsIceServers.getMap(i))
+        .orElse(Arguments.createMap());
+
+      final String serverUrl =
+        jsIceServer.hasKey(CommonConstants.IceServerKeyServerUrl)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyServerUrl)
+        : null;
+
+      final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)
+        : null;
+
+      final String password = jsIceServer.hasKey(CommonConstants.IceServerKeyPassword)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyPassword)
+        : null;
+
+      if (serverUrl == null) {
+        uPromise.rejectWithName(
+          CommonConstants.ErrorCodeInvalidArgumentError,
+          "Server URL must be a non-null string."
+        );
+        return;
+      }
+
+      if (username != null && password != null) {
+        iceServers.add(new IceServer(serverUrl, username, password));
+      } else {
+        iceServers.add(new IceServer(serverUrl));
+      }
+    }
+
+    final String parsedJsIceTransportPolicy = Optional
+      .ofNullable(jsIceTransportPolicy)
+      .orElse("");
+
+    final IceTransportPolicy iceTransportPolicy = switch (parsedJsIceTransportPolicy) {
+      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+      default -> null;
+    };
+
+    IceOptions iceOptions = null;
+
+    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
+      final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+
+      if (!iceServers.isEmpty()) {
+        iceOptionsBuilder.iceServers(iceServers);
+      }
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+      }
+
+      iceOptions = iceOptionsBuilder.build();
+    }
+
     this.moduleProxy.voice.connect(
       accessToken,
       parsedTwimlParams,
       notificationDisplayName,
-      new PromiseAdapter(promise)
+      iceOptions,
+      uPromise
     );
   }
 

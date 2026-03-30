@@ -142,9 +142,13 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)makeCallWithAccessToken:(NSString *)accessToken
                          params:(NSDictionary *)params
-                  contactHandle:(NSString *)contactHandle {
+                  contactHandle:(NSString *)contactHandle
+                     iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
+             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy {
     self.accessToken = accessToken;
     self.twimlParams = params;
+    self.iceServers = iceServers;
+    self.iceTransportPolicy = iceTransportPolicy;
     
     NSString *handle = @"Default Contact";
     if ([contactHandle length] > 0) {
@@ -179,11 +183,55 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 - (void)performVoiceCallWithUUID:(NSUUID *)uuid
                           client:(NSString *)client
                       completion:(void(^)(BOOL success, NSError *error))completionHandler {
-    TVOConnectOptions *connectOptions = [TVOConnectOptions optionsWithAccessToken:self.accessToken block:^(TVOConnectOptionsBuilder *builder) {
+
+    NSArray<NSDictionary *> *jsIceServers = self.iceServers;
+    NSString *jsIceTransportPolicy = self.iceTransportPolicy;
+
+    __block TVOIceOptions *iceOptions = nil;
+    if (jsIceServers || jsIceTransportPolicy) {
+        iceOptions = [TVOIceOptions optionsWithBlock:^(TVOIceOptionsBuilder *iceOptionsBuilderBlock) {
+            NSMutableArray *nativeIceServers = [NSMutableArray new];
+            for (NSDictionary *jsIceServer in jsIceServers) {
+                NSString *password = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyPassword];
+                NSString *username = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyUsername];
+                NSString *serverUrl = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyServerUrl];
+                
+                if (serverUrl != nil && username != nil && password != nil) {
+                    TVOIceServer *nativeIceServer =
+                        [[TVOIceServer alloc] initWithURLString:serverUrl
+                                                       username:username
+                                                       password:password];
+                    [nativeIceServers addObject:nativeIceServer];
+                } else if (serverUrl != nil) {
+                    TVOIceServer *nativeIceServer =
+                        [[TVOIceServer alloc] initWithURLString:serverUrl];
+                    [nativeIceServers addObject:nativeIceServer];
+                }
+            }
+            if (nativeIceServers.count > 0) {
+                iceOptionsBuilderBlock.servers = nativeIceServers;
+            }
+            if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueAll]) {
+                iceOptionsBuilderBlock.transportPolicy = TVOIceTransportPolicyAll;
+            }
+            else if ([jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueRelay]) {
+                iceOptionsBuilderBlock.transportPolicy = TVOIceTransportPolicyRelay;
+            }
+        }];
+    }
+
+    TVOConnectOptions *connectOptions =
+    [TVOConnectOptions optionsWithAccessToken:self.accessToken
+                                        block:^(TVOConnectOptionsBuilder *builder) {
         builder.params = self.twimlParams;
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
+
+        if (iceOptions) {
+            builder.iceOptions = iceOptions;
+        }
     }];
+
     TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
     if (call) {
         self.callMap[call.uuid.UUIDString] = call;

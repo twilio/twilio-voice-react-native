@@ -1206,7 +1206,7 @@ export interface Voice {
 // @public
 export class Voice extends EventEmitter {
     constructor();
-    connect(token: string, { contactHandle, notificationDisplayName, params, }?: Voice.ConnectOptions): Promise<Call>;
+    connect(token: string, { contactHandle, notificationDisplayName, params, iceServers, iceTransportPolicy, }?: Voice.ConnectOptions): Promise<Call>;
     getAudioDevices(): Promise<{
         audioDevices: AudioDevice[];
         selectedDevice?: AudioDevice;
@@ -1231,6 +1231,8 @@ export namespace Voice {
         params?: Record<string, string>;
         contactHandle?: string;
         notificationDisplayName?: string;
+        iceServers?: IceServer[];
+        iceTransportPolicy?: IceTransportPolicy;
     };
     export enum Event {
         'AudioDevicesUpdated' = "audioDevicesUpdated",

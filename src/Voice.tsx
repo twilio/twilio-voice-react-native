@@ -22,8 +22,40 @@ import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
-import { validatePreflightOptions } from './utility/preflightTestOptions';
+import {
+  validatePreflightOptions,
+  validateIceServers,
+  validateIceTransportPolicy,
+} from './utility/preflightTestOptions';
 import { settleNativePromise } from './utility/nativePromise';
+import type { IceServer, IceTransportPolicy } from './type/Ice';
+
+/**
+ * Validates ICE servers and ICE transport policy for a connect call.
+ *
+ * This is an internal helper used by {@link (Voice:class).connect} to ensure
+ * that the `iceServers` array and `iceTransportPolicy` string are properly
+ * structured and typed according to SDK rules.
+ *
+ * @param options - The connect options containing `iceServers` and/or
+ * `iceTransportPolicy`.
+ * @throws {InvalidArgumentError} If any ICE server or transport policy is invalid.
+ * @internal
+ */
+function validateConnectOptions({
+  iceServers,
+  iceTransportPolicy,
+}: Voice.ConnectOptions) {
+  if (typeof iceServers !== 'undefined') {
+    const result = validateIceServers(iceServers);
+    if (result.status === 'error') throw result.error;
+  }
+
+  if (typeof iceTransportPolicy !== 'undefined') {
+    const result = validateIceTransportPolicy(iceTransportPolicy);
+    if (result.status === 'error') throw result.error;
+  }
+}
 
 /**
  * Defines strict typings for all events emitted by {@link (Voice:class)
@@ -236,6 +268,7 @@ export declare interface Voice {
  *
  * @public
  */
+
 export class Voice extends EventEmitter {
   /**
    * Handlers for native voice events. Set upon construction so we can
@@ -293,10 +326,18 @@ export class Voice extends EventEmitter {
   private async _connect_android(
     token: string,
     params: CustomParameters,
-    notificationDisplayName: string | undefined
+    notificationDisplayName: string | undefined,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ) {
     const callInfo = await settleNativePromise(
-      NativeModule.voice_connect_android(token, params, notificationDisplayName)
+      NativeModule.voice_connect_android(
+        token,
+        params,
+        notificationDisplayName,
+        iceServers,
+        iceTransportPolicy
+      )
     );
 
     return new Call(callInfo);
@@ -308,13 +349,21 @@ export class Voice extends EventEmitter {
   private async _connect_ios(
     token: string,
     params: CustomParameters,
-    contactHandle: string
+    contactHandle: string,
+    iceServers: IceServer[] | undefined,
+    iceTransportPolicy: IceTransportPolicy | undefined
   ) {
     const parsedContactHandle =
       contactHandle === '' ? 'Default Contact' : contactHandle;
 
     const callInfo = await settleNativePromise(
-      NativeModule.voice_connect_ios(token, params, parsedContactHandle)
+      NativeModule.voice_connect_ios(
+        token,
+        params,
+        parsedContactHandle,
+        iceServers,
+        iceTransportPolicy
+      )
     );
 
     return new Call(callInfo);
@@ -452,6 +501,11 @@ export class Voice extends EventEmitter {
    * `Default Contact` will appear in the iOS call history if the value is empty
    * or not provided.
    *
+   * Custom ICE configuration can be provided via the iceServers and
+   * iceTransportPolicy options. These options allow specifying custom
+   * STUN/TURN servers and transport policy for the call, and behave
+   * consistently with the configuration supported by {@link Voice.runPreflight}
+   *
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
    * @param options - Connect options.
@@ -471,6 +525,8 @@ export class Voice extends EventEmitter {
       contactHandle = 'Default Contact',
       notificationDisplayName = undefined,
       params = {},
+      iceServers,
+      iceTransportPolicy,
     }: Voice.ConnectOptions = {}
   ): Promise<Call> {
     if (typeof token !== 'string') {
@@ -495,16 +551,30 @@ export class Voice extends EventEmitter {
     for (const [key, value] of Object.entries(params)) {
       if (typeof value !== 'string') {
         throw new InvalidArgumentError(
-          `Voice.ConnectOptions.params["${key}"] must be of type string`
+          `Voice.ConnectOptions.params["${key}"] must be of type string.`
         );
       }
     }
 
+    validateConnectOptions({ iceServers, iceTransportPolicy });
+
     switch (Platform.OS) {
       case 'ios':
-        return this._connect_ios(token, params, contactHandle);
+        return this._connect_ios(
+          token,
+          params,
+          contactHandle,
+          iceServers,
+          iceTransportPolicy
+        );
       case 'android':
-        return this._connect_android(token, params, notificationDisplayName);
+        return this._connect_android(
+          token,
+          params,
+          notificationDisplayName,
+          iceServers,
+          iceTransportPolicy
+        );
       default:
         throw new UnsupportedPlatformError(
           `Unsupported platform "${Platform.OS}". Expected "android" or "ios".`
@@ -927,6 +997,14 @@ export namespace Voice {
      * - iOS
      */
     notificationDisplayName?: string;
+    /**
+     * Array of ICE servers to use for the Call.
+     */
+    iceServers?: IceServer[];
+    /**
+     * The ICE transport policy to use for the Call.
+     */
+    iceTransportPolicy?: IceTransportPolicy;
   };
 
   /**
