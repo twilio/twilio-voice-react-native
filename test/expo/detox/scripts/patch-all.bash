@@ -2,6 +2,8 @@
 
 # Please see `test/expo/README.md` for info on why this script exists
 
+echo "Patching native files for Detox support"
+
 bash detox/scripts/verify-checksums.bash
 if [[ $? -ne 0 ]]; then
   echo "Checksum validation failed"

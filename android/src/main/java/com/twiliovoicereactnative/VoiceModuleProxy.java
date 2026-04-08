@@ -65,7 +65,7 @@ class VoiceModuleProxy {
       if (iceOptions != null) {
         builder.iceOptions(iceOptions);
       }
-       
+
       ConnectOptions connectOptions = builder.build();
       try {
         final Call call = VoiceApplicationProxy.getVoiceServiceApi().connect(
@@ -301,6 +301,12 @@ class VoiceModuleProxy {
 
       promise.resolve(uuid.toString());
     });
+  }
+
+  public void setExpoVersion(String expoVersion, ModuleProxy.UniversalPromise promise) {
+    logger.debug(String.format(".setExpoVersion(%s)", expoVersion));
+    System.setProperty(Constants.EXPO_VERSION, expoVersion);
+    promise.resolve(null);
   }
 
   public void setIncomingCallContactHandleTemplate(String template, ModuleProxy.UniversalPromise promise) {

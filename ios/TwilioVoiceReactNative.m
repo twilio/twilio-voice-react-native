@@ -696,6 +696,14 @@ RCT_EXPORT_METHOD(voice_showNativeAvRoutePicker:(RCTPromiseResolveBlock)resolver
     [self resolvePromise:resolver value:[NSNull null]];
 }
 
+RCT_EXPORT_METHOD(voice_setExpoVersion:(NSString *)expoVersion
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter)
+{
+    setenv("com.twilio.voice.env.sdk.expo_version", [expoVersion UTF8String], 1);
+    [self resolvePromise:resolver value:[NSNull null]];
+}
+
 RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)template
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)

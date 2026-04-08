@@ -374,6 +374,11 @@ jobs:
           command: |
             cd test/expo
             yarn run expo prebuild --clean --platform=android
+            cd ../..
+      - run:
+          name: "Patch Android native prebuild files with Detox support"
+          command: |
+            cd test/expo
             bash detox/scripts/patch-all.bash
             cd ../..
       - detox-build:

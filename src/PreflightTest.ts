@@ -597,25 +597,6 @@ function parseTimeMeasurement(nativeTimeMeasurement: {
 function parseCallQuality(
   nativeCallQuality: any
 ): PreflightTest.CallQuality | null {
-  switch (common.Platform.OS) {
-    case 'android': {
-      return parseCallQualityAndroid(nativeCallQuality);
-    }
-    case 'ios': {
-      return parseCallQualityIos(nativeCallQuality);
-    }
-    default: {
-      throw new InvalidStateError('Invalid platform.');
-    }
-  }
-}
-
-/**
- * Parse call quality value for Android platform.
- */
-function parseCallQualityAndroid(
-  nativeCallQuality: string | undefined | null
-): PreflightTest.CallQuality | null {
   if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
     return null;
   }
@@ -626,38 +607,11 @@ function parseCallQualityAndroid(
     );
   }
 
-  const parsedCallQuality = callQualityMap.android.get(nativeCallQuality);
+  const parsedCallQuality = callQualityMap.get(nativeCallQuality);
 
   if (typeof parsedCallQuality !== 'string') {
     throw new InvalidStateError(
       `Call quality invalid. Expected a string, found "${nativeCallQuality}".`
-    );
-  }
-
-  return parsedCallQuality;
-}
-
-/**
- * Parse call quality for iOS platform.
- */
-function parseCallQualityIos(
-  nativeCallQuality: number | undefined | null
-): PreflightTest.CallQuality | null {
-  if (typeof nativeCallQuality === 'undefined' || nativeCallQuality === null) {
-    return null;
-  }
-
-  if (typeof nativeCallQuality !== 'number') {
-    throw new InvalidStateError(
-      `Call quality not of type "number". Found "${typeof nativeCallQuality}".`
-    );
-  }
-
-  const parsedCallQuality = callQualityMap.ios.get(nativeCallQuality);
-
-  if (typeof parsedCallQuality !== 'string') {
-    throw new InvalidStateError(
-      `Call quality invalid. Expected [0, 4], found "${nativeCallQuality}".`
     );
   }
 
@@ -727,25 +681,6 @@ function parseSample(
  * Parse native "isTurnRequired" value.
  */
 function parseIsTurnRequired(isTurnRequired: any): boolean | null {
-  switch (common.Platform.OS) {
-    case 'android': {
-      return parseIsTurnRequiredAndroid(isTurnRequired);
-    }
-    case 'ios': {
-      return parseIsTurnRequiredIos(isTurnRequired);
-    }
-    default: {
-      throw new InvalidStateError('Invalid platform.');
-    }
-  }
-}
-
-/**
- * Parse native "isTurnRequired" value on Android.
- */
-function parseIsTurnRequiredAndroid(
-  isTurnRequired: boolean | undefined | null
-): boolean | null {
   if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
     return null;
   }
@@ -757,34 +692,6 @@ function parseIsTurnRequiredAndroid(
   }
 
   return isTurnRequired;
-}
-
-/**
- * Parse native "isTurnRequired" value on iOS.
- */
-function parseIsTurnRequiredIos(
-  isTurnRequired: string | undefined | null
-): boolean | null {
-  if (typeof isTurnRequired === 'undefined' || isTurnRequired === null) {
-    return null;
-  }
-
-  if (typeof isTurnRequired !== 'string') {
-    throw new InvalidStateError(
-      'PreflightTest "isTurnRequired" not of type "string". ' +
-        `Found "${isTurnRequired}".`
-    );
-  }
-
-  const parsedValue = isTurnRequiredMap.ios.get(isTurnRequired);
-
-  if (typeof parsedValue !== 'boolean') {
-    throw new InvalidStateError(
-      `PreflightTest "isTurnRequired" not valid. Found "${isTurnRequired}".`
-    );
-  }
-
-  return parsedValue;
 }
 
 /**
@@ -1442,32 +1349,13 @@ export namespace PreflightTest {
 /**
  * Map of call quality values from the native layer to the expected JS values.
  */
-const callQualityMap = {
-  ios: new Map<number, PreflightTest.CallQuality>([
-    [0, PreflightTest.CallQuality.Excellent],
-    [1, PreflightTest.CallQuality.Great],
-    [2, PreflightTest.CallQuality.Good],
-    [3, PreflightTest.CallQuality.Fair],
-    [4, PreflightTest.CallQuality.Degraded],
-  ]),
-  android: new Map<string, PreflightTest.CallQuality>([
-    ['Excellent', PreflightTest.CallQuality.Excellent],
-    ['Great', PreflightTest.CallQuality.Great],
-    ['Good', PreflightTest.CallQuality.Good],
-    ['Fair', PreflightTest.CallQuality.Fair],
-    ['Degraded', PreflightTest.CallQuality.Degraded],
-  ]),
-};
-
-/**
- * Map of isTurnRequired values from the native layer to the expected JS values.
- */
-const isTurnRequiredMap = {
-  ios: new Map<string, boolean>([
-    ['true', true],
-    ['false', false],
-  ]),
-};
+const callQualityMap = new Map<string, PreflightTest.CallQuality>([
+  ['Excellent', PreflightTest.CallQuality.Excellent],
+  ['Great', PreflightTest.CallQuality.Great],
+  ['Good', PreflightTest.CallQuality.Good],
+  ['Fair', PreflightTest.CallQuality.Fair],
+  ['Degraded', PreflightTest.CallQuality.Degraded],
+]);
 
 /**
  * Map of state values from the native layers/common constants to the expected

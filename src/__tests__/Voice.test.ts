@@ -94,6 +94,14 @@ describe('Voice class', () => {
           [Constants.ScopeVoice, voice['_handleNativeEvent']],
         ]);
       });
+
+      it('sets the expo version', () => {
+        // eslint-disable-next-line no-new
+        new Voice();
+        expect(
+          jest.mocked(MockNativeModule.voice_setExpoVersion).mock.calls
+        ).toEqual([['52.0.0']]);
+      });
     });
   });
 
