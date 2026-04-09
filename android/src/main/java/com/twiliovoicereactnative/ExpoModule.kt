@@ -438,7 +438,7 @@ class ExpoModule : Module() {
     }
 
     AsyncFunction("voice_setExpoVersion") {
-      expoVersion: String,
+      expoVersion: String?,
       promise: Promise ->
 
       this@ExpoModule.moduleProxy.voice.setExpoVersion(

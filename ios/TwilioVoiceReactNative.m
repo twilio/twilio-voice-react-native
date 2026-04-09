@@ -700,7 +700,11 @@ RCT_EXPORT_METHOD(voice_setExpoVersion:(NSString *)expoVersion
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    setenv("com.twilio.voice.env.sdk.expo_version", [expoVersion UTF8String], 1);
+    if (expoVersion != null) {
+        setenv("com.twilio.voice.env.sdk.expo_version", [expoVersion UTF8String], 1);
+    } else {
+        unsetenv("com.twilio.voice.env.sdk.expo_version");
+    }
     [self resolvePromise:resolver value:[NSNull null]];
 }
 

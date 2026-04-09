@@ -7,6 +7,16 @@ function setExpoManifest(manifest: any) {
 }
 
 describe('getExpoVersion', () => {
+  let originalExpoGlobal: any;
+
+  beforeEach(() => {
+    originalExpoGlobal = global.expo;
+  });
+
+  afterEach(() => {
+    global.expo = originalExpoGlobal;
+  });
+
   it('should get the version if the expo manifest is an object', () => {
     setExpoManifest({ sdkVersion: 'foobar' });
     expect(getExpoVersion()).toBe('foobar');
@@ -15,6 +25,21 @@ describe('getExpoVersion', () => {
   it('should get the version if the expo manifest is a valid json string', () => {
     setExpoManifest(JSON.stringify({ sdkVersion: 'foobar' }));
     expect(getExpoVersion()).toBe('foobar');
+  });
+
+  it('should stringify a number sdk version', () => {
+    setExpoManifest(JSON.stringify({ sdkVersion: 52 }));
+    expect(getExpoVersion()).toBe('52');
+  });
+
+  it('should return undefined if the sdk version is not a string or a number', () => {
+    const invalidValues = [null, {}, false, true, undefined];
+    expect.assertions(invalidValues.length);
+
+    for (const val of invalidValues) {
+      setExpoManifest(JSON.stringify({ sdkVersion: val }));
+      expect(getExpoVersion()).toBe(undefined);
+    }
   });
 
   it('should return undefined if the expo manifest is not a json string', () => {
