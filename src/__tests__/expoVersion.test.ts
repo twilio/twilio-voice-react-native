@@ -1,7 +1,7 @@
 import { getExpoVersion } from '../utility/expoVersion';
 
 function setExpoManifest(manifest: any) {
-  global.expo = {
+  (global as any).expo = {
     modules: { ExponentConstants: { manifest } },
   } as any;
 }
@@ -10,11 +10,11 @@ describe('getExpoVersion', () => {
   let originalExpoGlobal: any;
 
   beforeEach(() => {
-    originalExpoGlobal = global.expo;
+    originalExpoGlobal = (global as any).expo;
   });
 
   afterEach(() => {
-    global.expo = originalExpoGlobal;
+    (global as any).expo = originalExpoGlobal;
   });
 
   it('should get the version if the expo manifest is an object', () => {
@@ -68,22 +68,22 @@ describe('getExpoVersion', () => {
   });
 
   it('should return undefined if the expo object is not in the global scope', () => {
-    global.expo = undefined as any;
+    (global as any).expo = undefined as any;
     expect(getExpoVersion()).toBe(undefined);
   });
 
   it('should return undefined if the modules member is not in the expo object', () => {
-    global.expo = {} as any;
+    (global as any).expo = {} as any;
     expect(getExpoVersion()).toBe(undefined);
   });
 
   it('should return undefined if the ExponentConstants member is not in the modules object', () => {
-    global.expo = { modules: {} } as any;
+    (global as any).expo = { modules: {} } as any;
     expect(getExpoVersion()).toBe(undefined);
   });
 
   it('should return undefined if the manifest member is not in the ExponentConstants object', () => {
-    global.expo = { modules: { ExponentConstants: {} } } as any;
+    (global as any).expo = { modules: { ExponentConstants: {} } } as any;
     expect(getExpoVersion()).toBe(undefined);
   });
 });
