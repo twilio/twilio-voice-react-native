@@ -8,6 +8,16 @@
    yarn install
    ```
 
+   If you're performing tests for an RC or a release, consider deleting the
+   `node_modules/` folder and pulling fresh dependencies.
+
+   Using the following install flags will ensure that there are no issues with
+   the lockfile and that CI will cleanly build the RC or release.
+
+   ```bash
+   yarn install --immutable --immutable-cache
+   ```
+
 3. Prebuild the app for the platform(s) you wish to test on
 
   ```bash
@@ -47,6 +57,28 @@
   ```bash
   adb reverse tcp:8081 tcp:8081
   ```
+
+## Tokens
+
+By default, the test app will expect at least two token files in the `test/expo/constants/` folder.
+
+- `test/expo/constants/e2e-tests-token.ts` for the basic call suite
+
+- `test/expo/constants/e2e-preflightTest-token.ts` for the PreflightTest suite
+
+Each file will need to export a token, like so:
+```
+export const token = '...';
+```
+
+Optionally, to leverage the built in Metro bundler feature for platform specific files, consider having 4 files:
+
+- `test/expo/constants/e2e-tests-token.android.ts`
+- `test/expo/constants/e2e-tests-token.ios.ts`
+- `test/expo/constants/e2e-preflightTest-token.android.ts`
+- `test/expo/constants/e2e-preflightTest-token.ios.ts`
+
+This way, you can have the Android tokens minted using FCM push credentials and the iOS tokens minted using APNS push credentials and have to do minimal work when switching between platforms.
 
 ## Why do we have post-prebuild Detox patches?
 
