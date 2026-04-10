@@ -18,7 +18,7 @@
    yarn install --immutable --immutable-cache
    ```
 
-3. Prebuild the app for the platform(s) you wish to test on
+2. Prebuild the app for the platform(s) you wish to test on
 
   ```bash
   yarn run expo prebuild --clean --platform=android
@@ -67,16 +67,18 @@ By default, the test app will expect at least two token files in the `test/expo/
 - `test/expo/constants/e2e-preflightTest-token.ts` for the PreflightTest suite
 
 Each file will need to export a token, like so:
-```
+```ts
 export const token = '...';
 ```
 
-Optionally, to leverage the built in Metro bundler feature for platform specific files, consider having 4 files:
+Optionally, to leverage the built-in Metro bundler feature for platform-specific files, consider having 4 files:
 
 - `test/expo/constants/e2e-tests-token.android.ts`
 - `test/expo/constants/e2e-tests-token.ios.ts`
 - `test/expo/constants/e2e-preflightTest-token.android.ts`
 - `test/expo/constants/e2e-preflightTest-token.ios.ts`
+
+Note that these `token` files contain secrets and should not be committed to the repo. They are already included in the `.gitignore` file.
 
 This way, you can have the Android tokens minted using FCM push credentials and the iOS tokens minted using APNS push credentials and have to do minimal work when switching between platforms.
 
