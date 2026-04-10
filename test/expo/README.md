@@ -11,7 +11,7 @@
    the lockfile and that CI will cleanly build the RC or release.
 
    ```bash
-   yarn install --frozen-lockfile
+   yarn install --immutable
    ```
 
    If you have updated the dependencies of the package, or otherwise have issues
@@ -83,7 +83,7 @@ Optionally, to leverage the built-in Metro bundler feature for platform-specific
 
 Note that these `token` files contain secrets and should not be committed to the repo. They are ignored in the `test/expo/.gitignore` file.
 
-This way, you can have the Android tokens minted using FCM push credentials and the iOS tokens minted using APNS push credentials and have to do minimal work when switching between platforms.
+This way, you can have the Android tokens minted using FCM push credentials and the iOS tokens minted using APNs push credentials, thus requiring minimal work when switching between platforms.
 
 ## Why do we have post-prebuild Detox patches?
 
