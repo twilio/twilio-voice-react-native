@@ -305,7 +305,7 @@ class VoiceModuleProxy {
 
   public void setExpoVersion(String expoVersion, ModuleProxy.UniversalPromise promise) {
     logger.debug(String.format(".setExpoVersion(%s)", expoVersion));
-    if (expoVersion == null) {
+    if (expoVersion == null || expoVersion.isEmpty()) {
       System.clearProperty(Constants.EXPO_VERSION);
     } else {
       System.setProperty(Constants.EXPO_VERSION, expoVersion);
