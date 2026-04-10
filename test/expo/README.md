@@ -11,7 +11,7 @@
    the lockfile and that CI will cleanly build the RC or release.
 
    ```bash
-   yarn install --immutable --immutable-cache
+   yarn install --frozen-lockfile
    ```
 
    If you have updated the dependencies of the package, or otherwise have issues
