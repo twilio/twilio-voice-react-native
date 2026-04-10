@@ -4,7 +4,12 @@ import type { NativeEventEmitter as MockNativeEventEmitterType } from '../__mock
 import { mockVoiceNativeEvents } from '../__mocks__/Voice';
 import type { AudioDevice } from '../AudioDevice';
 import type { CallInvite } from '../CallInvite';
-import { NativeEventEmitter, NativeModule, Platform } from '../common';
+import {
+  NativeEventEmitter,
+  NativeModule,
+  Platform,
+  getExpoVersion,
+} from '../common';
 import { Constants } from '../constants';
 import {
   InvalidArgumentError,
@@ -101,6 +106,15 @@ describe('Voice class', () => {
         expect(
           jest.mocked(MockNativeModule.voice_setExpoVersion).mock.calls
         ).toEqual([['52.0.0']]);
+      });
+
+      it('passes undefined expo version when not in an Expo app', () => {
+        jest.mocked(getExpoVersion).mockReturnValueOnce(undefined);
+        // eslint-disable-next-line no-new
+        new Voice();
+        expect(
+          jest.mocked(MockNativeModule.voice_setExpoVersion).mock.calls
+        ).toEqual([[undefined]]);
       });
     });
   });
