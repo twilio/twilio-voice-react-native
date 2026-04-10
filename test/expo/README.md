@@ -4,10 +4,6 @@
 
 1. Install dependencies
 
-   ```bash
-   yarn install
-   ```
-
    If you're performing tests for an RC or a release, consider deleting the
    `node_modules/` folder and pulling fresh dependencies.
 
@@ -16,6 +12,13 @@
 
    ```bash
    yarn install --immutable --immutable-cache
+   ```
+
+   If you have updated the dependencies of the package, or otherwise have issues
+   performing a Yarn install, try without the flags:
+
+   ```bash
+   yarn install
    ```
 
 2. Prebuild the app for the platform(s) you wish to test on
@@ -71,7 +74,7 @@ Each file will need to export a token, like so:
 export const token = '...';
 ```
 
-Optionally, to leverage the built-in Metro bundler feature for platform-specific files, consider having 4 files:
+Optionally, to leverage the built-in Metro bundler feature for platform-specific files:
 
 - `test/expo/constants/e2e-tests-token.android.ts`
 - `test/expo/constants/e2e-tests-token.ios.ts`
