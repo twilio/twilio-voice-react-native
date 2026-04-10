@@ -81,7 +81,7 @@ Optionally, to leverage the built-in Metro bundler feature for platform-specific
 - `test/expo/constants/e2e-preflightTest-token.android.ts`
 - `test/expo/constants/e2e-preflightTest-token.ios.ts`
 
-Note that these `token` files contain secrets and should not be committed to the repo. They are already included in the `.gitignore` file.
+Note that these `token` files contain secrets and should not be committed to the repo. They are ignored in the `test/expo/.gitignore` file.
 
 This way, you can have the Android tokens minted using FCM push credentials and the iOS tokens minted using APNS push credentials and have to do minimal work when switching between platforms.
 
