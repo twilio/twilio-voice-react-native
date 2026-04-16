@@ -437,6 +437,16 @@ class ExpoModule : Module() {
       this@ExpoModule.moduleProxy.voice.selectAudioDevice(uuid, PromiseAdapter(promise))
     }
 
+    AsyncFunction("voice_setExpoVersion") {
+      expoVersion: String?,
+      promise: Promise ->
+
+      this@ExpoModule.moduleProxy.voice.setExpoVersion(
+        expoVersion,
+        PromiseAdapter(promise)
+      )
+    }
+
     AsyncFunction("voice_setIncomingCallContactHandleTemplate") {
       template: String,
       promise: Promise ->

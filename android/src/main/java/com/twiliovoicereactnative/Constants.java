@@ -22,4 +22,5 @@ class Constants {
   public static final String INCOMING_CALL_CONTACT_HANDLE_TEMPLATE_PREFERENCES_KEY = "incomingCallContactHandleTemplatePreferenceKey";
   public static final String GLOBAL_ENV = "com.twilio.voice.env";
   public static final String SDK_VERSION = "com.twilio.voice.env.sdk.version";
+  public static final String EXPO_VERSION = "com.twilio.voice.env.sdk.expo_version";
 }
