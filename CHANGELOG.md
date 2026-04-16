@@ -1,9 +1,23 @@
+2.0.0-preview.2 (In Progress)
+=============================
+
+## Features
+
+- Added support for configuring custom ICE servers and ICE transport policy when creating outgoing calls using `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
+
+## Changes
+
+- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependencies.
+
+  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+
+  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+
 2.0.0-preview.1 (January 5, 2026)
 =================================
 
 ## Features
 
-- Added support for configuring custom ICE servers and ICE transport policy when creating outgoing calls using `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
 - Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
 
   If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
