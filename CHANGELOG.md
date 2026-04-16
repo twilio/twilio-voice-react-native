@@ -1,3 +1,14 @@
+2.0.0-preview.2 (In Progress)
+=============================
+
+- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependency.
+
+  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+
+  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+
+- Added the ability to provide custom ICE servers to the `voice.connect` API. Please see the docstrings for said method, or the generated API docs here: [Voice.connect() method](./docs/api/voice-react-native-sdk.voice_class.connect_method.md).
+
 2.0.0-preview.1 (January 5, 2026)
 =================================
 
