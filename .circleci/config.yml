@@ -57,11 +57,11 @@ commands:
       - run:
           name: Install dependencies
           command: |
-            yarn install --frozen-lockfile
+            yarn install --immutable --immutable-cache
             yarn run build:constants
             yarn run build:errors
-            yarn --cwd test/app install --frozen-lockfile
-            yarn --cwd test/expo install --frozen-lockfile
+            yarn --cwd test/app install --immutable --immutable-cache
+            yarn --cwd test/expo install --immutable --immutable-cache
 
   setup-pods:
     description: Setup pods used for ios builds
