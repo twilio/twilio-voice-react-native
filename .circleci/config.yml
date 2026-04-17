@@ -58,8 +58,7 @@ commands:
           name: Install dependencies
           command: |
             yarn install --immutable --immutable-cache
-            yarn run build:constants
-            yarn run build:errors
+            yarn run prepare
             yarn --cwd test/app install --immutable --immutable-cache
             yarn --cwd test/expo install --immutable --immutable-cache
 
@@ -121,7 +120,7 @@ commands:
           name: Detox Build
           command: |
             cd test/expo
-            yarn detox:build -c <<parameters.configuration>>
+            yarn run detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
 
@@ -150,7 +149,7 @@ commands:
           name: Detox Test
           command: |
             cd test/expo
-            yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            yarn run detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 ###
@@ -165,26 +164,11 @@ jobs:
       - enable-corepack
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
-      - restore_cache:
-          keys:
-            - dependencies-test-application-{{ checksum "test/app/package.json" }}
-            - dependencies-test-application-
-      - restore_cache:
-          keys:
-            - dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
-            - dependencies-test-expo-application-
+            - twilio-voice-react-native-dependencies-{{ checksum "yarn.lock" }}
       - install-dependencies
       - save_cache:
-          key: dependencies-{{ checksum "package.json" }}
-          paths: node_modules
-      - save_cache:
-          key: dependencies-test-application-{{ checksum "test/app/package.json" }}
-          paths: test/app/node_modules
-      - save_cache:
-          key: dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
-          paths: test/expo/node_modules
+          key: twilio-voice-react-native-dependencies-{{ checksum "yarn.lock" }}
+          paths: ~/.yarn/berry/cache/
       - persist_to_workspace:
           root: .
           paths: .
