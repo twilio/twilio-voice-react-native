@@ -57,10 +57,10 @@ commands:
       - run:
           name: Install dependencies
           command: |
-            yarn install --immutable --immutable-cache
+            yarn install --immutable
             yarn run prepare
-            yarn --cwd test/app install --immutable --immutable-cache
-            yarn --cwd test/expo install --immutable --immutable-cache
+            yarn --cwd test/app install --immutable
+            yarn --cwd test/expo install --immutable
 
   setup-pods:
     description: Setup pods used for ios builds
