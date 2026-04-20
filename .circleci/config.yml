@@ -29,7 +29,7 @@ parameters:
 executors:
   default:
     docker:
-      - image: cimg/node:22.21
+      - image: cimg/node:24.15.0@sha256:0a67b6fa151ceac233d469a5915ca75a4a1c9e3854502ed7cc236f18c3a4f5c3
     working_directory: ~/project
   ios-executor:
     macos:
@@ -57,11 +57,10 @@ commands:
       - run:
           name: Install dependencies
           command: |
-            yarn install --frozen-lockfile
-            yarn run build:constants
-            yarn run build:errors
-            yarn --cwd test/app install --frozen-lockfile
-            yarn --cwd test/expo install --frozen-lockfile
+            yarn install --immutable
+            yarn run prepare
+            yarn --cwd test/app install --immutable
+            yarn --cwd test/expo install --immutable
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -121,7 +120,7 @@ commands:
           name: Detox Build
           command: |
             cd test/expo
-            yarn detox:build -c <<parameters.configuration>>
+            yarn run detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
 
@@ -150,7 +149,7 @@ commands:
           name: Detox Test
           command: |
             cd test/expo
-            yarn detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
+            yarn run detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 
 ###
@@ -165,26 +164,11 @@ jobs:
       - enable-corepack
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
-      - restore_cache:
-          keys:
-            - dependencies-test-application-{{ checksum "test/app/package.json" }}
-            - dependencies-test-application-
-      - restore_cache:
-          keys:
-            - dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
-            - dependencies-test-expo-application-
+            - twilio-voice-react-native-dependencies-{{ checksum "yarn.lock" }}
       - install-dependencies
       - save_cache:
-          key: dependencies-{{ checksum "package.json" }}
-          paths: node_modules
-      - save_cache:
-          key: dependencies-test-application-{{ checksum "test/app/package.json" }}
-          paths: test/app/node_modules
-      - save_cache:
-          key: dependencies-test-expo-application-{{ checksum "test/expo/package.json" }}
-          paths: test/expo/node_modules
+          key: twilio-voice-react-native-dependencies-{{ checksum "yarn.lock" }}
+          paths: ~/.yarn/berry/cache/
       - persist_to_workspace:
           root: .
           paths: .
@@ -217,7 +201,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            yarn run check:test --coverage
+            yarn run check:test --coverage --detectOpenHandles --maxWorkers=2
       - store_artifacts:
           path: coverage
           destination: coverage
