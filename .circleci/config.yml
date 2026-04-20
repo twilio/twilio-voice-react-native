@@ -201,7 +201,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            yarn run check:test --coverage
+            yarn run check:test --coverage --detectOpenHandles --maxWorkers=2
       - store_artifacts:
           path: coverage
           destination: coverage
