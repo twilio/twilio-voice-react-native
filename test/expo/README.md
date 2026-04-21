@@ -27,12 +27,17 @@
   - Google Services
 
     The `google-services.json` file is generated through Firebase and used for
-    Firebase Cloud Messaging.
+    Firebase Cloud Messaging. It should be located at the root of the Expo test
+    app folder `./google-services.json` (adjacent to `package.json`).
 
     If you are testing incoming calls, please ensure that the
     `google-services.json` file defines a package name consistent with the one
     defined in `./app.config.js`. Modify the `./app.config.js` package names
     for your use case.
+
+    It suffices to copy the `google-services.example.json` file to
+    `google-services.json` and replace the content of the file with the content
+    of your generated `google-services.json` file.
 
   - Secrets
 
@@ -41,7 +46,7 @@
     folder `./secrets.json` (adjacent to `package.json`).
 
     The contents of the file should be a JSON-encoded object with a single
-    key-pair:
+    key-value pair:
 
     ```json
     {
@@ -49,7 +54,11 @@
     }
     ```
 
-2. Prebuild the app for the platform(s) you wish to test on
+    It suffices to copy the `secrets.example.json` file to `secrets.json` and
+    replace the content of the file with the `"appleTeamId"` consistent with
+    your use-case.
+
+3. Prebuild the app for the platform(s) you wish to test on
 
   ```bash
   yarn run expo prebuild --clean --platform=android
