@@ -22,41 +22,41 @@
    ```
 2. Ensure that secrets are available before prebuild
 
-  There are two secrets files that you will need to build the app:
+   There are two secrets files that you will need to build the app:
 
-  - Google Services
+   - Google Services
 
-    The `google-services.json` file is generated through Firebase and used for
-    Firebase Cloud Messaging. It should be located at the root of the Expo test
-    app folder `./google-services.json` (adjacent to `package.json`).
+     The `google-services.json` file is generated through Firebase and used for
+     Firebase Cloud Messaging. It should be located at the root of the Expo test
+     app folder `./google-services.json` (adjacent to `package.json`).
 
-    If you are testing incoming calls, please ensure that the
-    `google-services.json` file defines a package name consistent with the one
-    defined in `./app.config.js`. Modify the `./app.config.js` package names
-    for your use case.
+     If you are testing incoming calls, please ensure that the
+     `google-services.json` file defines a package name consistent with the one
+     defined in `./app.config.js`. Modify the `./app.config.js` package names
+     for your use case.
 
-    It suffices to copy the `google-services.example.json` file to
-    `google-services.json` and replace the content of the file with the content
-    of your generated `google-services.json` file.
+     It suffices to copy the `google-services.example.json` file to
+     `google-services.json` and replace the content of the file with the content
+     of your generated `google-services.json` file.
 
-  - Secrets
+   - Secrets
 
-    The `secrets.json` file is used by the Expo prebuild step to autofill the
-    Apple Signing Team. The file should be located in the root of the project
-    folder `./secrets.json` (adjacent to `package.json`).
+     The `secrets.json` file is used by the Expo prebuild step to autofill the
+     Apple Signing Team. The file should be located in the root of the project
+     folder `./secrets.json` (adjacent to `package.json`).
 
-    The contents of the file should be a JSON-encoded object with a single
-    key-value pair:
+     The contents of the file should be a JSON-encoded object with a single
+     key-value pair:
 
-    ```json
-    {
-      "appleTeamId": "foobar"
-    }
-    ```
+     ```json
+     {
+       "appleTeamId": "foobar"
+     }
+     ```
 
-    It suffices to copy the `secrets.example.json` file to `secrets.json` and
-    replace the content of the file with the `"appleTeamId"` consistent with
-    your use-case.
+     It suffices to copy the `secrets.example.json` file to `secrets.json` and
+     replace the content of the file with the `"appleTeamId"` consistent with
+     your use-case.
 
 3. Prebuild the app for the platform(s) you wish to test on
 
@@ -76,13 +76,13 @@
 
   See the section below on why we do this.
 
-3. Start the bundler
+4. Start the bundler
 
    ```bash
    yarn run start
    ```
 
-4. Open and run the app in Android Studio or Xcode
+5. Open and run the app in Android Studio or Xcode
 
   ```bash
   studio android/
