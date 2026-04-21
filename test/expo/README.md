@@ -27,8 +27,8 @@
    - Google Services
 
      The `google-services.json` file is generated through Firebase and used for
-     Firebase Cloud Messaging. It should be located at the root of the Expo test
-     app folder `./google-services.json` (adjacent to `package.json`).
+     Firebase Cloud Messaging. This file should be located in the root of the
+     Expo test app folder `./google-services.json` (adjacent to `package.json`).
 
      If you are testing incoming calls, please ensure that the
      `google-services.json` file defines a package name consistent with the one
@@ -42,8 +42,8 @@
    - Secrets
 
      The `secrets.json` file is used by the Expo prebuild step to autofill the
-     Apple Signing Team. The file should be located in the root of the project
-     folder `./secrets.json` (adjacent to `package.json`).
+     Apple Signing Team. This file should be located in the root of the
+     Expo test app folder `./secrets.json` (adjacent to `package.json`).
 
      The contents of the file should be a JSON-encoded object with a single
      key-value pair:
