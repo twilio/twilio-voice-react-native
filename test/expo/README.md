@@ -20,6 +20,34 @@
    ```bash
    yarn install
    ```
+2. Ensure that secrets are available before prebuild
+
+  There are two secrets files that you will need to build the app:
+
+  - Google Services
+
+    The `google-services.json` file is generated through Firebase and used for
+    Firebase Cloud Messaging.
+
+    If you are testing incoming calls, please ensure that the
+    `google-services.json` file defines a package name consistent with the one
+    defined in `./app.config.js`. Modify the `./app.config.js` package names
+    for your use case.
+
+  - Secrets
+
+    The `secrets.json` file is used by the Expo prebuild step to autofill the
+    Apple Signing Team. The file should be located in the root of the project
+    folder `./secrets.json` (adjacent to `package.json`).
+
+    The contents of the file should be a JSON-encoded object with a single
+    key-pair:
+
+    ```json
+    {
+      "appleTeamId": "foobar"
+    }
+    ```
 
 2. Prebuild the app for the platform(s) you wish to test on
 
