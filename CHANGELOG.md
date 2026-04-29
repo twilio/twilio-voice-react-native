@@ -1,9 +1,11 @@
-2.0.0-preview.2 (In Progress)
-=============================
+2.0.0-preview.2 (April 29, 2026)
+================================
 
 ## Features
 
 - Added support for configuring custom ICE servers and ICE transport policy when creating outgoing calls using `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
+
+  *Note*: Custom ICE server and ICE transport policy functionality for incoming calls will come in a future version.
 
 ## Changes
 
