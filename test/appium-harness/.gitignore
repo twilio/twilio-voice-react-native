@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+.yarn/
 
 # Expo
 .expo/
@@ -41,3 +42,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+##
+# Twilio secrets
+##
+/secrets.json
