@@ -1,56 +1,172 @@
-# Welcome to your Expo app 👋
+# Appium Test Harness
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This project is a React Native Expo application that provides a very basic
+UI/UX. It is intended to be used in CI applications.
 
-## Get started
+## How to run the application?
+
+The Test Harness application can be run locally (or manually, otherwise).
+Installing dependencies and building/running the application is no different
+than a typical Expo application.
 
 1. Install dependencies
 
+   If you're performing tests for an RC or a release, consider deleting the
+   `node_modules/` folder and pulling fresh dependencies.
+
+   Using the following install flags will ensure that there are no issues with
+   the lockfile and that CI will cleanly build the RC or release.
+
    ```bash
-   npm install
+   yarn install --immutable
    ```
 
-2. Start the app
+   If you have updated the dependencies of the package, or otherwise have issues
+   performing a Yarn install, try without the flags:
 
    ```bash
-   npx expo start
+   yarn install
    ```
 
-In the output, you'll find options to open the app in a
+2. Ensure that secrets are available before prebuild
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   There are two secrets files that you will need to build the app:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   - Google Services
 
-## Get a fresh project
+     The `google-services.json` file is generated through Firebase and used for
+     Firebase Cloud Messaging. This file should be located in the root of the
+     Expo test app folder `./google-services.json` (adjacent to `package.json`).
 
-When you're ready, run:
+     If you are testing incoming calls, please ensure that the
+     `google-services.json` file defines a package name consistent with the one
+     defined in `./app.config.js`. Modify the `./app.config.js` package names
+     for your use case.
 
-```bash
-npm run reset-project
+     It suffices to copy the `google-services.example.json` file to
+     `google-services.json` and replace the content of the file with the content
+     of your generated `google-services.json` file.
+
+   - Secrets
+
+     The `secrets.json` file is used by the Expo prebuild step to autofill the
+     Apple Signing Team. This file should be located in the root of the
+     Expo test app folder `./secrets.json` (adjacent to `package.json`).
+
+     The contents of the file should be a JSON-encoded object with a single
+     key-value pair:
+
+     ```json
+     {
+       "appleTeamId": "foobar"
+     }
+     ```
+
+     It suffices to copy the `secrets.example.json` file to `secrets.json` and
+     replace the content of the file with the `"appleTeamId"` consistent with
+     your use-case.
+
+3. Prebuild the app for the platform(s) you wish to test on
+
+  ```bash
+  yarn run expo prebuild --clean --platform=android
+  ```
+
+  ```bash
+  yarn run expo prebuild --clean --platform=ios
+  ```
+
+4. Start the bundler
+
+   ```bash
+   yarn run start
+   ```
+
+5. Open and run the app in Android Studio or Xcode
+
+   ```bash
+   studio android/
+   ```
+
+   ```bash
+   open ios/TwilioVoiceExpoExample.xcworkspace/
+   ```
+
+   Note that you may need to expose the bundler to the Android Virtual Device
+   (AVD):
+
+   ```bash
+   adb reverse tcp:8081 tcp:8081
+   ```
+
+6. Build and run the app through the native IDE (Android Studio or Xcode)
+
+7. Use the `test/appium-orchestrator/` project to conduct tests on the Test
+   Harness application
+
+   Follow the instructions in `test/appium-orchestrator/README.md` for setting
+   up the orchestrator and conducting tests on the Test Harness application.
+
+## Architecture Overview
+
+Because this application is intended for CI usage, the UI/UX is very barebones
+and only serves to report test results and basic logging to the
+Appium/Webdriverio orchestrator.
+
+Test Suite behavior is defined client-side, meaning the test code and
+functionality exists in this codebase. The orchestrator simply requests from
+the app to start a test, i.e. "outgoing-call-test", and waits for the result
+from the Test Harness app.
+
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
++---------------------------------------------------------------+
+|                          CI PIPELINE                          |
+|                               |                               |
+|                               v                               |
+|  +---------------------------------------------------------+  |
+|  |                      ORCHESTRATOR                       |  |
+|  |                   (WebdriverIO / Node)                  |  |
+|  |                                                         |  |
+|  |  it("outgoing call", async () => {                      |  |
+|  |    await sendCommand("outgoing-call-test")              |  |
+|  |    await waitForResult()                                |  |
+|  |  });                                                    |  |
+|  +---------------------------------------------------------+  |
++------------------------------+--------------------------------+
+                               |
+                               |  Appium WebDriver protocol
+                               |  (tap element / set text / etc.)
+                               v
++---------------------------------------------------------------+
+|                   SauceLabs (CI) or Local                     |
+|                                                               |
+|  +---------------------------------------------------------+  |
+|  |                     APPIUM SERVER                       |  |
+|  |                  Real or virtual device                 |  |
+|  +---------------------------------------------------------+  |
++---------------------------------------------------------------+
+                               |
+                               |  XCUITest / UIAutomator2
+                               v
++---------------------------------------------------------------+
+|                          TEST HARNESS                         |
+|                      (Expo / React Native)                    |
+|                                                               |
+|  receives command string e.g. "outgoing-call-test"            |
+|                               |                               |
+|                               v                               |
+|  +---------------------------------------------------------+  |
+|  |             TEST SUITE (e.g. OutgoingCallTest)          |  |
+|  |                                                         |  |
+|  |   - calls Twilio Voice SDK directly                     |  |
+|  |   - asserts on call state, events, etc.                 |  |
+|  |   - writes pass/fail result to UI                       |  |
+|  +---------------------------------------------------------+  |
+|                               |                               |
+|                               v                               |
+|  +---------------------------------------------------------+  |
+|  |                         RESULT UI                       |  |
+|  |             (orchestrator polls and asserts)            |  |
+|  +---------------------------------------------------------+  |
++---------------------------------------------------------------+
+```
