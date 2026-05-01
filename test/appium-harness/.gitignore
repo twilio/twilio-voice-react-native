@@ -47,3 +47,4 @@ app-example
 # Twilio secrets
 ##
 /secrets.json
+/google-services.json
