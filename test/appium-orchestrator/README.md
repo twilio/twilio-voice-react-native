@@ -1,10 +1,13 @@
 # Appium/Webdriverio orchestrator
 
-This project is a Appium/Webdriverio orchestrator that is meant to be used with the Test Harness application found in `test/appium-harness/`. It is meant to be used in CI.
+This project is a Appium/Webdriverio orchestrator that is meant to be used with
+the Test Harness application found in `test/appium-harness/`. It is meant to be
+used in CI.
 
 ## How to use this project?
 
-This project can be setup locally to be used with an attached (or emulated) mobile device.
+This project can be setup locally to be used with an attached (or emulated)
+mobile device.
 
 1. Install dependencies
 
