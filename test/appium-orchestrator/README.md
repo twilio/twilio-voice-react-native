@@ -28,24 +28,37 @@ mobile device.
    yarn install
    ```
 
-2. Ensure that the Test Harness application is installed and available to run
+2. Save secrets for usage by the orchestrator.
+
+   See `secrets.example.json` and `token.example.json`. Make a copy of those
+   files and remove `.example`: `secrets.json` and `token.json`. Then,
+   using the example files as a template, fill out the required information in
+   the secrets files.
+
+3. Ensure that the Test Harness application is installed and available to run
    on the test device.
 
-   See the setup instructions in `test/harness/README.md` for details.
+   See the setup instructions in `test/appium-harness/README.md` for details.
 
-3. Run the local Appium server.
+4. Run the local Appium server.
 
    ```bash
    yarn run appium
    ```
 
-4. Run a test suite.
+5. Run a test suite.
 
    ```bash
-   node test-suites/index.mjs
+   USE_SAUCE=... node test-suites/index.mjs
    ```
+
+   The `USE_SAUCE` environment variable is inferred `false` by default. If you
+   intend to test locally, there is no need to have the environment variable
+   defined, or you can explicitly define `USE_SAUCE=false`.
+
+   To test using Sauce Labs, ensure that `USE_SAUCE=true`.
 
 ## Architecture Overview
 
-Please see the `Architecture Overview` section in the `test/harness/README.md`
-file for details.
+Please see the `Architecture Overview` section in the
+`test/appium-harness/README.md` file for details.
