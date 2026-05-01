@@ -28,7 +28,7 @@ export const useOutgoingCallTest: TestSuite = (
       call.on(eventName, bindOnCallEvent(eventName));
     });
 
-    call.on(Call.Event.ConnectFailure, (error) => {
+    call.on(Call.Event.ConnectFailure, (_error) => {
       setStatus('failure');
     });
 
