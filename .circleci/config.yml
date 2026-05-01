@@ -61,6 +61,8 @@ commands:
             yarn run prepare
             yarn --cwd test/app install --immutable
             yarn --cwd test/expo install --immutable
+            yarn --cwd test/appium-harness install --immutable
+            yarn --cwd test/appium-orchestrator install --immutable
 
   setup-pods:
     description: Setup pods used for ios builds
