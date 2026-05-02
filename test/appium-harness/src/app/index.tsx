@@ -22,6 +22,9 @@ export const Application = () => {
       case 'outgoing-call-test': {
         return outgoingCallTest.perform();
       }
+      default: {
+        return;
+      }
     }
   }, [outgoingCallTest.perform, testSuiteId]);
 
