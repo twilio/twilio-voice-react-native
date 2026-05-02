@@ -1,22 +1,29 @@
 import * as React from 'react';
 import { Call } from '@twilio/voice-react-native-sdk';
-import { TestStatus, TestSuite } from '../test-suites';
+import { TestSuite } from '../test-suites';
+import { safelySettlePromise } from '../utilities/safelySettlePromise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
 export const useOutgoingCallTest: TestSuite = (
   token,
   { voice },
-  { log }
+  { log },
+  setTestStatus,
 ) => {
-  const [status, setStatus] = React.useState<TestStatus>('not-started');
-
   const perform = React.useCallback(async () => {
-    setStatus('in-progress');
+    setTestStatus('in-progress');
 
     const raisedCallEvents: CallEvent[] = [];
 
-    const call = await voice.connect(token);
+    const connectResult = await safelySettlePromise(voice.connect(token));
+    if (connectResult.status === 'rejected') {
+      log.error(JSON.stringify(connectResult.error));
+      setTestStatus('failure');
+      return;
+    }
+
+    const call = connectResult.value;
 
     const bindOnCallEvent = (eventName: Call.Event) => (...args: any[]) => {
       const callEvent = { eventName, args };
@@ -29,18 +36,18 @@ export const useOutgoingCallTest: TestSuite = (
     });
 
     call.on(Call.Event.ConnectFailure, (_error) => {
-      setStatus('failure');
+      setTestStatus('failure');
     });
 
     call.on(Call.Event.Disconnected, (error) => {
       if (error) {
-        setStatus('failure');
+        setTestStatus('failure');
       } else {
-        setStatus('success');
+        setTestStatus('success');
       }
     });
 
-  }, [voice, log, token, setStatus]);
+  }, [voice, log, token, setTestStatus]);
 
-  return { perform, status };
+  return { perform };
 }

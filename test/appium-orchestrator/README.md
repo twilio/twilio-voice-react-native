@@ -1,8 +1,8 @@
 # Appium/Webdriverio orchestrator
 
-This project is a Appium/Webdriverio orchestrator that is meant to be used with
-the Test Harness application found in `test/appium-harness/`. It is meant to be
-used in CI.
+This project is an Appium/Webdriverio orchestrator that is meant to be used
+with the Test Harness application found in `test/appium-harness/`. It is meant
+to be used in CI.
 
 ## How to use this project?
 

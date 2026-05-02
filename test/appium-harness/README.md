@@ -53,18 +53,8 @@ than a typical Expo application.
      Apple Signing Team. This file should be located in the root of the
      Expo test app folder `./secrets.json` (adjacent to `package.json`).
 
-     The contents of the file should be a JSON-encoded object with a single
-     key-value pair:
-
-     ```json
-     {
-       "appleTeamId": "foobar"
-     }
-     ```
-
      It suffices to copy the `secrets.example.json` file to `secrets.json` and
-     replace the content of the file with the `"appleTeamId"` consistent with
-     your use-case.
+     replace the content of the file with values consistent with your use-case.
 
 3. Prebuild the app for the platform(s) you wish to test on
 
@@ -89,7 +79,7 @@ than a typical Expo application.
    ```
 
    ```bash
-   open ios/TwilioVoiceExpoExample.xcworkspace/
+   open ios/twiliovoicereactnativesdkappiumharness.xcworkspace/
    ```
 
    Note that you may need to expose the bundler to the Android Virtual Device
@@ -120,9 +110,9 @@ from the Test Harness app.
 
 ```
 +---------------------------------------------------------------+
-|                          CI PIPELINE                          |
-|                               |                               |
-|                               v                               |
+|                         CI PIPELINE                           |
+|                              |                                |
+|                              v                                |
 |  +---------------------------------------------------------+  |
 |  |                      ORCHESTRATOR                       |  |
 |  |                   (WebdriverIO / Node)                  |  |
@@ -149,12 +139,12 @@ from the Test Harness app.
                                |  XCUITest / UIAutomator2
                                v
 +---------------------------------------------------------------+
-|                          TEST HARNESS                         |
-|                      (Expo / React Native)                    |
+|                         TEST HARNESS                          |
+|                     (Expo / React Native)                     |
 |                                                               |
 |  receives command string e.g. "outgoing-call-test"            |
-|                               |                               |
-|                               v                               |
+|                              |                                |
+|                              v                                |
 |  +---------------------------------------------------------+  |
 |  |             TEST SUITE (e.g. OutgoingCallTest)          |  |
 |  |                                                         |  |
@@ -162,8 +152,8 @@ from the Test Harness app.
 |  |   - asserts on call state, events, etc.                 |  |
 |  |   - writes pass/fail result to UI                       |  |
 |  +---------------------------------------------------------+  |
-|                               |                               |
-|                               v                               |
+|                              |                                |
+|                              v                                |
 |  +---------------------------------------------------------+  |
 |  |                         RESULT UI                       |  |
 |  |             (orchestrator polls and asserts)            |  |

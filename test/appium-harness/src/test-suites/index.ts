@@ -5,9 +5,9 @@ export type TestSuite = (
   token: string,
   voice: ReturnType<typeof useVoice>,
   logging: ReturnType<typeof useLogging>,
+  setTestStatus: (testStatus: TestStatus) => void,
 ) => {
-  perform: () => void;
-  status: TestStatus;
+  perform: () => Promise<void>;
 }
 
 export type TestStatus =

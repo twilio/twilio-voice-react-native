@@ -11,7 +11,7 @@ type LogEntry =
   | GenericLogEntry<'warn'>
   | GenericLogEntry<'error'>;
 
-const idGenerator = (function * () {
+const idGenerator: Generator<number, never, unknown> = (function * () {
   let id: number = 0;
 
   while (true) {

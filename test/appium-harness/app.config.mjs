@@ -1,6 +1,10 @@
-const secrets = require('./secrets.json');
+// @ts-check
 
-module.exports = {
+'use strict';
+
+import secrets from './secrets.json' with { type: 'json' };
+
+const config = {
   expo: {
     name: 'twilio-voice-react-native-sdk-appium-harness',
     slug: 'twilio-voice-react-native-sdk-appium-harness',
@@ -10,8 +14,8 @@ module.exports = {
     newArchEnabled: true,
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.twilio.TwilioVoiceReactNativeExample',
-      appleTeamId: secrets.appleTeamId,
+      bundleIdentifier: secrets.ios.bundleIdentifier,
+      appleTeamId: secrets.ios.appleTeamId,
       infoPlist: {
         NSMicrophoneUsageDescription: 'foobar',
         UIBackgroundModes: ['audio', 'voip'],
@@ -21,7 +25,7 @@ module.exports = {
       },
     },
     android: {
-      package: 'com.example.twiliovoicereactnative',
+      package: secrets.android.package,
       googleServicesFile: './google-services.json',
     },
     plugins: [
@@ -32,4 +36,6 @@ module.exports = {
       reactCompiler: true
     }
   }
-}
+};
+
+export default config;
