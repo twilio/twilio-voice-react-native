@@ -23,10 +23,11 @@ export const Application = () => {
         return outgoingCallTest.perform();
       }
       default: {
+        setTestStatus('failure');
         return;
       }
     }
-  }, [outgoingCallTest.perform, testSuiteId]);
+  }, [outgoingCallTest.perform, setTestStatus, testSuiteId]);
 
   return <SafeAreaView>
     <Text>Twilio Access Token</Text>

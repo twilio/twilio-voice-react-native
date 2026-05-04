@@ -40,7 +40,7 @@ than a typical Expo application.
 
      If you are testing incoming calls, please ensure that the
      `google-services.json` file defines a package name consistent with the one
-     defined in `./app.config.js`. Modify the `./app.config.js` package names
+     defined in `./app.config.mjs`. Modify the `./app.config.mjs` package names
      for your use case.
 
      It suffices to copy the `google-services.example.json` file to
