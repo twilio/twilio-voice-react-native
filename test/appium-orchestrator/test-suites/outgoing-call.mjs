@@ -3,11 +3,11 @@
 'use strict';
 
 /**
- * @import { TestElements } from './setup.mjs'
+ * @import { TestOrchestratorSetup } from './setup.mjs'
  */
 
 /**
- * @param {TestElements} testElements
+ * @param {TestOrchestratorSetup['testElements']} testElements
  */
 export async function outgoingCallTest(testElements) {
   await testElements.textInput.testSuiteId.waitForExist({ timeout: 1000, interval: 500 });

@@ -2,10 +2,16 @@
 
 'use strict';
 
-import { USE_SAUCE, accessToken, driver, testElements } from './setup.mjs';
+/**
+ * @import { TestOrchestratorSetup } from './setup.mjs'
+ */
+import { setupTestOrchestrator } from './setup.mjs';
 import { outgoingCallTest } from './outgoing-call.mjs';
 
-async function runTest() {
+/**
+ * @param {Pick<TestOrchestratorSetup, 'accessToken' | 'driver' | 'testElements'>} testOrchestratorSetup
+ */
+async function runTest({ accessToken, driver, testElements }) {
   await testElements.textInput.token.waitForExist({ timeout: 10000, interval: 1000 });
   await testElements.textInput.token.setValue(accessToken);
 
@@ -33,16 +39,31 @@ async function runTest() {
   }
 }
 
-runTest()
-  .then(async () => {
-    if (USE_SAUCE) {
-      await driver.execute('sauce:job-result=passed');
-    }
+const main = async () => {
+  const { accessToken, driver, env, testElements } = await setupTestOrchestrator();
+
+  return runTest({ accessToken, driver, testElements })
+    .then(async () => {
+      if (env.USE_SAUCE) {
+        await driver.execute('sauce:job-result=passed');
+      }
+    })
+    .catch(async (error) => {
+      if (env.USE_SAUCE) {
+        await driver.execute('sauce:job-result=failed');
+      }
+      throw error;
+    })
+    .finally(async () => {
+      await driver.deleteSession();
+    });
+};
+
+main()
+  .then(() => {
+    console.log('test orchestration complete');
   })
-  .catch(async () => {
-    if (USE_SAUCE) {
-      await driver.execute('sauce:job-result=failed');
-    }
+  .catch((error) => {
+    console.error(error);
     process.exitCode = 1;
-  })
-  .finally(() => driver.deleteSession());
+  });

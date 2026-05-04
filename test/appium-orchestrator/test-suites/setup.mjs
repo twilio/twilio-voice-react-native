@@ -7,9 +7,6 @@ import { remote } from 'webdriverio';
 import secrets from '../secrets.json' with { type: 'json' };
 import tokenJson from '../token.json' with { type: 'json' };
 
-/** @type {boolean} */
-export const USE_SAUCE = process.env.USE_SAUCE === 'true';
-
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const commonCapabilities = {
   platformName: 'iOS',
@@ -48,7 +45,7 @@ const sauceCapabilities = {
 /** @type {Parameters<typeof remote>['0']} */
 const localRemoteOptions = {
   hostname: process.env.APPIUM_HOST || 'localhost',
-  port: parseInt(process.env.APPIUM_PORT || '4723') || 4723,
+  port: parseInt(process.env.APPIUM_PORT || '') || 4723,
   logLevel: 'info',
   capabilities: localCapabilities,
 };
@@ -63,22 +60,37 @@ const sauceRemoteOptions = {
   capabilities: sauceCapabilities,
 };
 
-export const driver = await remote(USE_SAUCE ? sauceRemoteOptions : localRemoteOptions);
-/** @typedef {typeof driver} Driver */
+/**
+ * Perform test orchestration setup.
+ */
+export const setupTestOrchestrator = async () => {
+  const env = {
+    USE_SAUCE: process.env.USE_SAUCE === 'true',
+  };
 
-export const testElements = {
-  textInput: {
-    token: driver.$('~textInput_token'),
-    testSuiteId: driver.$('~textInput_testSuiteId'),
-  },
-  button: {
-    startTestSuite: driver.$('~button_startTestSuite'),
-  },
-  text: {
-    testSuiteStatus: driver.$('~text_testSuiteStatus'),
-  },
+  /** @type {string} */
+  const accessToken = tokenJson.accessToken;
+
+  const driver = await remote(
+    env.USE_SAUCE
+      ? sauceRemoteOptions
+      : localRemoteOptions
+  );
+
+  const testElements = {
+    textInput: {
+      token: driver.$('~textInput_token'),
+      testSuiteId: driver.$('~textInput_testSuiteId'),
+    },
+    button: {
+      startTestSuite: driver.$('~button_startTestSuite'),
+    },
+    text: {
+      testSuiteStatus: driver.$('~text_testSuiteStatus'),
+    },
+  };
+
+  return { accessToken, driver, env, testElements };
 };
-/** @typedef {typeof testElements} TestElements */
 
-/** @type {string} */
-export const accessToken = tokenJson.accessToken;
+/** @typedef {Awaited<ReturnType<typeof setupTestOrchestrator>>} TestOrchestratorSetup */

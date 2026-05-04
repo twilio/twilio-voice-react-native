@@ -29,36 +29,38 @@ export const Application = () => {
     }
   }, [outgoingCallTest.perform, setTestStatus, testSuiteId]);
 
-  return <SafeAreaView>
-    <Text>Twilio Access Token</Text>
-    <TextInput
-      testID='textInput_token'
-      placeholder='Enter Token'
-      secureTextEntry={true}
-      onChangeText={setToken}
-    />
+  return (
+    <SafeAreaView>
+      <Text>Twilio Access Token</Text>
+      <TextInput
+        testID='textInput_token'
+        placeholder='Enter Token'
+        secureTextEntry={true}
+        onChangeText={setToken}
+      />
 
-    <Text>Test Suite ID</Text>
-    <TextInput
-      testID='textInput_testSuiteId'
-      placeholder='Enter Test Suite ID'
-      onChangeText={setTestSuiteId}
-    />
+      <Text>Test Suite ID</Text>
+      <TextInput
+        testID='textInput_testSuiteId'
+        placeholder='Enter Test Suite ID'
+        onChangeText={setTestSuiteId}
+      />
 
-    <Text>Test Suite Status</Text>
-    <Text testID='text_testSuiteStatus'>
-      {testStatus}
-    </Text>
+      <Text>Test Suite Status</Text>
+      <Text testID='text_testSuiteStatus'>
+        {testStatus}
+      </Text>
 
-    <Button
-      testID='button_startTestSuite'
-      title='Start Test Suite'
-      onPress={performTest}
-    />
+      <Button
+        testID='button_startTestSuite'
+        title='Start Test Suite'
+        onPress={performTest}
+      />
 
-    <Text>Test Suite Output</Text>
-    <Text>{JSON.stringify(logging.logEntries, null, 2)}</Text>
-  </SafeAreaView>
+      <Text>Test Suite Output</Text>
+      <Text>{JSON.stringify(logging.logEntries, null, 2)}</Text>
+    </SafeAreaView>
+  );
 };
 
 export default Application;
