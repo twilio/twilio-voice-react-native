@@ -8,7 +8,7 @@ import secrets from '../secrets.json' with { type: 'json' };
 import tokenJson from '../token.json' with { type: 'json' };
 
 /** @type {boolean} */
-const USE_SAUCE = process.env.USE_SAUCE === 'true';
+export const USE_SAUCE = process.env.USE_SAUCE === 'true';
 
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const commonCapabilities = {

@@ -2,7 +2,7 @@
 
 'use strict';
 
-import { accessToken, driver, testElements } from './setup.mjs';
+import { USE_SAUCE, accessToken, driver, testElements } from './setup.mjs';
 import { outgoingCallTest } from './outgoing-call.mjs';
 
 async function runTest() {
@@ -34,9 +34,15 @@ async function runTest() {
 }
 
 runTest()
-  .then(() => driver.execute('sauce:job-result=passed'))
+  .then(async () => {
+    if (USE_SAUCE) {
+      await driver.execute('sauce:job-result=passed');
+    }
+  })
   .catch(async () => {
-    await driver.execute('sauce:job-result=failed');
+    if (USE_SAUCE) {
+      await driver.execute('sauce:job-result=failed');
+    }
     process.exitCode = 1;
   })
   .finally(() => driver.deleteSession());
