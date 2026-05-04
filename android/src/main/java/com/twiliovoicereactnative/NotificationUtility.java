@@ -149,6 +149,7 @@ class NotificationUtility {
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
+    foregroundIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
     Intent rejectIntent = constructMessage(
@@ -156,6 +157,7 @@ class NotificationUtility {
       Constants.ACTION_REJECT_CALL,
       VoiceService.class,
       callRecord.getUuid());
+    rejectIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piRejectIntent = constructPendingIntentForService(context, rejectIntent);
 
     Intent acceptIntent = constructMessage(
@@ -163,6 +165,7 @@ class NotificationUtility {
       Constants.ACTION_ACCEPT_CALL,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
+    acceptIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
 
     return constructNotificationBuilder(context, channelImportance)
@@ -193,6 +196,7 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
+    foregroundIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
     Intent endCallIntent = constructMessage(
@@ -200,6 +204,7 @@ class NotificationUtility {
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
+    endCallIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
@@ -230,6 +235,7 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
+    foregroundIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
 
     Intent endCallIntent = constructMessage(
@@ -237,6 +243,7 @@ class NotificationUtility {
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
+    endCallIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)

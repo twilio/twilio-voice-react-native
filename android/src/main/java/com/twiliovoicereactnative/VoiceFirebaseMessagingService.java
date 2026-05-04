@@ -17,7 +17,6 @@ import com.twilio.voice.CancelledCallInvite;
 import com.twilio.voice.MessageListener;
 import com.twilio.voice.Voice;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
@@ -39,8 +38,12 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
                                       @Nullable CallException callException) {
       logger.log(String.format("onCancelledCallInvite %s", cancelledCallInvite.getCallSid()));
 
-      CallRecord callRecord = Objects.requireNonNull(
-        getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
+      CallRecord callRecord =
+        getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid()));
+      if (null == callRecord) {
+        logger.warning("onCancelledCallInvite: CallRecord not found, already handled");
+        return;
+      }
 
       callRecord.setCancelledCallInvite(cancelledCallInvite);
       callRecord.setCallException(callException);
