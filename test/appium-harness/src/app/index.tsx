@@ -6,6 +6,14 @@ import { useLogging } from '../hooks/useLogging';
 import { useOutgoingCallTest } from '../test-suites/outgoing-call';
 import { TestStatus } from '../test-suites';
 
+/**
+ * NOTE: VBLOCKS-6582
+ * As part of increasing code coverage, consider refactoring the command-bus
+ * so that instead of starting whole test suites via the bus
+ * ("outgoing-call-test"), we use more granular commands such as
+ * "call.connect(...)".
+ */
+
 export const Application = () => {
   const [token, setToken] = React.useState<string>('');
   const [testSuiteId, setTestSuiteId] = React.useState<string>('');
