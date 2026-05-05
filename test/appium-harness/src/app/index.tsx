@@ -11,8 +11,9 @@ export const Application = () => {
   const [testSuiteId, setTestSuiteId] = React.useState<string>('');
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
-  const voice = useVoice();
   const logging = useLogging();
+
+  const voice = useVoice(logging);
 
   const outgoingCallTest =
     useOutgoingCallTest(token, voice, logging, setTestStatus);

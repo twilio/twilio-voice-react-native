@@ -1,7 +1,11 @@
 import { useLogging } from '../hooks/useLogging';
 import { useVoice } from '../hooks/useVoice';
 
-export type TestSuite = (
+/**
+ * Naming the expected test suite type UseTestSuite makes it clear that it will
+ * be used as a React Hook.
+ */
+export type UseTestSuite = (
   token: string,
   voice: ReturnType<typeof useVoice>,
   logging: ReturnType<typeof useLogging>,

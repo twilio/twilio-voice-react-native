@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Call } from '@twilio/voice-react-native-sdk';
-import { TestSuite } from '../test-suites';
+import { UseTestSuite } from '../test-suites';
 import { safelySettlePromise } from '../utilities/safelySettlePromise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
-export const useOutgoingCallTest: TestSuite = (
+export const useOutgoingCallTest: UseTestSuite = (
   token,
   { voice },
   { log },
