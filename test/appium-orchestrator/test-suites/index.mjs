@@ -13,7 +13,7 @@ import { outgoingCallTest } from './outgoing-call.mjs';
  */
 async function runTest({ accessToken, driver, testElements }) {
   await testElements.textInput.token.waitForExist({ timeout: 10000, interval: 1000 });
-  await testElements.textInput.token.setValue(accessToken);
+  await testElements.textInput.token.setValue(accessToken, { mask: true });
 
   // NOTE: Increase code coverage: VBLOCKS-6582
   // for now, just hard code the test suite
