@@ -30,9 +30,14 @@ export function useLogging() {
     [setLogEntries],
   );
 
-  const info = React.useCallback(bindAddLogEntry('info'), [bindAddLogEntry]);
-  const warn = React.useCallback(bindAddLogEntry('warn'), [bindAddLogEntry]);
-  const error = React.useCallback(bindAddLogEntry('error'), [bindAddLogEntry]);
+  const log = React.useMemo(() => ({
+    info: bindAddLogEntry('info'),
+    warn: bindAddLogEntry('warn'),
+    error: bindAddLogEntry('error'),
+  }), [bindAddLogEntry]);
 
-  return { logEntries, log: { info, warn, error } };
+  return React.useMemo(() => ({
+    logEntries,
+    log,
+  }), [logEntries, log]);
 }
