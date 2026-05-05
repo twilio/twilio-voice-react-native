@@ -13,7 +13,7 @@ const modules = Object.keys({ ...pak.peerDependencies });
 
 const blockList = modules.map(
   (m) => new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`)
-).concat(config?.resolver?.blockList || []);
+).concat(config.resolver.blockList || []);
 
 const extraNodeModules = modules.reduce((acc, name) => {
   acc[name] = path.join(__dirname, 'node_modules', name);

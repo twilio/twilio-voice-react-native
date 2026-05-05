@@ -17,7 +17,7 @@ const config = {
       bundleIdentifier: secrets.ios.bundleIdentifier,
       appleTeamId: secrets.ios.appleTeamId,
       infoPlist: {
-        NSMicrophoneUsageDescription: 'foobar',
+        NSMicrophoneUsageDescription: 'Voice calling capabilities.',
         UIBackgroundModes: ['audio', 'voip'],
       },
       entitlements: {
