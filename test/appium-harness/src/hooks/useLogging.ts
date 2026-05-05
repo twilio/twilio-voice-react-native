@@ -11,6 +11,10 @@ type LogEntry =
   | GenericLogEntry<'warn'>
   | GenericLogEntry<'error'>;
 
+/**
+ * Intentionally a global value. If `useLogging` is used more than once, this
+ * ensures that IDs are unique even betwween hook usages.
+ */
 const idGenerator: Generator<number, never, unknown> = (function * () {
   let id: number = 0;
 
