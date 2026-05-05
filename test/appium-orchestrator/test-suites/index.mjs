@@ -6,12 +6,15 @@
  * @import { TestOrchestratorSetup } from './setup.mjs'
  */
 import { setupTestOrchestrator } from './setup.mjs';
-import { outgoingCallTest } from './outgoing-call.mjs';
+import { outgoingCallTest } from './outgoingCall.mjs';
+import { safelySettlePromise } from '../utilities/safelySettlePromise.mjs';
 
 /**
- * @param {Pick<TestOrchestratorSetup, 'accessToken' | 'driver' | 'testElements'>} testOrchestratorSetup
+ * @param {TestOrchestratorSetup['accessToken']} accessToken
+ * @param {TestOrchestratorSetup['driver']} driver
+ * @param {TestOrchestratorSetup['testElements']} testElements
  */
-async function runTest({ accessToken, driver, testElements }) {
+async function runTest(accessToken, driver, testElements) {
   await testElements.textInput.token.waitForExist({ timeout: 10000, interval: 1000 });
   await testElements.textInput.token.setValue(accessToken, { mask: true });
 
@@ -39,31 +42,74 @@ async function runTest({ accessToken, driver, testElements }) {
   }
 }
 
+/**
+ * @param {any[]} errors
+ * @returns {Promise<number>}
+ */
+const processTestErrors = async (errors) => {
+  /** @param {'PASSED' | 'FAILED'} result */
+  const templateMessage =
+    (result) => `test orchestration complete: ${result}`;
+
+  if (errors.length > 0) {
+    console.log(templateMessage('FAILED'));
+    for (const error of errors) {
+      console.log(JSON.stringify(error, null, 2));
+    }
+    return 1;
+  }
+
+  console.log(templateMessage('PASSED'));
+  return 0;
+};
+
+/** @returns {Promise<number>} the process exit code */
 const main = async () => {
   const { accessToken, driver, env, testElements } = await setupTestOrchestrator();
 
-  return runTest({ accessToken, driver, testElements })
-    .then(async () => {
-      if (env.USE_SAUCE) {
-        await driver.execute('sauce:job-result=passed');
-      }
-    })
-    .catch(async (error) => {
-      if (env.USE_SAUCE) {
-        await driver.execute('sauce:job-result=failed');
-      }
-      throw error;
-    })
-    .finally(async () => {
-      await driver.deleteSession();
+  /** @typedef {{ source: string; error: any }} OrchestrationError */
+
+  /** @type {OrchestrationError[]} */
+  let errors = [];
+
+  const testResult = await safelySettlePromise(runTest(
+    accessToken,
+    driver,
+    testElements,
+  ));
+
+  /** @type {'passed' | 'failed'} */
+  let sauceJobResult = 'passed';
+
+  if (testResult.status === 'rejected') {
+    sauceJobResult = 'failed';
+    errors.push({
+      source: 'test suite',
+      error: testResult.error,
     });
+  }
+
+  if (env.USE_SAUCE) {
+    const sauceExecute = await safelySettlePromise(driver.execute(
+      `sauce:job-result=${sauceJobResult}`
+    ));
+    if (sauceExecute.status === 'rejected') {
+      errors.push({
+        source: 'driver.execute sauce:job-result',
+        error: sauceExecute.error,
+      });
+    }
+  }
+
+  const deleteSessionResult = await safelySettlePromise(driver.deleteSession());
+  if (deleteSessionResult.status === 'rejected') {
+    errors.push({
+      source: 'driver.deleteSession',
+      error: deleteSessionResult.error,
+    });
+  }
+
+  return processTestErrors(errors);
 };
 
-main()
-  .then(() => {
-    console.log('test orchestration complete');
-  })
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+main().then((processExitCode) => process.exitCode = processExitCode);
