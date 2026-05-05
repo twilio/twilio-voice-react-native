@@ -42,11 +42,13 @@ async function runTest(accessToken, driver, testElements) {
   }
 }
 
+/** @typedef {{ source: string; error: any }} OrchestrationError */
+
 /**
- * @param {any[]} errors
+ * @param {OrchestrationError[]} errors
  * @returns {Promise<number>}
  */
-const processTestErrors = async (errors) => {
+const reportTestErrors = async (errors) => {
   /** @param {'PASSED' | 'FAILED'} result */
   const templateMessage =
     (result) => `test orchestration complete: ${result}`;
@@ -63,11 +65,19 @@ const processTestErrors = async (errors) => {
   return 0;
 };
 
-/** @returns {Promise<number>} the process exit code */
+/** @returns {Promise<OrchestrationError[]>} */
 const main = async () => {
-  const { accessToken, driver, env, testElements } = await setupTestOrchestrator();
+  const setupResult = await safelySettlePromise(setupTestOrchestrator());
+  if (setupResult.status === 'rejected') {
+    return [
+      {
+        source: 'setup',
+        error: setupResult.error,
+      },
+    ];
+  }
 
-  /** @typedef {{ source: string; error: any }} OrchestrationError */
+  const { accessToken, driver, env, testElements } = setupResult.value;
 
   /** @type {OrchestrationError[]} */
   let errors = [];
@@ -109,7 +119,7 @@ const main = async () => {
     });
   }
 
-  return processTestErrors(errors);
+  return errors;
 };
 
-main().then((processExitCode) => process.exitCode = processExitCode);
+main().then(reportTestErrors).then((exitCode) => process.exitCode = exitCode);
