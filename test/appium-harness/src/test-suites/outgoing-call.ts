@@ -18,7 +18,16 @@ export const useOutgoingCallTest: UseTestSuite = (
 
     const connectResult = await safelySettlePromise(voice.connect(token));
     if (connectResult.status === 'rejected') {
-      log.error(JSON.stringify(connectResult.error));
+      const errorMessage = connectResult.error instanceof Error
+        ? JSON.stringify({
+            name: connectResult.error.name,
+            message: connectResult.error.message,
+            cause: connectResult.error.cause,
+            stack: connectResult.error.stack,
+          })
+        : String(connectResult.error);
+
+      log.error(errorMessage);
       setTestStatus('failure');
       return;
     }
