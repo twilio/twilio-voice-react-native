@@ -1,0 +1,12 @@
+{
+  "project_info": {
+    "foo": "bar"
+  },
+  "client": [
+    {
+      "client_info": {
+        "foo": "bar"
+      }
+    }
+  ]
+}

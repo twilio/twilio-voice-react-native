@@ -61,6 +61,8 @@ commands:
             yarn run prepare
             yarn --cwd test/app install --immutable
             yarn --cwd test/expo install --immutable
+            yarn --cwd test/appium-harness install --immutable
+            yarn --cwd test/appium-orchestrator install --immutable
 
   setup-pods:
     description: Setup pods used for ios builds
@@ -162,6 +164,7 @@ jobs:
       - checkout
       - attach_project
       - enable-corepack
+      # VBLOCKS-6583 consider using the lock files of the sub-projects
       - restore_cache:
           keys:
             - twilio-voice-react-native-dependencies-{{ checksum "yarn.lock" }}
@@ -416,6 +419,7 @@ workflows:
             - equal: [false, << pipeline.parameters.release_workflow >>]
     jobs:
       - cache-install-dependencies
+      # VBLOCKS-6583 consider linting and type-checking the test sub-projects
       - lint:
           requires:
             - cache-install-dependencies

@@ -140,6 +140,8 @@
     "lib/",
     "test/app/",
     "test/expo/",
+    "test/appium-harness/",
+    "test/appium-orchestrator/",
     "src/error/generated.ts",
     "coverage/"
   ],
