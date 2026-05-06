@@ -32,7 +32,6 @@ import com.twilio.voice.VoiceException;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
-import java.util.Objects;
 
 
 public class CallMessageListenerProxy implements Call.CallMessageListener {
@@ -69,8 +68,8 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
     logger.debug("onMessageReceived");
 
     //final call record
-    final CallRecord callRecord =
-      Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(callSid)));
+    final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(callSid));
+    if (null == callRecord) { return; }
 
     // notify JS layer ScopeCallInvite or ScopeCall
     final String event =

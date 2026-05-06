@@ -55,10 +55,10 @@ import androidx.core.app.ServiceCompat;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallInvite;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class VoiceService extends Service {
@@ -100,47 +100,59 @@ public class VoiceService extends Service {
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    // apparently the system can recreate the service without sending it an intent so protect
-    // against that case (GH-430).
-    if (null != intent) {
-      switch (Objects.requireNonNull(intent.getAction())) {
-        case ACTION_INCOMING_CALL:
-          incomingCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_ACCEPT_CALL:
-          try {
-            acceptCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          } catch (SecurityException e) {
-            sendPermissionsError();
-            logger.warning(e, "Cannot accept call, lacking necessary permissions");
-          }
-          break;
-        case ACTION_REJECT_CALL:
-          rejectCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_CANCEL_CALL:
-          cancelCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_CALL_DISCONNECT:
-          disconnect(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
-          raiseOutgoingCallNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION:
-          cancelActiveCallNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
-          foregroundAndDeprioritizeIncomingCallNotification(
-            getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
-          break;
-        case ACTION_PUSH_APP_TO_FOREGROUND:
-          logger.warning("VoiceService received foreground request, ignoring");
-          break;
-        default:
-          logger.log("Unknown notification, ignoring");
-          break;
-      }
+    if (null == intent) { return START_NOT_STICKY; }
+    String action = intent.getAction();
+    if (null == action) { return START_NOT_STICKY; }
+
+    UUID uuid = getMessageUUID(intent);
+    if (null == uuid) {
+      logger.warning("VoiceService received intent with null UUID, ignoring");
+      return START_NOT_STICKY;
+    }
+
+    CallRecordDatabase.CallRecord callRecord = getCallRecord(uuid);
+    if (null == callRecord) {
+      logger.warning("VoiceService received intent but CallRecord not found, uuid: " + uuid);
+      dismissNotificationFromIntent(intent);
+      return START_NOT_STICKY;
+    }
+
+    switch (action) {
+      case ACTION_INCOMING_CALL:
+        incomingCall(callRecord);
+        break;
+      case ACTION_ACCEPT_CALL:
+        try {
+          acceptCall(callRecord);
+        } catch (SecurityException e) {
+          sendPermissionsError();
+          logger.warning(e, "Cannot accept call, lacking necessary permissions");
+        }
+        break;
+      case ACTION_REJECT_CALL:
+        rejectCall(callRecord);
+        break;
+      case ACTION_CANCEL_CALL:
+        cancelCall(callRecord);
+        break;
+      case ACTION_CALL_DISCONNECT:
+        disconnect(callRecord);
+        break;
+      case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
+        raiseOutgoingCallNotification(callRecord);
+        break;
+      case ACTION_CANCEL_ACTIVE_CALL_NOTIFICATION:
+        cancelActiveCallNotification(callRecord);
+        break;
+      case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
+        foregroundAndDeprioritizeIncomingCallNotification(callRecord);
+        break;
+      case ACTION_PUSH_APP_TO_FOREGROUND:
+        logger.warning("VoiceService received foreground request, ignoring");
+        break;
+      default:
+        logger.log("Unknown notification, ignoring");
+        break;
     }
     return START_NOT_STICKY;
   }
@@ -160,10 +172,10 @@ public class VoiceService extends Service {
   }
   private void disconnect(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("disconnect");
-    if (null != callRecord) {
-      Objects.requireNonNull(callRecord.getVoiceCall()).disconnect();
+    if (null != callRecord && null != callRecord.getVoiceCall()) {
+      callRecord.getVoiceCall().disconnect();
     } else {
-      logger.warning("No call record found");
+      logger.warning("No call record or voice call found");
     }
   }
   private void incomingCall(final CallRecordDatabase.CallRecord callRecord) {
@@ -224,6 +236,16 @@ public class VoiceService extends Service {
       return;
     }
 
+    // verify callInvite is still available (may have been nulled by a concurrent cancel)
+    CallInvite callInvite = callRecord.getCallInvite();
+    if (null == callInvite) {
+      logger.warning("Cannot accept call, callInvite is null (likely cancelled)");
+      removeNotification(callRecord.getNotificationId());
+      VoiceApplicationProxy.getMediaPlayerManager().stop();
+      VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
+      return;
+    }
+
     // cancel existing notification & put up in call
     Notification notification = NotificationUtility.createCallAnsweredNotificationWithLowImportance(
       VoiceService.this,
@@ -240,7 +262,7 @@ public class VoiceService extends Service {
       .build();
 
     callRecord.setCall(
-      callRecord.getCallInvite().accept(
+      callInvite.accept(
         VoiceService.this,
         acceptOptions,
         new CallListenerProxy(callRecord.getUuid(), VoiceService.this)));
@@ -272,9 +294,14 @@ public class VoiceService extends Service {
     VoiceApplicationProxy.getMediaPlayerManager().stop();
     VoiceApplicationProxy.getAudioSwitchManager().getAudioSwitch().deactivate();
 
-    // reject call
-    callRecord.getCallInvite().reject(VoiceService.this);
-    callRecord.setCallInviteUsedState();
+    // reject call (if callInvite still available)
+    CallInvite callInvite = callRecord.getCallInvite();
+    if (null != callInvite) {
+      callInvite.reject(VoiceService.this);
+      callRecord.setCallInviteUsedState();
+    } else {
+      logger.warning("Cannot reject call, callInvite is null (likely cancelled)");
+    }
 
     // handle if event spawned from JS
     if (null != callRecord.getCallRejectedPromise()) {
@@ -387,7 +414,14 @@ public class VoiceService extends Service {
     return (UUID)intent.getSerializableExtra(Constants.MSG_KEY_UUID);
   }
   private static CallRecordDatabase.CallRecord getCallRecord(final UUID uuid) {
-    return Objects.requireNonNull(getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(uuid)));
+    return getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(uuid));
+  }
+  private void dismissNotificationFromIntent(@NonNull final Intent intent) {
+    int notificationId = intent.getIntExtra(Constants.MSG_KEY_NOTIFICATION_ID, -1);
+    if (notificationId != -1) {
+      removeNotification(notificationId);
+    }
+    removeForegroundNotification();
   }
   private static void sendJSEvent(@NonNull String scope, @NonNull WritableMap event) {
     getJSEventEmitter().sendEvent(scope, event);

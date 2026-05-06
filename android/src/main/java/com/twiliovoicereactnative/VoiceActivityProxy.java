@@ -76,6 +76,7 @@ public class VoiceActivityProxy {
     return true;
   }
   private void handleIntent(Intent intent) {
+    if (null == intent) { return; }
     String action = intent.getAction();
     if ((null != action) && (!action.equals(Constants.ACTION_PUSH_APP_TO_FOREGROUND))) {
       Intent copiedIntent = new Intent(intent);

@@ -15,6 +15,7 @@ class Constants {
   public static final String ACTION_PUSH_APP_TO_FOREGROUND = "ACTION_PUSH_APP_TO_FOREGROUND";
   public static final String ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION = "ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION";
   public static final String MSG_KEY_UUID = "UUID";
+  public static final String MSG_KEY_NOTIFICATION_ID = "NOTIFICATION_ID";
   public static final String JS_EVENT_KEY_CALL_INFO = "call";
   public static final String JS_EVENT_KEY_CALL_INVITE_INFO = "callInvite";
   public static final String JS_EVENT_KEY_CANCELLED_CALL_INVITE_INFO = "cancelledCallInvite";

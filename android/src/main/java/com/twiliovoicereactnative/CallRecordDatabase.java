@@ -82,7 +82,7 @@ class CallRecordDatabase  {
       return this.voiceCall;
     }
     public final Map<String, String> getCustomParameters() {
-      if (this.direction == Direction.INCOMING) {
+      if (this.direction == Direction.INCOMING && null != this.callInvite) {
         return this.callInvite.getCustomParameters();
       }
       return this.customParameters;
@@ -158,19 +158,15 @@ class CallRecordDatabase  {
     callRecordList.clear();
   }
 
-  public CallRecord get(final CallRecord record) {
-    try {
-      return callRecordList.get(callRecordList.indexOf(record));
-    } catch (IndexOutOfBoundsException e) {
-      return null;
-    }
+  public synchronized CallRecord get(final CallRecord record) {
+    int index = callRecordList.indexOf(record);
+    if (index < 0) { return null; }
+    return callRecordList.get(index);
   }
-  public CallRecord remove(final CallRecord record) {
-    try {
-      return callRecordList.remove(callRecordList.indexOf(record));
-    } catch (IndexOutOfBoundsException e) {
-      return null;
-    }
+  public synchronized CallRecord remove(final CallRecord record) {
+    int index = callRecordList.indexOf(record);
+    if (index < 0) { return null; }
+    return callRecordList.remove(index);
   }
   public Collection<CallRecord> getCollection() {
     return callRecordList;
