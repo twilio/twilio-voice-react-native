@@ -6,8 +6,8 @@
  * @import { TestOrchestratorSetup } from './setup.mjs'
  */
 import { setupTestOrchestrator } from './setup.mjs';
-import { outgoingCallTest } from './outgoingCall.mjs';
-import { safelySettlePromise } from '../utilities/safelySettlePromise.mjs';
+import { outgoingCallTest } from './outgoing-call.mjs';
+import { safelySettlePromise } from '../utilities/safely-settle-promise.mjs';
 
 /**
  * @param {TestOrchestratorSetup['accessToken']} accessToken
@@ -25,6 +25,9 @@ async function runTest(accessToken, driver, testElements) {
   await testElements.button.startTestSuite.waitForExist();
   await testElements.button.startTestSuite.click();
 
+  // NOTE: VBLOCKS-6582
+  // consider checking for all test suite statuses just in case the test
+  // immediately goes from 'not-started' to 'failure'
   await driver.waitUntil(async () => {
     return await testElements.text.testSuiteStatus.getText() === 'in-progress';
   }, { timeout: 5000, interval: 500 });
@@ -56,7 +59,7 @@ const reportTestErrors = async (errors) => {
   if (errors.length > 0) {
     console.log(templateMessage('FAILED'));
     for (const error of errors) {
-      console.log(JSON.stringify(error, null, 2));
+      console.log(error);
     }
     return 1;
   }

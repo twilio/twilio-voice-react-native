@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Call } from '@twilio/voice-react-native-sdk';
 import { UseTestSuite } from '../test-suites';
-import { safelySettlePromise } from '../utilities/safelySettlePromise';
+import { safelySettlePromise } from '../utilities/safely-settle-promise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
