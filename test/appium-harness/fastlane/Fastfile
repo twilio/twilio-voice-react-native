@@ -1,0 +1,156 @@
+default_platform(:ios)
+
+MATCH_ENV_VARS = [
+  "APPIUM_HARNESS_BUNDLE_ID",
+
+  "FASTLANE_MATCH_TEAM_ID",
+  "FASTLANE_MATCH_USERNAME",
+
+  "GOOGLE_CLOUD_BUCKET_NAME",
+  "GOOGLE_CLOUD_PROJECT_ID",
+].freeze
+
+ASC_ENV_VARS = [
+  "APP_STORE_CONNECT_KEY_ID",
+  "APP_STORE_CONNECT_ISSUER_ID",
+  "APP_STORE_CONNECT_API_KEY_B64",
+].freeze
+
+platform :ios do
+  desc "Install match certificates and profiles on CI (readonly)"
+  lane :ci_match_install do |options|
+    require_env!(MATCH_ENV_VARS + ASC_ENV_VARS)
+
+    setup_circle_ci
+    get_app_store_connect_api_key
+
+    match(
+      type: options[:type] || "development",
+      app_identifier: [ENV["APPIUM_HARNESS_BUNDLE_ID"]],
+      team_id: ENV["FASTLANE_MATCH_TEAM_ID"],
+      readonly: true,
+      verbose: true,
+      force_for_new_devices: false,
+    )
+  end
+
+  desc "Install match certificates and profiles for local dev (readonly)"
+  lane :match_install do |options|
+    require_env!(MATCH_ENV_VARS + ASC_ENV_VARS)
+
+    get_app_store_connect_api_key
+
+    match(
+      type: options[:type] || "development",
+      app_identifier: [ENV["APPIUM_HARNESS_BUNDLE_ID"]],
+      team_id: ENV["FASTLANE_MATCH_TEAM_ID"],
+      readonly: true,
+      verbose: true,
+      force_for_new_devices: false,
+    )
+  end
+
+  desc "Update match certificates and profiles - destructive, regenerates profiles"
+  lane :match_update do |options|
+    require_env!(MATCH_ENV_VARS)
+
+    match(
+      type: options[:type] || "development",
+      app_identifier: [ENV["APPIUM_HARNESS_BUNDLE_ID"]],
+      team_id: ENV["FASTLANE_MATCH_TEAM_ID"],
+      readonly: false,
+      verbose: true,
+      force_for_new_devices: true,
+    )
+  end
+
+  desc "Build the appium harness IPA from a prebuilt ios/ directory"
+  lane :build_harness_ipa do |options|
+    require_env!(["APPIUM_HARNESS_BUNDLE_ID"])
+
+    match_type = options[:type] || "development"
+    bundle_id = ENV["APPIUM_HARNESS_BUNDLE_ID"]
+
+    workspace, scheme = resolve_workspace_and_scheme
+
+    build_app(
+      workspace: workspace,
+      scheme: scheme,
+      configuration: "Release",
+      export_method: export_method_for(match_type),
+      output_directory: File.join(harness_dir, "build"),
+      output_name: "appium-harness.ipa",
+      clean: true,
+      export_options: {
+        provisioningProfiles: {
+          bundle_id => "match #{match_profile_name(match_type)} #{bundle_id}",
+        },
+      },
+    )
+  end
+
+  desc "Build the appium harness IPA locally using Xcode automatic signing (no match)"
+  lane :build_harness_ipa_local do
+    require_env!(["FASTLANE_MATCH_TEAM_ID"])
+
+    workspace, scheme = resolve_workspace_and_scheme
+
+    build_app(
+      workspace: workspace,
+      scheme: scheme,
+      configuration: "Release",
+      export_method: "development",
+      output_directory: File.join(harness_dir, "build"),
+      output_name: "appium-harness.ipa",
+      clean: true,
+      xcargs: "-allowProvisioningUpdates ENABLE_USER_SCRIPT_SANDBOXING=NO",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: ENV["FASTLANE_MATCH_TEAM_ID"],
+      },
+    )
+  end
+
+  private_lane :get_app_store_connect_api_key do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY_B64"],
+      is_key_content_base64: true,
+      in_house: false,
+    )
+  end
+end
+
+def require_env!(vars)
+  missing = vars.select { |v| ENV[v].to_s.empty? }
+  UI.user_error!("Missing required env vars: #{missing.join(', ')}") unless missing.empty?
+end
+
+def harness_dir
+  File.expand_path("..", __dir__)
+end
+
+def resolve_workspace_and_scheme
+  workspace = Dir.glob(File.join(harness_dir, "ios", "*.xcworkspace")).first
+  UI.user_error!("No .xcworkspace found under #{harness_dir}/ios. Run `yarn run prebuild -- --clean --platform=ios` first.") unless workspace
+  [workspace, File.basename(workspace, ".xcworkspace")]
+end
+
+def export_method_for(match_type)
+  {
+    "development" => "development",
+    "adhoc" => "ad-hoc",
+    "enterprise" => "enterprise",
+    "appstore" => "app-store",
+  }.fetch(match_type) { UI.user_error!("Unknown match type: #{match_type}") }
+end
+
+def match_profile_name(match_type)
+  {
+    "development" => "Development",
+    "adhoc" => "AdHoc",
+    "enterprise" => "InHouse",
+    "appstore" => "AppStore",
+  }.fetch(match_type) { UI.user_error!("Unknown match type: #{match_type}") }
+end

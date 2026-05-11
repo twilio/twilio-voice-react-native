@@ -1,0 +1,6 @@
+type("development")
+username(ENV["FASTLANE_MATCH_USERNAME"])
+
+storage_mode("google_cloud")
+google_cloud_bucket_name(ENV["GOOGLE_CLOUD_BUCKET_NAME"])
+google_cloud_project_id(ENV["GOOGLE_CLOUD_PROJECT_ID"])

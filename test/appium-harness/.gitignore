@@ -48,3 +48,10 @@ app-example
 ##
 /secrets.json
 /google-services.json
+/fastlane/gc_keys.json
+
+##
+# Fastlane
+##
+/fastlane/README.md
+/fastlane/report.xml
