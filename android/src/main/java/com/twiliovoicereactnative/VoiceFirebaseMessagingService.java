@@ -1,10 +1,13 @@
 package com.twiliovoicereactnative;
 
+import static com.twiliovoicereactnative.VoiceApplicationProxy.getApplicationContext;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.PowerManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,7 +34,15 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
       final CallRecord callRecord = new CallRecord(UUID.randomUUID(), callInvite);
 
       getCallRecordDatabase().add(callRecord);
-      getVoiceServiceApi().incomingCall(callRecord);
+
+      // Route through startService so VoiceService enters the "started" state,
+      // which is what causes onTaskRemoved to fire when the user swipes the app away.
+      final Context context = getApplicationContext();
+      context.startService(VoiceService.constructMessage(
+        context,
+        Constants.ACTION_INCOMING_CALL,
+        VoiceService.class,
+        callRecord.getUuid()));
     }
 
     @Override
@@ -39,8 +50,13 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
                                       @Nullable CallException callException) {
       logger.log(String.format("onCancelledCallInvite %s", cancelledCallInvite.getCallSid()));
 
-      CallRecord callRecord = Objects.requireNonNull(
-        getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid())));
+      CallRecord callRecord =
+        getCallRecordDatabase().remove(new CallRecord(cancelledCallInvite.getCallSid()));
+
+      if (null == callRecord) {
+        logger.log("No matching call record for cancelled invite; already reaped on task removal");
+        return;
+      }
 
       callRecord.setCancelledCallInvite(cancelledCallInvite);
       callRecord.setCallException(callException);

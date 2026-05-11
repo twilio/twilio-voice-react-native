@@ -58,6 +58,8 @@ import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -121,9 +123,22 @@ public class VoiceService extends Service {
         case ACTION_CANCEL_CALL:
           cancelCall(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
           break;
-        case ACTION_CALL_DISCONNECT:
-          disconnect(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
+        case ACTION_CALL_DISCONNECT: {
+          UUID uuid = Objects.requireNonNull(getMessageUUID(intent));
+          CallRecordDatabase.CallRecord record =
+            getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(uuid));
+          if (null == record) {
+            // Process was killed after the call was answered (e.g. OEM battery killer, OOM).
+            // The Call object is gone and the socket is closed, so there's nothing left to
+            // disconnect — just clear the stale notification so the user isn't stuck with it.
+            logger.warning("Disconnect for unknown call, clearing stale notification");
+            removeForegroundNotification();
+            stopSelf();
+          } else {
+            disconnect(record);
+          }
           break;
+        }
         case ACTION_RAISE_OUTGOING_CALL_NOTIFICATION:
           raiseOutgoingCallNotification(getCallRecord(Objects.requireNonNull(getMessageUUID(intent))));
           break;
@@ -148,6 +163,25 @@ public class VoiceService extends Service {
   @Override
   public IBinder onBind(Intent intent) {
     return new VoiceServiceAPI();
+  }
+
+  @Override
+  public void onTaskRemoved(Intent rootIntent) {
+    logger.debug("onTaskRemoved: rejecting active incoming invites");
+    List<CallRecordDatabase.CallRecord> snapshot =
+      new ArrayList<>(getCallRecordDatabase().getCollection());
+    for (CallRecordDatabase.CallRecord callRecord : snapshot) {
+      if (CallRecordDatabase.CallRecord.CallInviteState.ACTIVE != callRecord.getCallInviteState()) {
+        continue;
+      }
+      try {
+        rejectCall(callRecord);
+      } catch (Exception e) {
+        logger.warning(e, "Failed to reject invite during task removal");
+        removeNotification(callRecord.getNotificationId());
+      }
+    }
+    super.onTaskRemoved(rootIntent);
   }
   public static Intent constructMessage(@NonNull Context context,
                                         @NonNull final String action,
