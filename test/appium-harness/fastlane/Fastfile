@@ -90,10 +90,13 @@ platform :ios do
   end
 
   desc "Build the appium harness IPA locally using Xcode automatic signing (no match)"
-  lane :build_harness_ipa_local do
+  lane :build_harness_ipa_local do |options|
     require_env!(["FASTLANE_MATCH_TEAM_ID"])
 
     workspace, scheme = resolve_workspace_and_scheme
+
+    xcargs = ["-allowProvisioningUpdates"]
+    xcargs << "ENABLE_USER_SCRIPT_SANDBOXING=NO" if options[:disableUserScriptSandboxing]
 
     build_app(
       workspace: workspace,
@@ -103,7 +106,7 @@ platform :ios do
       output_directory: File.join(harness_dir, "build"),
       output_name: "appium-harness.ipa",
       clean: true,
-      xcargs: "-allowProvisioningUpdates ENABLE_USER_SCRIPT_SANDBOXING=NO",
+      xcargs: xcargs.join(" "),
       export_options: {
         signingStyle: "automatic",
         teamID: ENV["FASTLANE_MATCH_TEAM_ID"],
