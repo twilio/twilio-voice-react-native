@@ -48,7 +48,7 @@
   ],
   "repository": "https://github.com/twilio/twilio-voice-react-native",
   "author": "Michael Huynh <mhuynh@twilio.com> (https://github.com/twilio)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/twilio/twilio-voice-react-native/issues"
   },
