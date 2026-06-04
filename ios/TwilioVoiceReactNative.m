@@ -926,13 +926,19 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
+    self.iceServers = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceServers];
+    self.iceTransportPolicy = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
+
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:uuid]
                 completion:^(BOOL success, NSError *error) {
+        self.iceServers = nil;
+        self.iceTransportPolicy = nil;
+
         if (!success) {
             [self rejectPromiseWithCode:resolver code:@(error.code) message:error.localizedDescription];
             return;
         }
-        
+
         for (NSString *uuidKey in [self.callMap allKeys]) {
             if ([uuidKey isEqualToString:uuid]) {
                 TVOCall *call = self.callMap[uuidKey];
@@ -940,7 +946,7 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)uuid
                 return;
             }
         }
-        
+
         NSString *errorMessage = @"No matching call";
         [self rejectPromiseWithName:resolver name:kTwilioVoiceReactNativeErrorCodeInvalidStateError message:errorMessage];
     }];

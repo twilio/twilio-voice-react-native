@@ -174,7 +174,74 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void callInvite_accept(String uuid, ReadableMap options, Promise promise) {
-    this.moduleProxy.callInvite.accept(uuid, new PromiseAdapter(promise));
+    final ModuleProxy.UniversalPromise uPromise = new PromiseAdapter(promise);
+
+    final Set<IceServer> iceServers = new HashSet<>();
+
+    final ReadableArray jsIceServers = Optional
+      .ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers))
+      .orElse(Arguments.createArray());
+
+    for (int i = 0; i < jsIceServers.size(); i++) {
+      final ReadableMap jsIceServer = Optional
+        .ofNullable(jsIceServers.getMap(i))
+        .orElse(Arguments.createMap());
+
+      final String serverUrl =
+        jsIceServer.hasKey(CommonConstants.IceServerKeyServerUrl)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyServerUrl)
+        : null;
+
+      final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)
+        : null;
+
+      final String password = jsIceServer.hasKey(CommonConstants.IceServerKeyPassword)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyPassword)
+        : null;
+
+      if (serverUrl == null) {
+        uPromise.rejectWithName(
+          CommonConstants.ErrorCodeInvalidArgumentError,
+          "Server URL must be a non-null string."
+        );
+        return;
+      }
+
+      if (username != null && password != null) {
+        iceServers.add(new IceServer(serverUrl, username, password));
+      } else {
+        iceServers.add(new IceServer(serverUrl));
+      }
+    }
+
+    final String parsedJsIceTransportPolicy = Optional
+      .ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy))
+      .orElse("");
+
+    final IceTransportPolicy iceTransportPolicy = switch (parsedJsIceTransportPolicy) {
+      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+      default -> null;
+    };
+
+    IceOptions iceOptions = null;
+
+    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
+      final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+
+      if (!iceServers.isEmpty()) {
+        iceOptionsBuilder.iceServers(iceServers);
+      }
+
+      if (iceTransportPolicy != null) {
+        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+      }
+
+      iceOptions = iceOptionsBuilder.build();
+    }
+
+    this.moduleProxy.callInvite.accept(uuid, iceOptions, uPromise);
   }
 
   @ReactMethod

@@ -56,6 +56,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
 import com.twilio.voice.ConnectOptions;
+import com.twilio.voice.IceOptions;
 import com.twilio.voice.Voice;
 
 import java.util.Objects;
@@ -234,10 +235,16 @@ public class VoiceService extends Service {
     VoiceApplicationProxy.getMediaPlayerManager().stop();
 
     // accept call
-    AcceptOptions acceptOptions = new AcceptOptions.Builder()
+    final AcceptOptions.Builder acceptOptionsBuilder = new AcceptOptions.Builder()
       .enableDscp(true)
-      .callMessageListener(new CallMessageListenerProxy())
-      .build();
+      .callMessageListener(new CallMessageListenerProxy());
+
+    final IceOptions iceOptions = callRecord.getIceOptions();
+    if (iceOptions != null) {
+      acceptOptionsBuilder.iceOptions(iceOptions);
+    }
+
+    AcceptOptions acceptOptions = acceptOptionsBuilder.build();
 
     callRecord.setCall(
       callRecord.getCallInvite().accept(

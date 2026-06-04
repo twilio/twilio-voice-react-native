@@ -20,11 +20,16 @@ import type {
   NativeCallInviteMessageReceivedEvent,
 } from './type/CallInvite';
 import type { CustomParameters, Uuid } from './type/common';
+import type { IceServer, IceTransportPolicy } from './type/Ice';
 import { CallMessage, validateCallMessage } from './CallMessage/CallMessage';
 import { IncomingCallMessage } from './CallMessage/IncomingCallMessage';
 import { OutgoingCallMessage } from './CallMessage/OutgoingCallMessage';
 import { Constants } from './constants';
 import { settleNativePromise } from './utility/nativePromise';
+import {
+  validateIceServers,
+  validateIceTransportPolicy,
+} from './utility/preflightTestOptions';
 
 /**
  * Defines strict typings for all events emitted by {@link (CallInvite:class)
@@ -450,6 +455,18 @@ export class CallInvite extends EventEmitter {
       );
     }
 
+    const { iceServers, iceTransportPolicy } = options;
+
+    if (typeof iceServers !== 'undefined') {
+      const result = validateIceServers(iceServers);
+      if (result.status === 'error') throw result.error;
+    }
+
+    if (typeof iceTransportPolicy !== 'undefined') {
+      const result = validateIceTransportPolicy(iceTransportPolicy);
+      if (result.status === 'error') throw result.error;
+    }
+
     const callInfo = await settleNativePromise(
       NativeModule.callInvite_accept(this._uuid, options)
     );
@@ -638,7 +655,16 @@ export namespace CallInvite {
   /**
    * Options to pass to the native layer when accepting the call.
    */
-  export interface AcceptOptions {}
+  export interface AcceptOptions {
+    /**
+     * Array of ICE servers to use for the accepted Call.
+     */
+    iceServers?: IceServer[];
+    /**
+     * The ICE transport policy to use for the accepted Call.
+     */
+    iceTransportPolicy?: IceTransportPolicy;
+  }
 
   /**
    * An enumeration of {@link (CallInvite:class)} states.
