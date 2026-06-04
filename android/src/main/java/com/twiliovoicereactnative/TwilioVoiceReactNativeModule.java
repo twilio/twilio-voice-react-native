@@ -178,9 +178,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
     final Set<IceServer> iceServers = new HashSet<>();
 
-    final ReadableArray jsIceServers = Optional
-      .ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers))
-      .orElse(Arguments.createArray());
+    final ReadableArray jsIceServers = options.hasKey(CommonConstants.CallOptionsKeyIceServers)
+      ? Optional.ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers)).orElse(Arguments.createArray())
+      : Arguments.createArray();
 
     for (int i = 0; i < jsIceServers.size(); i++) {
       final ReadableMap jsIceServer = Optional
@@ -215,9 +215,9 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       }
     }
 
-    final String parsedJsIceTransportPolicy = Optional
-      .ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy))
-      .orElse("");
+    final String parsedJsIceTransportPolicy = options.hasKey(CommonConstants.CallOptionsKeyIceTransportPolicy)
+      ? Optional.ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy)).orElse("")
+      : "";
 
     final IceTransportPolicy iceTransportPolicy = switch (parsedJsIceTransportPolicy) {
       case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
