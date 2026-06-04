@@ -664,7 +664,6 @@ export namespace CallInvite {
      * The ICE transport policy to use for the accepted Call.
      */
     iceTransportPolicy?: IceTransportPolicy;
-    [key: string]: unknown;
   }
 
   /**
