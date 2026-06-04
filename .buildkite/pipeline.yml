@@ -1,0 +1,3 @@
+steps:
+  - label: ":white_check_mark: Smoke test"
+    command: 'echo "BUILDKITE OK — config was pulled and executed successfully"'
