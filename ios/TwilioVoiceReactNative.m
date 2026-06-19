@@ -83,6 +83,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         _callInviteMap = [NSMutableDictionary dictionary];
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
         _audioDevices = [NSMutableDictionary dictionary];
+        _iceServersMap = [NSMutableDictionary dictionary];
+        _iceTransportPolicyMap = [NSMutableDictionary dictionary];
 
         NSString *reactNativeSDK = kTwilioVoiceReactNativeReactNativeVoiceSDK;
         setenv("global-env-sdk", [reactNativeSDK UTF8String], 1);
@@ -926,13 +928,20 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    self.iceServers = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceServers];
-    self.iceTransportPolicy = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
+    NSArray<NSDictionary *> *iceServers = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceServers];
+    NSString *iceTransportPolicy = acceptOptions[kTwilioVoiceReactNativeCallOptionsKeyIceTransportPolicy];
+
+    if (iceServers) {
+        self.iceServersMap[uuid] = iceServers;
+    }
+    if (iceTransportPolicy) {
+        self.iceTransportPolicyMap[uuid] = iceTransportPolicy;
+    }
 
     [self answerCallInvite:[[NSUUID alloc] initWithUUIDString:uuid]
                 completion:^(BOOL success, NSError *error) {
-        self.iceServers = nil;
-        self.iceTransportPolicy = nil;
+        [self.iceServersMap removeObjectForKey:uuid];
+        [self.iceTransportPolicyMap removeObjectForKey:uuid];
 
         if (!success) {
             [self rejectPromiseWithCode:resolver code:@(error.code) message:error.localizedDescription];

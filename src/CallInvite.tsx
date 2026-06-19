@@ -29,7 +29,7 @@ import { settleNativePromise } from './utility/nativePromise';
 import {
   validateIceServers,
   validateIceTransportPolicy,
-} from './utility/preflightTestOptions';
+} from './utility/IceOptions';
 
 /**
  * Defines strict typings for all events emitted by {@link (CallInvite:class)

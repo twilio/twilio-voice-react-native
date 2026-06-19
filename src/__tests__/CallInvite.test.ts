@@ -17,7 +17,7 @@ import { Constants } from '../constants';
 import { InvalidArgumentError } from '../error';
 import { IceTransportPolicy } from '../type/Ice';
 import type { NativeCallInviteEvent } from '../type/CallInvite';
-import * as PreflightTestOptionsModule from '../utility/preflightTestOptions';
+import * as IceOptionsModule from '../utility/IceOptions';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -356,11 +356,11 @@ describe('CallInvite class', () => {
   describe('.accept() ICE options', () => {
     it('invokes ICE validators when options are provided', async () => {
       const validateIceServersSpy = jest.spyOn(
-        PreflightTestOptionsModule,
+        IceOptionsModule,
         'validateIceServers'
       );
       const validateIceTransportPolicySpy = jest.spyOn(
-        PreflightTestOptionsModule,
+        IceOptionsModule,
         'validateIceTransportPolicy'
       );
 
@@ -390,7 +390,7 @@ describe('CallInvite class', () => {
       );
 
       jest
-        .spyOn(PreflightTestOptionsModule, 'validateIceServers')
+        .spyOn(IceOptionsModule, 'validateIceServers')
         .mockReturnValueOnce({ status: 'error', error: validationError } as any);
 
       await expect(
@@ -407,7 +407,7 @@ describe('CallInvite class', () => {
       );
 
       jest
-        .spyOn(PreflightTestOptionsModule, 'validateIceTransportPolicy')
+        .spyOn(IceOptionsModule, 'validateIceTransportPolicy')
         .mockReturnValueOnce({ status: 'error', error: validationError } as any);
 
       await expect(
@@ -445,11 +445,11 @@ describe('CallInvite class', () => {
 
     it('does not invoke ICE validators when no ICE options are provided', async () => {
       const validateIceServersSpy = jest.spyOn(
-        PreflightTestOptionsModule,
+        IceOptionsModule,
         'validateIceServers'
       );
       const validateIceTransportPolicySpy = jest.spyOn(
-        PreflightTestOptionsModule,
+        IceOptionsModule,
         'validateIceTransportPolicy'
       );
 
