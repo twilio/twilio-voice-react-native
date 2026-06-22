@@ -1,3 +1,18 @@
+2.0.0-preview.3 (In Progress)
+=============================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed a crash that could occur when an incoming call invite was active and the user swiped the app away from the recent apps (multitasking) view. The SDK now rejects any pending invites and clears their notifications and ringer when the app's task is removed.
+
+- Fixed a `NullPointerException` when a cancelled call invite was received after its call record had already been cleaned up (for example, after the app was swiped away). The cancellation is now handled gracefully.
+
+- Fixed a `NullPointerException` when a disconnect was requested for a call whose process had already been killed (for example, by an OEM battery optimizer or under memory pressure). The SDK now clears the stale notification instead of crashing.
+
 2.0.0-preview.2 (April 29, 2026)
 ================================
 
