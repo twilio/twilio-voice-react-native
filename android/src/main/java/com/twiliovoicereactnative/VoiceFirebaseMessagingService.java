@@ -1,6 +1,5 @@
 package com.twiliovoicereactnative;
 
-import static com.twiliovoicereactnative.VoiceApplicationProxy.getApplicationContext;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getCallRecordDatabase;
 import static com.twiliovoicereactnative.VoiceApplicationProxy.getVoiceServiceApi;
 
@@ -37,7 +36,7 @@ public class VoiceFirebaseMessagingService extends FirebaseMessagingService {
 
       // Route through startService so VoiceService enters the "started" state,
       // which is what causes onTaskRemoved to fire when the user swipes the app away.
-      final Context context = getApplicationContext();
+      final Context context = VoiceApplicationProxy.getApplicationContext();
       context.startService(VoiceService.constructMessage(
         context,
         Constants.ACTION_INCOMING_CALL,
