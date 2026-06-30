@@ -105,11 +105,32 @@ public class VoiceService extends Service {
     if (null == intent) {
       return START_NOT_STICKY;
     }
-    final String action = Objects.requireNonNull(intent.getAction());
+
+    final int notificationId = getMessageNotificationId(intent);
+
+    final String action = intent.getAction();
+    if (null == action) {
+      logger.warning("intent action null");
+      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
+        logger.warning("notificationId detected, attempting to remove notification");
+        removeNotification(notificationId);
+      }
+      return START_NOT_STICKY;
+    }
 
     // Actions that do not operate on a specific call record are handled before the lookup below.
     if (ACTION_PUSH_APP_TO_FOREGROUND.equals(action)) {
       logger.warning("VoiceService received foreground request, ignoring");
+      return START_NOT_STICKY;
+    }
+
+    final UUID messageUUID = getMessageUUID(intent);
+    if (null == messageUUID) {
+      logger.warning("message uuid null");
+      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
+        logger.warning("notificationId detected, attempting to remove notification");
+        removeNotification(notificationId);
+      }
       return START_NOT_STICKY;
     }
 
@@ -119,23 +140,26 @@ public class VoiceService extends Service {
     // ignore the intent if it no longer exists rather than throwing a null-pointer exception
     // further down. This is the single guard that protects every action handler.
     final CallRecordDatabase.CallRecord callRecord =
-      getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(getMessageUUID(intent)));
+      getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(messageUUID));
+
     if (null == callRecord) {
       logger.warning("No call record found for action \"" + action + "\", ignoring");
       // The call invite is gone (settled/cancelled, or the process was restarted and the in-memory
       // database was lost), but its incoming-call notification may still be showing. Dismiss it
       // using the id carried on the intent so a stale accept/reject button does not linger forever.
-      final int notificationId = getMessageNotificationId(intent);
       if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
+        logger.warning("notificationId detected, attempting to remove notification");
         removeNotification(notificationId);
       }
       return START_NOT_STICKY;
     }
 
     switch (action) {
-      case ACTION_INCOMING_CALL:
+      case ACTION_INCOMING_CALL: {
+        logger.warning("Incoming call intent received. This should not happen!");
         incomingCall(callRecord);
         break;
+      }
       case ACTION_ACCEPT_CALL:
         try {
           acceptCall(callRecord);
