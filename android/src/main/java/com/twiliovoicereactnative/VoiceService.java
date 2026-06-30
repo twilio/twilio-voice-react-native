@@ -181,6 +181,7 @@ public class VoiceService extends Service {
         break;
       default:
         logger.log("Unknown notification, ignoring");
+        removeNotificationIfPresent(notificationId);
         break;
     }
     return START_NOT_STICKY;
@@ -413,7 +414,7 @@ public class VoiceService extends Service {
     // database was lost to process death), but its incoming-call notification may still be showing.
     // Dismiss it using the id carried on the intent so a stale accept/reject button does not linger.
     if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
-      logger.warning("notificationId detected, attempting to remove notification");
+      logger.debug("removeNotificationIfPresent: notificationId detected, attempting to remove notification");
       removeNotification(notificationId);
     }
   }

@@ -80,10 +80,11 @@ public class VoiceActivityProxy {
     if ((null != action) && (!action.equals(Constants.ACTION_PUSH_APP_TO_FOREGROUND))) {
       // Accept is delivered as an activity PendingIntent (it must foreground the in-call UI, which a
       // service can no longer launch on Android 12+), so the only way it reaches VoiceService is by
-      // being forwarded here. The Intent(Intent) copy constructor deep-copies the extras bundle, so
-      // MSG_KEY_NOTIFICATION_ID survives onto the service intent; setFlags(0) only resets the launch
-      // flags, not the extras. That is what lets VoiceService dismiss a stale incoming-call
-      // notification after process death even though accept never targets the service directly.
+      // being forwarded here. The Intent(Intent) copy constructor clones the intent (the same as
+      // Intent.clone()), giving the copy its own extras bundle, so MSG_KEY_NOTIFICATION_ID survives
+      // onto the service intent; setFlags(0) only resets the launch flags, not the extras. That is
+      // what lets VoiceService dismiss a stale incoming-call notification after process death even
+      // though accept never targets the service directly.
       Intent copiedIntent = new Intent(intent);
       copiedIntent.setClass(context.getApplicationContext(), VoiceService.class);
       copiedIntent.setFlags(0);
