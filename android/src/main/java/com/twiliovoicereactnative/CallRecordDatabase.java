@@ -22,10 +22,13 @@ class CallRecordDatabase  {
   public static class CallRecord {
     public enum CallInviteState { NONE, ACTIVE, USED }
     public enum Direction { INCOMING, OUTGOING }
+    // Sentinel returned by getNotificationId() when no notification has been raised for this record.
+    // Valid ids produced by NotificationUtility.createNotificationIdentifier() are always >= 1.
+    public static final int INVALID_NOTIFICATION_ID = -1;
     private final UUID uuid;
     private String callSid = null;
     private Date timestamp = null;
-    private int notificationId = -1;
+    private int notificationId = INVALID_NOTIFICATION_ID;
     private Call voiceCall = null;
     private String callRecipient = "";
     private CallInvite callInvite = null;
