@@ -163,6 +163,10 @@ class NotificationUtility {
     rejectIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
     PendingIntent piRejectIntent = constructPendingIntentForService(context, rejectIntent);
 
+    // Unlike reject, accept targets the main activity (not VoiceService) because accepting must
+    // bring the in-call UI to the foreground, which a service cannot do on Android 12+. The activity
+    // forwards this intent to VoiceService in VoiceActivityProxy.handleIntent, preserving the
+    // notification-id extra so the service can still dismiss a stale notification after process death.
     Intent acceptIntent = constructMessage(
       context,
       Constants.ACTION_ACCEPT_CALL,
