@@ -111,10 +111,7 @@ public class VoiceService extends Service {
     final String action = intent.getAction();
     if (null == action) {
       logger.warning("intent action null");
-      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
-        logger.warning("notificationId detected, attempting to remove notification");
-        removeNotification(notificationId);
-      }
+      removeNotificationIfPresent(notificationId);
       return START_NOT_STICKY;
     }
 
@@ -127,10 +124,7 @@ public class VoiceService extends Service {
     final UUID messageUUID = getMessageUUID(intent);
     if (null == messageUUID) {
       logger.warning("message uuid null");
-      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
-        logger.warning("notificationId detected, attempting to remove notification");
-        removeNotification(notificationId);
-      }
+      removeNotificationIfPresent(notificationId);
       return START_NOT_STICKY;
     }
 
@@ -144,19 +138,18 @@ public class VoiceService extends Service {
 
     if (null == callRecord) {
       logger.warning("No call record found for action \"" + action + "\", ignoring");
-      // The call invite is gone (settled/cancelled, or the process was restarted and the in-memory
-      // database was lost), but its incoming-call notification may still be showing. Dismiss it
-      // using the id carried on the intent so a stale accept/reject button does not linger forever.
-      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
-        logger.warning("notificationId detected, attempting to remove notification");
-        removeNotification(notificationId);
-      }
+      removeNotificationIfPresent(notificationId);
       return START_NOT_STICKY;
     }
 
     switch (action) {
       case ACTION_INCOMING_CALL: {
-        logger.warning("Incoming call intent received. This should not happen!");
+        // Incoming calls are raised internally via the binder API, not delivered to onStartCommand,
+        // so reaching here means an ACTION_INCOMING_CALL intent was dispatched to the service
+        // unexpectedly. Log the identifiers so the originating call can be traced.
+        logger.warning(String.format(
+          "Unexpected ACTION_INCOMING_CALL intent for callSid=%s, uuid=%s",
+          callRecord.getCallSid(), callRecord.getUuid()));
         incomingCall(callRecord);
         break;
       }
@@ -414,6 +407,15 @@ public class VoiceService extends Service {
     NotificationManager mNotificationManager =
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.cancel(notificationId);
+  }
+  private void removeNotificationIfPresent(final int notificationId) {
+    // The intent did not resolve to a live call record (bad/duplicate intent, or the in-memory
+    // database was lost to process death), but its incoming-call notification may still be showing.
+    // Dismiss it using the id carried on the intent so a stale accept/reject button does not linger.
+    if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
+      logger.warning("notificationId detected, attempting to remove notification");
+      removeNotification(notificationId);
+    }
   }
   private void removeForegroundNotification() {
     logger.debug("removeForegroundNotification");
