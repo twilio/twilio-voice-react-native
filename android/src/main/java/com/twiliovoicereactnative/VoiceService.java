@@ -119,7 +119,10 @@ public class VoiceService extends Service {
     if (null == action || null == messageUUID || null == callRecord) {
       logger.warning(
         "Ignoring intent; missing action, uuid, or call record. action=" + action + ", uuid=" + messageUUID);
-      removeNotificationIfPresent(notificationId);
+      // Dismiss the orphaned notification so a stale accept/reject button does not linger.
+      if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
+        removeNotification(notificationId);
+      }
       return START_NOT_STICKY;
     }
 
@@ -390,13 +393,6 @@ public class VoiceService extends Service {
     NotificationManager mNotificationManager =
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.cancel(notificationId);
-  }
-  private void removeNotificationIfPresent(final int notificationId) {
-    // Dismiss the orphaned notification so a stale accept/reject button does not linger.
-    if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
-      logger.debug("removeNotificationIfPresent: notificationId detected, attempting to remove notification");
-      removeNotification(notificationId);
-    }
   }
   private void removeForegroundNotification() {
     logger.debug("removeForegroundNotification");
