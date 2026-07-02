@@ -115,7 +115,6 @@ public class VoiceService extends Service {
       return START_NOT_STICKY;
     }
 
-    // Actions that do not operate on a specific call record are handled before the lookup below.
     if (ACTION_PUSH_APP_TO_FOREGROUND.equals(action)) {
       logger.warning("VoiceService received foreground request, ignoring");
       return START_NOT_STICKY;
@@ -128,11 +127,8 @@ public class VoiceService extends Service {
       return START_NOT_STICKY;
     }
 
-    // Every remaining action operates on a call record identified by the intent's UUID. By the
-    // time a notification action (e.g. accept/reject) is delivered, that call invite may have
-    // already been settled or evicted from the database, so look the record up tolerantly here and
-    // ignore the intent if it no longer exists rather than throwing a null-pointer exception
-    // further down. This is the single guard that protects every action handler.
+    // The record for this UUID may be settled or evicted before the action is delivered; bail out
+    // here instead of throwing a null pointer exception downstream. Single guard for every action handler below.
     final CallRecordDatabase.CallRecord callRecord =
       getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(messageUUID));
 
@@ -144,9 +140,7 @@ public class VoiceService extends Service {
 
     switch (action) {
       case ACTION_INCOMING_CALL: {
-        // Incoming calls are raised internally via the binder API, not delivered to onStartCommand,
-        // so reaching here means an ACTION_INCOMING_CALL intent was dispatched to the service
-        // unexpectedly. Log the identifiers so the originating call can be traced.
+        // Incoming calls arrive via the binder API, not onStartCommand; reaching here is unexpected.
         logger.warning(String.format(
           "Unexpected ACTION_INCOMING_CALL intent for callSid=%s, uuid=%s",
           callRecord.getCallSid(), callRecord.getUuid()));
@@ -410,9 +404,7 @@ public class VoiceService extends Service {
     mNotificationManager.cancel(notificationId);
   }
   private void removeNotificationIfPresent(final int notificationId) {
-    // The intent did not resolve to a live call record (bad/duplicate intent, or the in-memory
-    // database was lost to process death), but its incoming-call notification may still be showing.
-    // Dismiss it using the id carried on the intent so a stale accept/reject button does not linger.
+    // Dismiss the orphaned notification so a stale accept/reject button does not linger.
     if (CallRecordDatabase.CallRecord.INVALID_NOTIFICATION_ID != notificationId) {
       logger.debug("removeNotificationIfPresent: notificationId detected, attempting to remove notification");
       removeNotification(notificationId);
