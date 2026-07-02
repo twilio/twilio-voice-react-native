@@ -128,10 +128,13 @@ public class VoiceService extends Service {
 
     switch (action) {
       case ACTION_INCOMING_CALL: {
-        // Incoming calls arrive via the binder API, not onStartCommand; reaching here is unexpected.
+        // Incoming calls arrive via the binder API, not onStartCommand
+        // reaching here is unexpected.
         logger.warning(String.format(
           "Unexpected ACTION_INCOMING_CALL intent for callSid=%s, uuid=%s",
           callRecord.getCallSid(), callRecord.getUuid()));
+        // we still handle the incoming call here just in case; we don't want
+        // to introduce a breaking behavior
         incomingCall(callRecord);
         break;
       }
