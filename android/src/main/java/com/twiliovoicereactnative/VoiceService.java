@@ -107,33 +107,18 @@ public class VoiceService extends Service {
     }
 
     final int notificationId = getMessageNotificationId(intent);
-
     final String action = intent.getAction();
-    if (null == action) {
-      logger.warning("intent action null");
-      removeNotificationIfPresent(notificationId);
-      return START_NOT_STICKY;
-    }
-
-    if (ACTION_PUSH_APP_TO_FOREGROUND.equals(action)) {
-      logger.warning("VoiceService received foreground request, ignoring");
-      return START_NOT_STICKY;
-    }
-
     final UUID messageUUID = getMessageUUID(intent);
-    if (null == messageUUID) {
-      logger.warning("message uuid null");
-      removeNotificationIfPresent(notificationId);
-      return START_NOT_STICKY;
-    }
+    final CallRecordDatabase.CallRecord callRecord = (null == messageUUID)
+      ? null
+      : getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(messageUUID));
 
-    // The record for this UUID may be settled or evicted before the action is delivered; bail out
-    // here instead of throwing a null pointer exception downstream. Single guard for every action handler below.
-    final CallRecordDatabase.CallRecord callRecord =
-      getCallRecordDatabase().get(new CallRecordDatabase.CallRecord(messageUUID));
-
-    if (null == callRecord) {
-      logger.warning("No call record found for action \"" + action + "\", ignoring");
+    // A notification action (for example accept or reject) can arrive with a null action or uuid, or
+    // after its call record has been settled or evicted. Guard all three together and bail out here,
+    // dismissing any stale notification, rather than throwing a null pointer exception in a handler below.
+    if (null == action || null == messageUUID || null == callRecord) {
+      logger.warning(
+        "Ignoring intent; missing action, uuid, or call record. action=" + action + ", uuid=" + messageUUID);
       removeNotificationIfPresent(notificationId);
       return START_NOT_STICKY;
     }
@@ -173,9 +158,12 @@ public class VoiceService extends Service {
       case ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION:
         foregroundAndDeprioritizeIncomingCallNotification(callRecord);
         break;
+      case ACTION_PUSH_APP_TO_FOREGROUND:
+        // Normally consumed by VoiceActivityProxy and never forwarded to the service; ignore if it is.
+        logger.warning("VoiceService received foreground request, ignoring");
+        break;
       default:
         logger.log("Unknown notification, ignoring");
-        removeNotificationIfPresent(notificationId);
         break;
     }
     return START_NOT_STICKY;
