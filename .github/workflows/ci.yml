@@ -34,4 +34,12 @@ jobs:
 
       - run: yarn install --immutable
 
+      - run: yarn --cwd test/app install --immutable
+
+      - run: yarn --cwd test/expo install --immutable
+
+      - run: yarn --cwd test/appium-harness install --immutable
+
+      - run: yarn --cwd test/appium-orchestrator install --immutable
+
       - run: yarn run check
