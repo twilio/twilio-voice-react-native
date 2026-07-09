@@ -8,9 +8,6 @@ permissions:
   id-token: write
 env:
   ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-  # Route Corepack's own package-manager download (Yarn 4) through Artifactory
-  # instead of the default registry.npmjs.org.
-  COREPACK_NPM_REGISTRY: ${{ vars.ARTIFACTORY_URL }}/artifactory/api/npm/virtual-npm-thirdparty
 
 jobs:
   test:
@@ -34,5 +31,7 @@ jobs:
         with:
           node-version: "22.13"
           cache: yarn
+
+      - run: yarn install --immutable
 
       - run: yarn run check
