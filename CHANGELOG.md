@@ -1,14 +1,3 @@
-2.0.0-preview.3 (In Progress)
-=============================
-
-## Fixes
-
-### Platform Specific Fixes
-
-#### Android
-
-- Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
-
 2.0.0-preview.2 (April 29, 2026)
 ================================
 
