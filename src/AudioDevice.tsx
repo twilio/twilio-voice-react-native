@@ -53,6 +53,12 @@ export class AudioDevice {
    * {@link (AudioDevice:namespace).Type}, for example due to OS updates introducing
    * new device categories. This field is provided as an escape hatch for those cases
    * and its value is not guaranteed to be stable across native SDK or OS versions.
+   *
+   * On iOS platforms, these values correlate to the Apple-defined
+   * `AVAudioSessionPort` constant.
+   *
+   * On Android platforms, these values correlate to the class names found in the
+   * Twilio AudioSwitch library.
    */
   nativeType: string;
 

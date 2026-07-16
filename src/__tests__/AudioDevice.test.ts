@@ -20,6 +20,14 @@ describe('AudioDevice class', () => {
       it('contains the type of the AudioDevice', () => {
         expect(audioDevice.type).toBe(createNativeAudioDeviceInfo().type);
       });
+
+      it('round-trips AudioDevice.Type.Unknown through construction', () => {
+        const unknownAudioDevice = new AudioDevice({
+          ...createNativeAudioDeviceInfo(),
+          type: AudioDevice.Type.Unknown,
+        });
+        expect(unknownAudioDevice.type).toBe(AudioDevice.Type.Unknown);
+      });
     });
 
     describe('.nativeType', () => {

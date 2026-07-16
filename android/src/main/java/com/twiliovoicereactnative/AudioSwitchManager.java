@@ -54,6 +54,30 @@ class AudioSwitchManager {
   }
 
   /**
+   * Maps an AudioDevice to a string describing its native, unprocessed type, for the same
+   * `instanceof`-over-reflection reason as {@link #getAudioDeviceType}.
+   */
+  public static String getAudioDeviceNativeType(AudioDevice audioDevice) {
+    if (audioDevice instanceof AudioDevice.Speakerphone) {
+      return "Speakerphone";
+    } else if (audioDevice instanceof AudioDevice.BluetoothHeadset) {
+      return "BluetoothHeadset";
+    } else if (audioDevice instanceof AudioDevice.WiredHeadset) {
+      return "WiredHeadset";
+    } else if (audioDevice instanceof AudioDevice.Earpiece) {
+      return "Earpiece";
+    } else {
+      // AudioDevice is a sealed class with only the four subclasses handled above, so this
+      // branch is currently unreachable. It only becomes reachable if a future AudioSwitch
+      // release adds a new subclass and this method isn't updated to match before the
+      // dependency is bumped. See VBLOCKS-6942. In that case, falling back to reflection here
+      // remains subject to renaming by code shrinkers such as R8 in a consuming app's release
+      // build.
+      return audioDevice.getClass().getSimpleName();
+    }
+  }
+
+  /**
    * Map of UUIDs to all available AudioDevices. Kept up-to-date by the AudioSwitch.
    */
   private final HashMap<String, AudioDevice> audioDevices;

@@ -314,6 +314,19 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
             NSLog(@"Bluetooth device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
             return NO;
         }
+    } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyUnknown]) {
+        NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+        for (AVAudioSessionPortDescription *port in availableInputs) {
+            if ([port.UID isEqualToString:portUid]) {
+                portDescription = port;
+                break;
+            }
+        }
+
+        if (!portDescription) {
+            NSLog(@"Unknown device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
+            return NO;
+        }
     }
 
     // Update preferred input
