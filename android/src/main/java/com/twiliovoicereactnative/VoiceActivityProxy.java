@@ -78,8 +78,6 @@ public class VoiceActivityProxy {
   private void handleIntent(Intent intent) {
     String action = intent.getAction();
     if ((null != action) && (!action.equals(Constants.ACTION_PUSH_APP_TO_FOREGROUND))) {
-      // Accept is an activity PendingIntent, so forwarding is its only path to VoiceService. The
-      // copy constructor preserves extras (including the notification id); setFlags(0) resets flags only.
       Intent copiedIntent = new Intent(intent);
       copiedIntent.setClass(context.getApplicationContext(), VoiceService.class);
       copiedIntent.setFlags(0);

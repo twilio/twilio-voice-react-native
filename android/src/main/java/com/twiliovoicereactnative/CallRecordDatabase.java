@@ -22,13 +22,10 @@ class CallRecordDatabase  {
   public static class CallRecord {
     public enum CallInviteState { NONE, ACTIVE, USED }
     public enum Direction { INCOMING, OUTGOING }
-    // No notification raised
-    // notifications in this library are always assigned a value >= 1.
-    public static final int INVALID_NOTIFICATION_ID = -1;
     private final UUID uuid;
     private String callSid = null;
     private Date timestamp = null;
-    private int notificationId = INVALID_NOTIFICATION_ID;
+    private int notificationId = -1;
     private Call voiceCall = null;
     private String callRecipient = "";
     private CallInvite callInvite = null;
