@@ -12,6 +12,7 @@ import java.util.UUID;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyEarpiece;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySpeaker;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyBluetooth;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUnknown;
 
 import kotlin.Unit;
 
@@ -34,13 +35,23 @@ class AudioSwitchManager {
   }
 
   /**
-   * Audio device type mapping. Normalizes the class name into a string the JS layer expects.
+   * Maps an AudioDevice to the string the JS layer expects. Uses `instanceof` rather than the
+   * class name (e.g. via reflection) because code shrinkers such as R8 can rename AudioSwitch's
+   * classes in a consuming app's release build, and AudioSwitch does not ship a consumer
+   * ProGuard rule that prevents this.
    */
-  public static final Map<String, String> AUDIO_DEVICE_TYPE = Map.of(
-    "Speakerphone", AudioDeviceKeySpeaker,
-    "BluetoothHeadset", AudioDeviceKeyBluetooth,
-    "WiredHeadset", AudioDeviceKeyEarpiece,
-    "Earpiece", AudioDeviceKeyEarpiece);
+  public static String getAudioDeviceType(AudioDevice audioDevice) {
+    if (audioDevice instanceof AudioDevice.Speakerphone) {
+      return AudioDeviceKeySpeaker;
+    } else if (audioDevice instanceof AudioDevice.BluetoothHeadset) {
+      return AudioDeviceKeyBluetooth;
+    } else if (audioDevice instanceof AudioDevice.WiredHeadset
+      || audioDevice instanceof AudioDevice.Earpiece) {
+      return AudioDeviceKeyEarpiece;
+    } else {
+      return AudioDeviceKeyUnknown;
+    }
+  }
 
   /**
    * Map of UUIDs to all available AudioDevices. Kept up-to-date by the AudioSwitch.

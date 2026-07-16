@@ -5,7 +5,6 @@ import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyName;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyNativeType;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySelectedDevice;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyType;
-import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUnknown;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUuid;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoFrom;
 import static com.twiliovoicereactnative.CommonConstants.CallInfoInitialConnectedTimestamp;
@@ -183,7 +182,7 @@ class ReactNativeArgumentsSerializer {
       return constructJSMap(
         new Pair<>(AudioDeviceKeyUuid, uuid),
         new Pair<>(AudioDeviceKeyName, audioDevice.getName()),
-        new Pair<>(AudioDeviceKeyType, AudioSwitchManager.AUDIO_DEVICE_TYPE.getOrDefault(nativeType, AudioDeviceKeyUnknown)),
+        new Pair<>(AudioDeviceKeyType, AudioSwitchManager.getAudioDeviceType(audioDevice)),
         new Pair<>(AudioDeviceKeyNativeType, nativeType));
     }
     return null;
