@@ -34,13 +34,9 @@ export class AudioDevice {
 // @public
 export namespace AudioDevice {
     export enum Type {
-        // (undocumented)
         Bluetooth = "bluetooth",
-        // (undocumented)
         Earpiece = "earpiece",
-        // (undocumented)
         Speaker = "speaker",
-        // (undocumented)
         Unknown = "unknown"
     }
 }

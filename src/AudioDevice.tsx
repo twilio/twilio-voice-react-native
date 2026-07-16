@@ -109,9 +109,29 @@ export namespace AudioDevice {
    * {@link (AudioDevice:class).nativeType} carries the raw, unprocessed value.
    */
   export enum Type {
+    /**
+     * Audio device type representing an earpiece.
+     */
     Earpiece = 'earpiece',
+
+    /**
+     * Audio device type representing a speaker.
+     */
     Speaker = 'speaker',
+
+    /**
+     * Audio device type representing a Bluetooth device.
+     */
     Bluetooth = 'bluetooth',
+
+    /**
+     * Audio device type representing a device that is not recognized as one
+     * of the other well-known {@link (AudioDevice:namespace).Type} values.
+     *
+     * @remarks
+     * See {@link (AudioDevice:class).nativeType} for the raw, unprocessed
+     * device type reported by the native layer in this case.
+     */
     Unknown = 'unknown',
   }
 }
