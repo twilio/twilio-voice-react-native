@@ -20,8 +20,9 @@ export class AudioDevice {
     // Warning: (ae-forgotten-export) The symbol "NativeAudioDeviceInfo" needs to be exported by the entry point index.d.ts
     //
     // @internal
-    constructor({ uuid, type, name }: NativeAudioDeviceInfo);
+    constructor({ uuid, type, nativeType, name }: NativeAudioDeviceInfo);
     name: string;
+    nativeType: string;
     select(): Promise<void>;
     type: AudioDevice.Type;
     // Warning: (ae-forgotten-export) The symbol "Uuid" needs to be exported by the entry point index.d.ts
@@ -38,7 +39,9 @@ export namespace AudioDevice {
         // (undocumented)
         Earpiece = "earpiece",
         // (undocumented)
-        Speaker = "speaker"
+        Speaker = "speaker",
+        // (undocumented)
+        Unknown = "unknown"
     }
 }
 

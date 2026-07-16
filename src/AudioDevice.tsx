@@ -33,8 +33,28 @@ export class AudioDevice {
 
   /**
    * The type of the audio device.
+   *
+   * @remarks
+   * This is a best-effort categorization of {@link (AudioDevice:class).nativeType}
+   * into one of the well-known {@link (AudioDevice:namespace).Type} values. If the
+   * native layer reports a device type that this SDK does not recognize, this will be
+   * {@link (AudioDevice:namespace).Type.Unknown}; see
+   * {@link (AudioDevice:class).nativeType} for the raw, unprocessed value in that
+   * case.
    */
   type: AudioDevice.Type;
+
+  /**
+   * The type of the audio device as reported verbatim by the native layer, without
+   * being mapped to a {@link (AudioDevice:namespace).Type}.
+   *
+   * @remarks
+   * Native platform APIs can report audio device types that are not represented by
+   * {@link (AudioDevice:namespace).Type}, for example due to OS updates introducing
+   * new device categories. This field is provided as an escape hatch for those cases
+   * and its value is not guaranteed to be stable across native SDK or OS versions.
+   */
+  nativeType: string;
 
   /**
    * The name of the audio device.
@@ -47,9 +67,10 @@ export class AudioDevice {
    *
    * @internal
    */
-  constructor({ uuid, type, name }: NativeAudioDeviceInfo) {
+  constructor({ uuid, type, nativeType, name }: NativeAudioDeviceInfo) {
     this.uuid = uuid;
     this.type = type;
+    this.nativeType = nativeType;
     this.name = name;
   }
 
@@ -77,12 +98,20 @@ export class AudioDevice {
  */
 export namespace AudioDevice {
   /**
-   * Audio device type enumeration. Describes all possible audio device types as
-   * reportable by the native layer.
+   * Audio device type enumeration. Describes the well-known audio device types
+   * recognized by this SDK.
+   *
+   * @remarks
+   * The native layer can report device types outside of this enumeration, for
+   * example due to OS updates introducing new device categories. In those cases,
+   * the {@link (AudioDevice:class) | AudioDevice} `type` property is
+   * {@link (AudioDevice:namespace).Type.Unknown} and
+   * {@link (AudioDevice:class).nativeType} carries the raw, unprocessed value.
    */
   export enum Type {
     Earpiece = 'earpiece',
     Speaker = 'speaker',
     Bluetooth = 'bluetooth',
+    Unknown = 'unknown',
   }
 }

@@ -22,6 +22,14 @@ describe('AudioDevice class', () => {
       });
     });
 
+    describe('.nativeType', () => {
+      it('contains the native type of the AudioDevice', () => {
+        expect(audioDevice.nativeType).toBe(
+          createNativeAudioDeviceInfo().nativeType
+        );
+      });
+    });
+
     describe('.uuid', () => {
       it('contains the uuid of the AudioDevice', () => {
         expect(audioDevice.uuid).toBe(createNativeAudioDeviceInfo().uuid);
@@ -57,6 +65,10 @@ describe('AudioDevice namespace', () => {
     it('Type', () => {
       expect(AudioDevice.Type).toBeDefined();
       expect(typeof AudioDevice.Type).toBe('object');
+    });
+
+    it('Type.Unknown', () => {
+      expect(AudioDevice.Type.Unknown).toBe('unknown');
     });
   });
 });

@@ -96,6 +96,8 @@ AudioDeviceKeySelectedDevice=selectedDevice
 AudioDeviceKeyEarpiece=earpiece
 AudioDeviceKeySpeaker=speaker
 AudioDeviceKeyBluetooth=bluetooth
+AudioDeviceKeyUnknown=unknown
+AudioDeviceKeyNativeType=nativeType
 
 // CallInvite events
 CallInviteEventKeyType=type
