@@ -166,6 +166,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     NSUUID *receiverUuid = [NSUUID UUID];
     NSDictionary *builtInReceiver = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: receiverUuid.UUIDString,
                                        kTwilioVoiceReactNativeAudioDeviceKeyType: kTwilioVoiceReactNativeAudioDeviceKeyEarpiece,
+                                       kTwilioVoiceReactNativeAudioDeviceKeyNativeType: AVAudioSessionPortBuiltInReceiver,
                                        kTwilioVoiceReactNativeAudioDeviceKeyName: @"iPhone",
                                        kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInReceiver};
     self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
@@ -173,6 +174,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     NSUUID *speakerUuid = [NSUUID UUID];
     NSDictionary *builtInSpeaker = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: speakerUuid.UUIDString,
                                       kTwilioVoiceReactNativeAudioDeviceKeyType: kTwilioVoiceReactNativeAudioDeviceKeySpeaker,
+                                      kTwilioVoiceReactNativeAudioDeviceKeyNativeType: AVAudioSessionPortBuiltInSpeaker,
                                       kTwilioVoiceReactNativeAudioDeviceKeyName: @"Speaker",
                                       kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInSpeaker};
     self.audioDevices[speakerUuid.UUIDString] = builtInSpeaker;
@@ -199,6 +201,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
             NSUUID *uuid = [NSUUID UUID];
             NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid.UUIDString,
                                                   kTwilioVoiceReactNativeAudioDeviceKeyType: [self audioPortTypeMapping:port.portType],
+                                                  kTwilioVoiceReactNativeAudioDeviceKeyNativeType: port.portType,
                                                   kTwilioVoiceReactNativeAudioDeviceKeyName: port.portName,
                                                   kTwilioVoiceAudioDeviceUid: port.UID };
             self.audioDevices[uuid.UUIDString] = bluetoothHfpDevice;
@@ -248,6 +251,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
                 NSUUID *uuid = [NSUUID UUID];
                 NSDictionary *unidentifiedDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid.UUIDString,
                                                       kTwilioVoiceReactNativeAudioDeviceKeyType: [self audioPortTypeMapping:port.portType],
+                                                      kTwilioVoiceReactNativeAudioDeviceKeyNativeType: port.portType,
                                                       kTwilioVoiceReactNativeAudioDeviceKeyName: port.portName,
                                                       kTwilioVoiceAudioDeviceUid: port.UID };
                 self.audioDevices[uuid.UUIDString] = unidentifiedDevice;
@@ -268,7 +272,7 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return kTwilioVoiceReactNativeAudioDeviceKeyBluetooth;
     }
 
-    return portType;
+    return kTwilioVoiceReactNativeAudioDeviceKeyUnknown;
 }
 
 - (BOOL)selectAudioDevice:(NSString *)uuid {
@@ -308,6 +312,19 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         if (!portDescription) {
             NSLog(@"Bluetooth device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
+            return NO;
+        }
+    } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyUnknown]) {
+        NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+        for (AVAudioSessionPortDescription *port in availableInputs) {
+            if ([port.UID isEqualToString:portUid]) {
+                portDescription = port;
+                break;
+            }
+        }
+
+        if (!portDescription) {
+            NSLog(@"Unknown device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
             return NO;
         }
     }

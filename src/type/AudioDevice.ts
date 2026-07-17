@@ -5,6 +5,7 @@ import type { Uuid } from './common';
 export interface NativeAudioDeviceInfo {
   uuid: Uuid;
   type: AudioDevice.Type;
+  nativeType: string;
   name: string;
 }
 
