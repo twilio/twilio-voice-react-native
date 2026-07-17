@@ -45,8 +45,8 @@ export class AudioDevice {
   type: AudioDevice.Type;
 
   /**
-   * The type of the audio device as reported verbatim by the native layer, without
-   * being mapped to a {@link (AudioDevice:namespace).Type}.
+   * The type of the audio device as reported by the native layer. This value
+   * may not be mapped to a {@link (AudioDevice:namespace).Type}.
    *
    * @remarks
    * Native platform APIs can report audio device types that are not represented by
