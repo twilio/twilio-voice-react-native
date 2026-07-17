@@ -1,22 +1,29 @@
 2.0.0-preview.3 (In Progress)
 =============================
 
-## Features
+## Breaking Changes
 
-- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer. Added `AudioDevice.Type.Unknown`, reported via `AudioDevice.type` when the native layer reports a device type that isn't one of the other well-known `AudioDevice.Type` values.
+### AudioDevice.Type and AudioDevice.nativeType
+
+- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer.
+
+- Added `AudioDevice.Type.Unknown`, reported via `AudioDevice.type` when the native layer reports a device type that isn't one of the other well-known `AudioDevice.Type` values.
+
+#### iOS
+
+- Audio devices with an unrecognized native port type (for example, non-HFP Bluetooth profiles) previously reported that raw native type string, e.g. `"BluetoothA2DP"`, as `AudioDevice.type` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown` and `AudioDevice.nativeType` now reports the native value, e.g. `"BluetoothA2DP"`.
+
+#### Android
+
+- Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
 
 ## Fixes
 
 ### Platform Specific Fixes
 
-#### iOS
-
-- Fixed an issue where audio devices with an unrecognized native port type (for example, non-HFP Bluetooth profiles) would report that raw native type string, e.g. `BluetoothA2DP`, as `AudioDevice.type` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
-
 #### Android
 
 - Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
-- Fixed an issue where an audio device of an unrecognized type could report `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
 
 2.0.0-preview.2 (April 29, 2026)
 ================================
