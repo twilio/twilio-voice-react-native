@@ -329,6 +329,8 @@ export class CallInvite extends EventEmitter {
 // @public
 export namespace CallInvite {
     export interface AcceptOptions {
+        iceServers?: IceServer[];
+        iceTransportPolicy?: IceTransportPolicy;
     }
     export enum Event {
         Accepted = "accepted",

@@ -154,7 +154,11 @@ class ExpoModule : Module() {
       options: Map<String, Any>,
       promise: Promise ->
 
-      this@ExpoModule.moduleProxy.callInvite.accept(uuid, PromiseAdapter(promise))
+      val jsIceServers = options[CommonConstants.CallOptionsKeyIceServers] as ArrayList<*>?
+      val jsIceTransportPolicy = options[CommonConstants.CallOptionsKeyIceTransportPolicy] as String?
+      val iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy)
+
+      this@ExpoModule.moduleProxy.callInvite.accept(uuid, iceOptions, PromiseAdapter(promise))
     }
 
     AsyncFunction("callInvite_reject") {
@@ -245,46 +249,7 @@ class ExpoModule : Module() {
       jsIceTransportPolicy: String?,
       promise: Promise ->
 
-      val iceServers = HashSet<IceServer>()
-
-      jsIceServers?.forEach { jsIceServer ->
-        if (jsIceServer !is LinkedHashMap<*, *>) return@forEach
-
-        val serverUrl =
-          jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
-        val username =
-          jsIceServer[CommonConstants.IceServerKeyUsername] as String?
-        val password =
-          jsIceServer[CommonConstants.IceServerKeyPassword] as String?
-
-        if (serverUrl != null && username != null && password != null) {
-          iceServers.add(IceServer(serverUrl, username, password))
-        } else if (serverUrl != null) {
-          iceServers.add(IceServer(serverUrl))
-        }
-      }
-
-      val iceTransportPolicy = when (jsIceTransportPolicy) {
-        CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
-        CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
-        else -> null
-      }
-
-      var iceOptions: IceOptions? = null
-
-      if (iceServers.isNotEmpty() || iceTransportPolicy != null) {
-        val iceOptionsBuilder = IceOptions.Builder()
-
-        if (iceServers.isNotEmpty()) {
-          iceOptionsBuilder.iceServers(iceServers)
-        }
-
-        iceTransportPolicy?.let {
-          iceOptionsBuilder.iceTransportPolicy(it)
-        }
-
-        iceOptions = iceOptionsBuilder.build()
-      }
+      val iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy)
 
       this@ExpoModule.moduleProxy.voice.connect(
         accessToken,
@@ -347,48 +312,12 @@ class ExpoModule : Module() {
 
       val preflightOptionsBuilder = PreflightOptions.Builder(accessToken)
 
-      val iceOptionsBuilder = IceOptions.Builder()
-
-      val iceServers = HashSet<IceServer>()
-
       val jsIceServers = jsPreflightOptions[CommonConstants.CallOptionsKeyIceServers] as ArrayList<*>?
+      val jsIceTransportPolicy = jsPreflightOptions[CommonConstants.CallOptionsKeyIceTransportPolicy] as String?
+      val iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy)
 
-      jsIceServers?.forEach {
-        jsIceServer: Any ->
-
-        if (jsIceServer !is LinkedHashMap<*, *>) {
-          return@forEach
-        }
-
-        val iceServerUrl = jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
-        val iceServerPassword = jsIceServer[CommonConstants.IceServerKeyPassword] as String?
-        val iceServerUsername = jsIceServer[CommonConstants.IceServerKeyUsername] as String?
-
-        if (iceServerUrl != null && iceServerPassword != null && iceServerUsername != null) {
-          iceServers.add(IceServer(iceServerUrl, iceServerUsername, iceServerPassword))
-        } else if (iceServerUrl != null) {
-          iceServers.add(IceServer(iceServerUrl))
-        }
-      }
-
-      val jsIceTransportPolicy = jsPreflightOptions[CommonConstants.CallOptionsKeyIceTransportPolicy]
-
-      val iceTransportPolicy = when (jsIceTransportPolicy) {
-        CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
-        CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
-        else -> null
-      }
-
-      if (iceServers.isNotEmpty()) {
-        iceOptionsBuilder.iceServers(iceServers)
-      }
-
-      if (iceTransportPolicy != null) {
-        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy)
-      }
-
-      if (iceServers.isNotEmpty() || iceTransportPolicy != null) {
-        preflightOptionsBuilder.iceOptions(iceOptionsBuilder.build())
+      if (iceOptions != null) {
+        preflightOptionsBuilder.iceOptions(iceOptions)
       }
 
       val preferredAudioCodecs = ArrayList<AudioCodec>()
@@ -463,5 +392,45 @@ class ExpoModule : Module() {
 
       this@ExpoModule.moduleProxy.voice.unregister(token, PromiseAdapter(promise))
     }
+  }
+
+  private fun buildIceOptions(jsIceServers: List<*>?, jsIceTransportPolicy: String?): IceOptions? {
+    val iceServers = HashSet<IceServer>()
+
+    jsIceServers?.forEach { jsIceServer ->
+      if (jsIceServer !is LinkedHashMap<*, *>) return@forEach
+
+      val serverUrl = jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
+      val username = jsIceServer[CommonConstants.IceServerKeyUsername] as String?
+      val password = jsIceServer[CommonConstants.IceServerKeyPassword] as String?
+
+      if (serverUrl != null && username != null && password != null) {
+        iceServers.add(IceServer(serverUrl, username, password))
+      } else if (serverUrl != null) {
+        iceServers.add(IceServer(serverUrl))
+      }
+    }
+
+    val iceTransportPolicy = when (jsIceTransportPolicy) {
+      CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL
+      CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY
+      else -> null
+    }
+
+    if (iceServers.isEmpty() && iceTransportPolicy == null) {
+      return null
+    }
+
+    val iceOptionsBuilder = IceOptions.Builder()
+
+    if (iceServers.isNotEmpty()) {
+      iceOptionsBuilder.iceServers(iceServers)
+    }
+
+    iceTransportPolicy?.let {
+      iceOptionsBuilder.iceTransportPolicy(it)
+    }
+
+    return iceOptionsBuilder.build()
   }
 }

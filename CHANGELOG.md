@@ -5,7 +5,7 @@
 
 - Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
 
-  *Note*: This currently applies only to outgoing calls. Support for incoming calls will be added in a future version.
+- Added support for configuring custom ICE servers and ICE transport policy when accepting incoming calls using `CallInvite.accept` via the new `iceServers` and `iceTransportPolicy` options.
 
 ## Changes
 

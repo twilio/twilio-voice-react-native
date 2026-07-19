@@ -14,7 +14,10 @@ import { OutgoingCallMessage } from '../CallMessage/OutgoingCallMessage';
 import { TwilioError } from '../error/TwilioError';
 import { NativeEventEmitter, NativeModule, Platform } from '../common';
 import { Constants } from '../constants';
+import { InvalidArgumentError } from '../error';
+import { IceTransportPolicy } from '../type/Ice';
 import type { NativeCallInviteEvent } from '../type/CallInvite';
+import * as IceOptionsModule from '../utility/IceOptions';
 
 const MockNativeEventEmitter =
   NativeEventEmitter as unknown as typeof MockNativeEventEmitterType;
@@ -261,8 +264,7 @@ describe('CallInvite class', () => {
   describe.each([
     [undefined, {}],
     [{}, {}],
-    [{ foo: 'bar' }, { foo: 'bar' }],
-  ])('.accept(%o)', (acceptOptions, expectation) => {
+  ] as const)('.accept(%o)', (acceptOptions, expectation) => {
     it('invokes the native module', async () => {
       await new CallInvite(
         createNativeCallInviteInfo(),
@@ -348,6 +350,116 @@ describe('CallInvite class', () => {
       }
 
       it(testMessage, shouldPass ? shouldResolve : shouldReject);
+    });
+  });
+
+  describe('.accept() ICE options', () => {
+    it('invokes ICE validators when options are provided', async () => {
+      const validateIceServersSpy = jest.spyOn(
+        IceOptionsModule,
+        'validateIceServers'
+      );
+      const validateIceTransportPolicySpy = jest.spyOn(
+        IceOptionsModule,
+        'validateIceTransportPolicy'
+      );
+
+      const iceServers = [
+        {
+          username: 'foo',
+          password: 'bar',
+          serverUrl: 'turn:turn.example.com:3478',
+        },
+      ];
+      const iceTransportPolicy = IceTransportPolicy.Relay;
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept({ iceServers, iceTransportPolicy });
+
+      expect(validateIceServersSpy).toHaveBeenCalledWith(iceServers);
+      expect(validateIceTransportPolicySpy).toHaveBeenCalledWith(
+        iceTransportPolicy
+      );
+    });
+
+    it('rejects when validateIceServers returns an error', async () => {
+      const validationError = new InvalidArgumentError(
+        'mock invalid iceServers'
+      );
+
+      jest
+        .spyOn(IceOptionsModule, 'validateIceServers')
+        .mockReturnValueOnce({ status: 'error', error: validationError } as any);
+
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).accept({ iceServers: [] })
+      ).rejects.toBe(validationError);
+    });
+
+    it('rejects when validateIceTransportPolicy returns an error', async () => {
+      const validationError = new InvalidArgumentError(
+        'mock invalid iceTransportPolicy'
+      );
+
+      jest
+        .spyOn(IceOptionsModule, 'validateIceTransportPolicy')
+        .mockReturnValueOnce({ status: 'error', error: validationError } as any);
+
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).accept({ iceTransportPolicy: 'invalid-policy' as any })
+      ).rejects.toBe(validationError);
+    });
+
+    it('forwards ICE options to the native module', async () => {
+      const iceServers = [
+        {
+          username: 'foo',
+          password: 'bar',
+          serverUrl: 'turn:turn.example.com:3478',
+        },
+      ];
+      const iceTransportPolicy = IceTransportPolicy.Relay;
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept({ iceServers, iceTransportPolicy });
+
+      expect(
+        jest.mocked(MockNativeModule.callInvite_accept).mock.calls
+      ).toEqual([
+        [
+          createNativeCallInviteInfo().uuid,
+          { iceServers, iceTransportPolicy },
+        ],
+      ]);
+    });
+
+    it('does not invoke ICE validators when no ICE options are provided', async () => {
+      const validateIceServersSpy = jest.spyOn(
+        IceOptionsModule,
+        'validateIceServers'
+      );
+      const validateIceTransportPolicySpy = jest.spyOn(
+        IceOptionsModule,
+        'validateIceTransportPolicy'
+      );
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept();
+
+      expect(validateIceServersSpy).not.toHaveBeenCalled();
+      expect(validateIceTransportPolicySpy).not.toHaveBeenCalled();
     });
   });
 

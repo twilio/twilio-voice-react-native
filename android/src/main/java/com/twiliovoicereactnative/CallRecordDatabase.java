@@ -17,6 +17,7 @@ import com.twilio.voice.Call;
 import com.twilio.voice.CallException;
 import com.twilio.voice.CallInvite;
 import com.twilio.voice.CancelledCallInvite;
+import com.twilio.voice.IceOptions;
 
 class CallRecordDatabase  {
   public static class CallRecord {
@@ -33,6 +34,7 @@ class CallRecordDatabase  {
     private CancelledCallInvite cancelledCallInvite = null;
     private ModuleProxy.UniversalPromise callAcceptedPromise = null;
     private ModuleProxy.UniversalPromise callRejectedPromise = null;
+    private IceOptions iceOptions = null;
     private CallException callException = null;
     private Map<String, String> customParameters = null;
     private String notificationDisplayName = null;
@@ -108,6 +110,9 @@ class CallRecordDatabase  {
     public ModuleProxy.UniversalPromise getCallRejectedPromise() {
       return this.callRejectedPromise;
     }
+    public IceOptions getIceOptions() {
+      return this.iceOptions;
+    }
     public CallException getCallException() {
       return this.callException;
     }
@@ -140,6 +145,9 @@ class CallRecordDatabase  {
     }
     public void setCallRejectedPromise(@NonNull ModuleProxy.UniversalPromise callRejectedPromise) {
       this.callRejectedPromise = callRejectedPromise;
+    }
+    public void setIceOptions(IceOptions iceOptions) {
+      this.iceOptions = iceOptions;
     }
     public void setCallException(CallException callException) {
       this.callException = callException;
