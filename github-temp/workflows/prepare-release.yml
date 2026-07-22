@@ -1,0 +1,160 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Version to release (e.g. 2.0.0 or 2.0.0-rc1)"
+        required: true
+      development_version:
+        description: "Optional: next dev version to continue on (e.g. 2.0.1-dev). Leave blank to skip."
+        required: false
+
+# No default permissions; each job below declares exactly what it needs.
+permissions: {}
+
+env:
+  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+
+jobs:
+  # Does the version bump + build. Deliberately has NO write access - if a
+  # malicious/compromised dependency's postinstall script runs during `yarn
+  # install`, it has nothing to steal here. That's why this is split from the
+  # job below, which holds write access but never runs dependency code.
+  build:
+    runs-on: ubuntu-x64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      - name: Bump package.json version
+        run: npm version --no-git-tag-version "${{ inputs.release_version }}"
+
+      # TODO(revisit): stamp constants/constants.src via
+      # scripts/substitute-constants-version.js and regenerate lib/, docs/api/,
+      # src/constants.ts, and the native constant headers via `yarn run build:docs`.
+      # Left out for this first POC pass to keep the run small/fast to iterate on.
+      # Without this, the eventual tagged commit won't carry the generated
+      # artifacts the old CircleCI release plan used to force-add.
+      #
+      # - run: node ./scripts/substitute-constants-version.js "${{ inputs.release_version }}"
+      # - run: yarn run build:docs
+
+      - name: Upload release tree
+        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: release-tree
+          path: |
+            package.json
+          # TODO(revisit): add constants/constants.src, lib/, docs/api/,
+          # src/constants.ts, ios/TwilioVoiceReactNativeConstants.h,
+          # android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          # once the build:docs step above is restored.
+
+  # The only job with write access. Never runs `yarn`/`npm`/any dependency code -
+  # just checkout, download-artifact, and git/gh commands. Pushes a NEW branch
+  # (not `main`), then opens a PR - no direct push to `main`, so no branch
+  # protection bypass is needed anywhere in this design.
+  open-release-pr:
+    needs: build
+    runs-on: ubuntu-x64
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: release-tree
+
+      - name: Configure git identity
+        # TODO(revisit): swap for a dedicated release-bot identity, mirroring
+        # twilio-vblocks-ci / svc.vblocks-ci@twilio.com from the old .release.json.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit release bump
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          git checkout -b "release/${RELEASE_VERSION}"
+          git add package.json
+          git commit -m "chore: prepare release ${RELEASE_VERSION}"
+          echo "RELEASE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      # Bundled into the SAME branch/PR as a second commit, rather than a
+      # separate PR. Whoever later drafts the GitHub Release must target the
+      # release-bump commit specifically (SHA printed in the PR body below),
+      # not `main`'s post-merge tip - the tip reflects this dev-continuation
+      # state, not the release. This is *why* the PR below must be merged via
+      # "Create a merge commit": that's what keeps the release-bump commit a
+      # real, distinct, selectable commit afterward. Squash or rebase-merge
+      # would both fold it away (squash collapses it into a new SHA; rebase
+      # replays it with a new SHA that no longer matches what's printed below).
+      - name: Commit development-version continuation
+        if: inputs.development_version != ''
+        env:
+          DEVELOPMENT_VERSION: ${{ inputs.development_version }}
+        run: |
+          npm version --no-git-tag-version "${DEVELOPMENT_VERSION}"
+          node ./scripts/substitute-constants-version.js "${DEVELOPMENT_VERSION}"
+          git rm -r --ignore-unmatch docs/api lib src/constants.ts \
+            ios/TwilioVoiceReactNativeConstants.h \
+            android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          git add -A
+          git commit -m "chore: continue development on ${DEVELOPMENT_VERSION}"
+
+      - name: Push release branch
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: git push origin "release/${RELEASE_VERSION}"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        # TODO(revisit): confirm `gh` CLI is available on the `ubuntu-x64` runner
+        # image (it's preinstalled on GitHub-hosted runners; unconfirmed for this
+        # custom runner group). Fall back to a curl+REST API call if not.
+        #
+        # IMPORTANT: whoever merges this PR must use "Create a merge commit" -
+        # not squash, not rebase-and-merge - see the note above. There's no
+        # tag-creation automation reacting to this merge: after merging, a
+        # human drafts a GitHub Release and targets the release commit SHA
+        # printed below (not `main`'s tip, if a dev-continuation commit is
+        # also in this PR).
+        # Publishing that Release is what triggers release.yml.
+        run: |
+          gh pr create \
+            --title "Release ${RELEASE_VERSION}" \
+            --body "Automated release preparation for ${RELEASE_VERSION}.
+
+          **Merge via \"Create a merge commit\"** - do not squash or rebase.
+
+          When drafting the GitHub Release afterward, target this commit specifically:
+          \`${RELEASE_COMMIT_SHA}\`
+
+          (Not \`main\`'s tip, if a development-version continuation commit is also in this PR - that commit lands on top of this one and \`main\`'s tip would reflect the dev-continuation state, not this release.)" \
+            --base main \
+            --head "release/${RELEASE_VERSION}"
+
+      # TODO(revisit): move the `latest` tag pointer. Previously lived in
+      # tag-release.yml (now deleted); needs a new home - likely release.yml's
+      # deploy job, after a successful publish.

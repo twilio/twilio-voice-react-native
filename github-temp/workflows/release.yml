@@ -1,0 +1,111 @@
+name: Release
+
+# Fired by a human publishing a GitHub Release (see prepare-release.yml) -
+# the Release's tag is what gets tested and published here, targeting a
+# commit that has already been through a reviewed, merged PR.
+on:
+  release:
+    types: [published]
+
+env:
+  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+
+jobs:
+  test:
+    runs-on: ubuntu-x64
+    if: github.repository_owner == 'twilio'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      - run: yarn run check
+
+  deploy:
+    name: Publish to npm
+    needs: [test]
+    runs-on: ubuntu-x64
+    if: github.repository_owner == 'twilio'
+    environment: production # manual-approval gate + scoped to publish
+    permissions:
+      contents: read
+      id-token: write # required for npm OIDC trusted publishing
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      # Deliberately no yarn/npm install or build here, and no Artifactory
+      # auth step - prepare-release.yml already committed the fully-built
+      # tree (lib/, docs/api/, constants) into the tagged commit, so there's
+      # nothing left to build. This is a security fix, not just a
+      # simplification: this job holds npm-publish-scoped OIDC plus the
+      # `production` approval gate.
+      # Running dependency install scripts here is exploitable
+      # (a malicious/compromised dependency could mint its own OIDC token or
+      # tamper with the tree before publish, since the OIDC-request env vars
+      # are job-scoped, not step-scoped). Not isolating that into a separate
+      # job, but removing it from this job entirely, closes the gap outright
+      # rather than just relocating it.
+      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+        with:
+          node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing
+
+      - name: Validate tag matches package.json version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::tag $TAG != package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Determine npm dist-tag and release-candidate status
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          # Captures the prerelease identifier (alpha/beta/preview/rc) whether
+          # or not it's followed by a dot and digits, and tolerates a further
+          # compound suffix (e.g. preview.1-rc1 -> preview). A bare final
+          # version (no prerelease identifier) yields an empty RELEASE_TAG,
+          # so `npm publish` below falls through to its default `latest` tag.
+          RELEASE_TAG=$(echo "$VERSION" | sed -E -n 's/^[0-9]+\.[0-9]+\.[0-9]+-([a-z]+)\.?[0-9]*(-.*)?$/\1/p')
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+
+          # Release candidates never get published to npm, regardless of
+          # channel (bare X.Y.Z-rcN, or compound X.Y.Z-preview.N-rcM /
+          # X.Y.Z-betaN-rcM) - they're for QE regression testing off the tag
+          # push prior to a real release. Detected by checking the LAST
+          # hyphen-delimited segment of the version, so it catches the compound
+          # forms too, not just a bare rc suffix.
+          LAST_SEGMENT="${VERSION##*-}"
+          if [[ "$LAST_SEGMENT" =~ ^rc[0-9]*$ ]]; then
+            echo "IS_RELEASE_CANDIDATE=true" >> "$GITHUB_ENV"
+          else
+            echo "IS_RELEASE_CANDIDATE=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Publish to npm
+        if: env.IS_RELEASE_CANDIDATE != 'true'
+        run: |
+          npm publish --registry https://registry.npmjs.org \
+            ${RELEASE_TAG:+--tag "$RELEASE_TAG"} \
+            --ignore-scripts --provenance --access public
+
+      - name: Skip publish for release candidate
+        if: env.IS_RELEASE_CANDIDATE == 'true'
+        run: echo "::notice::${VERSION} is a release candidate - not publishing to npm. QE regression testing is triggered separately, off the tag push."
