@@ -1,0 +1,82 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+# No default permissions; each job below declares exactly what it needs.
+permissions: {}
+env:
+  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
+
+jobs:
+  # id-token: write isn't audience-scoped - a job holding it can request an
+  # OIDC token for any audience, not just Artifactory's. Isolated here so no
+  # dependency-installing job ever holds this permission. Skipped for fork
+  # PRs, which can't get Artifactory access anyway.
+  artifactory-auth:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-x64
+    permissions:
+      contents: read # only so the local ./.github/actions/artifactory-oidc action file is present to run
+      id-token: write
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Copied to a plain filename since upload-artifact needs an unambiguous path.
+      - name: Stage .npmrc for hand-off to test
+        run: cp ~/.npmrc ./artifactory.npmrc
+
+      - name: Upload .npmrc
+        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: artifactory-npmrc
+          path: artifactory.npmrc
+          retention-days: 1 # short-lived credential - no reason to keep the artifact around
+
+  # Fork PRs don't run CI at all - they can't get Artifactory access, and
+  # this repo doesn't run tests without it. A maintainer reviews and tests
+  # fork PRs manually before merging. Revisit if we want fork PRs to run CI
+  # safely.
+  test:
+    needs: artifactory-auth
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-x64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Download Artifactory .npmrc
+        uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: artifactory-npmrc
+
+      - name: Restore .npmrc
+        run: mv artifactory.npmrc ~/.npmrc
+
+      # Enable Corepack so `yarn` resolves to the version pinned in package.json's
+      # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
+      # Must run before setup-node, whose `cache: yarn` step invokes yarn.
+      - run: corepack enable
+
+      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      - run: yarn --cwd test/app install --immutable
+
+      - run: yarn --cwd test/expo install --immutable
+
+      - run: yarn --cwd test/appium-harness install --immutable
+
+      - run: yarn --cwd test/appium-orchestrator install --immutable
+
+      - run: yarn run check

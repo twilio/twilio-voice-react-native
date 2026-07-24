@@ -11,11 +11,14 @@ env:
   ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
 
 jobs:
-  test:
+  # id-token: write isn't audience-scoped - a job holding it can request an
+  # OIDC token for any audience, not just Artifactory's. Isolated here so no
+  # dependency-installing job ever holds this permission.
+  artifactory-auth:
     runs-on: ubuntu-x64
     if: github.repository_owner == 'twilio'
     permissions:
-      contents: read
+      contents: read # only so the local ./.github/actions/artifactory-oidc action file is present to run
       id-token: write
     steps:
       - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
@@ -24,6 +27,34 @@ jobs:
         uses: ./.github/actions/artifactory-oidc
         with:
           artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Copied to a plain filename since upload-artifact needs an unambiguous path.
+      - name: Stage .npmrc for hand-off to test
+        run: cp ~/.npmrc ./artifactory.npmrc
+
+      - name: Upload .npmrc
+        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: artifactory-npmrc
+          path: artifactory.npmrc
+          retention-days: 1 # short-lived credential - no reason to keep the artifact around
+
+  test:
+    needs: artifactory-auth
+    runs-on: ubuntu-x64
+    if: github.repository_owner == 'twilio' && needs.artifactory-auth.result == 'success'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Download Artifactory .npmrc
+        uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+        with:
+          name: artifactory-npmrc
+
+      - name: Restore .npmrc
+        run: mv artifactory.npmrc ~/.npmrc
 
       - run: corepack enable
 
@@ -40,26 +71,20 @@ jobs:
     name: Publish to npm
     needs: [test]
     runs-on: ubuntu-x64
-    if: github.repository_owner == 'twilio'
+    if: github.repository_owner == 'twilio' && needs.test.result == 'success'
     environment: production # manual-approval gate + scoped to publish
     permissions:
       contents: read
       id-token: write # required for npm OIDC trusted publishing
+    outputs:
+      version: ${{ steps.dist-tag.outputs.version }}
+      release_tag: ${{ steps.dist-tag.outputs.release_tag }}
     steps:
       - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
 
-      # Deliberately no yarn/npm install or build here, and no Artifactory
-      # auth step - prepare-release.yml already committed the fully-built
-      # tree (lib/, docs/api/, constants) into the tagged commit, so there's
-      # nothing left to build. This is a security fix, not just a
-      # simplification: this job holds npm-publish-scoped OIDC plus the
-      # `production` approval gate.
-      # Running dependency install scripts here is exploitable
-      # (a malicious/compromised dependency could mint its own OIDC token or
-      # tamper with the tree before publish, since the OIDC-request env vars
-      # are job-scoped, not step-scoped). Not isolating that into a separate
-      # job, but removing it from this job entirely, closes the gap outright
-      # rather than just relocating it.
+      # This job holds npm-publish OIDC, so dependency code is never allowed
+      # to run here - no install or build step. The tagged commit already
+      # has everything built.
       - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
         with:
           node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing
@@ -67,45 +92,52 @@ jobs:
       - name: Validate tag matches package.json version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          PKG_VERSION="$(node -p "require('./package.json').version")"
+          PKG_VERSION="$(jq -r '.version' package.json)"
           if [ "$TAG" != "$PKG_VERSION" ]; then
             echo "::error::tag $TAG != package.json version $PKG_VERSION"
             exit 1
           fi
 
       - name: Determine npm dist-tag and release-candidate status
+        id: dist-tag
         run: |
-          VERSION="$(node -p "require('./package.json').version")"
+          VERSION="$(jq -r '.version' package.json)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-          # Captures the prerelease identifier (alpha/beta/preview/rc) whether
-          # or not it's followed by a dot and digits, and tolerates a further
-          # compound suffix (e.g. preview.1-rc1 -> preview). A bare final
-          # version (no prerelease identifier) yields an empty RELEASE_TAG,
-          # so `npm publish` below falls through to its default `latest` tag.
-          RELEASE_TAG=$(echo "$VERSION" | sed -E -n 's/^[0-9]+\.[0-9]+\.[0-9]+-([a-z]+)\.?[0-9]*(-.*)?$/\1/p')
+          RELEASE_TAG=$(node ./scripts/npm-dist-tag.js "$VERSION")
+          IS_RELEASE_CANDIDATE=$(node ./scripts/is-release-candidate.js "$VERSION")
+
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
-
-          # Release candidates never get published to npm, regardless of
-          # channel (bare X.Y.Z-rcN, or compound X.Y.Z-preview.N-rcM /
-          # X.Y.Z-betaN-rcM) - they're for QE regression testing off the tag
-          # push prior to a real release. Detected by checking the LAST
-          # hyphen-delimited segment of the version, so it catches the compound
-          # forms too, not just a bare rc suffix.
-          LAST_SEGMENT="${VERSION##*-}"
-          if [[ "$LAST_SEGMENT" =~ ^rc[0-9]*$ ]]; then
-            echo "IS_RELEASE_CANDIDATE=true" >> "$GITHUB_ENV"
-          else
-            echo "IS_RELEASE_CANDIDATE=false" >> "$GITHUB_ENV"
-          fi
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "IS_RELEASE_CANDIDATE=$IS_RELEASE_CANDIDATE" >> "$GITHUB_ENV"
 
       - name: Publish to npm
         if: env.IS_RELEASE_CANDIDATE != 'true'
         run: |
           npm publish --registry https://registry.npmjs.org \
-            ${RELEASE_TAG:+--tag "$RELEASE_TAG"} \
+            --tag "$RELEASE_TAG" \
             --ignore-scripts --provenance --access public
 
       - name: Skip publish for release candidate
         if: env.IS_RELEASE_CANDIDATE == 'true'
-        run: echo "::notice::${VERSION} is a release candidate - not publishing to npm. QE regression testing is triggered separately, off the tag push."
+        run: echo "::notice::${VERSION} is a release candidate - not publishing to npm."
+
+  # This job is separate from the deploy job so that the deploy job doesn't also
+  # need push access. No approval gate necessary here - deploy already required
+  # one.
+  move-latest-tag:
+    needs: [deploy]
+    runs-on: ubuntu-x64
+    if: needs.deploy.result == 'success' && needs.deploy.outputs.release_tag == 'latest'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+
+      - name: Move the latest tag
+        env:
+          VERSION: ${{ needs.deploy.outputs.version }}
+        run: |
+          git tag -f latest "$VERSION"
+          git push origin latest --force
