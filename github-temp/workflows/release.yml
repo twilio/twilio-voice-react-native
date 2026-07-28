@@ -21,7 +21,7 @@ jobs:
       contents: read # only so the local ./.github/actions/artifactory-oidc action file is present to run
       id-token: write
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -33,7 +33,7 @@ jobs:
         run: cp ~/.npmrc ./artifactory.npmrc
 
       - name: Upload .npmrc
-        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: artifactory-npmrc
           path: artifactory.npmrc
@@ -46,10 +46,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       - name: Download Artifactory .npmrc
-        uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
         with:
           name: artifactory-npmrc
 
@@ -58,7 +58,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: "22.13"
           cache: yarn
@@ -80,12 +80,12 @@ jobs:
       version: ${{ steps.dist-tag.outputs.version }}
       release_tag: ${{ steps.dist-tag.outputs.release_tag }}
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       # This job holds npm-publish OIDC, so dependency code is never allowed
       # to run here - no install or build step. The tagged commit already
       # has everything built.
-      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing
 
@@ -133,7 +133,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       - name: Move the latest tag
         env:

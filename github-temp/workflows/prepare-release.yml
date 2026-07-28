@@ -26,7 +26,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -38,7 +38,7 @@ jobs:
         run: cp ~/.npmrc ./artifactory.npmrc
 
       - name: Upload .npmrc
-        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: artifactory-npmrc
           path: artifactory.npmrc
@@ -53,10 +53,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
       - name: Download Artifactory .npmrc
-        uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
         with:
           name: artifactory-npmrc
 
@@ -65,7 +65,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: "22.13"
           cache: yarn
@@ -86,7 +86,7 @@ jobs:
         run: yarn run build:docs
 
       - name: Upload release tree
-        uses: actions/upload-artifact@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: release-tree
           path: |
@@ -106,9 +106,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
-      - uses: actions/download-artifact@<SHA-CHECKSUM> # TODO: pin
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
         with:
           name: release-tree
 
@@ -121,7 +121,7 @@ jobs:
       # which runs npm/node. Skipped when there's no continuation to build.
       - name: Set up Node
         if: inputs.development_version != ''
-        uses: actions/setup-node@<SHA-CHECKSUM> # TODO: pin
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: "22.13"
 
