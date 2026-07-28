@@ -28,6 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
+      # This job can be dispatched from any branch. If Artifactory's OIDC
+      # trust policy is scoped to a specific ref (e.g. main only), this
+      # exchange fails when dispatched from a different branch.
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
         with:
@@ -168,7 +171,9 @@ jobs:
 
       # Disabled org-wide for GitHub Actions bots. A human opens the PR
       # manually from this branch to main instead. Kept here, commented out,
-      # in case that permission is ever granted.
+      # in case that permission is ever granted. Also hardcodes `--base
+      # main` below - releases aren't always cut from main, so this would
+      # need to become a parameter before re-enabling.
       # - name: Open pull request
       #   env:
       #     GH_TOKEN: ${{ github.token }}
