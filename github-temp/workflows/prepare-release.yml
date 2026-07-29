@@ -51,6 +51,8 @@ jobs:
       - name: Build SDK artifacts
         run: yarn run build:docs
 
+      # Consider checking build artifacts here: VBLOCKS-7002
+
       - name: Upload release tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:

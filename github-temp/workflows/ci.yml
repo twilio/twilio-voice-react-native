@@ -12,7 +12,11 @@ jobs:
   # fork PRs manually before merging. Revisit if we want fork PRs to run CI
   # safely.
   test:
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-x64
     permissions:
       contents: read
