@@ -61,10 +61,20 @@ runs:
         fi
         echo "::add-mask::$ART_TOKEN"
 
-        # 3. Point npm/yarn at the curated Artifactory registry for this job.
+        # 3. Point npm at the curated Artifactory registry for this job.
         REGISTRY="${BASE_URL}/artifactory/api/npm/virtual-npm-thirdparty/"
         {
           echo "registry=${REGISTRY}"
           echo "//${HOST}/artifactory/api/npm/virtual-npm-thirdparty/:_authToken=${ART_TOKEN}"
         } > ~/.npmrc
-        echo "::notice::npm configured to use Artifactory registry"
+
+        # 4. Same for yarn, which ignores .npmrc from v2 onward and needs its
+        #    own config. Written to the home directory, not the project: a
+        #    project .yarnrc.yml is usually checked in (nodeLinker etc.) and
+        #    overwriting it would change how the project installs.
+        {
+          echo "npmRegistryServer: \"${REGISTRY}\""
+          echo "npmAlwaysAuth: true"
+          echo "npmAuthToken: \"${ART_TOKEN}\""
+        } > ~/.yarnrc.yml
+        echo "::notice::npm and yarn configured to use Artifactory registry"
