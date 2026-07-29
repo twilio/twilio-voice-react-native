@@ -14,6 +14,8 @@ function getNpmDistTag(version) {
     return 'rc';
   }
 
+  // Consider stricter regex in the future to prevent unexpected prerelease
+  // tags making it through this check.
   const match = version.match(
     /^[0-9]+\.[0-9]+\.[0-9]+-([a-z]+)\.?[0-9]+(?:-.*)?$/
   );
