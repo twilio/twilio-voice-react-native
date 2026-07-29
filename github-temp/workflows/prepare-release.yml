@@ -13,58 +13,21 @@ on:
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
 
-env:
-  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
-
 jobs:
-  # id-token: write isn't audience-scoped - a job holding it can request an
-  # OIDC token for any audience, not just Artifactory's. Isolated here so no
-  # dependency-installing job ever holds this permission.
-  artifactory-auth:
+  # Runs the version bump and build. No write access, so a compromised
+  # dependency's postinstall script has nothing to push during `yarn install`.
+  build:
     runs-on: ubuntu-x64
     permissions:
       contents: read
-      id-token: write
+      id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
-      # This job can be dispatched from any branch. If Artifactory's OIDC
-      # trust policy is scoped to a specific ref (e.g. main only), this
-      # exchange fails when dispatched from a different branch.
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
         with:
           artifactory_url: ${{ vars.ARTIFACTORY_URL }}
-
-      # Copied to a plain filename since upload-artifact needs an unambiguous path.
-      - name: Stage .npmrc for hand-off to build
-        run: cp ~/.npmrc ./artifactory.npmrc
-
-      - name: Upload .npmrc
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
-        with:
-          name: artifactory-npmrc
-          path: artifactory.npmrc
-          retention-days: 1 # short-lived credential - no reason to keep the artifact around
-
-  # Runs the version bump and build. No write access and no id-token access,
-  # so a compromised dependency's postinstall script has nothing to steal or
-  # mint during `yarn install`.
-  build:
-    needs: artifactory-auth
-    runs-on: ubuntu-x64
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-
-      - name: Download Artifactory .npmrc
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
-        with:
-          name: artifactory-npmrc
-
-      - name: Restore .npmrc
-        run: mv artifactory.npmrc ~/.npmrc
 
       - run: corepack enable
 

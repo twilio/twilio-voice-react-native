@@ -5,20 +5,18 @@ on:
   pull_request:
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
-env:
-  ARTIFACTORY_URL: ${{ vars.ARTIFACTORY_URL }}
 
 jobs:
-  # id-token: write isn't audience-scoped - a job holding it can request an
-  # OIDC token for any audience, not just Artifactory's. Isolated here so no
-  # dependency-installing job ever holds this permission. Skipped for fork
-  # PRs, which can't get Artifactory access anyway.
-  artifactory-auth:
+  # Fork PRs don't run CI at all - they can't get Artifactory access, and
+  # this repo doesn't run tests without it. A maintainer reviews and tests
+  # fork PRs manually before merging. Revisit if we want fork PRs to run CI
+  # safely.
+  test:
     if: ${{ !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-x64
     permissions:
-      contents: read # only so the local ./.github/actions/artifactory-oidc action file is present to run
-      id-token: write
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
@@ -26,38 +24,6 @@ jobs:
         uses: ./.github/actions/artifactory-oidc
         with:
           artifactory_url: ${{ vars.ARTIFACTORY_URL }}
-
-      # Copied to a plain filename since upload-artifact needs an unambiguous path.
-      - name: Stage .npmrc for hand-off to test
-        run: cp ~/.npmrc ./artifactory.npmrc
-
-      - name: Upload .npmrc
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
-        with:
-          name: artifactory-npmrc
-          path: artifactory.npmrc
-          retention-days: 1 # short-lived credential - no reason to keep the artifact around
-
-  # Fork PRs don't run CI at all - they can't get Artifactory access, and
-  # this repo doesn't run tests without it. A maintainer reviews and tests
-  # fork PRs manually before merging. Revisit if we want fork PRs to run CI
-  # safely.
-  test:
-    needs: artifactory-auth
-    if: ${{ !github.event.pull_request.head.repo.fork }}
-    runs-on: ubuntu-x64
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-
-      - name: Download Artifactory .npmrc
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
-        with:
-          name: artifactory-npmrc
-
-      - name: Restore .npmrc
-        run: mv artifactory.npmrc ~/.npmrc
 
       # Enable Corepack so `yarn` resolves to the version pinned in package.json's
       # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
