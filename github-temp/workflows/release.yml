@@ -39,6 +39,11 @@ jobs:
 
       - run: yarn run check
 
+      # The runner group is self-hosted, so $HOME can outlive the job.
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
   deploy:
     name: Publish to npm
     needs: [test]

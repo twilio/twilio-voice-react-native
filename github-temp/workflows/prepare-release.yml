@@ -79,6 +79,11 @@ jobs:
             ios/TwilioVoiceReactNativeConstants.h
             android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
 
+      # The runner group is self-hosted, so $HOME can outlive the job.
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
   # Never runs dependency code - just git commands. Pushes a new branch
   # (not `main`) for a human to open the PR manually.
   create-release-branch:
