@@ -3,7 +3,7 @@ const {
   getIsReleaseCandidate,
   getNpmDistTag,
   runCommand,
-} = require('../classifyVersionTag');
+} = require('../classify-version-tag');
 
 // Version strings below are real tags from this repo's history, chosen to
 // cover every distinct shape that's actually appeared: bare final, bare
