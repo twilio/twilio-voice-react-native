@@ -48,9 +48,6 @@ jobs:
     permissions:
       contents: read
       id-token: write # required for npm OIDC trusted publishing
-    outputs:
-      version: ${{ steps.dist-tag.outputs.version }}
-      release_tag: ${{ steps.dist-tag.outputs.release_tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
@@ -70,23 +67,19 @@ jobs:
             exit 1
           fi
 
-      - name: Determine npm dist-tag and release-candidate status
-        id: dist-tag
+      - name: Read version and release-candidate status
         run: |
           VERSION="$(jq -r '.version' package.json)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-          RELEASE_TAG=$(node ./scripts/npm-dist-tag.js "$VERSION")
-          IS_RELEASE_CANDIDATE=$(node ./scripts/is-release-candidate.js "$VERSION")
-
-          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
-          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
           echo "IS_RELEASE_CANDIDATE=$IS_RELEASE_CANDIDATE" >> "$GITHUB_ENV"
 
       - name: Publish to npm
-        if: env.IS_RELEASE_CANDIDATE != 'true'
+        if: env.IS_RELEASE_CANDIDATE == 'false'
         run: |
+          RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION")
+
           npm publish --registry https://registry.npmjs.org \
             --tag "$RELEASE_TAG" \
             --ignore-scripts --provenance --access public
@@ -101,15 +94,37 @@ jobs:
   move-latest-tag:
     needs: [deploy]
     runs-on: ubuntu-x64
-    if: needs.deploy.result == 'success' && needs.deploy.outputs.release_tag == 'latest'
+    if: needs.deploy.result == 'success'
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
-      - name: Move the latest tag
-        env:
-          VERSION: ${{ needs.deploy.outputs.version }}
+      - name: Decide whether to move the latest git tag
+        run: |
+          VERSION="$(jq -r '.version' package.json)"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+          MOVE_LATEST_GIT_TAG=false
+
+          IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
+
+          if [ "$IS_RELEASE_CANDIDATE" = 'false' ]; then
+            RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION")
+
+            if [ "$RELEASE_TAG" = 'latest' ]; then
+              MOVE_LATEST_GIT_TAG=true
+            fi
+          fi
+
+          echo "MOVE_LATEST_GIT_TAG=$MOVE_LATEST_GIT_TAG" >> "$GITHUB_ENV"
+
+      - name: Move the latest git tag
+        if: env.MOVE_LATEST_GIT_TAG == 'true'
         run: |
           git tag -f latest "$VERSION"
           git push origin latest --force
+
+      - name: Skip moving latest git tag
+        if: env.MOVE_LATEST_GIT_TAG == 'false'
+        run: echo "::notice::${VERSION} is not latest - not moving latest git tag."
