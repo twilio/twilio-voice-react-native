@@ -1,8 +1,11 @@
 name: Release
 
 # Fired by a human publishing a GitHub Release (see prepare-release.yml) -
-# the Release's tag is what gets tested and published here, targeting a
-# commit that has already been through a reviewed, merged PR.
+# the Release's tag is what gets published here, targeting a commit that has
+# already been through a reviewed, merged PR.
+#
+# No job in this file installs dependencies, so no third-party code can run
+# alongside the npm-publish credential.
 on:
   release:
     types: [published]
@@ -11,44 +14,10 @@ on:
 permissions: {}
 
 jobs:
-  # Shares this file with deploy, so the npm publisher's `production`
-  # environment claim is all that stops a publish from here. Dropping this job
-  # would harden that - ci.yml already checked this commit pre-merge.
-  test:
-    runs-on: ubuntu-x64
-    if: github.repository_owner == 'twilio'
-    permissions:
-      contents: read
-      id-token: write # for the Artifactory OIDC exchange below
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-
-      - name: Artifactory OIDC Auth
-        uses: ./.github/actions/artifactory-oidc
-        with:
-          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
-
-      - run: corepack enable
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
-        with:
-          node-version: "22.13"
-          cache: yarn
-
-      - run: yarn install --immutable
-
-      - run: yarn run check
-
-      # The runner group is self-hosted, so $HOME can outlive the job.
-      - name: Remove Artifactory credentials
-        if: always()
-        run: rm -f ~/.npmrc ~/.yarnrc.yml
-
   deploy:
     name: Publish to npm
-    needs: [test]
     runs-on: ubuntu-x64
-    if: github.repository_owner == 'twilio' && needs.test.result == 'success'
+    if: github.repository_owner == 'twilio'
     environment: production # manual-approval gate + scoped to publish
     permissions:
       contents: read
@@ -56,9 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
-      # This job holds npm-publish OIDC, so dependency code is never allowed
-      # to run here - no install or build step. The tagged commit already
-      # has everything built.
+      # No install or build step - the tagged commit already has everything
+      # built.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing

@@ -46,24 +46,23 @@ This is an accepted, deliberate tradeoff, for two reasons:
    requires both a compromised dependency *and* a misconfigured npm trusted
    publisher.
 
-**The environment claim is what does the work here, and this is easy to get
-wrong.** `test` and `deploy` live in the *same file* (`release.yml`), so a
-token minted by a compromised dependency during `test`'s `yarn install`
-carries a `workflow_ref` that legitimately points at `release.yml` - the
-correct workflow. Only the `production` environment claim distinguishes it
-from a real publish. If the trusted publisher is configured with just
-repository + workflow and the environment field left blank - which works
-perfectly well for legitimate publishes, and is an easy way to set it up -
-then a compromised dependency in `test` can publish arbitrary code, bypassing
-the `production` approval gate, `deploy`'s tag-vs-version check, and
-`--ignore-scripts` entirely. Before the token hand-off was removed, no
-dependency-running job in this file could mint any token at all, so a blank
-environment field was merely suboptimal; it is now the single control
-preventing publish-from-`test`. It must be set.
+**The exposure is bounded by which workflow file the dependency code runs in.**
+`deploy` does hold `id-token: write` - that is how `npm publish` authenticates -
+so tokens are certainly minted in `release.yml`. The point is that no
+*third-party* code is ever in a position to mint one there: no job in that file
+runs `yarn install`, and the only things executing are npm itself plus two
+first-party scripts that have no dependencies of their own.
 
-By contrast, a token minted in `build` (in `prepare-release.yml`) carries a
-`workflow_ref` pointing at a different workflow file, so it fails the
-publisher's workflow check as well as the environment check.
+The jobs that do run `yarn install` live in `ci.yml` and `prepare-release.yml`,
+and a token minted in either carries a `workflow_ref` pointing at that file -
+not at `release.yml` - so it fails the publisher's workflow check before the
+environment claim is even considered.
+
+That is why keeping `release.yml` free of dependency installs matters, and why
+adding a job there that runs `yarn install` would be a meaningful regression:
+such a job's tokens would carry a `workflow_ref` the publisher accepts, leaving
+the `production` environment claim as the only thing distinguishing them from a
+real publish.
 
 ### What is still structurally isolated
 
@@ -82,8 +81,10 @@ publisher's workflow check as well as the environment check.
   `npm` and `node` here are the runtime's own binaries, and
   `substitute-constants-version.js` is first-party and uses only `fs`
   built-ins. The job that can push has no dependency-execution surface.
-- **`build` and `test` hold only `contents: read`** alongside
-  `id-token: write` - they can install and build, but cannot push anything.
+- **The two jobs that install dependencies hold only `contents: read`**
+  alongside `id-token: write` - `build` in `prepare-release.yml` and `test` in
+  `ci.yml`. They can install and build, but cannot push anything. `release.yml`
+  has no such job.
 - **`deploy` publishes with `--ignore-scripts`**, which is load-bearing rather
   than hygiene: `package.json` defines a `prepare` script
   (`build:constants && bob build`), and `deploy` deliberately has no
@@ -245,13 +246,12 @@ workflows would be meaningless without them:
   *tag*, not the branch - it needs a tag pattern matching real version tags
   (final and RC alike), not just a branch pattern.
 - The npm trusted publisher must be configured on npmjs.com, scoped
-  specifically to this repository, `release.yml`, **and the `production`
-  environment**. This is now load-bearing rather than defense-in-depth: the
-  environment claim is the only thing preventing a compromised dependency in
-  `test` from publishing, since `test` shares `release.yml` with `deploy` and
-  so carries a matching `workflow_ref`. Leaving the environment field blank
-  still publishes correctly and will not fail any test - it just silently
-  removes the control. See the tradeoff section above.
+  specifically to this repository, `release.yml`, and the `production`
+  environment. The workflow scoping is what currently carries the weight, since
+  no job in `release.yml` runs third-party code; the environment claim is
+  defense-in-depth on top of that. Set it anyway - leaving it blank still
+  publishes correctly and fails no test, so a later change that reintroduces a
+  dependency install into `release.yml` would silently have no backstop.
 - **An independent dependency-vulnerability gate does not exist yet**
   (`yarn npm audit`, Dependabot alerts, or an SCA tool). This is the intended
   mitigation for the build-output poisoning path described above, and it is
