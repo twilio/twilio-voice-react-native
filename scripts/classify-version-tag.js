@@ -80,7 +80,7 @@ function classifyVersionTag(version) {
   const channelMatch = released.match(PRERELEASE_CHANNEL);
 
   if (channelMatch) {
-    if (!Object.keys(CHANNELS).includes(channelMatch[1])) {
+    if (![CHANNELS.beta, CHANNELS.preview].includes(channelMatch[1])) {
       throw new Error(`Unrecognized version tag "${version}".`);
     }
 

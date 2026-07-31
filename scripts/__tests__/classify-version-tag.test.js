@@ -20,6 +20,7 @@ const UNRECOGNIZED_VERSIONS = [
   ['1.0.0-beta.1-foo'], // unrecognized trailing segment
   ['1.0.0-rc'], // rc with no number
   ['1.0.0-canary.1'], // a channel we don't publish
+  ['2.0.0-final.3'], // final should be implicit and not explicit
   ['1.0.0-constructor.1'], // must not resolve off Object.prototype
   ['v1.6.1'], // tags in this repo are not v-prefixed
   ['not-a-version'],
