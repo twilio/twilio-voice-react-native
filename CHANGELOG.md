@@ -1,3 +1,10 @@
+Unreleased
+==========
+
+## Fixes
+
+- Fixed a fatal iOS crash (`NSInvalidArgumentException: A call invite is required.`) when a CallKit answer action is performed for a call invite that no longer exists, such as a cancellation racing the user's answer. The invite lookup was guarded only by an `NSAssert`, which compiles out of release builds. The answer action now fails gracefully so CallKit dismisses the call UI, leaving the process — and any other active call — intact.
+
 2.0.0-preview.2 (April 29, 2026)
 ================================
 

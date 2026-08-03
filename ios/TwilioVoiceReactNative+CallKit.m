@@ -242,9 +242,17 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)performAnswerVoiceCallWithUUID:(NSUUID *)uuid
                             completion:(void(^)(BOOL success))completionHandler {
-    NSAssert(self.callInviteMap[uuid.UUIDString], @"No call invite");
-    
     TVOCallInvite *callInvite = self.callInviteMap[uuid.UUIDString];
+    // The invite can be gone by the time the answer action arrives, e.g. a
+    // cancellation racing the user's tap. NSAssert compiles out of release
+    // builds, and passing nil into TVOAcceptOptions raises
+    // NSInvalidArgumentException, terminating the app along with any other
+    // active call.
+    if (!callInvite) {
+        NSLog(@"No call invite found for UUID %@; cannot answer", uuid.UUIDString);
+        completionHandler(NO);
+        return;
+    }
     TVOAcceptOptions *acceptOptions = [TVOAcceptOptions optionsWithCallInvite:callInvite block:^(TVOAcceptOptionsBuilder *builder) {
         builder.uuid = uuid;
         builder.callMessageDelegate = self;
@@ -338,9 +346,17 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
+    // Fail the action cleanly when the invite no longer exists so CallKit
+    // dismisses the call UI instead of the process crashing mid-answer.
+    if (!self.callInviteMap[action.callUUID.UUIDString]) {
+        NSLog(@"No call invite for UUID %@; failing answer action", action.callUUID.UUIDString);
+        [action fail];
+        return;
+    }
+
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
     [TwilioVoiceReactNative twilioAudioDevice].block();
-    
+
     [self performAnswerVoiceCallWithUUID:action.callUUID completion:^(BOOL success) {
         if (success) {
             NSLog(@"performAnswerVoiceCallWithUUID successful");
@@ -348,7 +364,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"performAnswerVoiceCallWithUUID failed");
         }
     }];
-        
+
     [action fulfill];
 }
 
