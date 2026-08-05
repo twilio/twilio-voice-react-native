@@ -38,6 +38,8 @@ jobs:
       # Catches a Release drafted against the wrong commit.
       - name: Validate tag matches package.json version
         run: |
+          set -euo pipefail
+
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="$(jq -r '.version' package.json)"
           if [ "$TAG" != "$VERSION" ]; then
@@ -54,6 +56,8 @@ jobs:
           # taking `latest` from a newer release.
           MAKE_LATEST: ${{ github.event.release.make_latest }}
         run: |
+          set -euo pipefail
+
           VERSION="$(jq -r '.version' package.json)"
           IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
 
@@ -93,6 +97,8 @@ jobs:
       # and the underlying tag might have been overwritten.
       - name: Validate tag matches package.json version
         run: |
+          set -euo pipefail
+
           TAG="${GITHUB_REF#refs/tags/}"
           VERSION="$(jq -r '.version' package.json)"
           if [ "$TAG" != "$VERSION" ]; then
@@ -102,6 +108,8 @@ jobs:
 
       - name: Read version and release-candidate status
         run: |
+          set -euo pipefail
+
           VERSION="$(jq -r '.version' package.json)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
@@ -116,6 +124,8 @@ jobs:
           # taking `latest` from a newer release.
           MAKE_LATEST: ${{ github.event.release.make_latest }}
         run: |
+          set -euo pipefail
+
           NPM_DIST_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
 
           echo "::notice::Publishing ${VERSION} under the ${NPM_DIST_TAG} dist-tag."
@@ -153,5 +163,7 @@ jobs:
       # tag of that name resolving unambiguously.
       - name: Move the latest git tag
         run: |
+          set -euo pipefail
+
           git tag -f latest "$GITHUB_SHA"
           git push origin latest --force

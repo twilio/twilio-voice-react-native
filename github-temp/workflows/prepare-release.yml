@@ -40,6 +40,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
+          set -euo pipefail
+
           IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "${RELEASE_VERSION}")
           echo "::notice::${RELEASE_VERSION} - is release candidate: ${IS_RELEASE_CANDIDATE}"
 
@@ -74,6 +76,8 @@ jobs:
       # artifacts here with the list of actually generated artifacts.
       - name: Verify the release tree was built
         run: |
+          set -euo pipefail
+
           for RELEASE_FILE in \
             package.json \
             constants/constants.src \
@@ -130,6 +134,8 @@ jobs:
 
       - name: Configure git identity
         run: |
+          set -euo pipefail
+
           git config user.name "twilio-vblocks-ci"
           git config user.email "svc.vblocks-ci@twilio.com"
 
@@ -145,6 +151,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
+          set -euo pipefail
+
           git checkout -b "release/${RELEASE_VERSION}"
           git add package.json
           git add constants/constants.src
@@ -170,6 +178,8 @@ jobs:
         env:
           DEVELOPMENT_VERSION: ${{ inputs.development_version }}
         run: |
+          set -euo pipefail
+
           npm version --no-git-tag-version "${DEVELOPMENT_VERSION}"
           node ./scripts/substitute-constants-version.js "${DEVELOPMENT_VERSION}"
           git rm -r --ignore-unmatch \
