@@ -44,9 +44,14 @@ jobs:
           echo "::notice::${RELEASE_VERSION} - is release candidate: ${IS_RELEASE_CANDIDATE}"
 
           if [ "${IS_RELEASE_CANDIDATE}" = 'false' ]; then
-            RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "${RELEASE_VERSION}")
+            RELEASE_CHANNEL=$(node ./scripts/classify-version-tag.js getReleaseChannel "${RELEASE_VERSION}")
+            echo "::notice::${RELEASE_VERSION} - release channel: ${RELEASE_CHANNEL}"
 
-            echo "::notice::${RELEASE_VERSION} - release tag: ${RELEASE_TAG}"
+            CHECKED_LATEST_NPM_DIST_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "${RELEASE_VERSION}" "true")
+            echo "::notice::${RELEASE_VERSION} - npm dist-tag if latest checkbox is checked: ${CHECKED_LATEST_NPM_DIST_TAG}"
+
+            UNCHECKED_LATEST_NPM_DIST_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "${RELEASE_VERSION}" "false")
+            echo "::notice::${RELEASE_VERSION} - npm dist-tag if latest checkbox is unchecked: ${UNCHECKED_LATEST_NPM_DIST_TAG}"
           fi
 
       - run: yarn install --immutable

@@ -10,14 +10,72 @@ on:
   release:
     types: [published]
 
+# Only allow one release in flight at a time. Subsequent releases are queued
+# rather than cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
 
 jobs:
-  deploy:
-    name: Publish to npm
+  # Fast-fail invalid tags. Skips deploy and move-latest-tag jobs for RCs.
+  validate:
     runs-on: ubuntu-x64
     if: github.repository_owner == 'twilio'
+    permissions:
+      contents: read
+    outputs:
+      is_release_candidate: ${{ steps.classify.outputs.is_release_candidate }}
+    steps:
+      - uses: actions/checkout@<TODO>
+
+      - uses: actions/setup-node@<TODO
+        with:
+          node-version: "22.13"
+
+      # Catches a Release drafted against the wrong commit.
+      - name: Validate tag matches package.json version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PKG_VERSION="$(jq -r '.version' package.json)"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::tag $TAG != package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      # Catches a version this pipeline has no publishing rules for.
+      - name: Validate version shape
+        id: classify
+        env:
+          # Whether the maintainer ticked "Set as the latest release". Leaving it
+          # unticked is how a backport onto an older line publishes without
+          # taking `latest` from a newer release.
+          MAKE_LATEST: ${{ github.event.release.make_latest }}
+        run: |
+          VERSION="$(jq -r '.version' package.json)"
+          IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
+
+          echo "::notice::${VERSION} - is release candidate: ${IS_RELEASE_CANDIDATE}"
+          echo "is_release_candidate=$IS_RELEASE_CANDIDATE" >> "$GITHUB_OUTPUT"
+
+          if [ "$IS_RELEASE_CANDIDATE" = "false" ]; then
+            RELEASE_CHANNEL=$(node ./scripts/classify-version-tag.js getReleaseChannel "$VERSION")
+            echo "::notice::${VERSION} - release channel: ${RELEASE_CHANNEL}"
+
+            NPM_DIST_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
+            echo "::notice::${VERSION} - npm dist-tag: ${NPM_DIST_TAG}"
+          fi
+
+  deploy:
+    name: Publish to npm
+    needs: [validate]
+    runs-on: ubuntu-x64
+    if: >-
+      github.repository_owner == 'twilio'
+      && needs.validate.result == 'success'
+      && needs.validate.outputs.is_release_candidate == 'false'
     environment: production # manual-approval gate + scoped to publish
     permissions:
       contents: read
@@ -31,6 +89,8 @@ jobs:
         with:
           node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing
 
+      # Revalidate the tag, since the deploy job can sit for any amount of time
+      # and the underlying tag might have been overwritten.
       - name: Validate tag matches package.json version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
@@ -50,8 +110,15 @@ jobs:
 
       - name: Publish to npm
         if: env.IS_RELEASE_CANDIDATE == 'false'
+        env:
+          # Whether the maintainer ticked "Set as the latest release". Leaving it
+          # unticked is how a backport onto an older line publishes without
+          # taking `latest` from a newer release.
+          MAKE_LATEST: ${{ github.event.release.make_latest }}
         run: |
-          RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION")
+          RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
+
+          echo "::notice::Publishing ${VERSION} under the ${RELEASE_TAG} dist-tag."
 
           npm publish --registry https://registry.npmjs.org \
             --tag "$RELEASE_TAG" \
@@ -78,6 +145,10 @@ jobs:
           node-version: "22.13"
 
       - name: Decide whether to move the latest git tag
+        env:
+          # The same value deploy used to choose the npm dist-tag, so the git tag
+          # cannot end up disagreeing with it.
+          MAKE_LATEST: ${{ github.event.release.make_latest }}
         run: |
           VERSION="$(jq -r '.version' package.json)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -87,7 +158,7 @@ jobs:
           IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
 
           if [ "$IS_RELEASE_CANDIDATE" = 'false' ]; then
-            RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION")
+            RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
 
             if [ "$RELEASE_TAG" = 'latest' ]; then
               MOVE_LATEST_GIT_TAG=true
