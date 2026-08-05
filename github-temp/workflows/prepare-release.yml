@@ -69,12 +69,37 @@ jobs:
       - name: Build SDK artifacts
         run: yarn run build:docs
 
-      # Consider checking build artifacts here: VBLOCKS-7002
+      # VBLOCKS-7002 - Consider going further and checking the build artifacts
+      # for integrity. Also consider a mechanism to synchronize the checked
+      # artifacts here with the list of actually generated artifacts.
+      - name: Verify the release tree was built
+        run: |
+          for RELEASE_FILE in \
+            package.json \
+            constants/constants.src \
+            src/constants.ts \
+            ios/TwilioVoiceReactNativeConstants.h \
+            android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          do
+            if [ ! -s "$RELEASE_FILE" ]; then
+              echo "::error::${RELEASE_FILE} is missing or empty after the build."
+              exit 1
+            fi
+          done
+
+          for RELEASE_DIRECTORY in docs/api lib; do
+            if [ ! -d "$RELEASE_DIRECTORY" ] ||
+               [ -z "$(ls -A "$RELEASE_DIRECTORY")" ]; then
+              echo "::error::${RELEASE_DIRECTORY}/ is missing or empty after the build."
+              exit 1
+            fi
+          done
 
       - name: Upload release tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: release-tree
+          if-no-files-found: error
           path: |
             package.json
             constants/constants.src
