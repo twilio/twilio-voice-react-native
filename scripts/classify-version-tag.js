@@ -1,26 +1,44 @@
 /**
  * Classifies a release version tag for the publish pipeline.
  *
+ * In real usage, <MAKE_LATEST> is typically passed from GitHub Actions. It is a
+ * string valued "true", "false", or "legacy". The value is "true" when a
+ * GitHub release is cut and the checkbox for "Set as latest version" is checked
+ * true. Only "true" and "false" are accepted here - see getNpmDistTag for why
+ * "legacy" is rejected.
+ *
  * Usage:
- *   node ./scripts/classify-version-tag.js getNpmDistTag 2.0.0-preview.1
- *   node ./scripts/classify-version-tag.js getIsReleaseCandidate 2.0.0-rc2
+ *   node ./scripts/classify-version-tag.js getIsReleaseCandidate <VERSION>
+ *   node ./scripts/classify-version-tag.js getReleaseChannel <VERSION>
+ *   node ./scripts/classify-version-tag.js getNpmDistTag <VERSION> <MAKE_LATEST>
  */
 
 /**
- * A trailing release-candidate suffix, e.g. the `-rc1` in
- * `2.0.0-preview.1-rc1`. Always the last segment when present.
+ * Regular expression patterns used to process version tags.
  */
-const RELEASE_CANDIDATE_SUFFIX = /-rc[0-9]+$/;
+const REGEX_PATTERNS = {
+  /**
+   * A trailing release-candidate suffix, e.g. the `-rc1` in
+   * `2.0.0-preview.1-rc1`. Always the last segment when present.
+   */
+  RELEASE_CANDIDATE_SUFFIX: /-rc([0-9]+)$/,
 
-/**
- * A prerelease channel identifier and its number, e.g. the `beta` in
- * `1.0.0-beta.2`. The dot is not optional: `beta.2` parses but `beta2` does not
- * parse.
- */
-const PRERELEASE_CHANNEL = /^[0-9]+\.[0-9]+\.[0-9]+-([a-z]+)\.[0-9]+$/;
+  /**
+   * A version that will be published to the beta channel, e.g. `1.0.0-beta.4`.
+   */
+  BETA_CHANNEL_VERSION: /^([0-9]+)\.([0-9]+)\.([0-9]+)-beta\.([0-9]+)$/,
 
-/** A version with no prerelease identifier at all, e.g. `1.6.1`. */
-const FINAL_VERSION = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+  /**
+   * A version that will be published to the preview channel,
+   * e.g. `2.0.0-preview.2`.
+   */
+  PREVIEW_CHANNEL_VERSION: /^([0-9]+)\.([0-9]+)\.([0-9]+)-preview\.([0-9]+)$/,
+
+  /**
+   * A version with no prerelease identifier at all, e.g. `1.6.1`.
+   */
+  FINAL_VERSION: /^([0-9]+)\.([0-9]+)\.([0-9]+)$/,
+};
 
 /**
  * Expected channels to be parsed out of the semver.
@@ -35,84 +53,145 @@ const CHANNELS = {
 };
 
 /**
- * Publishing policy: the npm dist-tag each channel goes out under. Release
- * candidates are not listed because they are never published - see
- * getNpmDistTag.
- *
- * Note that this value is passed directly to the `npm publish` CLI command as
- * the value for the `--tag` flag.
+ * Correlate release channels with npm dist-tag values.
  */
-const NPM_DIST_TAG_BY_CHANNEL = {
+const NPM_DIST_TAG = {
   [CHANNELS.final]: 'latest',
   [CHANNELS.beta]: 'beta',
   [CHANNELS.preview]: 'preview',
 };
 
 /**
- * Describes what a version tag is, independent of any publishing policy.
+ * Correlate the RegExp patterns with release channels.
  *
- *   1.6.1               -> { channel: 'final',   isReleaseCandidate: false }
- *   1.0.0-beta.2        -> { channel: 'beta',    isReleaseCandidate: false }
- *   2.0.0-rc2           -> { channel: 'final',   isReleaseCandidate: true }
- *   2.0.0-preview.1-rc1 -> { channel: 'preview', isReleaseCandidate: true }
+ * A version matching no entry is rejected rather than assigned a channel, so
+ * adding a channel means adding a pattern here.
  *
- * `channel` is what the version is a release of, or a candidate for when
- * isReleaseCandidate is true. So a bare `2.0.0-rc2` is a candidate for the
- * final 2.0.0, and `2.0.0-preview.1-rc1` is a candidate for that preview.
+ * @type {[RegExp, string][]}
+ */
+const versionPatternChannelMapping = [
+  [REGEX_PATTERNS.BETA_CHANNEL_VERSION, CHANNELS.beta],
+  [REGEX_PATTERNS.PREVIEW_CHANNEL_VERSION, CHANNELS.preview],
+  [REGEX_PATTERNS.FINAL_VERSION, CHANNELS.final],
+];
+
+/**
+ * Classifies a version tag.
  *
- * The release-candidate suffix is removed before reading the channel. One
- * regex covering both would be ambiguous: in `2.0.0-rc2` the channel group
- * would capture `rc` as though it were a channel like `beta`.
+ * Returns the release candidacy of the version, the release channel of the
+ * version, and the raw RegExp match of the version.
  *
- * Throws on any shape not recognized here, rather than guessing. Guessing
- * would risk a prerelease publishing under the `latest` dist-tag.
+ *   1.6.1               -> final,   not a candidate
+ *   1.0.0-beta.2        -> beta,    not a candidate
+ *   2.0.0-rc2           -> final,   candidate
+ *   2.0.0-preview.1-rc1 -> preview, candidate
+ *
+ * `2.0.0-rc2` is a candidate for the final `2.0.0` version and
+ * `2.0.0-preview.1-rc1` is a candidate for the preview `2.0.0-preview.1`
+ * version.
+ *
+ * Throws on any shape not listed above rather than guessing, because a guessed
+ * channel could put a prerelease on the `latest` dist-tag.
+ *
+ * @param {string} version
+ * @returns {{
+ *   match: RegExpMatchArray,
+ *   channel: string,
+ *   isReleaseCandidate: boolean,
+ * }}
  */
 function classifyVersionTag(version) {
   // First, check if the version is an RC by checking for post-fix `-rcN` where
   // `N` is a required number >= 0.
-  const isReleaseCandidate = RELEASE_CANDIDATE_SUFFIX.test(version);
+  const isReleaseCandidate =
+    REGEX_PATTERNS.RELEASE_CANDIDATE_SUFFIX.test(version);
 
   // Now, remove the `-rcN` substring from the end so that the channel can be
   // parsed.
-  const released = version.replace(RELEASE_CANDIDATE_SUFFIX, '');
+  const targetVersion = version.replace(
+    REGEX_PATTERNS.RELEASE_CANDIDATE_SUFFIX,
+    ''
+  );
 
-  // Next, get the release channel specified by the version string.
-  const channelMatch = released.match(PRERELEASE_CHANNEL);
-
-  if (channelMatch) {
-    if (![CHANNELS.beta, CHANNELS.preview].includes(channelMatch[1])) {
-      throw new Error(`Unrecognized version tag "${version}".`);
+  // Check expected version patterns one at a time.
+  for (const [versionPattern, versionChannel] of versionPatternChannelMapping) {
+    const versionMatch = targetVersion.match(versionPattern);
+    if (versionMatch) {
+      return {
+        match: versionMatch,
+        channel: versionChannel,
+        isReleaseCandidate,
+      };
     }
-
-    return { channel: CHANNELS[channelMatch[1]], isReleaseCandidate };
   }
 
-  // If there was no recognized release channel or no release channel at all,
-  // make sure it's a valid final semver.
-  if (FINAL_VERSION.test(released)) {
-    return { channel: CHANNELS.final, isReleaseCandidate };
-  }
-
-  throw new Error(`Unrecognized version tag "${version}".`);
+  // If we didn't hit a very explicitly expected version pattern, throw an
+  // error.
+  throw new Error(`Unrecognized version "${version}".`);
 }
 
 /**
  * Whether a version is a release candidate, including compound forms like
- * `2.0.0-preview.1-rc1`. Release candidates are cut for QE regression testing
- * and are never published to npm.
+ * `2.0.0-preview.1-rc1`.
+ *
+ * Candidates are cut for QE regression testing and are never published to npm,
+ * so this is the only command that accepts one - the other two throw. The
+ * workflows call it first and use the answer to decide whether to go on.
+ *
+ * @param {string} version
+ * @returns {boolean}
  */
 function getIsReleaseCandidate(version) {
   return classifyVersionTag(version).isReleaseCandidate;
 }
 
 /**
- * The npm dist-tag to publish a version under.
+ * The channel a version belongs to.
  *
- * We want to throw an error if we try to get the npm dist-tag for an RC because
- * we absolutely do not want to publish release candidates.
+ * Deliberately independent of the latest-release checkbox, because a channel is
+ * a property of the version itself.
+ *
+ * Throws for a release candidate. Reporting a channel here would incorrectly
+ * conflate a release candidate with a full release channel.
+ *
+ * @param {string} version
+ * @returns {string}
  */
-function getNpmDistTag(version) {
+function getReleaseChannel(version) {
   const { channel, isReleaseCandidate } = classifyVersionTag(version);
+
+  if (isReleaseCandidate) {
+    throw new Error(
+      `Version "${version}" is a release candidate and has no release channel.`
+    );
+  }
+
+  return channel;
+}
+
+/**
+ * The dist-tag a version publishes under, passed straight to `npm publish` as
+ * the value of its `--tag` flag.
+ *
+ * `makeLatest` is required for every version even though it only changes the
+ * answer for a "final" one.
+ *
+ * A final version with `makeLatest` of "false" is a backport onto an older
+ * line. It gets `<major>.<minor>.x` instead of `latest`, so a bare
+ * `npm install` keeps resolving to the newer line. Consumers still reach the
+ * backport through semver ranges - a dist-tag only affects
+ * `npm install <pkg>` and `npm install <pkg>@<dist-tag>`.
+ *
+ * `makeLatest` with value "legacy" will throw an error. Under "legacy", GitHub
+ * infers the latest release by date rather than by flag, which is not an intent
+ * this pipeline should act on.
+ *
+ * @param {string} version
+ * @param {string} makeLatest
+ * @returns {string}
+ */
+function getNpmDistTag(version, makeLatest) {
+  const { match, channel, isReleaseCandidate } = classifyVersionTag(version);
 
   if (isReleaseCandidate) {
     throw new Error(
@@ -120,50 +199,64 @@ function getNpmDistTag(version) {
     );
   }
 
-  if (!Object.keys(NPM_DIST_TAG_BY_CHANNEL).includes(channel)) {
+  if (!['true', 'false'].includes(makeLatest)) {
     throw new Error(
-      `No npm dist-tag configured for channel "${channel}". Add it to ` +
-        'NPM_DIST_TAG_BY_CHANNEL if this is a channel we publish.'
+      `Unexpected value "${makeLatest}" for parameter "makeLatest".`
     );
   }
 
-  return NPM_DIST_TAG_BY_CHANNEL[channel];
-}
+  if (channel === CHANNELS.final && makeLatest === 'false') {
+    const [, majorVersion, minorVersion] = match;
+    return `${majorVersion}.${minorVersion}.x`;
+  }
 
-const COMMANDS = { getNpmDistTag, getIsReleaseCandidate };
+  return NPM_DIST_TAG[channel];
+}
 
 /**
  * Runs a command by name and returns exactly what the CLI should print.
  *
- * Returns a string rather than the underlying value so the wrapper below stays
- * a pure passthrough. That keeps everything worth testing in here, where jest
- * can assert character for character what the release workflow reads off
- * stdout.
+ * The only export, and the only thing the workflows invoke, so it is also the
+ * only surface the unit tests need to cover.
+ *
+ * @param {string} command
+ * @param {...string} args
+ * @returns {string | boolean}
  */
-function runCommand(command, version) {
-  if (!Object.keys(COMMANDS).includes(command)) {
-    throw new Error(
-      `Invalid command. Must be one of "[${Object.keys(COMMANDS).join(', ')}]".`
-    );
+function runCommand(command, ...args) {
+  switch (command) {
+    case getIsReleaseCandidate.name: {
+      const [version] = args;
+      if (!version) {
+        throw new Error('Expected version argument.');
+      }
+      return getIsReleaseCandidate(version);
+    }
+    case getReleaseChannel.name: {
+      const [version] = args;
+      if (!version) {
+        throw new Error('Expected version argument.');
+      }
+      return getReleaseChannel(version);
+    }
+    case getNpmDistTag.name: {
+      const [version, makeLatest] = args;
+      if (!version || !makeLatest) {
+        throw new Error('Expected "version" and "makeLatest" arguments.');
+      }
+      return getNpmDistTag(version, makeLatest);
+    }
+    default: {
+      throw new Error('Unexpected command.');
+    }
   }
-
-  if (!version) {
-    throw new Error('No version value passed.');
-  }
-
-  return String(COMMANDS[command](version));
 }
 
-module.exports = {
-  classifyVersionTag,
-  getIsReleaseCandidate,
-  getNpmDistTag,
-  runCommand,
-};
+module.exports = { runCommand };
 
 if (require.main === module) {
   try {
-    console.log(runCommand(process.argv[2], process.argv[3]));
+    console.log(runCommand(...process.argv.slice(2)));
   } catch (error) {
     console.error(error);
     process.exitCode = 1;
