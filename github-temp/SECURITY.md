@@ -145,6 +145,44 @@ dependency-vulnerability gate; see "Known open items" below.
 - **`move-latest-tag` is its own job**, separate from `deploy`, so the job
   holding npm-publish OIDC never also needs `contents: write` to move a git
   tag, and vice versa.
+- **A release candidate never reaches `deploy` at all.** `validate` classifies
+  the version first and `deploy` is gated on the result, so a candidate cannot
+  request a `production` approval for a publish it would then skip. This repo
+  cuts far more candidates than releases - 1.0.0 alone had 24 - so without that
+  gate, approving no-op deploys would be the common case, and an approval gate
+  that is usually a no-op stops being read carefully.
+
+## How the `latest` pointers are decided
+
+Both npm's `latest` dist-tag and the `latest` git tag follow
+`github.event.release.make_latest` - the "Set as the latest release" checkbox in
+the GitHub Release UI. Neither is inferred from the version number.
+
+- A final release with the box **ticked** publishes under `latest`, and the git
+  tag moves to that commit.
+- A final release with the box **unticked** is a backport onto an older line. It
+  publishes under `<major>.<minor>.x` instead, `latest` is left where it is, and
+  the git tag does not move. Consumers still reach the backport through semver
+  ranges; a dist-tag only affects `npm install <pkg>` and
+  `npm install <pkg>@<tag>`.
+- A prerelease publishes under its channel (`beta`, `preview`) regardless of the
+  checkbox. The channel policy in `classify-version-tag.js` will not put a
+  prerelease on `latest` even if a maintainer ticks the box.
+- Only `"true"` and `"false"` are accepted. `"legacy"` - where GitHub infers the
+  latest release by date rather than by flag - throws rather than being read as
+  either, because it expresses no intent this pipeline should act on.
+
+`release.yml` also declares a `concurrency` group so only one release runs at a
+time. That stops two runs interleaving around the `production` approval, which
+is a different failure from the checkbox: a stale run approved late cannot
+publish while a newer one is mid-flight.
+
+**This is a process dependency, and it is accepted as one.** Nothing verifies
+that the checkbox matches intent. The agreed convention is that previews and
+betas are published with the "pre-release" tick and never with "Set as the
+latest release", and that a backport leaves both unticked. A maintainer who
+ticks `latest` on a backport moves `latest` backwards, and the pipeline will
+carry that out. See the open items below for why that is awkward to undo.
 
 ## Defending job-dependency logic against a GitHub Actions footgun
 
@@ -260,12 +298,41 @@ workflows would be meaningless without them:
   plain caching mirror (audit trail only, no vetting of package contents) or
   has JFrog Xray with a *blocking* policy attached. Caching does not imply
   scanning.
-- **`latest` can regress if releases are approved out of order.** Both npm's
-  `latest` dist-tag and the `latest` git tag are set by whichever `deploy` run
-  finishes last, not by which version is highest. If 1.7.0's `deploy` is left
-  waiting on its `production` approval while 1.7.1 is approved and completes,
-  approving the stale 1.7.0 run afterwards moves `latest` backwards - silently
-  changing what a plain `npm install` resolves to, with no error in either run.
-  Nothing in the pipeline compares against the currently-published version.
+- **Nothing verifies that the latest-release checkbox matches intent.** See "How
+  the `latest` pointers are decided" above. Ticking it on a backport moves
+  `latest` backwards and the pipeline will do exactly that. Accepted as a
+  process dependency rather than a technical control, on the grounds that the
+  same checkbox is already the mechanism for getting backports right.
+
+  A guard that read the currently-published version with
+  `npm view <pkg> version` and refused to publish unless the new version was
+  newer was considered and rejected, for two reasons. npm exposes no
+  compare-and-swap for dist-tags, so an `npm view` read followed by a publish
+  can only narrow that window rather than close it. And `npm view` is not
+  reliable as ground truth: packuments are served through a CDN and dist-tag
+  changes take time to propagate, so a read taken shortly after a publish can
+  still report the previous version. A guard built on it would both miss real
+  regressions and block legitimate releases, while reading as a control.
+
+  A local git-tag oracle - ranking the version against every tag in the
+  repository - was also built and dropped. It was correct and needed no network,
+  but it inferred intent from version numbers where the checkbox simply asks the
+  maintainer.
+
+- **Repointing `latest` after it goes wrong has no established path, so the gap
+  above has no clean remedy.** Correcting a dist-tag means `npm dist-tag add`,
+  which needs a credential holding write access to the package. This pipeline
+  publishes exclusively through OIDC trusted publishing at the platform team's
+  direction, so no such credential exists here by design, and the short-lived
+  OIDC token is scoped to the publish itself. Whoever needed to fix `latest`
+  would have to obtain npm access some other way. Worth settling with the
+  platform team before the first real release rather than during an incident.
+
+- **`github.event.release.make_latest` being present on the event payload is
+  confirmed by the first real release.** If the field is absent or renamed,
+  `getNpmDistTag` rejects the empty value and `deploy` fails loudly rather than
+  defaulting - which is the point of validating it in the script rather than
+  treating a missing value as "not latest".
+
 - Branch protection on `main` and a merge-strategy setting that allows
   "Create a merge commit" for release PRs must both be confirmed.

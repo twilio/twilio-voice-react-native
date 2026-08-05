@@ -39,9 +39,9 @@ jobs:
       - name: Validate tag matches package.json version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          PKG_VERSION="$(jq -r '.version' package.json)"
-          if [ "$TAG" != "$PKG_VERSION" ]; then
-            echo "::error::tag $TAG != package.json version $PKG_VERSION"
+          VERSION="$(jq -r '.version' package.json)"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::tag $TAG != package.json version $VERSION"
             exit 1
           fi
 
@@ -94,9 +94,9 @@ jobs:
       - name: Validate tag matches package.json version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          PKG_VERSION="$(jq -r '.version' package.json)"
-          if [ "$TAG" != "$PKG_VERSION" ]; then
-            echo "::error::tag $TAG != package.json version $PKG_VERSION"
+          VERSION="$(jq -r '.version' package.json)"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::tag $TAG != package.json version $VERSION"
             exit 1
           fi
 
@@ -116,63 +116,42 @@ jobs:
           # taking `latest` from a newer release.
           MAKE_LATEST: ${{ github.event.release.make_latest }}
         run: |
-          RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
+          NPM_DIST_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
 
-          echo "::notice::Publishing ${VERSION} under the ${RELEASE_TAG} dist-tag."
+          echo "::notice::Publishing ${VERSION} under the ${NPM_DIST_TAG} dist-tag."
 
           npm publish --registry https://registry.npmjs.org \
-            --tag "$RELEASE_TAG" \
+            --tag "$NPM_DIST_TAG" \
             --ignore-scripts --provenance --access public
 
       - name: Skip publish for release candidate
         if: env.IS_RELEASE_CANDIDATE == 'true'
         run: echo "::notice::${VERSION} is a release candidate - not publishing to npm."
 
-  # This job is separate from the deploy job so that the deploy job doesn't also
-  # need push access. No approval gate necessary here - deploy already required
-  # one.
+  # Separate from deploy so that job doesn't also need push access. No approval
+  # gate here - deploy already required one.
+  #
+  # Runs only when the maintainer ticked "Set as the latest release", so the git
+  # tag follows the same declaration the npm dist-tag does. deploy has already
+  # rejected any make_latest value other than "true" or "false", and is skipped
+  # entirely for a release candidate, so neither needs rechecking here.
+  #
+  # In the future, consider tags for backports as well. e.g. a git tag for
+  # 1.6.x, etc.
   move-latest-tag:
     needs: [deploy]
     runs-on: ubuntu-x64
-    if: needs.deploy.result == 'success'
+    if: >-
+      needs.deploy.result == 'success'
+      && github.event.release.make_latest == 'true'
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
-        with:
-          node-version: "22.13"
-
-      - name: Decide whether to move the latest git tag
-        env:
-          # The same value deploy used to choose the npm dist-tag, so the git tag
-          # cannot end up disagreeing with it.
-          MAKE_LATEST: ${{ github.event.release.make_latest }}
-        run: |
-          VERSION="$(jq -r '.version' package.json)"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
-          MOVE_LATEST_GIT_TAG=false
-
-          IS_RELEASE_CANDIDATE=$(node ./scripts/classify-version-tag.js getIsReleaseCandidate "$VERSION")
-
-          if [ "$IS_RELEASE_CANDIDATE" = 'false' ]; then
-            RELEASE_TAG=$(node ./scripts/classify-version-tag.js getNpmDistTag "$VERSION" "$MAKE_LATEST")
-
-            if [ "$RELEASE_TAG" = 'latest' ]; then
-              MOVE_LATEST_GIT_TAG=true
-            fi
-          fi
-
-          echo "MOVE_LATEST_GIT_TAG=$MOVE_LATEST_GIT_TAG" >> "$GITHUB_ENV"
-
+      # Targets the commit rather than the version string, which would rely on a
+      # tag of that name resolving unambiguously.
       - name: Move the latest git tag
-        if: env.MOVE_LATEST_GIT_TAG == 'true'
         run: |
-          git tag -f latest "$VERSION"
+          git tag -f latest "$GITHUB_SHA"
           git push origin latest --force
-
-      - name: Skip moving latest git tag
-        if: env.MOVE_LATEST_GIT_TAG == 'false'
-        run: echo "::notice::${VERSION} is not latest - not moving latest git tag."
