@@ -34,20 +34,39 @@ runs:
         HOST=$(echo "${BASE_URL}" | sed -E 's#^https?://##; s#/.*$##')
 
         # 1. Request a GitHub OIDC JWT with Artifactory as the audience.
-        GITHUB_JWT=$(curl -sS \
+        #    -G puts --data-urlencode into the query string rather than a POST
+        #    body. Encoding the audience instead of splicing it into the URL
+        #    keeps the request well-formed whatever the value contains, and
+        #    strict validators are happier for it.
+        GITHUB_JWT=$(curl -sS -G \
           -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-          "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${BASE_URL}" \
+          --data-urlencode "audience=${BASE_URL}" \
+          "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
           | jq -r '.value')
+        if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+          echo "::error::Failed to obtain GitHub OIDC JWT"
+          exit 1
+        fi
         echo "::add-mask::$GITHUB_JWT"
 
         # 2. Exchange it for an Artifactory access token. The body MUST be JSON
         #    and MUST include provider_name, or JFrog issues no token.
+        #
+        #    Built with jq rather than by splicing the token into a JSON literal,
+        #    so it is escaped as a JSON value. A token containing a quote or a
+        #    backslash would otherwise break the body or inject sibling fields.
+        #    Only the token needs --arg; the rest are constants in this source.
+        EXCHANGE_BODY=$(jq -nc --arg subjectToken "$GITHUB_JWT" \
+          '{
+            grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+            subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
+            subject_token: $subjectToken,
+            provider_name: "github-actions"
+          }')
+
         RESP=$(curl -sS "${BASE_URL}/access/api/v1/oidc/token" \
           -H 'Content-Type: application/json' \
-          -d "{\"grant_type\":\"urn:ietf:params:oauth:grant-type:token-exchange\",
-               \"subject_token_type\":\"urn:ietf:params:oauth:token-type:id_token\",
-               \"subject_token\":\"${GITHUB_JWT}\",
-               \"provider_name\":\"github-actions\"}")
+          -d "$EXCHANGE_BODY")
         ART_TOKEN=$(echo "$RESP" | jq -r '.access_token // empty')
 
         if [ -z "$ART_TOKEN" ]; then
