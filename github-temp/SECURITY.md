@@ -319,14 +319,20 @@ workflows would be meaningless without them:
   but it inferred intent from version numbers where the checkbox simply asks the
   maintainer.
 
-- **Repointing `latest` after it goes wrong has no established path, so the gap
-  above has no clean remedy.** Correcting a dist-tag means `npm dist-tag add`,
-  which needs a credential holding write access to the package. This pipeline
-  publishes exclusively through OIDC trusted publishing at the platform team's
-  direction, so no such credential exists here by design, and the short-lived
-  OIDC token is scoped to the publish itself. Whoever needed to fix `latest`
-  would have to obtain npm access some other way. Worth settling with the
-  platform team before the first real release rather than during an incident.
+- **Repointing `latest` after it goes wrong cannot be done directly, only by
+  cutting another release.** The direct fix is `npm dist-tag add`, which needs a
+  credential holding write access to the package. This pipeline publishes
+  exclusively through OIDC trusted publishing at the platform team's direction,
+  so no such credential exists here by design, and the short-lived OIDC token is
+  scoped to the publish itself.
+
+  The last-resort remedy is to publish the next release with "Set as the latest
+  release" ticked, which runs `npm publish --tag latest` and repoints the tag
+  using the existing pipeline and no extra credential. That works, but it is not
+  an immediate fix: it needs a real version to release, so `latest` stays wrong
+  until one is cut. Whether that is acceptable, or whether someone should hold
+  npm access for direct dist-tag edits, is worth settling with the platform team
+  before the first real release rather than during an incident.
 
 - **`github.event.release.make_latest` being present on the event payload is
   confirmed by the first real release.** If the field is absent or renamed,

@@ -191,6 +191,16 @@ jobs:
           git add -A
           git commit --no-verify -m "chore: continue development on ${DEVELOPMENT_VERSION}"
 
+      # Known gap: re-dispatching this workflow for a version whose branch was
+      # already pushed rebuilds everything and then fails here, because the
+      # fresh local branch has no shared history with the remote one. Loud and
+      # recoverable, but only after the whole build has run again, and recovery
+      # means deleting the remote branch by hand.
+      #
+      # Deliberately not a force-push. That would discard whatever is on the
+      # existing branch, including a branch someone has already opened a PR
+      # from. If this becomes annoying, check for the remote branch before the
+      # build rather than relaxing the push.
       - name: Push release branch
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
