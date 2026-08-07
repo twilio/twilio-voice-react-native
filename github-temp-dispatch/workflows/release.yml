@@ -33,13 +33,11 @@ on:
         description: "Optional: next dev version to commit onto the release branch (e.g. 2.0.1-dev). Leave blank to skip."
         required: false
 
-# Commented out for now, consider adding later when we have a chance to debug
-# why this causes inconsistent pipeline starts.
-# # Only allow one release in flight at a time. Subsequent releases are queued
-# # rather than cancelled.
-# concurrency:
-#   group: release
-#   cancel-in-progress: false
+# Only allow one release in flight at a time. Subsequent releases are queued
+# rather than cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
