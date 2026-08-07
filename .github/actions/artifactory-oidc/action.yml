@@ -67,7 +67,12 @@ runs:
         RESP=$(curl -sS "${BASE_URL}/access/api/v1/oidc/token" \
           -H 'Content-Type: application/json' \
           -d "$EXCHANGE_BODY")
-        ART_TOKEN=$(echo "$RESP" | jq -r '.access_token // empty')
+
+        # If RESP is not valid JSON, jq will fail here. Catch the failure and
+        # just leave ART_TOKEN empty so the next conditional catches the failure
+        # properly.
+        ART_TOKEN=$(echo "$RESP" \
+          | jq -r '.access_token // empty' 2>/dev/null || true)
 
         if [ -z "$ART_TOKEN" ]; then
           echo "::error::OIDC token exchange failed. Redacted response below:"
@@ -79,6 +84,19 @@ runs:
           exit 1
         fi
         echo "::add-mask::$ART_TOKEN"
+
+        # Both config files below embed the token in a text format - ini for
+        # npm, YAML for yarn - so a token holding a quote, a backslash or a
+        # newline could add config lines rather than just fail to parse. The
+        # shape is asserted once here instead of escaping for two formats.
+        #
+        # Matched with bash rather than grep because grep anchors ^ and $ to
+        # each line, so a two-line value passes on its first line alone.
+        TOKEN_PATTERN='^[A-Za-z0-9._~+/=-]+$'
+        if [[ ! $ART_TOKEN =~ $TOKEN_PATTERN ]]; then
+          echo "::error::Artifactory token has an unexpected shape; refusing to write registry config."
+          exit 1
+        fi
 
         # 3. Point npm at the curated Artifactory registry for this job.
         REGISTRY="${BASE_URL}/artifactory/api/npm/virtual-npm-thirdparty/"
