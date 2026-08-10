@@ -1,0 +1,195 @@
+name: Release
+
+# Manually dispatched against a release/<version> branch that Prepare Release
+# already built. Run it from that branch (pick it in the "Run workflow"
+# dropdown): the branch head is what gets published, so GITHUB_SHA and the npm
+# provenance both point at the right commit.
+#
+# The operator declares the dist-tag, whether to move the `latest` git tag, and
+# an optional next dev version - nothing is inferred and nothing is validated.
+#
+# Order matters: deploy publishes the branch head first; the write jobs below
+# all target that same GITHUB_SHA, so continue-development moving the branch
+# head afterward does not affect what was published or tagged.
+
+on:
+  workflow_dispatch:
+    inputs:
+      npm_dist_tag:
+        description: "npm dist-tag to publish under"
+        required: true
+        type: choice
+        options:
+          - latest
+          - beta
+          - preview
+          - backport
+      move_latest_tag:
+        description: "Also move the 'latest' git tag (and mark the GitHub Release latest)"
+        required: true
+        type: boolean
+        default: false
+      development_version:
+        description: "Optional: next dev version to commit onto the release branch (e.g. 2.0.1-dev). Leave blank to skip."
+        required: false
+
+# Only allow one release in flight at a time. Subsequent releases are queued
+# rather than cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# No default permissions; each job below declares exactly what it needs.
+permissions: {}
+
+jobs:
+  deploy:
+    name: Publish to npm
+    runs-on: ubuntu-x64
+    if: github.repository_owner == 'twilio'
+    environment: production # manual-approval gate + scoped to publish
+    permissions:
+      contents: read
+      id-token: write # required for npm OIDC trusted publishing
+    steps:
+      # No ref: the run is dispatched from the release branch, so the default
+      # checkout is that branch's head - the already-built tree.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      # No install or build step - the branch already has everything built.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: 24 # npm >= 11.5.1 (bundled with Node 24) required for OIDC trusted publishing
+
+      - name: Publish to npm
+        env:
+          NPM_DIST_TAG: ${{ inputs.npm_dist_tag }}
+        run: |
+          set -euo pipefail
+
+          # Down the road, guard this against dispatching from the wrong ref:
+          # require GITHUB_REF to match refs/heads/release/* before publishing.
+          # Dispatching from main would otherwise publish main's -dev version,
+          # which has no built artifacts committed.
+
+          VERSION="$(jq -r '.version' package.json)"
+          echo "::notice::Publishing ${VERSION} under the ${NPM_DIST_TAG} dist-tag."
+
+          npm publish --registry https://registry.npmjs.org \
+            --tag "$NPM_DIST_TAG" \
+            --ignore-scripts --provenance --access public
+
+  # Creates the tag and the GitHub Release at the published commit. Targets
+  # GITHUB_SHA directly, so it is unaffected by continue-development moving the
+  # branch head. Marked latest to match the git-tag decision.
+  create-github-release:
+    needs: [deploy]
+    runs-on: ubuntu-x64
+    timeout-minutes: 10
+    if: >-
+      github.repository_owner == 'twilio'
+      && needs.deploy.result == 'success'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAKE_LATEST: ${{ inputs.move_latest_tag }}
+        run: |
+          set -euo pipefail
+
+          VERSION="$(jq -r '.version' package.json)"
+
+          # Placeholder body - the operator edits the Release to add notes after
+          # the run.
+          RELEASE_NOTES="TODO: add release notes for ${VERSION}."
+
+          gh release create "$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --latest="$MAKE_LATEST"
+
+  # Separate from deploy so that job doesn't also need push access. Runs only
+  # when the operator asked for it.
+  move-latest-tag:
+    needs: [create-github-release]
+    runs-on: ubuntu-x64
+    timeout-minutes: 10
+    if: >-
+      github.repository_owner == 'twilio'
+      && needs.create-github-release.result == 'success'
+      && inputs.move_latest_tag
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      # GITHUB_SHA is the dispatched branch's head, i.e. the commit just
+      # published.
+      - name: Move the latest git tag
+        run: |
+          set -euo pipefail
+
+          git tag -f latest "$GITHUB_SHA"
+          git push origin latest --force
+
+  # Commits the next dev version onto the release branch - after the publish, so
+  # it never changes what was shipped. A human later merges release/<version>
+  # into main to advance it; the built artifacts are removed here so that merge
+  # is a clean version-bump diff.
+  continue-development:
+    needs: [deploy, create-github-release, move-latest-tag]
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    # move-latest-tag is skipped when move_latest_tag is false, and a skipped
+    # need would fail the implicit success() gate. So !cancelled() plus explicit
+    # result checks, treating move-latest-tag as success-or-skipped. All three
+    # upstream jobs are in needs so their results are readable here.
+    if: >-
+      !cancelled()
+      && github.repository_owner == 'twilio'
+      && needs.deploy.result == 'success'
+      && needs.create-github-release.result == 'success'
+      && (needs.move-latest-tag.result == 'success' || needs.move-latest-tag.result == 'skipped')
+      && inputs.development_version != ''
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+
+      - name: Configure git identity
+        run: |
+          set -euo pipefail
+
+          git config user.name "twilio-vblocks-ci"
+          git config user.email "svc.vblocks-ci@twilio.com"
+
+      - name: Commit development-version continuation
+        env:
+          DEVELOPMENT_VERSION: ${{ inputs.development_version }}
+        run: |
+          set -euo pipefail
+
+          npm version --no-git-tag-version "${DEVELOPMENT_VERSION}"
+          node ./scripts/substitute-constants-version.js "${DEVELOPMENT_VERSION}"
+          git rm -r --ignore-unmatch \
+            docs/api \
+            lib \
+            src/constants.ts \
+            ios/TwilioVoiceReactNativeConstants.h \
+            android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          git add -A
+          git commit --no-verify -m "chore: continue development on ${DEVELOPMENT_VERSION}"
+
+          # Explicit refspec: the checkout may be a detached HEAD at GITHUB_SHA
+          # rather than on a named branch, so push back to the ref the run was
+          # dispatched from instead of relying on `HEAD` inferring a branch.
+          git push origin "HEAD:${GITHUB_REF}"
