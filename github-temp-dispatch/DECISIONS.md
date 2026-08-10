@@ -71,6 +71,12 @@ stopped inferring intent and started asking for it.
 
 - **Dispatch, not publish trigger.** Intent (dist-tag, tag-move) is declared as
   inputs instead of inferred. This is the whole reason for the rewrite.
+- **A `concurrency` group serializes releases.** `group: release` with
+  `cancel-in-progress: false` lets only one release run at a time; a second
+  dispatch queues rather than cancelling the first or racing it on the npm
+  `latest` dist-tag or the `latest` git tag. It was left off during development
+  because it caused inconsistent starts under the publish-hook trigger; under
+  `workflow_dispatch` it behaves correctly, confirmed in the test repo.
 - **`npm_dist_tag` is a `choice` input, including `backport`.** A dropdown
   prevents typos and blocks a value like `1.6.x`, which npm rejects at publish
   because it parses as a semver range. `backport` is the shared tag for an
@@ -131,11 +137,6 @@ stopped inferring intent and started asking for it.
 - **The GitHub Release is post-hoc.** The workflow creates it after npm already
   published, so it cannot gate anything, and its body is a placeholder the
   operator fills in afterward.
-- **No concurrency guard right now.** The `concurrency` block is commented out
-  (it was causing inconsistent pipeline starts). Two release dispatches running
-  close together could race on the npm `latest` dist-tag and the `latest` git
-  tag, last-write-wins. Operator-paced and manually controlled, so low, but not
-  prevented until the block is restored.
 - **Dispatching from the wrong branch publishes the wrong thing.** With full
   trust and no ref guard, dispatching `release.yml` from `main` would publish
   `main`'s `-dev` version - which has no built artifacts committed. `deploy`
