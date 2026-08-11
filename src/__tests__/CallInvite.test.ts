@@ -389,9 +389,10 @@ describe('CallInvite class', () => {
         'mock invalid iceServers'
       );
 
-      jest
-        .spyOn(IceOptionsModule, 'validateIceServers')
-        .mockReturnValueOnce({ status: 'error', error: validationError } as any);
+      jest.spyOn(IceOptionsModule, 'validateIceServers').mockReturnValueOnce({
+        status: 'error',
+        error: validationError,
+      } as any);
 
       await expect(
         new CallInvite(
@@ -408,7 +409,10 @@ describe('CallInvite class', () => {
 
       jest
         .spyOn(IceOptionsModule, 'validateIceTransportPolicy')
-        .mockReturnValueOnce({ status: 'error', error: validationError } as any);
+        .mockReturnValueOnce({
+          status: 'error',
+          error: validationError,
+        } as any);
 
       await expect(
         new CallInvite(
@@ -436,10 +440,7 @@ describe('CallInvite class', () => {
       expect(
         jest.mocked(MockNativeModule.callInvite_accept).mock.calls
       ).toEqual([
-        [
-          createNativeCallInviteInfo().uuid,
-          { iceServers, iceTransportPolicy },
-        ],
+        [createNativeCallInviteInfo().uuid, { iceServers, iceTransportPolicy }],
       ]);
     });
 

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVoice } from '../hooks/useVoice';
 import { useLogging } from '../hooks/useLogging';
 import { useOutgoingCallTest } from '../test-suites/outgoing-call';
+import { useIceTest } from '../test-suites/ice-test';
 import { TestStatus } from '../test-suites';
 
 /**
@@ -14,9 +15,13 @@ import { TestStatus } from '../test-suites';
  * "call.connect(...)".
  */
 
+const DEFAULT_TOKEN = '';
+
+const DEFAULT_TEST_SUITE_ID = '';
+
 export const Application = () => {
-  const [token, setToken] = React.useState<string>('');
-  const [testSuiteId, setTestSuiteId] = React.useState<string>('');
+  const [token, setToken] = React.useState<string>(DEFAULT_TOKEN);
+  const [testSuiteId, setTestSuiteId] = React.useState<string>(DEFAULT_TEST_SUITE_ID);
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
   const logging = useLogging();
@@ -25,18 +30,28 @@ export const Application = () => {
 
   const outgoingCallTest =
     useOutgoingCallTest(token, voice, logging, setTestStatus);
+  const iceTest =
+    useIceTest(token, voice, logging, setTestStatus);
 
   const performTest = React.useCallback(() => {
     switch (testSuiteId) {
       case 'outgoing-call-test': {
         return outgoingCallTest.perform();
       }
+      case 'ice-test': {
+        return iceTest.perform();
+      }
       default: {
         setTestStatus('failure');
         return;
       }
     }
-  }, [outgoingCallTest.perform, setTestStatus, testSuiteId]);
+  }, [
+    outgoingCallTest.perform,
+    iceTest.perform,
+    setTestStatus,
+    testSuiteId,
+  ]);
 
   return (
     <SafeAreaView>
@@ -45,6 +60,7 @@ export const Application = () => {
         testID='textInput_token'
         placeholder='Enter Token'
         secureTextEntry={true}
+        defaultValue={token}
         onChangeText={setToken}
       />
 
@@ -52,6 +68,7 @@ export const Application = () => {
       <TextInput
         testID='textInput_testSuiteId'
         placeholder='Enter Test Suite ID'
+        defaultValue={testSuiteId}
         onChangeText={setTestSuiteId}
       />
 

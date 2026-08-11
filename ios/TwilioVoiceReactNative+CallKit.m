@@ -27,7 +27,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)initializeCallKitWithConfiguration:(NSDictionary *)configuration {
     CXProviderConfiguration *callKitConfiguration = [CXProviderConfiguration new];
-    
+
     if (configuration[kTwilioVoiceReactNativeCallKitMaximumCallGroups]) {
         callKitConfiguration.maximumCallGroups = [configuration[kTwilioVoiceReactNativeCallKitMaximumCallGroups] intValue];
     } else {
@@ -60,7 +60,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if (configuration[kTwilioVoiceReactNativeCallKitRingtoneSound] && [configuration[kTwilioVoiceReactNativeCallKitRingtoneSound] isKindOfClass:[NSString class]]) {
         callKitConfiguration.ringtoneSound = configuration[kTwilioVoiceReactNativeCallKitRingtoneSound];
     }
-    
+
     self.callKitProvider = [[CXProvider alloc] initWithConfiguration:callKitConfiguration];
     [self.callKitProvider setDelegate:self queue:nil];
     self.callKitCallController = [CXCallController new];
@@ -120,6 +120,19 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
+            // NOTE: this failure path never invokes `self.callKitCompletionCallback`,
+            // which has two consequences:
+            //
+            //   1. The completion block in `callInvite_accept` never runs, so the
+            //      promise returned by `CallInvite.accept()` never settles.
+            //   2. That same block is what removes this call's entries from
+            //      `iceServersMap` and `iceTransportPolicyMap`, so those entries
+            //      leak for the lifetime of the app session.
+            //
+            // Invoking the callback with a failure here would address both. Left
+            // as-is to keep this change scoped; (1) predates the ICE options work.
+            //
+            // See VBLOCKS-7039
             NSLog(@"Failed to submit answer-call transaction request: %@", error);
         } else {
             NSLog(@"Answer-call transaction successfully done");
@@ -130,7 +143,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 - (void)endCallWithUuid:(NSUUID *)uuid {
     CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:uuid];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:endCallAction];
-    
+
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
             NSLog(@"Failed to submit end-call transaction request: %@", error);
@@ -169,6 +182,29 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
         if (error) {
             NSLog(@"StartCallAction transaction request failed: %@", [error localizedDescription]);
+
+            // The entries stored above are otherwise only removed in
+            // `performVoiceCallWithUUID`, which never runs when the transaction
+            // fails, so clear them here.
+            //
+            // NOTE: `iceServersMap` and `iceTransportPolicyMap` are
+            // unsynchronized `NSMutableDictionary`s accessed from more than one
+            // queue -- written from the React Native bridge queue (here, and in
+            // `callInvite_accept`), read and removed on the main queue (the
+            // `perform*` methods, where read-then-remove is also not atomic),
+            // and removed here on whichever queue CallKit invokes this block on.
+            // Concurrent mutation of an `NSMutableDictionary` is unsafe.
+            //
+            // In practice this is hard to hit: it needs a failed start-call
+            // transaction to overlap with another call being placed or accepted.
+            // Guarding every access behind a single lock -- ideally by funneling
+            // the map access through store/take/clear helpers -- would resolve
+            // it, along with the pre-existing bridge/main race that this block
+            // is not the cause of.
+            //
+            // See VBLOCKS-7040
+            [self.iceServersMap removeObjectForKey:uuid.UUIDString];
+            [self.iceTransportPolicyMap removeObjectForKey:uuid.UUIDString];
         } else {
             NSLog(@"StartCallAction transaction request successful");
 
@@ -273,7 +309,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)providerDidBegin:(CXProvider *)provider {
-    
+
 }
 
 - (void)provider:(CXProvider *)provider didActivateAudioSession:(AVAudioSession *)audioSession {
@@ -298,7 +334,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
                              kTwilioVoiceReactNativeEventKeyCallInvite: [self callInviteInfo:callInvite]}];
         [self.callInviteMap removeObjectForKey:action.callUUID.UUIDString];
     }
-    
+
     [action fulfill];
 }
 
@@ -307,7 +343,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     [TwilioVoiceReactNative twilioAudioDevice].block();
 
     [self.callKitProvider reportOutgoingCallWithUUID:action.callUUID startedConnectingAtDate:[NSDate date]];
-    
+
     __weak typeof(self) weakSelf = self;
     [self performVoiceCallWithUUID:action.callUUID client:nil completion:^(BOOL success, NSError *error) {
         __strong typeof(self) strongSelf = weakSelf;
@@ -318,14 +354,14 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"performVoiceCallWithUUID failed");
         }
     }];
-    
+
     [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
     [TwilioVoiceReactNative twilioAudioDevice].block();
-    
+
     [self performAnswerVoiceCallWithUUID:action.callUUID completion:^(BOOL success) {
         if (success) {
             NSLog(@"performAnswerVoiceCallWithUUID successful");
@@ -333,7 +369,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             NSLog(@"performAnswerVoiceCallWithUUID failed");
         }
     }];
-        
+
     [action fulfill];
 }
 
@@ -403,18 +439,18 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
         messageBody = @{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventDisconnected,
                         kTwilioVoiceReactNativeEventKeyCall: [self callInfo:call]};
     }
-    
+
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall body:messageBody];
-    
+
     if (!self.userInitiatedDisconnect) {
         CXCallEndedReason reason = CXCallEndedReasonRemoteEnded;
         if (error) {
             reason = CXCallEndedReasonFailed;
         }
-        
+
         [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:reason];
     }
-    
+
     [self callDisconnected:call];
 }
 
@@ -430,7 +466,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
         self.callKitCompletionCallback = nil;
     }
     [self.callKitProvider reportCallWithUUID:call.uuid endedAtDate:[NSDate date] reason:CXCallEndedReasonFailed];
-    
+
     [self callDisconnected:call];
 }
 
@@ -446,7 +482,7 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
     // Remove the corresponding call invite only when the incoming call is finished.
     [self.callInviteMap removeObjectForKey:call.uuid.UUIDString];
-    
+
     [self stopRingback];
     self.userInitiatedDisconnect = NO;
 }
@@ -495,7 +531,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
         NSLog(@"Can't find sound file");
         return;
     }
-    
+
     NSError *error;
     self.ringbackPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL URLWithString:ringtonePath] error:&error];
     if (error != nil) {
@@ -503,7 +539,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     } else {
         self.ringbackPlayer.delegate = self;
         self.ringbackPlayer.numberOfLoops = -1;
-        
+
         self.ringbackPlayer.volume = 1.0f;
         [self.ringbackPlayer play];
     }
@@ -513,7 +549,7 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
     if (!self.ringbackPlayer.isPlaying) {
         return;
     }
-    
+
     [self.ringbackPlayer stop];
 }
 
@@ -542,29 +578,34 @@ previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
 
 - (nullable TVOIceOptions *)buildTVOIceOptionsWithServers:(nullable NSArray<NSDictionary *> *)jsIceServers
                                           transportPolicy:(nullable NSString *)jsIceTransportPolicy {
-    if (!jsIceServers && !jsIceTransportPolicy) {
+    NSMutableArray<TVOIceServer *> *nativeIceServers = [NSMutableArray new];
+    for (NSDictionary *jsIceServer in jsIceServers) {
+        NSString *password = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyPassword];
+        NSString *username = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyUsername];
+        NSString *serverUrl = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyServerUrl];
+
+        if (serverUrl != nil && username != nil && password != nil) {
+            TVOIceServer *nativeIceServer =
+                [[TVOIceServer alloc] initWithURLString:serverUrl
+                                               username:username
+                                               password:password];
+            [nativeIceServers addObject:nativeIceServer];
+        } else if (serverUrl != nil) {
+            TVOIceServer *nativeIceServer =
+                [[TVOIceServer alloc] initWithURLString:serverUrl];
+            [nativeIceServers addObject:nativeIceServer];
+        }
+    }
+
+    const BOOL hasTransportPolicy =
+        [jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueAll] ||
+        [jsIceTransportPolicy isEqualToString:kTwilioVoiceReactNativeIceTransportPolicyValueRelay];
+
+    if (nativeIceServers.count == 0 && !hasTransportPolicy) {
         return nil;
     }
 
     return [TVOIceOptions optionsWithBlock:^(TVOIceOptionsBuilder *builder) {
-        NSMutableArray *nativeIceServers = [NSMutableArray new];
-        for (NSDictionary *jsIceServer in jsIceServers) {
-            NSString *password = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyPassword];
-            NSString *username = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyUsername];
-            NSString *serverUrl = [jsIceServer objectForKey:kTwilioVoiceReactNativeIceServerKeyServerUrl];
-
-            if (serverUrl != nil && username != nil && password != nil) {
-                TVOIceServer *nativeIceServer =
-                    [[TVOIceServer alloc] initWithURLString:serverUrl
-                                                   username:username
-                                                   password:password];
-                [nativeIceServers addObject:nativeIceServer];
-            } else if (serverUrl != nil) {
-                TVOIceServer *nativeIceServer =
-                    [[TVOIceServer alloc] initWithURLString:serverUrl];
-                [nativeIceServers addObject:nativeIceServer];
-            }
-        }
         if (nativeIceServers.count > 0) {
             builder.servers = nativeIceServers;
         }

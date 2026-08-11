@@ -1,10 +1,7 @@
 import type { PreflightTest } from '../PreflightTest';
 import { AudioCodec, AudioCodecType } from '../type/AudioCodec';
 import { InvalidArgumentError } from '../error/InvalidArgumentError';
-import {
-  validateIceServers,
-  validateIceTransportPolicy,
-} from './IceOptions';
+import { validateIceServers, validateIceTransportPolicy } from './IceOptions';
 import type { OptionValidation } from './IceOptions';
 
 export type {
