@@ -60,7 +60,7 @@ export const Application = () => {
         testID='textInput_token'
         placeholder='Enter Token'
         secureTextEntry={true}
-        defaultValue={token}
+        value={token}
         onChangeText={setToken}
       />
 
@@ -68,7 +68,7 @@ export const Application = () => {
       <TextInput
         testID='textInput_testSuiteId'
         placeholder='Enter Test Suite ID'
-        defaultValue={testSuiteId}
+        value={testSuiteId}
         onChangeText={setTestSuiteId}
       />
 

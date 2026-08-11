@@ -1,5 +1,6 @@
 import { InvalidArgumentError } from '../error/InvalidArgumentError';
-import { IceTransportPolicy, IceServer } from '../type/Ice';
+import type { IceServer } from '../type/Ice';
+import { IceTransportPolicy } from '../type/Ice';
 
 export type InvalidOptions = {
   status: 'error';
