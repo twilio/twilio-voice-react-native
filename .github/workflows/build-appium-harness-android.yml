@@ -87,20 +87,17 @@ jobs:
 
       - run: npm install
 
-      # temporary stop pipeline here
-      - run: exit 1
-
-      - run: yarn install --immutable
-
       # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
       # android/src/main/java/com/twiliovoicereactnative/CommonConstants.java - a
       # gitignored file the SDK's Java sources import, so the Android compile fails
       # on a fresh checkout without it. The harness depends on the SDK via
       # `portal:../../`, and Yarn does not run a portal target's lifecycle scripts,
       # so nothing else triggers this. CircleCI's install-dependencies does the same.
-      - run: yarn run prepare
+      - run: npm run prepare
 
-      - run: yarn --cwd test/appium-harness install --immutable
+      - run: |
+          cd test/appium-harness
+          npm install
 
       # app.config.mjs statically imports ./secrets.json, so it cannot even be
       # loaded without this file. These are placeholder values, not real credentials:
@@ -131,7 +128,9 @@ jobs:
       # prebuild re-run the install can mutate the lockfile we just installed
       # --immutable against.
       - name: Expo prebuild (android)
-        run: yarn --cwd test/appium-harness run prebuild --clean --platform android --no-install
+        run: |
+          cd test/appium-harness
+          npm run prebuild --clean --platform=android
 
       # assembleRelease, not assembleDebug: a release build bundles the JS into the
       # APK, so the artifact runs standalone with no Metro server. That is the whole

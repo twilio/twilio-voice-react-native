@@ -24,22 +24,15 @@
     "react-native.config.js"
   ],
   "scripts": {
-    "app": "yarn run check && yarn --cwd test/app",
-    "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
-    "build:api:extractor": "api-extractor run --local",
-    "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs/api",
     "build:constants": "node ./scripts/generate-constants.js",
-    "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "build:errors": "node ./scripts/generate-errors.js",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check:api": "git diff --exit-code src/error/generated.ts api/",
-    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
-    "pods": "cd test/app && pod-install --quiet",
-    "prepare": "yarn run build:constants && bob build",
-    "release": "release",
-    "test": "jest"
+    "check": "npm run build:constants && yarn run build:errors && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
+    "prepare": "npm run build:constants && bob build",
+    "release": "release"
   },
   "keywords": [
     "react-native",
