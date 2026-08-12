@@ -85,7 +85,7 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
-      - run: npm ci
+      - run: npm install
 
       # temporary stop pipeline here
       - run: exit 1
