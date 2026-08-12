@@ -138,6 +138,7 @@ jobs:
           GRADLE_OPTS: -Xmx4g
         run: ./gradlew assembleRelease --no-daemon
 
+      - name: Upload appium harness android apk
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
         with:
           name: appium-harness-android-apk
