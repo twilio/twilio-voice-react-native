@@ -15,6 +15,7 @@ on:
   # the first run is not also the first merge.
   push:
     branches: [test/android-harness-ci-artifact]
+
 # No default permissions; the job below declares exactly what it needs.
 permissions: {}
 
@@ -83,6 +84,11 @@ jobs:
           # ANDROID_SDK_ROOT was set. `expo prebuild` writes local.properties itself.
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - run: npm ci
+
+      # temporary stop pipeline here
+      - run: exit 1
 
       - run: yarn install --immutable
 
