@@ -1,0 +1,153 @@
+name: Build Appium Harness Android APK
+# Builds an installable, standalone release APK of test/appium-harness and uploads
+# it as a build artifact. It does not run the Appium tests - the orchestrator in
+# test/appium-orchestrator drives those separately against the resulting APK.
+#
+# Manual dispatch only for now: an Android build is slow and nothing depends on it
+# per-PR yet. Add push/pull_request triggers once it has proven stable.
+on:
+  workflow_dispatch:
+  # TEMPORARY - remove before merging to main.
+  #
+  # workflow_dispatch only works once the file is on the default branch: until then
+  # GitHub shows no "Run workflow" button and rejects dispatches outright. This push
+  # trigger is how the workflow gets exercised on the development branch first, so
+  # the first run is not also the first merge.
+  push:
+    branches: [test/android-harness-ci-artifact]
+# No default permissions; the job below declares exactly what it needs.
+permissions: {}
+
+env:
+  # The harness has no hardcoded applicationId - app.config.mjs reads it from
+  # secrets.json, which is gitignored. This is the CI-only stand-in. Note that
+  # secrets.example.json ships "foobar", which AGP rejects: an applicationId needs
+  # at least two dot-separated segments.
+  HARNESS_ANDROID_PACKAGE: com.twilio.voice.reactnative.appiumharness
+
+jobs:
+  build:
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@<TODO>
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Enable Corepack so `yarn` resolves to the version pinned in package.json's
+      # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
+      # Must run before setup-node, whose `cache: yarn` step invokes yarn.
+      - run: corepack enable
+
+      - uses: actions/setup-node@<TODO>
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      # JDK 17 matches what CircleCI's e2e-android job selects via the Android orb,
+      # and is what RN 0.83 / AGP 8.x expect.
+      - uses: actions/setup-java@<TODO>
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Runs before the installs, which take ~10 minutes: a runner group without an
+      # Android SDK should fail in seconds rather than at the very end. We do not
+      # provision the SDK here - if this step ever fails, the fix is to add a
+      # cmdline-tools + sdkmanager + license-acceptance step, not to weaken this check.
+      - name: Verify the runner has an Android SDK
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner (ANDROID_HOME and ANDROID_SDK_ROOT are unset or point at a missing directory). This workflow assumes the ubuntu-x64 runner group provides one; if it does not, an SDK provisioning step must be added."
+            exit 1
+          fi
+
+          for tool_dir in platform-tools cmdline-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/. The SDK install on this runner is incomplete."
+              exit 1
+            fi
+          done
+
+          # Export under the canonical name so Gradle picks it up even if only
+          # ANDROID_SDK_ROOT was set. `expo prebuild` writes local.properties itself.
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - run: yarn install --immutable
+
+      # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
+      # android/src/main/java/com/twiliovoicereactnative/CommonConstants.java - a
+      # gitignored file the SDK's Java sources import, so the Android compile fails
+      # on a fresh checkout without it. The harness depends on the SDK via
+      # `portal:../../`, and Yarn does not run a portal target's lifecycle scripts,
+      # so nothing else triggers this. CircleCI's install-dependencies does the same.
+      - run: yarn run prepare
+
+      - run: yarn --cwd test/appium-harness install --immutable
+
+      # app.config.mjs statically imports ./secrets.json, so it cannot even be
+      # loaded without this file. These are placeholder values, not real credentials:
+      # this workflow deliberately adds no repository secrets or variables. The
+      # ios.* fields are read at config-load time even for an Android-only prebuild.
+      - name: Write placeholder secrets.json
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat > secrets.json <<EOF
+          {
+            "ios": {
+              "appleTeamId": "PLACEHOLDER",
+              "bundleIdentifier": "com.twilio.voice.reactnative.appiumharness"
+            },
+            "android": {
+              "package": "${HARNESS_ANDROID_PACKAGE}"
+            }
+          }
+          EOF
+
+      # Generates the gitignored android/ project: gradlew, the wrapper, the debug
+      # keystore, local.properties, and the release signing config (which points at
+      # the debug keystore - that is why no signing secret is needed).
+      #
+      # --no-install because the dependencies are already installed above; letting
+      # prebuild re-run the install can mutate the lockfile we just installed
+      # --immutable against.
+      - name: Expo prebuild (android)
+        run: yarn --cwd test/appium-harness run prebuild --clean --platform android --no-install
+
+      # assembleRelease, not assembleDebug: a release build bundles the JS into the
+      # APK, so the artifact runs standalone with no Metro server. That is the whole
+      # point of publishing it.
+      - name: Assemble release APK
+        working-directory: test/appium-harness/android
+        env:
+          # RN 0.83 new-arch codegen is memory-hungry, and the Expo app template's
+          # default heap is lower than what the SDK's own gradle.properties asks for.
+          GRADLE_OPTS: -Xmx4g
+        run: ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@<TODO>
+        with:
+          name: appium-harness-android-apk
+          path: test/appium-harness/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # The runner group is self-hosted, so $HOME and the workspace can outlive the
+      # job. secrets.json holds only placeholders today, but clearing it keeps a
+      # future run from silently inheriting a stale one.
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml test/appium-harness/secrets.json

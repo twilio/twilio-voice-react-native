@@ -26,7 +26,17 @@ const config = {
     },
     android: {
       package: secrets.android.package,
-      googleServicesFile: './google-services.json',
+      // TODO: restore once we have a google-services.json available to CI.
+      //
+      // Commented out so the Android build needs no Firebase config at all: Expo
+      // then neither copies a google-services.json into android/app/ nor applies
+      // the com.google.gms.google-services Gradle plugin. The SDK's
+      // firebase-messaging dependency and VoiceFirebaseMessagingService still
+      // compile normally - only the generated google_app_id/google_api_key string
+      // resources are absent. The consequence is at runtime: the app cannot obtain
+      // an FCM token, so incoming calls are not delivered. Outgoing calls and the
+      // harness UI are unaffected.
+      // googleServicesFile: './google-services.json',
     },
     plugins: [
       'expo-router',
