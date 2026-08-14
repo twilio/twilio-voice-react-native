@@ -5,6 +5,7 @@ import { useVoice } from '../hooks/useVoice';
 import { useLogging } from '../hooks/useLogging';
 import { useOutgoingCallTest } from '../test-suites/outgoing-call';
 import { useIceTest } from '../test-suites/ice-test';
+import { useIncomingIceTest } from '../test-suites/incoming-ice-test';
 import { TestStatus } from '../test-suites';
 
 /**
@@ -32,6 +33,8 @@ export const Application = () => {
     useOutgoingCallTest(token, voice, logging, setTestStatus);
   const iceTest =
     useIceTest(token, voice, logging, setTestStatus);
+  const incomingIceTest =
+    useIncomingIceTest(token, voice, logging, setTestStatus);
 
   const performTest = React.useCallback(() => {
     switch (testSuiteId) {
@@ -41,6 +44,9 @@ export const Application = () => {
       case 'ice-test': {
         return iceTest.perform();
       }
+      case 'incoming-ice-test': {
+        return incomingIceTest.perform();
+      }
       default: {
         setTestStatus('failure');
         return;
@@ -49,6 +55,7 @@ export const Application = () => {
   }, [
     outgoingCallTest.perform,
     iceTest.perform,
+    incomingIceTest.perform,
     setTestStatus,
     testSuiteId,
   ]);
