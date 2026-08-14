@@ -5,15 +5,17 @@ import {
   TwilioErrors,
   Voice,
 } from '@twilio/voice-react-native-sdk';
+import type { useLogging } from '../hooks/useLogging';
 import { UseTestSuite } from '../test-suites';
+import { delay } from '../utilities/delay';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
 
 /**
  * `voice.connect` rejects with an `InvalidArgumentError` out of the JS
  * validation layer, before ever reaching native. Paired with
- * `unexpected-rejection`, which is any other rejection reason.
+ * `unexpected-voice-connect-rejection`, which is any other rejection reason.
  */
-const EXPECTED_REJECTION = 'expected-rejection';
+const EXPECTED_VOICE_CONNECT_REJECTION = 'expected-voice-connect-rejection';
 
 /**
  * The terminal `Call.Event`s a variant can settle on. Anything else a call
@@ -32,7 +34,7 @@ type TerminalEvent = (typeof TERMINAL_CALL_EVENTS)[number];
  * What a variant is expected to settle on: either a rejection out of the JS
  * layer, or a specific terminal call event.
  */
-type Expectation = typeof EXPECTED_REJECTION | TerminalEvent;
+type Expectation = typeof EXPECTED_VOICE_CONNECT_REJECTION | TerminalEvent;
 
 type TestVariant = {
   description: string;
@@ -60,13 +62,15 @@ const VALID_ICE_SERVER = {
   password: 'TODO',
 };
 
+const HAS_VALID_ICE_SERVER = VALID_ICE_SERVER.serverUrl !== 'TODO';
+
 /**
  * How long to wait for a variant to settle. Variants expecting a
  * `ConnectFailure` have to wait out ICE gathering and connectivity checks
  * before the SDK gives up, so they need considerably longer.
  */
 const TEST_TIMEOUT_MS: Record<Expectation, number> = {
-  [EXPECTED_REJECTION]: 5_000,
+  [EXPECTED_VOICE_CONNECT_REJECTION]: 5_000,
   [Call.Event.Connected]: 30_000,
   [Call.Event.ConnectFailure]: 60_000,
   [Call.Event.Disconnected]: 60_000,
@@ -84,34 +88,34 @@ const VARIANTS = {
   'invalid-policy-string': {
     description: 'unrecognized iceTransportPolicy; should reject',
     options: { iceTransportPolicy: 'not-a-policy' } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
   'invalid-servers-not-an-array': {
     description: 'iceServers is not an array; should reject',
     options: { iceServers: 'nope' } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
   'invalid-server-null': {
     description: 'iceServers contains null; should reject',
     options: { iceServers: [null] } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
   'invalid-server-missing-server-url': {
     description: 'iceServer has credentials but no serverUrl; should reject',
     options: { iceServers: [{ username: 'x', password: 'y' }] } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
   'invalid-server-partial-credentials': {
     description: 'iceServer has a username but no password; should reject',
     options: {
       iceServers: [{ serverUrl: BOGUS_ICE_SERVER.serverUrl, username: 'x' }],
     } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
   'invalid-server-url-wrong-type': {
     description: 'iceServer serverUrl is not a string; should reject',
     options: { iceServers: [{ serverUrl: 1234 }] } as any,
-    expectation: EXPECTED_REJECTION,
+    expectation: EXPECTED_VOICE_CONNECT_REJECTION,
   },
 
   // --- no ICE options -------------------------------------------------------
@@ -227,21 +231,19 @@ type VariantName = keyof typeof VARIANTS;
  * What a variant actually settled on.
  *
  * - `timeout`: nothing terminal was raised before the deadline.
- *
  * - `unexpected-resolution`: `voice.connect` resolved when a rejection was
  *   expected. Note that this is distinct from `Call.Event.Connected` - the call
  *   object was created, but no connection was ever observed.
- *
- * - `unexpected-rejection`: `voice.connect` rejected with something other than
- *   an `InvalidArgumentError`, e.g. an expired token. Never counts as a pass,
- *   otherwise an auth failure would green-light every `expected-rejection`
- *   variant without validating anything.
+ * - `unexpected-voice-connect-rejection`: `voice.connect` rejected with
+ *   something other than an `InvalidArgumentError`, e.g. an expired token.
+ *   Never counts as a pass, otherwise an auth failure would green-light every
+ *   `expected-voice-connect-rejection` variant without validating anything.
  */
 type Actual =
   | Expectation
   | 'timeout'
   | 'unexpected-resolution'
-  | 'unexpected-rejection';
+  | 'unexpected-voice-connect-rejection';
 
 type VariantResult = {
   variant: VariantName;
@@ -251,154 +253,157 @@ type VariantResult = {
   note?: string;
 };
 
-const delay = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-/**
- * Consider skipping conditionally based on the same mechanism for configuring
- * the valid Ice server.
- */
 const requiresValidIceServer = (variant: VariantName) =>
   variant.startsWith('valid-');
+
+/**
+ * Races the terminal `Call.Event`s against a timeout. Resolves with whichever
+ * lands first.
+ */
+const waitForTerminalCallEvent = (
+  call: Call,
+  timeoutMs: number,
+): Promise<Actual> => new Promise((resolve) => {
+  let settled = false;
+
+  const settle = (terminal: Actual) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    clearTimeout(timeoutId);
+    resolve(terminal);
+  };
+
+  const timeoutId = setTimeout(() => {
+    settle('timeout');
+  }, timeoutMs);
+
+  TERMINAL_CALL_EVENTS.forEach((eventName) => {
+    call.on(eventName, () => settle(eventName));
+  });
+});
+
+/**
+ * Runs a single variant to a terminal outcome. Never rejects.
+ */
+const runVariant = async (
+  variantName: VariantName,
+  voice: Voice,
+  token: string,
+  log: ReturnType<typeof useLogging>['log'],
+): Promise<VariantResult> => {
+  const { description, options, expectation } = VARIANTS[variantName];
+
+  if (requiresValidIceServer(variantName) && !HAS_VALID_ICE_SERVER) {
+    return {
+      variant: variantName,
+      outcome: 'skipped',
+      expected: expectation,
+      actual: null,
+      note: 'VALID_ICE_SERVER is not filled in',
+    };
+  }
+
+  log.info(JSON.stringify({
+    running: variantName,
+    description,
+    expectation,
+    options,
+  }));
+
+  /**
+   * Compares what happened against what the variant expected.
+   */
+  const settleVariant = (
+    actual: Actual,
+    note?: string,
+  ): VariantResult => ({
+    variant: variantName,
+    outcome: actual === expectation ? 'passed' : 'failed',
+    expected: expectation,
+    actual,
+    note,
+  });
+
+  const connectResult = await safelySettlePromise(
+    voice.connect(token, options),
+  );
+
+  if (connectResult.status === 'rejected') {
+    const { error } = connectResult;
+    const serializedError = error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : String(error);
+
+    // Only a validation rejection counts as `EXPECTED_VOICE_CONNECT_REJECTION`.
+    // Anything else - most likely an expired or invalid access token - would
+    // otherwise pass every `reject` variant while exercising no ICE
+    // validation at all.
+    const isInvalidArgumentError =
+      error instanceof TwilioErrors.InvalidArgumentError;
+
+    return settleVariant(
+      isInvalidArgumentError
+        ? EXPECTED_VOICE_CONNECT_REJECTION
+        : 'unexpected-voice-connect-rejection',
+      serializedError,
+    );
+  }
+
+  const call = connectResult.value;
+
+  if (expectation === EXPECTED_VOICE_CONNECT_REJECTION) {
+    // Resolved when validation should have refused the options. Hang up so
+    // the call does not linger on the device.
+    await safelySettlePromise(call.disconnect());
+    return settleVariant(
+      'unexpected-resolution',
+      'voice.connect resolved instead of rejecting',
+    );
+  }
+
+  // Log every event, terminal or not. The non-terminal ones (`Ringing`,
+  // `Reconnecting`, ...) are useful context when a variant misbehaves.
+  Object.values(Call.Event).forEach((eventName) => {
+    call.on(eventName, (...args: any[]) => {
+      log.info(JSON.stringify({ variant: variantName, eventName, args }));
+    });
+  });
+
+  // Whichever terminal event lands first wins. Latching matters here: an
+  // expected `ConnectFailure` is typically followed by a `Disconnected`, and a
+  // `Connected` is followed by one once we hang up below.
+  const actual = await waitForTerminalCallEvent(call, TEST_TIMEOUT_MS[expectation]);
+
+  // Whatever happened, make sure the call is torn down before the next
+  // variant places another one.
+  await safelySettlePromise(call.disconnect());
+
+  return settleVariant(actual);
+};
 
 export const useIceTest: UseTestSuite = (
   token,
   { voice },
-  { log },
+  { log, setMasks },
   setTestStatus,
 ) => {
   const perform = React.useCallback(async () => {
     setTestStatus('in-progress');
 
+    setMasks(HAS_VALID_ICE_SERVER ? [
+      VALID_ICE_SERVER.serverUrl,
+      VALID_ICE_SERVER.username,
+      VALID_ICE_SERVER.password,
+    ] : []);
+
     const variantNames = Object.keys(VARIANTS) as VariantName[];
-
-    /**
-     * Consider skipping conditionally based on the same mechanism for
-     * configuring the valid Ice server.
-     */
-    const hasValidIceServer = VALID_ICE_SERVER.serverUrl !== 'TODO';
-
-    /**
-     * Runs a single variant to a terminal outcome. Never rejects.
-     */
-    const runVariant = async (
-      variantName: VariantName,
-    ): Promise<VariantResult> => {
-      const { description, options, expectation } = VARIANTS[variantName];
-
-      /**
-       * Consider skipping conditionally based on the same mechanism for
-       * configuring the valid Ice server.
-       */
-      if (requiresValidIceServer(variantName) && !hasValidIceServer) {
-        return {
-          variant: variantName,
-          outcome: 'skipped',
-          expected: expectation,
-          actual: null,
-          note: 'VALID_ICE_SERVER is not filled in',
-        };
-      }
-
-      log.info(JSON.stringify({
-        running: variantName,
-        description,
-        expectation,
-        options,
-      }));
-
-      /**
-       * Compares what happened against what the variant expected.
-       */
-      const settleResult = (
-        actual: Actual,
-        note?: string,
-      ): VariantResult => ({
-        variant: variantName,
-        outcome: actual === expectation ? 'passed' : 'failed',
-        expected: expectation,
-        actual,
-        note,
-      });
-
-      const connectResult = await safelySettlePromise(
-        voice.connect(token, options),
-      );
-
-      if (connectResult.status === 'rejected') {
-        const { error } = connectResult;
-        const serializedError = error instanceof Error
-          ? `${error.name}: ${error.message}`
-          : String(error);
-
-        // Only a validation rejection counts as `EXPECTED_REJECTION`.
-        // Anything else - most likely an expired or invalid access token -
-        // would otherwise pass every `reject` variant while exercising no ICE
-        // validation at all.
-        const isInvalidArgumentError =
-          error instanceof TwilioErrors.InvalidArgumentError;
-
-        return settleResult(
-          isInvalidArgumentError ? EXPECTED_REJECTION : 'unexpected-rejection',
-          serializedError,
-        );
-      }
-
-      const call = connectResult.value;
-
-      if (expectation === EXPECTED_REJECTION) {
-        // Resolved when validation should have refused the options. Hang up so
-        // the call does not linger on the device.
-        await safelySettlePromise(call.disconnect());
-        return settleResult(
-          'unexpected-resolution',
-          'voice.connect resolved instead of rejecting',
-        );
-      }
-
-      // Log every event, terminal or not. The non-terminal ones (`Ringing`,
-      // `Reconnecting`, ...) are useful context when a variant misbehaves.
-      Object.values(Call.Event).forEach((eventName) => {
-        call.on(eventName, (...args: any[]) => {
-          log.info(JSON.stringify({ variant: variantName, eventName, args }));
-        });
-      });
-
-      // Whichever terminal event lands first wins. Latching matters here: an
-      // expected `ConnectFailure` is typically followed by a `Disconnected`,
-      // and a `Connected` is followed by one once we hang up below.
-      const actual = await new Promise<Actual>((resolve) => {
-        let settled = false;
-
-        const settle = (terminal: Actual) => {
-          if (settled) {
-            return;
-          }
-          settled = true;
-          clearTimeout(timeoutId);
-          resolve(terminal);
-        };
-
-        const timeoutId = setTimeout(() => {
-          settle('timeout');
-        }, TEST_TIMEOUT_MS[expectation]);
-
-        TERMINAL_CALL_EVENTS.forEach((eventName) => {
-          call.on(eventName, () => settle(eventName));
-        });
-      });
-
-      // Whatever happened, make sure the call is torn down before the next
-      // variant places another one.
-      await safelySettlePromise(call.disconnect());
-
-      return settleResult(actual);
-    };
 
     const results: VariantResult[] = [];
 
     for (const variantName of variantNames) {
-      const result = await runVariant(variantName);
+      const result = await runVariant(variantName, voice, token, log);
 
       results.push(result);
 
@@ -435,7 +440,7 @@ export const useIceTest: UseTestSuite = (
     }));
 
     setTestStatus(failed.length === 0 ? 'success' : 'failure');
-  }, [token, voice, log, setTestStatus]);
+  }, [token, voice, log, setMasks, setTestStatus]);
 
   return { perform };
 }

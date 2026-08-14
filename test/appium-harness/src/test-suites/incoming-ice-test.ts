@@ -19,6 +19,33 @@ const CALL_DISCONNECTED_WITHOUT_ERROR = 'call-disconnected-without-error';
 
 /**
  * What a variant is expected to settle on.
+ *
+ * Unlike `ice-test.ts` (outgoing calls, where `voice.connect()` resolves
+ * before any ICE outcome is known and `Call.Event.Connected` /
+ * `ConnectFailure` fire afterward and are reliably observed), on the accept
+ * side the *promise itself* is the connect/fail signal:
+ *
+ * - `answerCallInvite:completion:`'s callback
+ *   (`ios/TwilioVoiceReactNative+CallKit.m:115-141`) is only invoked from
+ *   `callDidConnect:` (resolve) or `call:didFailToConnectWithError:`
+ *   (reject) - so by the time `callInvite.accept()` settles, the outcome is
+ *   already decided.
+ * - `callDidConnect:` emits `Call.Event.Connected` over the bridge *before*
+ *   resolving the promise (`+CallKit.m:421-428`), but the JS `Call` object
+ *   isn't constructed - and doesn't subscribe to native events - until
+ *   `accept()` resolves (`src/CallInvite.tsx:474`, `src/Call.tsx:474`). The
+ *   event is unrecoverably missed, every time, by construction. It is not a
+ *   race that can be fixed by attaching listeners sooner.
+ * - On a bad ICE combo, `acceptWithOptions:` still returns a non-nil
+ *   `TVOCall` (a nil return would hit a different, throwaway completion
+ *   handler that never settles the JS promise at all - see
+ *   `+CallKit.m:365-371` - and a hang, not a rejection, is not what's
+ *   observed). Instead `call:didFailToConnectWithError:` fires and rejects
+ *   the promise directly; the `Call` object never reaches JS.
+ *
+ * So there is nothing to gain from racing `Connected` / `ConnectFailure` here
+ * - only `Disconnected`, and only after a successful `accept()`, is ever
+ * observable.
  */
 type Expectation =
   | typeof CALL_INVITE_ACCEPT_REJECTED
@@ -50,9 +77,9 @@ const VALID_ICE_SERVER = {
 };
 
 /**
-  * Revisit with VBLOCKS-7045, after valid ICE server generation is
-  * implemented.
-  */
+ * Revisit with VBLOCKS-7045, after valid ICE server generation is
+ * implemented.
+ */
 const HAS_VALID_ICE_SERVER = VALID_ICE_SERVER.serverUrl !== 'TODO';
 
 /**
@@ -78,13 +105,14 @@ const ACCEPT_SETTLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
  * up - so it gets a generous window rather than anything tied to network
  * timing.
  *
- * Revist with VBLOCKS-7044 when we can automate incoming calls.
+ * Revisit with VBLOCKS-7044 when we can automate incoming calls.
  */
 const CALL_DISCONNECT_EVENT_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
 /**
- * Pause between variants so CallKit and the audio session settle before the
- * next call is accepted.
+ * General-purpose settling delay. Used both between variants (so CallKit and
+ * the audio session settle before the next call is accepted) and once after
+ * registration completes.
  */
 const INTER_VARIANT_DELAY_MS = 3_000;
 
@@ -127,25 +155,23 @@ type VariantName = keyof typeof VARIANTS;
 
 /**
  * What a variant actually settled on.
+ *
+ * - `call-invite-timeout`: no `Voice.Event.CallInvite` arrived before the
+ *   manual dial-in window closed.
+ * - `call-invite-accept-settle-timeout`: `callInvite.accept()` itself never
+ *   settled. A known native hang exists on the `CXAnswerCallAction` failure
+ *   path (see the NOTE at `answerCallInvite:` in CallKit.m) that this would
+ *   surface.
+ * - `call-disconnected-with-error`: the call was accepted, but later ended
+ *   with a `Disconnected` that carried an error - i.e. it did not go cleanly.
+ * - `call-disconnect-timeout`: the call was accepted, but no `Disconnected`
+ *   was raised before the tester (or the SDK) acted.
  */
 type Actual =
   | Expectation
-  /**
-   * no `Voice.Event.CallInvite` arrived before the manual dial-in window closed
-   */
   | 'call-invite-timeout'
-  /**
-   * `callInvite.accept()` itself never settled
-   */
   | 'call-invite-accept-settle-timeout'
-  /**
-   * the call was accepted, but later ended with a `Disconnected` that carried
-   * an error
-   */
   | 'call-disconnected-with-error'
-  /**
-   * the call was accepted, but no `Disconnected` was raised
-   */
   | 'call-disconnect-timeout';
 
 type VariantResult = {
@@ -195,11 +221,17 @@ type CallInviteAcceptResult =
   | { settled: 'timeout' };
 
 /**
-  * Attempt to invoke and settle `callInvite.accept`.
-  */
+ * Attempt to invoke and settle `callInvite.accept`.
+ *
+ * If `accept()` settles after the timeout has already elapsed, the variant
+ * has already moved on and nothing is listening for the result anymore. A
+ * late resolution is disconnected immediately, rather than orphaned - this
+ * suite should never leave a live call on the device.
+ */
 const acceptCallInvite = (
   callInvite: CallInvite,
   options: CallInvite.AcceptOptions,
+  log: ReturnType<typeof useLogging>['log'],
 ) => new Promise<CallInviteAcceptResult>((resolve) => {
   let settled = false;
 
@@ -217,8 +249,29 @@ const acceptCallInvite = (
   }, ACCEPT_SETTLE_TIMEOUT_MS);
 
   callInvite.accept(options).then(
-    (call) => settle({ settled: 'resolved', call }),
-    (error) => settle({ settled: 'rejected', error }),
+    (call) => {
+      if (settled) {
+        log.info(JSON.stringify({
+          message:
+            `callInvite.accept resolved with call ${call.getSid()} after ` +
+            'its variant already timed out; disconnecting it',
+        }));
+        safelySettlePromise(call.disconnect());
+        return;
+      }
+      settle({ settled: 'resolved', call });
+    },
+    (error) => {
+      if (settled) {
+        log.info(JSON.stringify({
+          message:
+            'callInvite.accept rejected after its variant already timed ' +
+            `out: ${String(error)}`,
+        }));
+        return;
+      }
+      settle({ settled: 'rejected', error });
+    },
   );
 });
 
@@ -248,6 +301,7 @@ const listenForCallDisconnect = (
       }
       settled = true;
       clearTimeout(timeoutId);
+      call.off(Call.Event.Disconnected, onDisconnected);
       resolve(terminal);
     };
 
@@ -255,16 +309,18 @@ const listenForCallDisconnect = (
       settle({ settled: 'timeout' });
     }, CALL_DISCONNECT_EVENT_TIMEOUT_MS);
 
-    call.on(Call.Event.Disconnected, (error) => {
+    function onDisconnected(error: unknown) {
       settle(error
         ? { settled: 'disconnected-with-error', error }
         : { settled: CALL_DISCONNECTED_WITHOUT_ERROR });
-    });
+    }
+
+    call.on(Call.Event.Disconnected, onDisconnected);
   });
 
 /**
-  * Runs a single variant to a terminal outcome. Never rejects.
-  */
+ * Runs a single variant to a terminal outcome. Never rejects.
+ */
 const runVariant = async (
   variantName: VariantName,
   voice: Voice,
@@ -272,9 +328,6 @@ const runVariant = async (
 ): Promise<VariantResult> => {
   const { description, options, expectation } = VARIANTS[variantName];
 
-  /**
-    * Revisit with VBLOCKS-7045 when we generate proper ICE server creds.
-    */
   if (requiresValidIceServer(variantName) && !HAS_VALID_ICE_SERVER) {
     return {
       variant: variantName,
@@ -286,8 +339,8 @@ const runVariant = async (
   }
 
   /**
-    * Compares what happened against what the variant expected.
-    */
+   * Compares what happened against what the variant expected.
+   */
   const settleVariant = (
     actual: Actual,
     note?: string,
@@ -299,21 +352,15 @@ const runVariant = async (
     note,
   });
 
-  const redactedLog =
-    JSON.stringify({
-      waitingForCallInvite: variantName,
-      description,
-      expectation,
-      options,
-      message:
-        `place a call to this client now; waiting up to ` +
-        `${WAIT_FOR_CALL_INVITE_TIMEOUT_MS}ms`,
-    })
-    .replaceAll(VALID_ICE_SERVER.serverUrl, '<REDACTED>')
-    .replaceAll(VALID_ICE_SERVER.password, '<REDACTED>')
-    .replaceAll(VALID_ICE_SERVER.username, '<REDACTED>');
-
-  log.info(redactedLog);
+  log.info(JSON.stringify({
+    waitingForCallInvite: variantName,
+    description,
+    expectation,
+    options,
+    message:
+      `place a call to this client now; waiting up to ` +
+      `${WAIT_FOR_CALL_INVITE_TIMEOUT_MS}ms`,
+  }));
 
   const callInvite = await waitForNextCallInvite(
     voice,
@@ -334,16 +381,17 @@ const runVariant = async (
   }));
 
   /**
-    * Attempt to invoke and settle `callInvite.accept`.
-    *
-    * Can result in:
-    * - a successful resolution with a call object
-    * - a rejection with an error
-    * - a timeout where callInvite.accept timed out
-    */
+   * Attempt to invoke and settle `callInvite.accept`.
+   *
+   * Can result in:
+   * - a successful resolution with a call object
+   * - a rejection with an error
+   * - a timeout where callInvite.accept timed out
+   */
   const callInviteAcceptedPromise = await acceptCallInvite(
     callInvite,
-    options
+    options,
+    log,
   );
 
   if (callInviteAcceptedPromise.settled === 'timeout') {
@@ -375,15 +423,18 @@ const runVariant = async (
 
   const callDisconnectPromise = listenForCallDisconnect(call);
 
-  /**
-    * Revisit with VBLOCKS-7044 when we can automate incoming calls.
-    */
   log.info(JSON.stringify({
     message: 'call connected; hang up from the far end now to conclude ' +
       `this variant. Waiting up to ${CALL_DISCONNECT_EVENT_TIMEOUT_MS}ms`,
   }));
 
   const callDisconnect = await callDisconnectPromise;
+
+  // Whatever happened, make sure the call is torn down before the next
+  // variant waits for another one. A no-op if it already disconnected
+  // cleanly or with an error; ends a call that's still up if we timed out
+  // waiting for it to disconnect.
+  await safelySettlePromise(call.disconnect());
 
   if (callDisconnect.settled === 'timeout') {
     return settleVariant(
@@ -400,10 +451,6 @@ const runVariant = async (
     );
   }
 
-  // Whatever happened, make sure the call is torn down before the next
-  // variant waits for another one. A no-op if it already disconnected.
-  await safelySettlePromise(call.disconnect());
-
   return settleVariant('call-disconnected-without-error');
 };
 
@@ -413,11 +460,17 @@ const runVariant = async (
 export const useIncomingIceTest: UseTestSuite = (
   token,
   { voice },
-  { log },
+  { log, setMasks },
   setTestStatus,
 ) => {
   const perform = React.useCallback(async () => {
     setTestStatus('in-progress');
+
+    setMasks(HAS_VALID_ICE_SERVER ? [
+      VALID_ICE_SERVER.serverUrl,
+      VALID_ICE_SERVER.username,
+      VALID_ICE_SERVER.password,
+    ] : []);
 
     if (Platform.OS === 'ios') {
       await voice.initializePushRegistry();
@@ -488,7 +541,7 @@ export const useIncomingIceTest: UseTestSuite = (
     }));
 
     setTestStatus(failed.length === 0 ? 'success' : 'failure');
-  }, [token, voice, log, setTestStatus]);
+  }, [token, voice, log, setMasks, setTestStatus]);
 
   return { perform };
 }
