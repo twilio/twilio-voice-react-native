@@ -264,6 +264,7 @@ describe('CallInvite class', () => {
   describe.each([
     [undefined, {}],
     [{}, {}],
+    [{ foo: 'bar' } as any, { foo: 'bar' }],
   ] as const)('.accept(%o)', (acceptOptions, expectation) => {
     it('invokes the native module', async () => {
       await new CallInvite(

@@ -16,7 +16,6 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 import java.util.ArrayList
-import java.util.LinkedHashMap
 import java.util.HashMap
 
 
@@ -154,8 +153,8 @@ class ExpoModule : Module() {
       options: Map<String, Any>,
       promise: Promise ->
 
-      val jsIceServers = options[CommonConstants.CallOptionsKeyIceServers] as ArrayList<*>?
-      val jsIceTransportPolicy = options[CommonConstants.CallOptionsKeyIceTransportPolicy] as String?
+      val jsIceServers = options[CommonConstants.CallOptionsKeyIceServers] as? List<*>
+      val jsIceTransportPolicy = options[CommonConstants.CallOptionsKeyIceTransportPolicy] as? String
       val iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy)
 
       this@ExpoModule.moduleProxy.callInvite.accept(uuid, iceOptions, PromiseAdapter(promise))
@@ -312,8 +311,8 @@ class ExpoModule : Module() {
 
       val preflightOptionsBuilder = PreflightOptions.Builder(accessToken)
 
-      val jsIceServers = jsPreflightOptions[CommonConstants.CallOptionsKeyIceServers] as ArrayList<*>?
-      val jsIceTransportPolicy = jsPreflightOptions[CommonConstants.CallOptionsKeyIceTransportPolicy] as String?
+      val jsIceServers = jsPreflightOptions[CommonConstants.CallOptionsKeyIceServers] as? List<*>
+      val jsIceTransportPolicy = jsPreflightOptions[CommonConstants.CallOptionsKeyIceTransportPolicy] as? String
       val iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy)
 
       if (iceOptions != null) {
@@ -322,23 +321,21 @@ class ExpoModule : Module() {
 
       val preferredAudioCodecs = ArrayList<AudioCodec>()
 
-      val jsPreferredAudioCodecs = jsPreflightOptions[CommonConstants.CallOptionsKeyPreferredAudioCodecs] as ArrayList<*>?
+      val jsPreferredAudioCodecs = jsPreflightOptions[CommonConstants.CallOptionsKeyPreferredAudioCodecs] as? List<*>
 
       jsPreferredAudioCodecs?.forEach {
-        jsPreferredAudioCodec: Any ->
+        jsPreferredAudioCodec: Any? ->
 
-        if (jsPreferredAudioCodec !is LinkedHashMap<*, *>) {
-          return@forEach
-        }
+        if (jsPreferredAudioCodec !is Map<*, *>) return@forEach
 
-        val jsPreferredAudioCodecType = jsPreferredAudioCodec[CommonConstants.AudioCodecKeyType] as String?
+        val jsPreferredAudioCodecType = jsPreferredAudioCodec[CommonConstants.AudioCodecKeyType] as? String
 
         if (jsPreferredAudioCodecType == CommonConstants.AudioCodecTypeValuePCMU) {
           preferredAudioCodecs.add(PcmuCodec())
         }
 
         if (jsPreferredAudioCodecType == CommonConstants.AudioCodecTypeValueOpus) {
-          val jsAudioCodecBitrate = jsPreferredAudioCodec[CommonConstants.AudioCodecOpusKeyMaxAverageBitrate] as Double?
+          val jsAudioCodecBitrate = jsPreferredAudioCodec[CommonConstants.AudioCodecOpusKeyMaxAverageBitrate] as? Double
 
           val audioCodec = if (jsAudioCodecBitrate == null) {
             OpusCodec()
@@ -398,11 +395,11 @@ class ExpoModule : Module() {
     val iceServers = HashSet<IceServer>()
 
     jsIceServers?.forEach { jsIceServer ->
-      if (jsIceServer !is LinkedHashMap<*, *>) return@forEach
+      if (jsIceServer !is Map<*, *>) return@forEach
 
-      val serverUrl = jsIceServer[CommonConstants.IceServerKeyServerUrl] as String?
-      val username = jsIceServer[CommonConstants.IceServerKeyUsername] as String?
-      val password = jsIceServer[CommonConstants.IceServerKeyPassword] as String?
+      val serverUrl = jsIceServer[CommonConstants.IceServerKeyServerUrl] as? String
+      val username = jsIceServer[CommonConstants.IceServerKeyUsername] as? String
+      val password = jsIceServer[CommonConstants.IceServerKeyPassword] as? String
 
       if (serverUrl != null && username != null && password != null) {
         iceServers.add(IceServer(serverUrl, username, password))
