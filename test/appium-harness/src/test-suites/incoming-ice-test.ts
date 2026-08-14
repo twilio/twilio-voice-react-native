@@ -18,6 +18,16 @@ const CALL_INVITE_ACCEPT_REJECTED = 'call-invite-accept-rejected';
 const CALL_DISCONNECTED_WITHOUT_ERROR = 'call-disconnected-without-error';
 
 /**
+ * TODO: Android behavior diverges from iOS. Instead of rejecting the
+ * `callInvite.accept` promise, Android will instead emit a `Connected` event
+ * and then emit a `ConnectFailure` event. Address this difference in
+ * VBLOCKS-7047.
+ *
+ * The call was established and raised a ConnectFailure event.
+ */
+// const CALL_CONNECT_FAILURE = 'call-connect-failure-event-raised';
+
+/**
  * What a variant is expected to settle on.
  *
  * Unlike `ice-test.ts` (outgoing calls, where `voice.connect()` resolves
