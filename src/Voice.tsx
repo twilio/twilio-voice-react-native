@@ -27,11 +27,11 @@ import type { NativeCallInviteInfo } from './type/CallInvite';
 import type { CallKit } from './type/CallKit';
 import type { CustomParameters, Uuid } from './type/common';
 import type { NativeVoiceEvent, NativeVoiceEventType } from './type/Voice';
+import { validatePreflightOptions } from './utility/preflightTestOptions';
 import {
-  validatePreflightOptions,
   validateIceServers,
   validateIceTransportPolicy,
-} from './utility/preflightTestOptions';
+} from './utility/IceOptions';
 import { settleNativePromise } from './utility/nativePromise';
 import type { IceServer, IceTransportPolicy } from './type/Ice';
 

@@ -34,8 +34,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSDictionary *twimlParams;
-@property (nonatomic, copy, nullable) NSArray<NSDictionary *> *iceServers;
-@property (nonatomic, copy, nullable) NSString *iceTransportPolicy;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSArray<NSDictionary *> *> *iceServersMap;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *iceTransportPolicyMap;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL, NSError *error);
 @property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
 

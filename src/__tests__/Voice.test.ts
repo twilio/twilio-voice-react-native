@@ -20,6 +20,7 @@ import { IceTransportPolicy } from '../type/Ice';
 import { AudioCodecType } from '../type/AudioCodec';
 import type { NativeVoiceEventType } from '../type/Voice';
 import * as PreflightTestOptionsModule from '../utility/preflightTestOptions';
+import * as IceOptionsModule from '../utility/IceOptions';
 import { Voice } from '../Voice';
 import {
   mockNativePromiseResolutionValue,
@@ -455,11 +456,11 @@ describe('Voice class', () => {
           jest.spyOn(Platform, 'OS', 'get').mockReturnValue('android' as any);
 
           const validateIceServersSpy = jest.spyOn(
-            PreflightTestOptionsModule,
+            IceOptionsModule,
             'validateIceServers'
           );
           const validateIceTransportPolicySpy = jest.spyOn(
-            PreflightTestOptionsModule,
+            IceOptionsModule,
             'validateIceTransportPolicy'
           );
 
@@ -492,7 +493,7 @@ describe('Voice class', () => {
           );
 
           jest
-            .spyOn(PreflightTestOptionsModule, 'validateIceServers')
+            .spyOn(IceOptionsModule, 'validateIceServers')
             .mockReturnValueOnce({
               status: 'error',
               error: validationError,
@@ -514,7 +515,7 @@ describe('Voice class', () => {
           );
 
           jest
-            .spyOn(PreflightTestOptionsModule, 'validateIceTransportPolicy')
+            .spyOn(IceOptionsModule, 'validateIceTransportPolicy')
             .mockReturnValueOnce({
               status: 'error',
               error: validationError,
