@@ -40,39 +40,6 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      # TEMPORARY - diagnosing 403s on axios tarballs. Remove once resolved.
-      # Never fails the job: this is here to produce evidence, not to gate CI.
-      - name: Debug Artifactory 403
-        continue-on-error: true
-        run: |
-          set -x
-          REG="${YARN_NPM_REGISTRY_SERVER%/}"
-
-          # Which identity does Artifactory see for the token yarn is using?
-          yarn npm whoami || true
-
-          # What tarball URL does Artifactory advertise? Yarn ignores this and
-          # synthesizes its own; a mismatch here is itself the answer.
-          yarn npm info axios@1.6.7 --fields dist --json || true
-
-          # The 403 body - yarn never prints it, and it carries the reason.
-          for V in 1.6.7 1.7.2; do
-            URL="${REG}/axios/-/axios-${V}.tgz"
-            echo "--- authenticated: $URL"
-            curl -s -D /dev/stdout -o /tmp/body.$V \
-              -H "Authorization: Bearer ${YARN_NPM_AUTH_TOKEN}" "$URL"
-            file /tmp/body.$V   # a gzip here means it actually downloaded
-            head -c 2000 /tmp/body.$V | tr -d '\0'
-            echo
-            echo "--- anonymous: $URL"
-            curl -s -o /dev/null -w 'status=%{http_code}\n' "$URL"
-          done
-
-          # Apples-to-apples with npm: the exact version yarn.lock pins,
-          # using npm's own config from ~/.npmrc rather than a forced flag.
-          npm config get registry
-          npm pack axios@1.6.7 || true
-
       - run: yarn install --immutable
 
       - run: yarn --cwd test/app install --immutable
