@@ -4,7 +4,7 @@
     "appium": "appium"
   },
   "dependencies": {
-    "appium": "^3.3.1",
+    "appium": "3.6.0",
     "appium-xcuitest-driver": "^11.0.0",
     "webdriverio": "^9.27.0"
   },
