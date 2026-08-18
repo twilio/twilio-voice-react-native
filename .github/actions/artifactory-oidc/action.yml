@@ -114,4 +114,21 @@ runs:
           echo "npmAlwaysAuth: true"
           echo "npmAuthToken: \"${ART_TOKEN}\""
         } > ~/.yarnrc.yml
+
+        # 5. Also export the same three settings as environment variables.
+        #    Yarn resolves env vars above every rc file, so the registry and the
+        #    credentials for it can never come from different sources - which is
+        #    what produces anonymous tarball requests. Yarn only authenticates
+        #    unscoped-package tarball fetches when npmAlwaysAuth is in effect
+        #    (scoped ones authenticate unconditionally), so a registry that
+        #    resolves without its token 403s on packages like axios while npm,
+        #    which has no such gate, keeps working.
+        #
+        #    The token is masked above, so it renders as *** in the log.
+        {
+          echo "YARN_NPM_REGISTRY_SERVER=${REGISTRY}"
+          echo "YARN_NPM_ALWAYS_AUTH=true"
+          echo "YARN_NPM_AUTH_TOKEN=${ART_TOKEN}"
+        } >> "$GITHUB_ENV"
+
         echo "::notice::npm and yarn configured to use Artifactory registry"
