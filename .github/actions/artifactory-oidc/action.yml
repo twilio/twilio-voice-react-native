@@ -114,5 +114,4 @@ runs:
           echo "npmAlwaysAuth: true"
           echo "npmAuthToken: \"${ART_TOKEN}\""
         } > ~/.yarnrc.yml
-
         echo "::notice::npm and yarn configured to use Artifactory registry"
