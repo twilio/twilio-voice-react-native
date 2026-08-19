@@ -52,6 +52,49 @@ jobs:
 
       - run: yarn run check
 
+      - name: Create docs tarball
+        id: docs-pack
+        run: |
+          set -euo pipefail
+
+          yarn run build:docs
+
+          version="$(jq -r .version ./package.json)"
+          tarball_name="twilio-voice-react-native-sdk-docs-${version}.tgz"
+
+          mkdir docs-output
+          tar -czvf "docs-output/${tarball_name}" docs
+
+          echo "tarball_name=${tarball_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload docs tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: docs-tarball
+          if-no-files-found: error
+          path: docs-output/${{ steps.docs-pack.outputs.tarball_name }}
+
+      - name: Create npm pack tarball
+        id: npm-pack
+        run: |
+          set -euo pipefail
+
+          # Pack into an empty directory so the tarball is the only thing in
+          # it - the `prepare` lifecycle prints to stdout, so parsing
+          # `npm pack --json` isn't reliable here.
+          mkdir pack-output
+          npm pack --pack-destination pack-output
+
+          tarball_name="$(ls pack-output)"
+          echo "tarball_name=${tarball_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload npm pack tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: npm-pack-tarball
+          if-no-files-found: error
+          path: pack-output/${{ steps.npm-pack.outputs.tarball_name }}
+
       # The runner group is self-hosted, so $HOME can outlive the job.
       - name: Remove Artifactory credentials
         if: always()
