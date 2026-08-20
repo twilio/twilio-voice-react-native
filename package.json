@@ -24,15 +24,22 @@
     "react-native.config.js"
   ],
   "scripts": {
+    "app": "yarn run check && yarn --cwd test/app",
+    "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
+    "build:api:extractor": "api-extractor run --local",
+    "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs/api",
     "build:constants": "node ./scripts/generate-constants.js",
+    "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "build:errors": "node ./scripts/generate-errors.js",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check:api": "git diff --exit-code src/error/generated.ts api/",
-    "check": "npm run build:constants && yarn run build:errors && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
-    "prepare": "npm run build:constants && bob build",
-    "release": "release"
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
+    "pods": "cd test/app && pod-install --quiet",
+    "prepare": "yarn run build:constants && bob build",
+    "release": "release",
+    "test": "jest"
   },
   "keywords": [
     "react-native",
@@ -59,6 +66,7 @@
     "@types/jest": "^28.1.6",
     "@types/react": "18.2.48",
     "@types/react-native": "0.62.13",
+    "api-documenter": "https://github.com/twilio/twilio-api-documenter#95bb77af636e2a5edaa13251178015438aa4b417",
     "axios": "^1.7.2",
     "commitlint": "^11.0.0",
     "cors": "^2.8.5",
@@ -161,5 +169,6 @@
   "dependencies": {
     "@twilio/voice-errors": "1.8.0",
     "eventemitter3": "^4.0.7"
-  }
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }
