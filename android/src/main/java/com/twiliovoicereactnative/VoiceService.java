@@ -55,6 +55,7 @@ import androidx.core.app.ServiceCompat;
 import com.facebook.react.bridge.WritableMap;
 import com.twilio.voice.AcceptOptions;
 import com.twilio.voice.Call;
+import com.twilio.voice.CallInvite;
 import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.Voice;
 
@@ -205,6 +206,18 @@ public class VoiceService extends Service {
   }
   private void acceptCall(final CallRecordDatabase.CallRecord callRecord) {
     logger.debug("acceptCall: " + callRecord.getUuid());
+    final CallInvite callInvite = callRecord.getCallInvite();
+
+    if (null == callInvite ||
+      CallRecordDatabase.CallRecord.CallInviteState.ACTIVE != callRecord.getCallInviteState()) {
+      logger.warning("Call not accepted because the CallInvite is no longer active");
+      if (null != callRecord.getCallAcceptedPromise()) {
+        callRecord.getCallAcceptedPromise().rejectWithName(
+          CommonConstants.ErrorCodeInvalidStateError,
+          "Attempt to accept a settled call invite");
+      }
+      return;
+    }
 
     // verify that mic permissions have been granted and if not, throw a error
     if (ActivityCompat.checkSelfPermission(VoiceService.this,
@@ -240,7 +253,7 @@ public class VoiceService extends Service {
       .build();
 
     callRecord.setCall(
-      callRecord.getCallInvite().accept(
+      callInvite.accept(
         VoiceService.this,
         acceptOptions,
         new CallListenerProxy(callRecord.getUuid(), VoiceService.this)));
