@@ -26,7 +26,9 @@ const config = {
     },
     android: {
       package: secrets.android.package,
-      googleServicesFile: './google-services.json',
+      // Comment out the need for the Google Services creds for now. Only needed
+      // for incoming call support.
+      // googleServicesFile: './google-services.json',
     },
     plugins: [
       'expo-router',
