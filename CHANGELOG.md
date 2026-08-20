@@ -1,3 +1,14 @@
+2.0.0-preview.3 (In Progress)
+================================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Prevented null pointer crashes when a CallInvite is cancelled while JavaScript acceptance is queued.
+
 2.0.0-preview.2 (April 29, 2026)
 ================================
 

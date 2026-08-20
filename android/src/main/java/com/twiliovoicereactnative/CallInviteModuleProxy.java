@@ -29,19 +29,19 @@ class CallInviteModuleProxy {
 
     final UUID uuid = UUID.fromString(uuidStr);
 
-    CallRecordDatabase.CallRecord callRecord = VoiceApplicationProxy
-      .getCallRecordDatabase()
-      .get(new CallRecordDatabase.CallRecord(uuid));
-
-    if (null == callRecord || null == callRecord.getCallInvite()) {
-      final String warningMsg = this.reactApplicationContext
-        .getString(R.string.missing_callinvite_uuid, uuid);
-      promise.rejectWithName(CommonConstants.ErrorCodeInvalidArgumentError, warningMsg);
-      return;
-    }
-
     mainHandler.post(() -> {
       logger.debug(String.format(".getCallRecord(%s) > runnable", uuid));
+      CallRecordDatabase.CallRecord callRecord = VoiceApplicationProxy
+        .getCallRecordDatabase()
+        .get(new CallRecordDatabase.CallRecord(uuid));
+
+      if (null == callRecord || null == callRecord.getCallInvite()) {
+        final String warningMsg = this.reactApplicationContext
+          .getString(R.string.missing_callinvite_uuid, uuid);
+        promise.rejectWithName(CommonConstants.ErrorCodeInvalidArgumentError, warningMsg);
+        return;
+      }
+
       onSuccess.accept(callRecord);
     });
   }

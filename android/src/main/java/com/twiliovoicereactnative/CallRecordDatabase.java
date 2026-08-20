@@ -5,6 +5,7 @@ import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.CallInvit
 import static com.twiliovoicereactnative.CallRecordDatabase.CallRecord.CallInviteState.USED;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -22,10 +23,11 @@ class CallRecordDatabase  {
   public static class CallRecord {
     public enum CallInviteState { NONE, ACTIVE, USED }
     public enum Direction { INCOMING, OUTGOING }
+    public static final int INVALID_NOTIFICATION_ID = -1;
     private final UUID uuid;
     private String callSid = null;
     private Date timestamp = null;
-    private int notificationId = -1;
+    private int notificationId = INVALID_NOTIFICATION_ID;
     private Call voiceCall = null;
     private String callRecipient = "";
     private CallInvite callInvite = null;
@@ -82,8 +84,9 @@ class CallRecordDatabase  {
       return this.voiceCall;
     }
     public final Map<String, String> getCustomParameters() {
+      final CallInvite currentCallInvite = this.callInvite;
       if (this.direction == Direction.INCOMING) {
-        return this.callInvite.getCustomParameters();
+        return null == currentCallInvite ? Collections.emptyMap() : currentCallInvite.getCustomParameters();
       }
       return this.customParameters;
     }
