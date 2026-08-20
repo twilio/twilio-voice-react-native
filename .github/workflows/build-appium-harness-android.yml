@@ -14,7 +14,7 @@ on:
   # trigger is how the workflow gets exercised on the development branch first, so
   # the first run is not also the first merge.
   push:
-    branches: [test/android-harness-ci-artifact]
+    branches: [temp/broken-android-ci]
 
 # No default permissions; the job below declares exactly what it needs.
 permissions: {}
