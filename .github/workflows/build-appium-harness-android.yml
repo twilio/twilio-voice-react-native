@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: "22.13"
-          # cache: yarn
+          cache: yarn
 
       # JDK 17 matches what CircleCI's e2e-android job selects via the Android orb,
       # and is what RN 0.83 / AGP 8.x expect.
@@ -85,7 +85,7 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
-      - run: npm install
+      - run: yarn install --immutable
 
       # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
       # android/src/main/java/com/twiliovoicereactnative/CommonConstants.java - a
@@ -93,11 +93,11 @@ jobs:
       # on a fresh checkout without it. The harness depends on the SDK via
       # `portal:../../`, and Yarn does not run a portal target's lifecycle scripts,
       # so nothing else triggers this. CircleCI's install-dependencies does the same.
-      - run: npm run prepare
+      - run: yarn run prepare
 
       - run: |
           cd test/appium-harness
-          npm install
+          yarn install --immutable
 
       # app.config.mjs statically imports ./secrets.json, so it cannot even be
       # loaded without this file. These are placeholder values, not real credentials:
@@ -130,7 +130,7 @@ jobs:
       - name: Expo prebuild (android)
         run: |
           cd test/appium-harness
-          npm run prebuild --clean --platform=android
+          yarn run prebuild --clean --platform=android
 
       # assembleRelease, not assembleDebug: a release build bundles the JS into the
       # APK, so the artifact runs standalone with no Metro server. That is the whole
