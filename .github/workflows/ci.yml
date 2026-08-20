@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, temp/ci-workflow-aug-2026]
+    branches: [main, temp/broken-android-ci]
   pull_request:
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
