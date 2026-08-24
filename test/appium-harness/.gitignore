@@ -48,3 +48,4 @@ app-example
 ##
 /secrets.json
 /google-services.json
+/src/utilities/token/e2e-*-token.*.ts

@@ -7,6 +7,7 @@ import { useOutgoingCallTest } from '../test-suites/outgoing-call';
 import { useIceTest } from '../test-suites/ice-test';
 import { useIncomingIceTest } from '../test-suites/incoming-ice-test';
 import { TestStatus } from '../test-suites';
+import { getToken } from '../utilities/token/get-token';
 
 /**
  * NOTE: VBLOCKS-6582
@@ -16,12 +17,10 @@ import { TestStatus } from '../test-suites';
  * "call.connect(...)".
  */
 
-const DEFAULT_TOKEN = '';
-
 const DEFAULT_TEST_SUITE_ID = '';
 
 export const Application = () => {
-  const [token, setToken] = React.useState<string>(DEFAULT_TOKEN);
+  const [token, setToken] = React.useState<string>(getToken);
   const [testSuiteId, setTestSuiteId] = React.useState<string>(DEFAULT_TEST_SUITE_ID);
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
