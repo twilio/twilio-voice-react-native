@@ -1,0 +1,217 @@
+name: Build Appium Harness iOS IPA
+# Builds a standalone, UNSIGNED release .ipa of test/appium-harness and uploads it
+# as a build artifact. It does not run the Appium tests - the orchestrator in
+# test/appium-orchestrator drives those separately against the resulting app.
+#
+# The artifact is unsigned on purpose: it cannot be installed on a device as-is
+# and has to be re-signed downstream (SauceLabs and friends do this for you).
+# Signing is deliberately out of scope here - this workflow adds no certificates,
+# no provisioning profiles, and no repository secrets.
+#
+# test/appium-harness/build-ios-harness.fish is the local equivalent of the
+# xcodebuild invocation below; keep the two in sync.
+#
+# Manual dispatch only for now: an iOS build is slow and nothing depends on it
+# per-PR yet. Add push/pull_request triggers once it has proven stable.
+on:
+  workflow_dispatch:
+  # TEMPORARY - remove before merging to main.
+  #
+  # workflow_dispatch only works once the file is on the default branch: until then
+  # GitHub shows no "Run workflow" button and rejects dispatches outright. This push
+  # trigger is how the workflow gets exercised on the development branch first, so
+  # the first run is not also the first merge.
+  push:
+    branches: [test/ios-harness-ci-artifact]
+
+# No default permissions; the job below declares exactly what it needs.
+permissions: {}
+
+env:
+  # The harness has no hardcoded bundle identifier - app.config.mjs reads it from
+  # secrets.json, which is gitignored. This is the CI-only stand-in. Note that
+  # secrets.example.json ships "foobar", which is not a usable bundle id.
+  HARNESS_BUNDLE_ID: com.twilio.voice.reactnative.appiumharness
+
+  # Both derive from the Expo `scheme`/`slug` in app.config.mjs, so prebuild always
+  # generates this pair of names.
+  HARNESS_SCHEME: twiliovoicereactnativesdkappiumharness
+  HARNESS_WORKSPACE: twiliovoicereactnativesdkappiumharness.xcworkspace
+
+jobs:
+  build:
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      # Runs before everything else, and before the installs that take ~10 minutes:
+      # a runner group without an iOS toolchain should fail in seconds rather than
+      # at the very end. We do not provision anything here - if this step ever
+      # fails, the fix is to fix the runner image, not to weaken the check.
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found. This workflow assumes the macos-arm runner group provides Xcode; if it does not, an Xcode provisioning step must be added."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found. \`expo prebuild\` installs the harness pods and cannot do so without it."
+            exit 1
+          fi
+
+          # The artifactory-oidc action below parses its token exchange with jq and
+          # hard-fails without it. Present on GitHub-hosted macOS images, but not
+          # guaranteed on a self-hosted one.
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found. The artifactory-oidc action requires it."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the one in use -
+          # it is the first thing to check when a build starts failing for no
+          # apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Enable Corepack so `yarn` resolves to the version pinned in package.json's
+      # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
+      # Must run before setup-node, whose `cache: yarn` step invokes yarn.
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
+      # ios/TwilioVoiceReactNativeConstants.h - a gitignored file matched by the
+      # podspec's ios/**/*.{h,m,mm} glob and imported by the SDK's Objective-C
+      # sources, so the Xcode build fails on a fresh checkout without it. It also
+      # runs `bob build` to produce lib/, which the harness bundles. The harness
+      # depends on the SDK via `portal:../../`, and Yarn does not run a portal
+      # target's lifecycle scripts, so nothing else triggers this. CircleCI's
+      # install-dependencies does the same.
+      - run: yarn run prepare
+
+      - run: |
+          cd test/appium-harness
+          yarn install --immutable
+
+      # app.config.mjs statically imports ./secrets.json, so it cannot even be
+      # loaded without this file. These are placeholder values, not real credentials:
+      # this workflow deliberately adds no repository secrets or variables.
+      #
+      # appleTeamId is irrelevant here - every CODE_SIGN* setting is disabled in the
+      # xcodebuild step below - but the config reads it unconditionally.
+      - name: Write placeholder secrets
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat > secrets.json <<EOF
+          {
+            "ios": {
+              "appleTeamId": "PLACEHOLDER",
+              "bundleIdentifier": "${HARNESS_BUNDLE_ID}"
+            },
+            "android": {
+              "package": "${HARNESS_BUNDLE_ID}"
+            }
+          }
+          EOF
+
+      # Generates the gitignored ios/ project: the Xcode project, the workspace, the
+      # Podfile, and the entitlements file. This also runs `pod install` - `expo
+      # prebuild` installs CocoaPods unless --no-install is passed, so there is no
+      # separate pod step.
+      - name: Expo prebuild (ios)
+        run: |
+          cd test/appium-harness
+          yarn run prebuild --clean --platform=ios
+
+      # -configuration Release, not Debug: a release build bundles the JS into the
+      # app, so the artifact runs standalone with no Metro server. That is the whole
+      # point of publishing it.
+      #
+      # The CODE_SIGN* overrides are what make this work with no certificate on the
+      # runner. app.config.mjs declares aps-environment entitlements, which would
+      # otherwise demand a matching provisioning profile - CODE_SIGN_ENTITLEMENTS=""
+      # is what drops them. Keep all four in sync with build-ios-harness.fish.
+      - name: Build unsigned release app
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "${HARNESS_WORKSPACE}" \
+            -scheme "${HARNESS_SCHEME}" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      # `xcodebuild build` emits a .app, not a .ipa. The usual -archivePath +
+      # -exportArchive route needs an export options plist and a signing identity,
+      # so for an unsigned artifact we build the IPA layout by hand: an .ipa is
+      # just a zip with the .app under Payload/.
+      #
+      # -y preserves the symlinks inside the embedded frameworks; without it the zip
+      # inflates and the framework layout is subtly wrong.
+      - name: Package unsigned ipa
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          PRODUCTS_DIR=build/Build/Products/Release-iphoneos
+          APP_PATH="${PRODUCTS_DIR}/${HARNESS_SCHEME}.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::xcodebuild reported success but ${APP_PATH} does not exist. Products dir contains: $(ls -1 "$PRODUCTS_DIR" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          # Sanity check the whole reason for using a Release configuration.
+          if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
+            echo "::error::${APP_PATH} has no main.jsbundle - the JS was not embedded, so this app would need a Metro server to run."
+            exit 1
+          fi
+
+          rm -rf ../ipa
+          mkdir -p ../ipa/Payload
+          cp -R "$APP_PATH" ../ipa/Payload/
+
+          cd ../ipa
+          zip -qry "${HARNESS_SCHEME}.ipa" Payload
+          rm -rf Payload
+
+      - name: Upload appium harness ios ipa
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: appium-harness-ios-ipa
+          path: test/appium-harness/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      # The runner group is self-hosted, so $HOME and the workspace can outlive the
+      # job. secrets.json holds only placeholders today, but clearing it keeps a
+      # future run from silently inheriting a stale one.
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml test/appium-harness/secrets.json
