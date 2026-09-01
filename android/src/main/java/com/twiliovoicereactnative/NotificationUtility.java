@@ -149,7 +149,8 @@ class NotificationUtility {
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord.getNotificationId(), foregroundIntent);
 
     // Carry the id so the service can still dismiss the notification after the call record is
     // evicted (for example, after process death); otherwise the accept/reject button lingers forever.
@@ -159,7 +160,8 @@ class NotificationUtility {
       VoiceService.class,
       callRecord.getUuid());
     rejectIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
-    PendingIntent piRejectIntent = constructPendingIntentForService(context, rejectIntent);
+    PendingIntent piRejectIntent = constructPendingIntentForService(
+      context, callRecord.getNotificationId(), rejectIntent);
 
     // Accept targets the main activity, not VoiceService: it must foreground the in-call UI (a
     // service cannot launch activities on Android 12+). VoiceActivityProxy forwards it to the
@@ -170,7 +172,8 @@ class NotificationUtility {
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
     acceptIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
-    PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
+    PendingIntent piAcceptIntent = constructPendingIntentForActivity(
+      context, callRecord.getNotificationId(), acceptIntent);
 
     return constructNotificationBuilder(context, channelImportance)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -200,14 +203,16 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord.getNotificationId(), foregroundIntent);
 
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(
+      context, callRecord.getNotificationId(), endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -237,14 +242,16 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord.getNotificationId(), foregroundIntent);
 
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(
+      context, callRecord.getNotificationId(), endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -318,20 +325,34 @@ class NotificationUtility {
     return voiceChannelId;
   }
 
+  /**
+   * A PendingIntent is identified by (requestCode, Intent.filterEquals(...)), and filterEquals
+   * compares action, data, type, component, and categories -- never extras. Two concurrent calls
+   * build intents that are identical under that comparison, differing only by the uuid and
+   * notification-id extras they carry, so a shared request code makes them the same PendingIntent.
+   * FLAG_UPDATE_CURRENT then rewrites the already-posted notification's extras to point at the
+   * newer call, leaving the older notification showing one caller while its buttons act on another.
+   *
+   * Keying on the call record's notification id -- unique and non-zero per call, and always
+   * assigned before the notification is built -- gives every call its own PendingIntent. Actions
+   * differ within a single call, so one request code per call record separates all of its intents.
+   */
   private static PendingIntent constructPendingIntentForActivity(@NonNull Context context,
+                                                                 final int requestCode,
                                                                  @NonNull final Intent intent) {
     return PendingIntent.getActivity(
       context.getApplicationContext(),
-      0,
+      requestCode,
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
   }
 
   private static PendingIntent constructPendingIntentForService(@NonNull Context context,
+                                                                final int requestCode,
                                                                 @NonNull final Intent intent) {
     return PendingIntent.getService(
       context.getApplicationContext(),
-      0,
+      requestCode,
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
   }

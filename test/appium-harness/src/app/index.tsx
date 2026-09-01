@@ -6,6 +6,7 @@ import { useLogging } from '../hooks/useLogging';
 import { useOutgoingCallTest } from '../test-suites/outgoing-call';
 import { useIceTest } from '../test-suites/ice-test';
 import { useIncomingIceTest } from '../test-suites/incoming-ice-test';
+import { useNotificationOverlapTest } from '../test-suites/notification-overlap';
 import { TestStatus } from '../test-suites';
 import { getToken } from '../utilities/token/get-token';
 
@@ -34,6 +35,8 @@ export const Application = () => {
     useIceTest(token, voice, logging, setTestStatus);
   const incomingIceTest =
     useIncomingIceTest(token, voice, logging, setTestStatus);
+  const notificationOverlapTest =
+    useNotificationOverlapTest(token, voice, logging, setTestStatus);
 
   const performTest = React.useCallback(() => {
     switch (testSuiteId) {
@@ -46,6 +49,9 @@ export const Application = () => {
       case 'incoming-ice-test': {
         return incomingIceTest.perform();
       }
+      case 'notification-overlap-test': {
+        return notificationOverlapTest.perform();
+      }
       default: {
         setTestStatus('failure');
         return;
@@ -55,6 +61,7 @@ export const Application = () => {
     outgoingCallTest.perform,
     iceTest.perform,
     incomingIceTest.perform,
+    notificationOverlapTest.perform,
     setTestStatus,
     testSuiteId,
   ]);
