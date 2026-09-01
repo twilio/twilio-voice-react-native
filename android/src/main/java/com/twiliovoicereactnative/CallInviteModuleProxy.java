@@ -5,6 +5,7 @@ import android.os.Looper;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.twilio.voice.CallMessage;
+import com.twilio.voice.IceOptions;
 
 import java.util.function.Consumer;
 import java.util.UUID;
@@ -46,13 +47,14 @@ class CallInviteModuleProxy {
     });
   }
 
-  public void accept(String uuid, ModuleProxy.UniversalPromise promise) {
+  public void accept(String uuid, IceOptions iceOptions, ModuleProxy.UniversalPromise promise) {
     logger.debug(String.format(".accept(%s)", uuid));
 
     getCallRecord(uuid, promise, (callRecord) -> {
       logger.debug(String.format(".accept(%s) > runnable", uuid));
 
       callRecord.setCallAcceptedPromise(promise);
+      callRecord.setIceOptions(iceOptions);
 
       try {
         VoiceApplicationProxy

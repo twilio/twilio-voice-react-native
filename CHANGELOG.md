@@ -1,11 +1,40 @@
+2.0.0-preview.3 (In Progress)
+=============================
+
+## Features
+
+- Added support for configuring custom ICE servers and ICE transport policy when accepting incoming calls using `CallInvite.accept` via the new `iceServers` and `iceTransportPolicy` options.
+
+## Breaking Changes
+
+### AudioDevice.Type and AudioDevice.nativeType
+
+- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer.
+
+- Added `AudioDevice.Type.Unknown`, reported via `AudioDevice.type` when the native layer reports a device type that isn't one of the other well-known `AudioDevice.Type` values.
+
+#### iOS
+
+- Audio devices with an unrecognized native port type (for example, non-HFP Bluetooth profiles) previously reported that raw native type string, e.g. `"BluetoothA2DP"`, as `AudioDevice.type` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown` and `AudioDevice.nativeType` now reports the native value, e.g. `"BluetoothA2DP"`.
+
+#### Android
+
+- Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
+
 2.0.0-preview.2 (April 29, 2026)
 ================================
 
 ## Features
 
 - Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
-
-  *Note*: This currently applies only to outgoing calls. Support for incoming calls will be added in a future version.
 
 ## Changes
 

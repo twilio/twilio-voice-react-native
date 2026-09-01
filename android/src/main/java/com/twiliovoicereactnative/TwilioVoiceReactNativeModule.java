@@ -174,7 +174,25 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void callInvite_accept(String uuid, ReadableMap options, Promise promise) {
-    this.moduleProxy.callInvite.accept(uuid, new PromiseAdapter(promise));
+    final ModuleProxy.UniversalPromise uPromise = new PromiseAdapter(promise);
+
+    final ReadableArray jsIceServers = options.hasKey(CommonConstants.CallOptionsKeyIceServers)
+      ? Optional.ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers)).orElse(Arguments.createArray())
+      : Arguments.createArray();
+
+    final String jsIceTransportPolicy = options.hasKey(CommonConstants.CallOptionsKeyIceTransportPolicy)
+      ? Optional.ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy)).orElse("")
+      : "";
+
+    final IceOptions iceOptions;
+    try {
+      iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy);
+    } catch (IllegalArgumentException e) {
+      uPromise.rejectWithName(CommonConstants.ErrorCodeInvalidArgumentError, e.getMessage());
+      return;
+    }
+
+    this.moduleProxy.callInvite.accept(uuid, iceOptions, uPromise);
   }
 
   @ReactMethod
@@ -277,69 +295,20 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       }
     }
 
-    final Set<IceServer> iceServers = new HashSet<>();
-
     final ReadableArray parsedJsIceServers = Optional
       .ofNullable(jsIceServers)
       .orElse(Arguments.createArray());
-
-    for (int i = 0; i < parsedJsIceServers.size(); i++) {
-      final ReadableMap jsIceServer = Optional
-        .ofNullable(parsedJsIceServers.getMap(i))
-        .orElse(Arguments.createMap());
-
-      final String serverUrl =
-        jsIceServer.hasKey(CommonConstants.IceServerKeyServerUrl)
-        ? jsIceServer.getString(CommonConstants.IceServerKeyServerUrl)
-        : null;
-
-      final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
-        ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)
-        : null;
-
-      final String password = jsIceServer.hasKey(CommonConstants.IceServerKeyPassword)
-        ? jsIceServer.getString(CommonConstants.IceServerKeyPassword)
-        : null;
-
-      if (serverUrl == null) {
-        uPromise.rejectWithName(
-          CommonConstants.ErrorCodeInvalidArgumentError,
-          "Server URL must be a non-null string."
-        );
-        return;
-      }
-
-      if (username != null && password != null) {
-        iceServers.add(new IceServer(serverUrl, username, password));
-      } else {
-        iceServers.add(new IceServer(serverUrl));
-      }
-    }
 
     final String parsedJsIceTransportPolicy = Optional
       .ofNullable(jsIceTransportPolicy)
       .orElse("");
 
-    final IceTransportPolicy iceTransportPolicy = switch (parsedJsIceTransportPolicy) {
-      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
-      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
-      default -> null;
-    };
-
-    IceOptions iceOptions = null;
-
-    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
-      final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
-
-      if (!iceServers.isEmpty()) {
-        iceOptionsBuilder.iceServers(iceServers);
-      }
-
-      if (iceTransportPolicy != null) {
-        iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
-      }
-
-      iceOptions = iceOptionsBuilder.build();
+    final IceOptions iceOptions;
+    try {
+      iceOptions = buildIceOptions(parsedJsIceServers, parsedJsIceTransportPolicy);
+    } catch (IllegalArgumentException e) {
+      uPromise.rejectWithName(CommonConstants.ErrorCodeInvalidArgumentError, e.getMessage());
+      return;
     }
 
     this.moduleProxy.voice.connect(
@@ -451,63 +420,24 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
       preflightOptionsBuilder.preferAudioCodecs(preferredAudioCodecs);
     }
 
-    // Ice servers logic.
-    final Set<IceServer> iceServers = new HashSet<>();
+    final ReadableArray jsIceServers = options.hasKey(CommonConstants.CallOptionsKeyIceServers)
+      ? Optional.ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers)).orElse(Arguments.createArray())
+      : Arguments.createArray();
 
-    final ReadableArray jsIceServers = Optional
-      .ofNullable(options.getArray(CommonConstants.CallOptionsKeyIceServers))
-      .orElse(Arguments.createArray());
+    final String jsIceTransportPolicy = options.hasKey(CommonConstants.CallOptionsKeyIceTransportPolicy)
+      ? Optional.ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy)).orElse("")
+      : "";
 
-    for (int i = 0; i < jsIceServers.size(); i++) {
-      final ReadableMap jsIceServer = Optional
-        .ofNullable(jsIceServers.getMap(i))
-        .orElse(Arguments.createMap());
-
-      final String serverUrl = jsIceServer.getString(CommonConstants.IceServerKeyServerUrl);
-
-      final String username = Optional
-        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyUsername))
-        .orElse("");
-
-      final String password = Optional
-        .ofNullable(jsIceServer.getString(CommonConstants.IceServerKeyPassword))
-        .orElse("");
-
-      if (serverUrl == null) {
-        uPromise.rejectWithName(
-          CommonConstants.ErrorCodeInvalidArgumentError,
-          "Server URL must be a non-null string."
-        );
-        return;
-      }
-
-      iceServers.add(new IceServer(serverUrl, username, password));
+    final IceOptions iceOptions;
+    try {
+      iceOptions = buildIceOptions(jsIceServers, jsIceTransportPolicy);
+    } catch (IllegalArgumentException e) {
+      uPromise.rejectWithName(CommonConstants.ErrorCodeInvalidArgumentError, e.getMessage());
+      return;
     }
 
-    // Ice transport policy logic.
-    final String jsIceTransportPolicy = Optional
-      .ofNullable(options.getString(CommonConstants.CallOptionsKeyIceTransportPolicy))
-      .orElse("");
-
-    final IceTransportPolicy iceTransportPolicy = switch (jsIceTransportPolicy) {
-      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
-      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
-      default -> null;
-    };
-
-    // Finally, build the options.
-    final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
-
-    if (iceTransportPolicy != null) {
-      iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
-    }
-
-    if (!iceServers.isEmpty()) {
-      iceOptionsBuilder.iceServers(iceServers);
-    }
-
-    if (!iceServers.isEmpty() || iceTransportPolicy != null) {
-      preflightOptionsBuilder.iceOptions(iceOptionsBuilder.build());
+    if (iceOptions != null) {
+      preflightOptionsBuilder.iceOptions(iceOptions);
     }
 
     final PreflightOptions preflightOptions = preflightOptionsBuilder.build();
@@ -532,5 +462,59 @@ public class TwilioVoiceReactNativeModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void voice_unregister(String token, Promise promise) {
     this.moduleProxy.voice.unregister(token, new PromiseAdapter(promise));
+  }
+
+  private static IceOptions buildIceOptions(ReadableArray jsIceServers, String jsIceTransportPolicy) {
+    final Set<IceServer> iceServers = new HashSet<>();
+
+    for (int i = 0; i < jsIceServers.size(); i++) {
+      final ReadableMap jsIceServer = Optional
+        .ofNullable(jsIceServers.getMap(i))
+        .orElse(Arguments.createMap());
+
+      final String serverUrl = jsIceServer.hasKey(CommonConstants.IceServerKeyServerUrl)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyServerUrl)
+        : null;
+
+      final String username = jsIceServer.hasKey(CommonConstants.IceServerKeyUsername)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyUsername)
+        : null;
+
+      final String password = jsIceServer.hasKey(CommonConstants.IceServerKeyPassword)
+        ? jsIceServer.getString(CommonConstants.IceServerKeyPassword)
+        : null;
+
+      if (serverUrl == null) {
+        throw new IllegalArgumentException("Server URL must be a non-null string.");
+      }
+
+      if (username != null && password != null) {
+        iceServers.add(new IceServer(serverUrl, username, password));
+      } else {
+        iceServers.add(new IceServer(serverUrl));
+      }
+    }
+
+    final IceTransportPolicy iceTransportPolicy = switch (jsIceTransportPolicy) {
+      case CommonConstants.IceTransportPolicyValueAll -> IceTransportPolicy.ALL;
+      case CommonConstants.IceTransportPolicyValueRelay -> IceTransportPolicy.RELAY;
+      default -> null;
+    };
+
+    if (iceServers.isEmpty() && iceTransportPolicy == null) {
+      return null;
+    }
+
+    final IceOptions.Builder iceOptionsBuilder = new IceOptions.Builder();
+
+    if (!iceServers.isEmpty()) {
+      iceOptionsBuilder.iceServers(iceServers);
+    }
+
+    if (iceTransportPolicy != null) {
+      iceOptionsBuilder.iceTransportPolicy(iceTransportPolicy);
+    }
+
+    return iceOptionsBuilder.build();
   }
 }

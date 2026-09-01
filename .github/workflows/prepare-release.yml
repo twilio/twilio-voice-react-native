@@ -1,0 +1,154 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Version to release (e.g. 2.0.0 or 2.0.0-rc1)"
+        required: true
+
+# No default permissions; each job below declares exactly what it needs.
+permissions: {}
+
+jobs:
+  # Runs the version bump and build. No write access, so a compromised
+  # dependency's postinstall script has nothing to push during `yarn install`.
+  build:
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      - name: Bump package.json version
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: npm version --no-git-tag-version "${RELEASE_VERSION}"
+
+      - name: Stamp constants files
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: node ./scripts/substitute-constants-version.js "${RELEASE_VERSION}"
+
+      - name: Build SDK artifacts
+        run: yarn run build:docs
+
+      # VBLOCKS-7002 - Consider going further and checking the build artifacts
+      # for integrity. Also consider a mechanism to synchronize the checked
+      # artifacts here with the list of actually generated artifacts.
+      - name: Verify the release tree was built
+        run: |
+          set -euo pipefail
+
+          for RELEASE_FILE in \
+            package.json \
+            constants/constants.src \
+            src/constants.ts \
+            ios/TwilioVoiceReactNativeConstants.h \
+            android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          do
+            if [ ! -s "$RELEASE_FILE" ]; then
+              echo "::error::${RELEASE_FILE} is missing or empty after the build."
+              exit 1
+            fi
+          done
+
+          for RELEASE_DIRECTORY in docs/api lib; do
+            if [ ! -d "$RELEASE_DIRECTORY" ] ||
+               [ -z "$(ls -A "$RELEASE_DIRECTORY")" ]; then
+              echo "::error::${RELEASE_DIRECTORY}/ is missing or empty after the build."
+              exit 1
+            fi
+          done
+
+      - name: Upload release tree
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: release-tree
+          if-no-files-found: error
+          path: |
+            package.json
+            constants/constants.src
+            docs/api/
+            lib/
+            src/constants.ts
+            ios/TwilioVoiceReactNativeConstants.h
+            android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+
+      # The runner group is self-hosted, so $HOME can outlive the job.
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  # Never runs dependency code - just git commands. Pushes the release branch
+  # that release.yml is later dispatched from. It may be merged by a human
+  # later. It exists so a dispatched release has a stable, already-built commit
+  # to publish.
+  create-release-branch:
+    needs: build
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      - name: Download release tree
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: release-tree
+
+      - name: Configure git identity
+        run: |
+          set -euo pipefail
+
+          git config user.name "twilio-vblocks-ci"
+          git config user.email "svc.vblocks-ci@twilio.com"
+
+      - name: Commit release bump
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+
+          git checkout -b "release/${RELEASE_VERSION}"
+          git add package.json
+          git add constants/constants.src
+          git add -f docs/api
+          git add -f lib
+          git add -f src/constants.ts
+          git add -f ios/TwilioVoiceReactNativeConstants.h
+          git add -f android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
+          git commit --no-verify -m "chore: prepare release ${RELEASE_VERSION}"
+
+          echo "::notice::Release commit hash: $(git rev-parse HEAD)"
+
+      # Known gap: re-dispatching this workflow for a version whose branch was
+      # already pushed rebuilds everything and then fails here, because the
+      # fresh local branch has no shared history with the remote one. Loud and
+      # recoverable, but only after the whole build has run again, and recovery
+      # means deleting the remote branch by hand.
+      #
+      # Deliberately not a force-push. That would discard whatever is on the
+      # existing branch. If this becomes annoying, check for the remote branch
+      # before the build rather than relaxing the push.
+      - name: Push release branch
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: git push origin "release/${RELEASE_VERSION}"
