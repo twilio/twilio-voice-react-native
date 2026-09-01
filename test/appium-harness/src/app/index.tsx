@@ -93,9 +93,14 @@ export const Application = () => {
       'incoming-ice-test': incomingIceTest.perform,
     };
 
-    const perform = suites[testSuiteId as TEST_SUITE_ID] as
-      | (() => Promise<void>)
-      | undefined;
+    // `hasOwnProperty` rather than a plain lookup so that a suite id naming an
+    // inherited `Object.prototype` member - `toString`, `valueOf`,
+    // `constructor` - does not resolve to that member and skip the guard below.
+    const perform = Object.prototype.hasOwnProperty.call(suites, testSuiteId)
+      ? (suites[testSuiteId as TEST_SUITE_ID] as
+          | (() => Promise<void>)
+          | undefined)
+      : undefined;
 
     if (typeof perform === 'undefined') {
       logging.log.error(JSON.stringify({
