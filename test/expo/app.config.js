@@ -37,6 +37,7 @@ module.exports = {
     },
     plugins: [
       'expo-router',
+      ['@twilio/voice-react-native-sdk', { apsEnvironment: 'development' }],
       [
         'expo-splash-screen',
         {

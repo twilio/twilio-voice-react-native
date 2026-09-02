@@ -92,12 +92,21 @@ commands:
 
   setup-e2e-creds:
     description: "Generate an access token for e2e tests"
+    parameters:
+      app_dir:
+        description: Test app directory (test/expo or test/app)
+        type: string
+        default: test/expo
+      token_dir:
+        description: Directory within the app that holds the generated token files
+        type: string
+        default: constants
     steps:
       - run:
           name: "Generate access token"
           command: |
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call test/expo/constants/e2e-tests-token.ts
-            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest test/expo/constants/e2e-preflightTest-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY call <<parameters.app_dir>>/<<parameters.token_dir>>/e2e-tests-token.ts
+            node test/scripts/gen-token.mjs $CLIENT_IDENTITY preflightTest <<parameters.app_dir>>/<<parameters.token_dir>>/e2e-preflightTest-token.ts
 
   clear-detox-cache:
     description: "Clears detox framework cache"
@@ -117,11 +126,15 @@ commands:
       configuration:
         description: The Detox configuration to build
         type: string
+      app_dir:
+        description: Test app directory (test/expo or test/app)
+        type: string
+        default: test/expo
     steps:
       - run:
           name: Detox Build
           command: |
-            cd test/expo
+            cd <<parameters.app_dir>>
             yarn run detox:build -c <<parameters.configuration>>
             cd ../..
           no_output_timeout: 20m
@@ -146,11 +159,15 @@ commands:
         default: /tmp/artifacts
         description: Artifacts (logs, screenshots, etc) root directory.
         type: string
+      app_dir:
+        description: Test app directory (test/expo or test/app)
+        type: string
+        default: test/expo
     steps:
       - run:
           name: Detox Test
           command: |
-            cd test/expo
+            cd <<parameters.app_dir>>
             yarn run detox:test -c <<parameters.configuration>> -l <<parameters.loglevel>> -a=<<parameters.artifacts>> --take-screenshots=<<parameters.screenshots>> --ci --forceExit --detectOpenHandles
             cd ../..
 

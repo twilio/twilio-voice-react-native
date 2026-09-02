@@ -20,8 +20,6 @@
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
-    "expo-module.config.json",
-    "react-native.config.js",
     "app.plugin.js",
     "plugin"
   ],
@@ -75,7 +73,7 @@
     "eslint": "^7.2.0",
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-prettier": "^3.1.3",
-    "expo-modules-core": "^3.0.21",
+    "expo": "^52.0.47",
     "express": "^4.19.2",
     "husky": "^4.2.5",
     "jest": "^28.1.3",

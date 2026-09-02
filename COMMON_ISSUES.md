@@ -1,6 +1,6 @@
 # Common Issues
 
-* Expo is not supported out of the box. Follow [our guide](https://github.com/twilio/twilio-voice-react-native/issues/496) to add support for your app.
+* Expo applications require a development build or an EAS build. The SDK contains native code and cannot run in Expo Go. See [Configuring your Expo app](/docs/expo/app-config.md).
 
 * Running the example app on Android using `yarn run android` may fail if the emulator is still starting up. When this happens, you can re-run the app once the emulator is fully started.
 

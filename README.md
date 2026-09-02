@@ -21,25 +21,17 @@ yarn add @twilio/voice-react-native-sdk
 
 Once the package has been installed to your React Native application, there are further steps that you will need to take for both iOS and Android platforms. Please see the supporting documentation below.
 
-## 2.x Documentation
+## Supporting Documentation
 
-### Expo support
+The same package supports both framework-less ("bare") React Native applications and Expo applications.
 
-With the release of `2.x` versions (including our preview versions available through `npm` and Github Releases), the Twilio Voice React Native SDK officially supports the Expo framework out-of-the-box.
+### Expo
 
-**Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
+The SDK ships an Expo config plugin, so there are no native files to edit by hand. Add the plugin to your `app.json` and run `expo prebuild`. See [Configuring your Expo app](./docs/expo/app-config.md).
 
-**Please note that `2.0.0-preview.1` only supports Expo v52 at this time. Other versions of Expo are not tested or guaranteed to work!**
+A development build or EAS build is required. The SDK contains native code and does not run in Expo Go.
 
-After installing the Twilio Voice React Native SDK to your Expo application, please follow this [doc](./docs/expo/app-config.md) for steps on configuring your Expo app with the proper permissions and grants to use Twilio Voice features.
-
-### Using 2.x in a framework-less (bare) React Native application
-
-Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
-
-## 1.x Documentation
-
-### Getting Started
+### Bare React Native
 
 #### iOS
 Learn how to get started for the [iOS platform](/docs/getting-started-ios.md).
