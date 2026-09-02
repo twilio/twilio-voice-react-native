@@ -156,7 +156,7 @@ export const Application = () => {
         testID='textInput_testSuiteId'
         placeholder='Enter Test Suite ID'
         value={testSuiteId}
-        onChangeText={setTestSuiteId as (s: string) => void}
+        onChangeText={(text) => setTestSuiteId(text)}
       />
 
       <Text>Test Suite Status</Text>

@@ -88,8 +88,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
 /**
- * Structural equality. `Object.is` at the leaves, so `NaN` equals `NaN` and
- * `0` does not equal `-0`, matching `toStrictEqual`.
+ * Structural equality for primitives, arrays, Dates, and plain objects (own
+ * enumerable keys).
+ *
+ * `Object.is` at the leaves, so `NaN` equals `NaN` and `0` does not equal
+ * `-0`, matching `toStrictEqual`.
+ *
+ * This is not a full Jest `deepStrictEqual` implementation. Prototypes, Maps,
+ * and Sets are not compared.
  */
 const deepStrictEqual = (a: unknown, b: unknown): boolean => {
   if (Object.is(a, b)) {

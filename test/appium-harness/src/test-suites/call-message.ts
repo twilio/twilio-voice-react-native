@@ -103,6 +103,7 @@ type MessageOutcome =
 
 /**
  * Races `Sent` against `Failure` and a timeout. Whichever lands first wins.
+ * Always unbinds both listeners.
  *
  * Bind this immediately after `sendMessage` resolves - the events are raised
  * against an object that only exists once the promise has settled, so there is
@@ -120,18 +121,23 @@ const waitForMessageOutcome = (
     }
     settled = true;
     clearTimeout(timeoutId);
+    outgoingCallMessage.off(OutgoingCallMessage.Event.Sent, onSent);
+    outgoingCallMessage.off(OutgoingCallMessage.Event.Failure, onFailure);
     resolve(outcome);
   };
 
   const timeoutId = setTimeout(() => settle({ settled: 'timeout' }), timeoutMs);
 
-  outgoingCallMessage.on(OutgoingCallMessage.Event.Sent, () => {
+  function onSent() {
     settle({ settled: 'sent' });
-  });
+  }
 
-  outgoingCallMessage.on(OutgoingCallMessage.Event.Failure, (error) => {
+  function onFailure(error: unknown) {
     settle({ settled: 'failure', error });
-  });
+  }
+
+  outgoingCallMessage.on(OutgoingCallMessage.Event.Sent, onSent);
+  outgoingCallMessage.on(OutgoingCallMessage.Event.Failure, onFailure);
 });
 
 /**
