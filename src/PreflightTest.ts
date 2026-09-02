@@ -338,7 +338,7 @@ export class PreflightTest extends EventEmitter {
       );
     }
 
-    const parsedReport = parseReport(report);
+    const parsedReport = parseReport(JSON.parse(report));
 
     this.emit(PreflightTest.Event.Completed, parsedReport);
   };
@@ -482,10 +482,26 @@ export class PreflightTest extends EventEmitter {
    * - Resolves with `undefined` if PreflightTest has not ended.
    * - Rejects if the native layer encountered an error.
    */
-  public async getEndTime(): Promise<number> {
-    const endTime = await settleNativePromise(
+  public async getEndTime(): Promise<number | undefined> {
+    const nativeEndTime = await settleNativePromise(
       common.NativeModule.preflightTest_getEndTime(this._uuid)
-    ).then(Number);
+    );
+
+    if (nativeEndTime === null || typeof nativeEndTime === 'undefined') {
+      return undefined;
+    }
+
+    const endTime = Number(nativeEndTime);
+
+    // Both native platforms report the end time as the string of a numeric
+    // primitive that stays `"0"` until the `PreflightTest` ends. A non-finite
+    // value means the native layer sent something that does not parse as a
+    // number. Neither case describes a real end time, so both are reported as
+    // `undefined`.
+    if (!Number.isFinite(endTime) || endTime === 0) {
+      return undefined;
+    }
+
     return endTime;
   }
 
@@ -499,14 +515,35 @@ export class PreflightTest extends EventEmitter {
    * - Resolves with `undefined` if there is no previously generated sample.
    * - Rejects if the native layer encountered an error.
    */
-  public async getLatestSample(): Promise<PreflightTest.RTCSample> {
-    const sample = await settleNativePromise(
+  public async getLatestSample(): Promise<PreflightTest.RTCSample | undefined> {
+    const sampleStr = await settleNativePromise(
       common.NativeModule.preflightTest_getLatestSample(this._uuid)
-    ).then((sampleStr) => {
-      const sampleObj = JSON.parse(sampleStr);
-      return parseSample(sampleObj);
-    });
-    return sample;
+    );
+
+    // The native iOS SDK declares `latestSample` as nullable, so the native
+    // layer reports `null` when the `PreflightTest` has not generated a sample
+    // yet. See `TVOPreflight.h`.
+    if (sampleStr === null || typeof sampleStr === 'undefined') {
+      return undefined;
+    }
+
+    const sampleObj = JSON.parse(sampleStr);
+    if (sampleObj === null || typeof sampleObj === 'undefined') {
+      return undefined;
+    }
+
+    // The native Android SDK never reports a null sample. Its
+    // `PreflightTest.getLatestSample()` catches a `JSONException` and returns an
+    // empty `JSONObject`, so the native layer reports an object that does not
+    // describe a sample when the `PreflightTest` has not generated one yet. An
+    // empty object is reported as an absent sample. A partially populated sample
+    // is deliberately not treated as absent, because that describes a native SDK
+    // defect that is worth surfacing rather than masking.
+    if (typeof sampleObj !== 'object' || Object.keys(sampleObj).length === 0) {
+      return undefined;
+    }
+
+    return parseSample(sampleObj);
   }
 
   /**
@@ -518,11 +555,34 @@ export class PreflightTest extends EventEmitter {
    * - Resolves with `undefined` if the report is unavailable.
    * - Rejects if the native layer encountered an error.
    */
-  public async getReport(): Promise<PreflightTest.Report> {
-    const report = await settleNativePromise(
+  public async getReport(): Promise<PreflightTest.Report | undefined> {
+    const reportStr = await settleNativePromise(
       common.NativeModule.preflightTest_getReport(this._uuid)
-    ).then(parseReport);
-    return report;
+    );
+
+    // The native iOS SDK declares `preflightReport` as nullable, so the native
+    // layer reports `null` when no report is available. See `TVOPreflight.h`.
+    if (reportStr === null || typeof reportStr === 'undefined') {
+      return undefined;
+    }
+
+    const reportObj = JSON.parse(reportStr);
+
+    // The native Android SDK never reports a null report. Its
+    // `PreflightTest.getReport()` returns an empty report when the
+    // `PreflightTest` has not completed, and returns an empty `JSONObject` when
+    // it catches a `JSONException`, so the native layer reports an object that
+    // does not describe a report. An empty object is reported as an absent
+    // report rather than parsed into a report of undefined members.
+    if (
+      reportObj === null ||
+      typeof reportObj !== 'object' ||
+      Object.keys(reportObj).length === 0
+    ) {
+      return undefined;
+    }
+
+    return parseReport(reportObj);
   }
 
   /**
@@ -637,6 +697,16 @@ function parseState(nativeState: string): PreflightTest.State {
 
 /**
  * Parse a sample object and transform the keys to match the expected output.
+ *
+ * VBLOCKS-TODO: this reads every member without validating it, so a partially
+ * populated native sample yields a sample whose missing members are `undefined`
+ * and whose timestamp is `NaN`, rather than an error. That is not masked
+ * deliberately, because a partial sample describes a native SDK defect that is
+ * worth surfacing. Unlike `parseReport`, which throws on a partial payload, this
+ * surfaces nothing at all, so the defect reaches the application silently. It
+ * should fail through `constructInvalidValueError`, which this file already uses
+ * for values the native layer reports unexpectedly, so that the error names the
+ * malformed member and a bug report is actionable.
  */
 function parseSample(
   sampleObject: Omit<
@@ -734,10 +804,17 @@ function parseWarningsCleared(
 
 /**
  * Parse native preflight report.
+ *
+ * VBLOCKS-TODO: this reads every field without validating it, so a malformed
+ * native report surfaces as a raw `TypeError` from whichever member is
+ * dereferenced first, such as "Cannot read properties of undefined (reading
+ * 'signaling')". That error is not masked deliberately, because a partial
+ * report indicates a native SDK defect that is worth surfacing rather than
+ * hiding. It should instead fail through `constructInvalidValueError`, which
+ * this file already uses for values the native layer reports unexpectedly, so
+ * that the error names the malformed field and a bug report is actionable.
  */
-function parseReport(rawReport: string): PreflightTest.Report {
-  const unprocessedReport: any = JSON.parse(rawReport);
-
+function parseReport(unprocessedReport: any): PreflightTest.Report {
   const callSid: string = unprocessedReport.callSid;
 
   // Note: Native methods return enum values where the first letter is

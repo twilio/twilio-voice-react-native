@@ -21,7 +21,7 @@ export class IncomingCallMessage extends EventEmitter {
   /**
    * The content of the message which should match the contentType parameter.
    */
-  private _content: any;
+  private _content: string;
 
   /**
    * The MIME type of the content.
@@ -67,9 +67,16 @@ export class IncomingCallMessage extends EventEmitter {
   /**
    * {@inheritdoc CallMessage.content}
    *
+   * @remarks
+   * The content is always a string. When a call message is sent with a content
+   * value that is not a string, that value is serialized to a JSON string
+   * before it reaches the native layer. Both native platforms report the
+   * content of a received call message as a string. Applications that send
+   * structured content are responsible for parsing this value.
+   *
    * @returns the content of the call message.
    */
-  getContent(): any {
+  getContent(): string {
     return this._content;
   }
 

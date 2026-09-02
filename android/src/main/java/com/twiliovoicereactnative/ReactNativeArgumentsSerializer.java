@@ -33,6 +33,12 @@ import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfo
 import static com.twiliovoicereactnative.CommonConstants.CancelledCallInviteInfoTo;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyCode;
 import static com.twiliovoicereactnative.CommonConstants.VoiceErrorKeyMessage;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningHighRtt;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningHighJitter;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningHighPacketsLostFraction;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningLowMos;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningConstantAudioInputLevel;
+import static com.twiliovoicereactnative.CommonConstants.CallQualityWarningConstantAudioOutputLevel;
 import static com.twiliovoicereactnative.JSEventEmitter.constructJSMap;
 
 import java.text.SimpleDateFormat;
@@ -278,10 +284,44 @@ class ReactNativeArgumentsSerializer {
     );
   }
 
+  /**
+   * Maps a native call quality warning to the value that this SDK reports.
+   *
+   * @return the value to report, or null when the warning does not map to a
+   *   member of the JS `Call.QualityWarning` enumeration
+   */
+  private static String callQualityWarningToString(Call.CallQualityWarning warning) {
+    // The native Android SDK names the high packet loss warning
+    // "high-packet-loss", while the native iOS SDK names the same warning
+    // "high-packets-lost-fraction". This SDK reports the iOS name on both
+    // platforms, so this mapping is explicit rather than using `toString()`.
+    switch (warning) {
+      case WARN_HIGH_RTT:
+        return CallQualityWarningHighRtt;
+      case WARN_HIGH_JITTER:
+        return CallQualityWarningHighJitter;
+      case WARN_HIGH_PACKET_LOSS:
+        return CallQualityWarningHighPacketsLostFraction;
+      case WARN_LOW_MOS:
+        return CallQualityWarningLowMos;
+      case WARN_CONSTANT_AUDIO_IN_LEVEL:
+        return CallQualityWarningConstantAudioInputLevel;
+      case WARN_CONSTANT_AUDIO_OUTPUT_LEVEL:
+        return CallQualityWarningConstantAudioOutputLevel;
+      default:
+        return null;
+    }
+  }
+
   public static WritableArray serializeCallQualityWarnings(@NonNull Set<Call.CallQualityWarning> warnings) {
     WritableArray previousWarningsArray = Arguments.createArray();
     for (Call.CallQualityWarning warning : warnings) {
-      previousWarningsArray.pushString(warning.toString());
+      final String warningValue = callQualityWarningToString(warning);
+      if (warningValue == null) {
+        logger.warning("Skipping unrecognized CallQualityWarning: " + warning);
+        continue;
+      }
+      previousWarningsArray.pushString(warningValue);
     }
     return previousWarningsArray;
   }

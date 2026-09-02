@@ -604,8 +604,15 @@ export class Voice extends EventEmitter {
 
   /**
    * Get the Device token from the native layer.
-   * @returns a Promise that resolves with a string representing the Device
-   * token.
+   *
+   * @returns
+   * A `Promise` that
+   *  - Resolves with a string representing the Device token.
+   *  - Rejects with an {@link TwilioErrors.InvalidStateError} when no Device
+   *    token is available yet. On iOS platforms, the Device token is available
+   *    after the SDK receives a PushKit device token. On Android platforms, this
+   *    `Promise` also rejects when the SDK is unable to fetch the Firebase
+   *    token.
    */
   async getDeviceToken(): Promise<string> {
     const deviceToken = await settleNativePromise(
@@ -752,23 +759,18 @@ export class Voice extends EventEmitter {
    * Unsupported platforms:
    * - Android
    *
-   * This API is specific to iOS and unavailable in Android. If this API is
-   * invoked on Android, there will be no operation and the returned `Promise`
-   * will immediately resolve with `null`.
+   * This API is specific to iOS and unavailable in Android.
    *
    * @returns
    * A `Promise` that
    *  - Resolves when the AV Route Picker View is shown.
+   *  - Rejects with an {@link TwilioErrors.UnsupportedPlatformError} when
+   *    invoked on any platform other than iOS.
    */
   async showAvRoutePickerView(): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
         await settleNativePromise(NativeModule.voice_showNativeAvRoutePicker());
-        return;
-      case 'android':
-        // NOTE(mhuynh)
-        // Consider throwing here instead.
-        // VBLOCKS-5784
         return;
       default:
         throw new UnsupportedPlatformError(

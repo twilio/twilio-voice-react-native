@@ -488,22 +488,7 @@ export class CallInvite extends EventEmitter {
       );
     }
 
-    await NativeModule.callInvite_reject(this._uuid);
-  }
-
-  /**
-   * Check if a `CallInvite` is valid.
-   *
-   * @returns
-   *  - TODO
-   *
-   * @alpha
-   */
-  async isValid(): Promise<boolean> {
-    const isValid = await settleNativePromise(
-      NativeModule.callInvite_isValid(this._uuid)
-    );
-    return isValid;
+    await settleNativePromise(NativeModule.callInvite_reject(this._uuid));
   }
 
   /**

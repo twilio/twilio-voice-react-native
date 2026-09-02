@@ -6,6 +6,8 @@ import android.os.Looper;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.twilio.voice.PreflightTest;
 
+import org.json.JSONObject;
+
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -68,7 +70,12 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getLatestSample(%s) > runnable", uuid));
-      return preflightTest.getLatestSample().toString();
+      // The native SDK does not return a null sample today. Its
+      // `getLatestSample()` catches a JSONException and returns an empty
+      // JSONObject, which the JS layer detects by the absent timestamp. This
+      // check is defensive against a future native change.
+      final JSONObject latestSample = preflightTest.getLatestSample();
+      return latestSample == null ? null : latestSample.toString();
     });
   }
 
@@ -77,7 +84,11 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getReport(%s) > runnable", uuid));
-      return preflightTest.getReport().toString();
+      // The native Android SDK returns an empty report when the PreflightTest
+      // has not completed, but the null check keeps this consistent with the
+      // iOS behavior, where the report is nullable.
+      final JSONObject report = preflightTest.getReport();
+      return report == null ? null : report.toString();
     });
   }
 

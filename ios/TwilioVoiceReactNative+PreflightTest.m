@@ -69,7 +69,7 @@ RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
     }
     
     NSString *jsonSample = [self preflightStatsSampleToJsonString:self.preflightTest.latestSample];
-    [self resolvePromise:resolver value:jsonSample];
+    [self resolvePromise:resolver value:(jsonSample != nil ? jsonSample : [NSNull null])];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
@@ -81,7 +81,7 @@ RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
     }
     
     NSString *jsonReport = [self preflightReportToJsonString:self.preflightTest.preflightReport];
-    [self resolvePromise:resolver value:jsonReport];
+    [self resolvePromise:resolver value:(jsonReport != nil ? jsonReport : [NSNull null])];
 }
 
 RCT_EXPORT_METHOD(preflightTest_getStartTime:(NSString *)uuid
@@ -151,6 +151,14 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (NSString *)preflightStatsSampleToJsonString:(TVOPreflightStatsSample *)statsSample {
+    // `TVOPreflight.latestSample` is nullable. It is nil until the preflight
+    // test generates its first sample. Building the dictionary below with a nil
+    // sample raises an NSInvalidArgumentException, because `codec` and
+    // `timestamp` would both be nil values in a dictionary literal.
+    if (statsSample == nil) {
+        return nil;
+    }
+
     NSDictionary *sampleDict = @{
         kTwilioVoiceReactNativePreflightRTCSampleAudioInputLevel: @(statsSample.audioInputLevel),
         kTwilioVoiceReactNativePreflightRTCSampleAudioOutputLevel: @(statsSample.audioOutputLevel),
@@ -173,20 +181,37 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
         // warn that we could not parse the sample as json
         NSLog(@"Failed to parse sample as json: %@", jsonParseError);
     }
+    if (jsonData == nil) {
+        return nil;
+    }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
+
     return jsonString;
 }
 
 - (NSString *)preflightReportToJsonString:(TVOPreflightReport *)report {
+    // `TVOPreflight.preflightReport` is nullable. Passing a nil JSON object to
+    // NSJSONSerialization raises an NSInvalidArgumentException.
+    if (report == nil) {
+        return nil;
+    }
+
+    NSDictionary *reportDict = [report dictionaryReport];
+    if (reportDict == nil) {
+        return nil;
+    }
+
     NSError *jsonParseError;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[report dictionaryReport] options:NSJSONWritingFragmentsAllowed error:&jsonParseError];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reportDict options:NSJSONWritingFragmentsAllowed error:&jsonParseError];
     if (jsonParseError != nil) {
         // warn that we could not parse the report as json
         NSLog(@"Failed to parse report as json: %@", jsonParseError);
     }
+    if (jsonData == nil) {
+        return nil;
+    }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
+
     return jsonString;
 }
 

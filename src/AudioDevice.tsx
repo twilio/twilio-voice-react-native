@@ -90,6 +90,16 @@ export class AudioDevice {
    *    - Rejects if the audio device cannot be selected.
    */
   async select(): Promise<void> {
+    // VBLOCKS-TODO: this does not reject when the selection fails, so the
+    // failure is undetectable. The native layer reports a failure by resolving
+    // with a rejection envelope rather than by rejecting, see
+    // `TwilioVoiceReactNative+PromiseAdapter.m` and
+    // `ReactNativeArgumentsSerializer.serializePromiseErrorWithName`, so
+    // awaiting the native promise directly discards it. Both platforms have a
+    // real failure path: `VoiceModuleProxy.selectAudioDevice` rejects on an
+    // unknown uuid, and `TwilioVoiceReactNative.m` rejects when the port lookup
+    // fails. Wrapping this in `settleNativePromise` fixes it, which matches the
+    // behavior this method is already documented to have.
     await NativeModule.voice_selectAudioDevice(this.uuid);
   }
 }
@@ -129,6 +139,11 @@ export namespace AudioDevice {
      * Audio device type representing a Bluetooth device.
      */
     Bluetooth = 'bluetooth',
+
+    /**
+     * Audio device type representing a wired headset.
+     */
+    WiredHeadset = 'wiredHeadset',
 
     /**
      * Audio device type representing a device that is not recognized as one

@@ -476,6 +476,21 @@ describe('PreflightTest', () => {
 
         expect(endTime).toEqual(100);
       });
+
+      it('returns undefined when the test has not ended', async () => {
+        // Both native platforms report `endTime` as a primitive that is `0`
+        // until the PreflightTest ends. See `TVOPreflight.h` on iOS and
+        // `PreflightTest.getEndTime()` on Android.
+        spy.mockResolvedValue(mockNativePromiseResolutionValue('0'));
+
+        await expect(preflight.getEndTime()).resolves.toBeUndefined();
+      });
+
+      it('returns undefined when the native layer reports no end time', async () => {
+        spy.mockResolvedValue(mockNativePromiseResolutionValue(null));
+
+        await expect(preflight.getEndTime()).resolves.toBeUndefined();
+      });
     });
 
     describe('getLatestSample', () => {
@@ -514,9 +529,50 @@ describe('PreflightTest', () => {
           timestamp: 120,
         });
       });
+
+      it('returns undefined when there is no sample yet', async () => {
+        // `latestSample` is nullable in the native iOS SDK, see `TVOPreflight.h`.
+        spy.mockResolvedValue(mockNativePromiseResolutionValue(null));
+
+        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
+      });
+
+      /**
+       * The native Android SDK never reports a null sample. Its
+       * `PreflightTest.getLatestSample()` catches a `JSONException` and returns
+       * an empty `JSONObject`, so the native layer reports "{}" when the
+       * `PreflightTest` has not generated a sample yet.
+       */
+      it('returns undefined when the native layer reports an empty sample', async () => {
+        spy.mockResolvedValue(mockNativePromiseResolutionValue('{}'));
+
+        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
+      });
     });
 
     describe('getReport', () => {
+      it('returns undefined when the report is unavailable', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getReport')
+          .mockResolvedValue(mockNativePromiseResolutionValue(null));
+
+        await expect(preflight.getReport()).resolves.toBeUndefined();
+      });
+
+      /**
+       * The native Android SDK never reports a null report. Its
+       * `PreflightTest.getReport()` returns an empty report when the
+       * `PreflightTest` has not completed, and returns an empty `JSONObject`
+       * when it catches a `JSONException`, so the native layer reports "{}".
+       */
+      it('returns undefined when the native layer reports an empty report', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getReport')
+          .mockResolvedValue(mockNativePromiseResolutionValue('{}'));
+
+        await expect(preflight.getReport()).resolves.toBeUndefined();
+      });
+
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getReport')

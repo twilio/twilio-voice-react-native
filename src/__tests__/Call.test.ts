@@ -461,7 +461,11 @@ describe('Call class', () => {
 
       it('returns the call stats', async () => {
         const statsPromise = new Call(createNativeCallInfo()).getStats();
-        await expect(statsPromise).resolves.toEqual(createStatsReport());
+        // Both platforms report one StatsReport per peer connection, so the
+        // native layer resolves with an array. See `onStats` in
+        // `StatsListenerProxy.java` and `jsonWithStatsReportsArray` in
+        // `TwilioVoiceStatsReport.h`.
+        await expect(statsPromise).resolves.toEqual([createStatsReport()]);
       });
     });
 
@@ -760,6 +764,45 @@ describe('Call namespace', () => {
     it('QualityWarning', () => {
       expect(Call.QualityWarning).toBeDefined();
       expect(typeof Call.QualityWarning).toBe('object');
+    });
+
+    /**
+     * The native layer serializes call quality warnings using these values, so
+     * a mismatch means a warning never matches this enumeration. See
+     * `warningNameWithNumber` in `TwilioVoiceReactNative.m` on iOS, and
+     * `Call.CallQualityWarning.toString()` on Android.
+     */
+    it('QualityWarning uses the values that the native layer serializes', () => {
+      expect(Call.QualityWarning.ConstantAudioInputLevel).toBe(
+        Constants.CallQualityWarningConstantAudioInputLevel
+      );
+      expect(Call.QualityWarning.ConstantAudioOutputLevel).toBe(
+        Constants.CallQualityWarningConstantAudioOutputLevel
+      );
+      expect(Call.QualityWarning.HighJitter).toBe(
+        Constants.CallQualityWarningHighJitter
+      );
+      expect(Call.QualityWarning.HighPacketsLostFraction).toBe(
+        Constants.CallQualityWarningHighPacketsLostFraction
+      );
+      expect(Call.QualityWarning.HighRtt).toBe(
+        Constants.CallQualityWarningHighRtt
+      );
+      expect(Call.QualityWarning.LowMos).toBe(
+        Constants.CallQualityWarningLowMos
+      );
+    });
+
+    it('QualityWarning describes every call quality warning constant', () => {
+      const warningConstantValues = Object.entries(Constants)
+        .filter(([name]) => name.startsWith('CallQualityWarning'))
+        .map(([, value]) => value);
+      const warningValues = Object.values(Call.QualityWarning);
+
+      expect(warningConstantValues).toHaveLength(6);
+      warningConstantValues.forEach((warningConstantValue) => {
+        expect(warningValues).toContain(warningConstantValue);
+      });
     });
 
     it('Score', () => {

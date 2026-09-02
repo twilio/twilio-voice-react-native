@@ -476,6 +476,24 @@ describe('CallInvite class', () => {
       ).toEqual([[createNativeCallInviteInfo().uuid]]);
     });
 
+    it('rejects when the native layer rejects', async () => {
+      jest
+        .mocked(MockNativeModule.callInvite_reject)
+        .mockResolvedValueOnce(
+          mockNativePromiseRejectionWithCodeValue(
+            20101,
+            'mock-reject-error'
+          ) as any
+        );
+
+      await expect(
+        new CallInvite(
+          createNativeCallInviteInfo(),
+          CallInvite.State.Pending
+        ).reject()
+      ).rejects.toBeInstanceOf(TwilioError);
+    });
+
     (
       [
         [CallInvite.State.Accepted, false],
@@ -511,27 +529,6 @@ describe('CallInvite class', () => {
       }
 
       it(testMessage, shouldPass ? shouldResolve : shouldReject);
-    });
-  });
-
-  describe('.isValid()', () => {
-    it('invokes the native module', async () => {
-      await new CallInvite(
-        createNativeCallInviteInfo(),
-        CallInvite.State.Pending
-      ).isValid();
-      expect(
-        jest.mocked(MockNativeModule.callInvite_isValid).mock.calls
-      ).toEqual([[createNativeCallInviteInfo().uuid]]);
-    });
-
-    it('returns a Promise<boolean>', async () => {
-      expect(
-        typeof (await new CallInvite(
-          createNativeCallInviteInfo(),
-          CallInvite.State.Pending
-        ).isValid())
-      ).toBe('boolean');
     });
   });
 

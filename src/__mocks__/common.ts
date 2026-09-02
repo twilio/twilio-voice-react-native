@@ -53,7 +53,7 @@ export const NativeModule = {
    * Call Mocks
    */
   call_disconnect: createMockWithResolvedValue(undefined),
-  call_getStats: createMockWithResolvedValue(createStatsReport()),
+  call_getStats: createMockWithResolvedValue([createStatsReport()]),
   call_hold: jest.fn((_uuid: Uuid, hold: boolean) =>
     Promise.resolve(mockNativePromiseResolutionValue(hold))
   ),
@@ -72,7 +72,6 @@ export const NativeModule = {
    * Call Invite Mocks
    */
   callInvite_accept: createMockWithResolvedValue(createNativeCallInfo()),
-  callInvite_isValid: createMockWithResolvedValue(false),
   callInvite_reject: createMockWithResolvedValue(undefined),
   callInvite_sendMessage: createMockWithResolvedValue(
     'mock-nativemodule-tracking-id'
@@ -105,7 +104,9 @@ export const NativeModule = {
   voice_setIncomingCallContactHandleTemplate:
     createMockWithResolvedValue(undefined),
   voice_unregister: createMockWithResolvedValue(undefined),
-  voice_runPreflight: createMockWithResolvedValue(undefined),
+  voice_runPreflight: createMockWithResolvedValue(
+    'mock-nativemodule-preflighttest-uuid'
+  ),
 
   /**
    * PreflightTest mocks.

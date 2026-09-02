@@ -52,7 +52,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    * Call bindings.
    */
   call_disconnect(callUuid: Uuid): NativePromise<void>;
-  call_getStats(callUuid: Uuid): NativePromise<RTCStats.StatsReport>;
+  call_getStats(callUuid: Uuid): NativePromise<RTCStats.StatsReport[]>;
   call_hold(callUuid: Uuid, hold: boolean): NativePromise<boolean>;
   call_isOnHold(callUuid: Uuid): NativePromise<boolean>;
   call_isMuted(callUuid: Uuid): NativePromise<boolean>;
@@ -77,7 +77,6 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
     callInviteUuid: Uuid,
     acceptOptions: CallInvite.AcceptOptions
   ): NativePromise<NativeCallInfo>;
-  callInvite_isValid(callInviteUuid: Uuid): NativePromise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): NativePromise<void>;
   callInvite_sendMessage(
     callInviteUuid: Uuid,
@@ -138,8 +137,15 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
 
   preflightTest_getCallSid(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getEndTime(preflightTestUuid: Uuid): NativePromise<string>;
-  preflightTest_getLatestSample(preflightTestUuid: Uuid): NativePromise<string>;
-  preflightTest_getReport(preflightTestUuid: Uuid): NativePromise<string>;
+  // The native layer reports no value as `null` on iOS, and by omitting the
+  // value key on Android, where `constructJSMap` drops null entries. The JS
+  // layer guards for both, so these describe `null` rather than `string` alone.
+  preflightTest_getLatestSample(
+    preflightTestUuid: Uuid
+  ): NativePromise<string | null>;
+  preflightTest_getReport(
+    preflightTestUuid: Uuid
+  ): NativePromise<string | null>;
   preflightTest_getStartTime(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getState(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_stop(preflightTestUuid: Uuid): NativePromise<void>;

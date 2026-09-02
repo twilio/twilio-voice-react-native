@@ -769,14 +769,21 @@ export class Call extends EventEmitter {
 
   /**
    * Gets the `PeerConnection` `WebRTC` stats for the ongoing call.
+   *
+   * @remarks
+   * The native layer reports one {@link RTCStats.StatsReport} for every
+   * `PeerConnection` of a call, so this method resolves with an array. Use
+   * {@link RTCStats.StatsReport.peerConnectionId} to identify which
+   * `PeerConnection` a report describes.
+   *
    * @returns
    *  A `Promise` that
-   *    - Resolves with a {@link RTCStats.StatsReport} object representing the
-   *      `WebRTC` `PeerConnection` stats of a call.
-   *    - Rejects when a {@link RTCStats.StatsReport} cannot be generated for a
-   *      call.
+   *    - Resolves with an array of {@link RTCStats.StatsReport} objects
+   *      representing the `WebRTC` `PeerConnection` stats of a call.
+   *    - Rejects when the {@link RTCStats.StatsReport} objects cannot be
+   *      generated for a call.
    */
-  async getStats(): Promise<RTCStats.StatsReport> {
+  async getStats(): Promise<RTCStats.StatsReport[]> {
     const stats = await settleNativePromise(
       NativeModule.call_getStats(this._uuid)
     );
@@ -1099,23 +1106,27 @@ export namespace Call {
     /**
      * Raised when the call detects constant audio input, such as silence.
      */
-    'ConstantAudioInputLevel' = 'constant-audio-input-level',
+    'ConstantAudioInputLevel' = Constants.CallQualityWarningConstantAudioInputLevel,
+    /**
+     * Raised when the call detects constant audio output.
+     */
+    'ConstantAudioOutputLevel' = Constants.CallQualityWarningConstantAudioOutputLevel,
     /**
      * Raised when the network encounters high jitter.
      */
-    'HighJitter' = 'high-jitter',
+    'HighJitter' = Constants.CallQualityWarningHighJitter,
     /**
-     * Raised when the network encounters high packet loss.
+     * Raised when the network encounters a high fraction of lost packets.
      */
-    'HighPacketLoss' = 'high-packet-loss',
+    'HighPacketsLostFraction' = Constants.CallQualityWarningHighPacketsLostFraction,
     /**
      * Raised when the network encounters high packet round-trip-time.
      */
-    'HighRtt' = 'high-rtt',
+    'HighRtt' = Constants.CallQualityWarningHighRtt,
     /**
      * Raised when the call detects a low mean-opinion-score or MOS.
      */
-    'LowMos' = 'low-mos',
+    'LowMos' = Constants.CallQualityWarningLowMos,
   }
 
   /**
