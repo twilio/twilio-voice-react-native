@@ -53,5 +53,5 @@ app-example
 ###
 # Tokens
 ###
-/src/utilities/token/e2e-*-token*.ts
-/src/utilities/token/e2e-tests-ice-server*.ts
+/src/utilities/token/e2e-*-token*
+/src/utilities/token/e2e-tests-ice-server*

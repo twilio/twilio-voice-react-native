@@ -6,6 +6,10 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
+// TODO: VBLOCKS-7138
+// Add a timeout race for this one. The default TwiML that this suite expects
+// the other end to hangup eventually, but this is not necessarily true and
+// should time out if that is not the case.
 export const useOutgoingCallTest: UseTestSuite = (
   token,
   { voice },

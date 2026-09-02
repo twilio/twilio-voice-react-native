@@ -134,6 +134,8 @@ const deepStrictEqual = (a: unknown, b: unknown): boolean => {
   );
 };
 
+// TODO: VBLOCKS-7138
+// Consider cleaning up unused methods. We can add them later if we need them.
 export interface Matchers {
   /**
    * `Object.is` reference/primitive equality.

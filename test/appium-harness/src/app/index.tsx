@@ -16,7 +16,7 @@ import { useQualityWarningsTest } from '../test-suites/quality-warnings';
 import { useRegistrationTest } from '../test-suites/registration';
 import { useVoiceApiTest } from '../test-suites/voice-api';
 import { TestStatus } from '../test-suites';
-import { getPreflightTestToken } from '../utilities/token/get-token';
+import { getToken } from '../utilities/token/get-token';
 
 /**
  * NOTE: VBLOCKS-6582
@@ -44,7 +44,7 @@ export const Application = () => {
   // Intentional that we use the preflight test token by default for all suites
   // here. We're reusing the token generation for the other test apps and the
   // preflight test token works best here.
-  const [token, setToken] = React.useState<string>(getPreflightTestToken);
+  const [token, setToken] = React.useState<string>(getToken);
   const [testSuiteId, setTestSuiteId] = React.useState<string>('');
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
@@ -78,6 +78,23 @@ export const Application = () => {
     useIncomingCallManualTest(token, voice, logging, setTestStatus);
 
   const performTest = React.useCallback(() => {
+    if (testStatus !== 'not-started') {
+      logging.log.error(JSON.stringify({
+        message: 'test state not clean, to run another test refresh the JS ' +
+          'runtime by closing and reopening the app, or restarting the JS ' +
+          'runtime through the Metro bundler',
+      }));
+      return;
+    }
+
+    if (token.length === 0) {
+      logging.log.error(JSON.stringify({
+        message: 'no token, either bundle one or pass it via the UI'
+      }));
+      setTestStatus('failure');
+      return;
+    }
+
     const suites: Record<TEST_SUITE_ID, () => Promise<void>> = {
       'incoming-call-test-manual': incomingCallManualTest.perform,
       'call-controls-test': callControlsTest.perform,
@@ -121,6 +138,12 @@ export const Application = () => {
       startedAt: new Date().toISOString(),
     }));
 
+    // Consider cleaning up all the suite-specific rejections and handle them
+    // all here via a safelySettlePromise.
+    // Also consider adding a generic timeout-race here so no test hangs
+    // indefinitely.
+    //
+    // TODO: VBLOCKS-7138
     return perform();
   }, [
     callControlsTest.perform,
@@ -167,6 +190,7 @@ export const Application = () => {
       <Button
         testID='button_startTestSuite'
         title='Start Test Suite'
+        disabled={testStatus !== 'not-started'}
         onPress={performTest}
       />
 

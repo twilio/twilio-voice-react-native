@@ -20,8 +20,8 @@ exist in a fresh clone.
 
 | Module | Export | Used by |
 | --- | --- | --- |
-| `e2e-preflightTest-token.ios.ts` | `token` | Every suite, on iOS |
-| `e2e-preflightTest-token.android.ts` | `token` | Every suite, on Android |
+| `e2e-token.ios.ts` | `token` | Every suite, on iOS |
+| `e2e-token.android.ts` | `token` | Every suite, on Android |
 | `e2e-tests-ice-server.ts` | `iceServer` | The `valid-*` variants of `ice-test` and `incoming-ice-test` |
 
 Metro resolves the platform suffix, so only the token module for the platform

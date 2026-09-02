@@ -105,6 +105,8 @@ const STEPS: Array<Step<Call>> = [
     },
   },
   {
+    // Consider a clean-up mechanism for this one when the suite fails mid-run.
+    // TODO: VBLOCKS-7138
     name: 'mute',
     description:
       'mute(true) then mute(false) resolve with the new muted status, and ' +
@@ -120,6 +122,8 @@ const STEPS: Array<Step<Call>> = [
     },
   },
   {
+    // Consider a clean-up mechanism for this one when the suite fails mid-run.
+    // TODO: VBLOCKS-7138
     name: 'hold',
     description:
       'hold(true) then hold(false) resolve with the new hold status, and ' +

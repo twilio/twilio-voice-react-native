@@ -31,17 +31,8 @@ export function getToken(): string {
     // @ts-ignore - the module is a gitignored local secret and may not exist
     return readToken(require('./e2e-tests-token'));
   } catch (error) {
-    console.warn('No bundled e2e test token; enter one in the app.');
-    return '';
-  }
-}
-
-export function getPreflightTestToken(): string {
-  try {
-    // @ts-ignore - the module is a gitignored local secret and may not exist
-    return readToken(require('./e2e-preflightTest-token'));
-  } catch (error) {
-    console.warn('No bundled preflight test token; enter one in the app.');
+    // Use `info` here so the warning popup doesn't interfere with testing.
+    console.info(`No bundled e2e test token: ${String(error)}`);
     return '';
   }
 }
@@ -70,12 +61,21 @@ function readIceServer(iceServerModule: unknown): IceServerCredentials {
 
 // Twilio's Network Traversal Service hands these out. They are account-scoped
 // and short-lived, so they must not be committed.
+//
+// Consider a flippable flag instead of depending on the default bogus
+// credentials.
+//
+// TODO: VBLOCKS-7138
 export function getIceServer(): IceServerCredentials {
   try {
     // @ts-ignore - the module is a gitignored local secret and may not exist
     return readIceServer(require('./e2e-tests-ice-server'));
   } catch (error) {
-    console.warn('No bundled ICE server; valid-* variants will be skipped.');
+    // Use `info` here so the warning popup doesn't interfere with testing.
+    console.info(
+      'No bundled ICE server; valid-* variants will be skipped: ' +
+        `${String(error)}`
+    );
     return NO_ICE_SERVER;
   }
 }

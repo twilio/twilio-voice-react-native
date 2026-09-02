@@ -93,6 +93,9 @@ export const runStep = async <C>(
   // becomes a failed step instead of rejecting `runStep`. A rejected `runStep`
   // rejects `runSteps` and then the suite's `perform`, and nothing awaits
   // `perform`, so the status would be left at `in-progress` with no summary.
+  //
+  // TODO: VBLOCKS-7138
+  // Consider adding a timeout here so no step can hang indefinitely.
   const result = await safelySettlePromise(
     Promise.resolve().then(() => step.run(context, log)),
   );
