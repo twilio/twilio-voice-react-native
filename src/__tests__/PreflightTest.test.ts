@@ -548,6 +548,18 @@ describe('PreflightTest', () => {
 
         await expect(preflight.getLatestSample()).resolves.toBeUndefined();
       });
+
+      /**
+       * Neither platform reports the JSON literal "null" today. This covers the
+       * guard that exists in case a native layer starts to, since
+       * `typeof null` is "object" and the empty-object guard alone would throw
+       * on `Object.keys(null)`.
+       */
+      it('returns undefined when the native layer reports a JSON null', async () => {
+        spy.mockResolvedValue(mockNativePromiseResolutionValue('null'));
+
+        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
+      });
     });
 
     describe('getReport', () => {

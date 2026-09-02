@@ -480,8 +480,12 @@ const runSuccessfulRunPhase = async (
 
   await step('get-report-after-completed', async () => {
     const report = await preflightTest.getReport();
-    assertReport(report);
-    expect(report.callSid, 'getReport().callSid').toBe(
+    // `getReport` resolves with `undefined` when no report is available, so a
+    // completed PreflightTest returning a defined report is itself an
+    // assertion this suite makes.
+    expect(report, 'getReport()').toBeDefined();
+    assertReport(report!);
+    expect(report!.callSid, 'getReport().callSid').toBe(
       terminal.report.callSid,
     );
   });
@@ -495,9 +499,13 @@ const runSuccessfulRunPhase = async (
   await step('get-end-time-after-completed', async () => {
     const endTime = await preflightTest.getEndTime();
     const startTime = await preflightTest.getStartTime();
+    // `getEndTime` resolves with `undefined` until the PreflightTest ends, so a
+    // completed PreflightTest returning a defined end time is itself an
+    // assertion this suite makes.
+    expect(endTime, 'getEndTime()').toBeDefined();
     expect(endTime, 'getEndTime()').toBeTypeOf('number');
     expect(
-      endTime >= startTime,
+      endTime! >= startTime,
       'getEndTime() is at or after getStartTime()',
     ).toBe(true);
   });
