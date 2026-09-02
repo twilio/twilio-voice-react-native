@@ -21,7 +21,9 @@
     "!**/__fixtures__",
     "!**/__mocks__",
     "expo-module.config.json",
-    "react-native.config.js"
+    "react-native.config.js",
+    "app.plugin.js",
+    "plugin"
   ],
   "scripts": {
     "app": "yarn run check && yarn --cwd test/app",

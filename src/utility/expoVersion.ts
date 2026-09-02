@@ -1,3 +1,18 @@
+/**
+ * Minimal local declaration of the Expo global. The SDK feature-detects the
+ * Expo runtime at runtime and must not depend on `expo-modules-core` types,
+ * so that the package type-checks and bundles in bare React Native apps.
+ */
+declare const global: {
+  expo?: {
+    modules?: {
+      ExponentConstants?: {
+        manifest?: string | Record<string, unknown>;
+      };
+    };
+  };
+} & typeof globalThis;
+
 export function getExpoVersion(): string | undefined {
   const expoManifest = global.expo?.modules?.ExponentConstants?.manifest;
 

@@ -78,7 +78,6 @@ dependencies {
   implementation "com.twilio:audioswitch:${versions.audioSwitch}"
   implementation 'com.google.android.material:material:1.1.0'
 
-  implementation project(':expo-modules-core')
 
   constraints {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
