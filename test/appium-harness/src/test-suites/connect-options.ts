@@ -28,7 +28,7 @@ import { waitForCallEvent } from '../utilities/wait-for-event';
  * applied - worth having, because these cross the bridge as strings into native
  * code that formats UI with them.
  *
- * TODO: VBLOCKS-TODO - verify `params` are actually delivered, which needs the
+ * TODO: VBLOCKS-7136 - verify `params` are actually delivered, which needs the
  * TwiML side to echo them back (the relay server the detox suites use).
  */
 

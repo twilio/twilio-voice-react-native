@@ -112,7 +112,7 @@ const INVALID_OPTIONS = {
   // KNOWN FAILING: `validateAudioCodec` guards on `typeof` alone, and
   // `typeof null === 'object'`, so this throws a TypeError rather than
   // rejecting. The ice server validator handles null correctly.
-  // TODO: VBLOCKS-TODO
+  // TODO: VBLOCKS-7137
   'invalid-codec-null': {
     description: 'preferredAudioCodecs contains null; should reject',
     options: { preferredAudioCodecs: [null] } as any,

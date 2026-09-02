@@ -27,7 +27,7 @@ import { waitForCallEvent } from '../utilities/wait-for-event';
  * *arrived* needs an out-of-band subscription to Twilio's voice events, which
  * the detox suite gets from `test/app/e2e/relay/server.js`.
  *
- * TODO: VBLOCKS-TODO - cover delivery and incoming messages
+ * TODO: VBLOCKS-7132 - cover delivery and incoming messages
  * (`Call.Event.MessageReceived`, `IncomingCallMessage`) once a relay is
  * available to this harness.
  */

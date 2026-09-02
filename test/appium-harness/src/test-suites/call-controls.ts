@@ -59,7 +59,7 @@ const DTMF_DIGITS = '1234567890*#';
  * Top level only, and not exhaustively - the nested records may gain fields.
  * `test/app/e2e/common/rtcStatsValidators.ts` covers those in depth.
  *
- * TODO: VBLOCKS-TODO - correct the declared return type to `StatsReport[]` and
+ * TODO: VBLOCKS-7113 - correct the declared return type to `StatsReport[]` and
  * drop the cast in the `get-stats` step.
  */
 const STATS_REPORT_TYPES = {

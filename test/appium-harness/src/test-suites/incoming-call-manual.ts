@@ -82,7 +82,7 @@ const prompt = (log: Log, action: string) => {
  * the whole workaround, and work at runtime because the underlying emitter
  * does not care.
  *
- * TODO: VBLOCKS-TODO - add the generic overload and `Listener.Generic` to
+ * TODO: VBLOCKS-7135 - add the generic overload and `Listener.Generic` to
  * `CallInvite`, then drop these casts.
  */
 type LooseListener = (...args: any[]) => void;

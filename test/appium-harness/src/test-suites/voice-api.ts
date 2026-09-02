@@ -144,7 +144,7 @@ const STEPS: Array<Step<Voice>> = [
   // KNOWN FAILING on Android: selecting regenerates every device uuid, so the
   // uuid read back never matches the one selected, and a second select on the
   // same object rejects. Restores the original selection either way.
-  // TODO: VBLOCKS-TODO
+  // TODO: VBLOCKS-7133
   {
     name: 'select-audio-device',
     description:
@@ -194,7 +194,7 @@ const STEPS: Array<Step<Voice>> = [
   },
   // The bare call to unset the template is documented behaviour.
   // KNOWN FAILING on Android: the Kotlin parameter is non-nullable, so passing
-  // no argument dies in type conversion. TODO: VBLOCKS-TODO
+  // no argument dies in type conversion. TODO: VBLOCKS-7134
   {
     name: 'set-incoming-call-contact-handle-template',
     description:

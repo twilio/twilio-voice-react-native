@@ -56,7 +56,7 @@ const DISCONNECT_TIMEOUT_MS = 15_000;
  * iOS wrapper turns into the literal string `"undefined"`. Accepting either
  * value would let this step pass on a platform that cannot name what it raised.
  *
- * TODO: VBLOCKS-TODO - add a `ConstantAudioOutputLevel` member and map it in
+ * TODO: VBLOCKS-7113 - add a `ConstantAudioOutputLevel` member and map it in
  * the iOS wrapper, then expect either warning here.
  */
 const EXPECTED_WARNING: string = Call.QualityWarning.ConstantAudioInputLevel;
@@ -180,7 +180,7 @@ const STEPS: Array<Step<Context>> = [
   // observed, which the constant audio makes the common case: the enum has no
   // member for it, so Android's `constant-audio-output-level` and iOS's
   // `"undefined"` both land in `unknown`. Clears with the fix noted on
-  // EXPECTED_WARNING. TODO: VBLOCKS-TODO
+  // EXPECTED_WARNING. TODO: VBLOCKS-7113
   {
     name: 'warning-values-are-known',
     description:
