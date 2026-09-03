@@ -9,6 +9,7 @@ import type { useLogging } from '../hooks/useLogging';
 import { UseTestSuite } from '../test-suites';
 import { delay } from '../utilities/delay';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
+import { getIceServer, NO_ICE_SERVER } from '../utilities/token/get-token';
 
 /**
  * `voice.connect` rejects with an `InvalidArgumentError` out of the JS
@@ -49,20 +50,13 @@ const BOGUS_ICE_SERVER = {
 };
 
 /**
- * Fill this in with a real TURN server to run the `valid-*` variants. Twilio's
- * Network Traversal Service will hand these out. Left unfilled, those variants
- * are skipped.
- *
- * Consider adding a mechanism to read this value out of env vars in a real CI
- * pipeline.
+ * Read from a gitignored local module. Without it the `valid-*` variants are
+ * skipped. See `getIceServer` in `src/utilities/token/get-token.ts`.
  */
-const VALID_ICE_SERVER = {
-  serverUrl: 'TODO',
-  username: 'TODO',
-  password: 'TODO',
-};
+const VALID_ICE_SERVER = getIceServer();
 
-const HAS_VALID_ICE_SERVER = VALID_ICE_SERVER.serverUrl !== 'TODO';
+const HAS_VALID_ICE_SERVER =
+  VALID_ICE_SERVER.serverUrl !== NO_ICE_SERVER.serverUrl;
 
 /**
  * How long to wait for a variant to settle. Variants expecting a

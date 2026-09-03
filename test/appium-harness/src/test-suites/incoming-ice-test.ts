@@ -5,6 +5,8 @@ import type { useLogging } from '../hooks/useLogging';
 import type { UseTestSuite } from '../test-suites';
 import { delay } from '../utilities/delay';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
+import { getIceServer, NO_ICE_SERVER } from '../utilities/token/get-token';
+import { waitForVoiceEvent } from '../utilities/wait-for-event';
 
 /**
  * `callInvite.accept()` rejected.
@@ -74,23 +76,15 @@ const BOGUS_ICE_SERVER = {
 };
 
 /**
- * Fill this in with a real TURN server to run the `valid-*` variant. Twilio's
- * Network Traversal Service will hand these out. Left unfilled, that variant
- * is skipped.
+ * Read from a gitignored local module. Without it the `valid-*` variant is
+ * skipped. See `getIceServer` in `src/utilities/token/get-token.ts`.
  *
  * Revisit with VBLOCKS-7045 when we generate proper ICE server creds.
  */
-const VALID_ICE_SERVER = {
-  serverUrl: 'TODO',
-  username: 'TODO',
-  password: 'TODO',
-};
+const VALID_ICE_SERVER = getIceServer();
 
-/**
- * Revisit with VBLOCKS-7045, after valid ICE server generation is
- * implemented.
- */
-const HAS_VALID_ICE_SERVER = VALID_ICE_SERVER.serverUrl !== 'TODO';
+const HAS_VALID_ICE_SERVER =
+  VALID_ICE_SERVER.serverUrl !== NO_ICE_SERVER.serverUrl;
 
 /**
  * How long to wait, per variant, for a human to place a call into this client
@@ -197,30 +191,21 @@ const requiresValidIceServer = (variant: VariantName) =>
 
 /**
  * Waits for the next incoming call invite, or resolves with `null` if none
- * arrives before `timeoutMs`. Always cleans up its listener.
+ * arrives before `timeoutMs`.
  */
-const waitForNextCallInvite = (
+const waitForNextCallInvite = async (
   voice: Voice,
   timeoutMs: number,
   log: ReturnType<typeof useLogging>['log'],
-): Promise<CallInvite | null> =>
-  new Promise((resolve) => {
-    const timeoutId = setTimeout(() => {
-      voice.off(Voice.Event.CallInvite, onCallInvite);
-      resolve(null);
-    }, timeoutMs);
+): Promise<CallInvite | null> => {
+  log.info(JSON.stringify({
+    message: 'bound callInvite listener',
+  }));
 
-    function onCallInvite(callInvite: CallInvite) {
-      clearTimeout(timeoutId);
-      resolve(callInvite);
-    }
+  const args = await waitForVoiceEvent(voice, Voice.Event.CallInvite, timeoutMs);
 
-    voice.once(Voice.Event.CallInvite, onCallInvite);
-
-    log.info(JSON.stringify({
-      message: 'bound once callInvite listener',
-    }));
-  });
+  return args ? (args[0] as CallInvite) : null;
+};
 
 /**
  * Invoking `callInvite.accept` can have these results.
@@ -483,7 +468,19 @@ export const useIncomingIceTest: UseTestSuite = (
     ] : []);
 
     if (Platform.OS === 'ios') {
-      await voice.initializePushRegistry();
+      // Guarded like the register call below: nothing awaits `perform`, so an
+      // unguarded rejection would leave the status at `in-progress`.
+      const pushRegistryResult = await safelySettlePromise(
+        voice.initializePushRegistry(),
+      );
+      if (pushRegistryResult.status === 'rejected') {
+        log.error(JSON.stringify({
+          message: 'voice.initializePushRegistry rejected',
+          error: String(pushRegistryResult.error),
+        }));
+        setTestStatus('failure');
+        return;
+      }
 
       log.info(JSON.stringify({
         message: 'ios push registry initialized',

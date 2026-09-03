@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "prebuild": "expo prebuild"
+    "prebuild": "expo prebuild",
+    "check:type": "tsc --noEmit",
+    "check": "yarn run check:type"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.15.5",
