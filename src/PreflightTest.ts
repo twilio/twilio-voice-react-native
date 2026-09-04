@@ -520,9 +520,8 @@ export class PreflightTest extends EventEmitter {
       common.NativeModule.preflightTest_getLatestSample(this._uuid)
     );
 
-    // The native iOS SDK declares `latestSample` as nullable, so the native
-    // layer reports `null` when the `PreflightTest` has not generated a sample
-    // yet. See `TVOPreflight.h`.
+    // On iOS the native layer reports `null` when the `PreflightTest` has not
+    // generated a sample yet.
     if (sampleStr === null || typeof sampleStr === 'undefined') {
       return undefined;
     }
@@ -532,13 +531,14 @@ export class PreflightTest extends EventEmitter {
       return undefined;
     }
 
-    // The native Android SDK never reports a null sample. Its
-    // `PreflightTest.getLatestSample()` catches a `JSONException` and returns an
-    // empty `JSONObject`, so the native layer reports an object that does not
-    // describe a sample when the `PreflightTest` has not generated one yet. An
-    // empty object is reported as an absent sample. A partially populated sample
-    // is deliberately not treated as absent, because that describes a native SDK
-    // defect that is worth surfacing rather than masking.
+    // On Android the native layer never reports a null sample. It reports an
+    // empty object when the `PreflightTest` has not generated one yet, so an
+    // empty object is reported here as an absent sample.
+    //
+    // A partially populated sample is deliberately not treated as absent. A
+    // partial sample describes a defect below this layer that is worth
+    // surfacing rather than masking, so do not widen this guard to tolerate
+    // one.
     if (typeof sampleObj !== 'object' || Object.keys(sampleObj).length === 0) {
       return undefined;
     }
@@ -560,20 +560,17 @@ export class PreflightTest extends EventEmitter {
       common.NativeModule.preflightTest_getReport(this._uuid)
     );
 
-    // The native iOS SDK declares `preflightReport` as nullable, so the native
-    // layer reports `null` when no report is available. See `TVOPreflight.h`.
+    // On iOS the native layer reports `null` when no report is available.
     if (reportStr === null || typeof reportStr === 'undefined') {
       return undefined;
     }
 
     const reportObj = JSON.parse(reportStr);
 
-    // The native Android SDK never reports a null report. Its
-    // `PreflightTest.getReport()` returns an empty report when the
-    // `PreflightTest` has not completed, and returns an empty `JSONObject` when
-    // it catches a `JSONException`, so the native layer reports an object that
-    // does not describe a report. An empty object is reported as an absent
-    // report rather than parsed into a report of undefined members.
+    // On Android the native layer never reports a null report. It reports an
+    // empty object while the `PreflightTest` has not completed, so an empty
+    // object is reported here as an absent report rather than parsed into a
+    // report of undefined members.
     if (
       reportObj === null ||
       typeof reportObj !== 'object' ||

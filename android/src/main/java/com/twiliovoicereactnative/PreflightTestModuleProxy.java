@@ -70,10 +70,9 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getLatestSample(%s) > runnable", uuid));
-      // The native SDK does not return a null sample today. Its
-      // `getLatestSample()` catches a JSONException and returns an empty
-      // JSONObject, which the JS layer detects by the absent timestamp. This
-      // check is defensive against a future native change.
+      // No null sample is reported today. An absent sample arrives as an empty
+      // object, which the JS layer detects. This check is defensive against a
+      // future change below this layer.
       final JSONObject latestSample = preflightTest.getLatestSample();
       return latestSample == null ? null : latestSample.toString();
     });
@@ -84,9 +83,9 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getReport(%s) > runnable", uuid));
-      // The native Android SDK returns an empty report when the PreflightTest
-      // has not completed, but the null check keeps this consistent with the
-      // iOS behavior, where the report is nullable.
+      // An empty report is reported while the PreflightTest has not completed.
+      // The null check keeps this consistent with iOS, where no report arrives
+      // as null.
       final JSONObject report = preflightTest.getReport();
       return report == null ? null : report.toString();
     });

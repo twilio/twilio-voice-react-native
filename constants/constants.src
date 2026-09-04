@@ -118,8 +118,8 @@ CallEventReconnected=callEventReconnected
 CallEventRinging=callEventRinging
 
 // Quality warnings
-// These values are the values that the native SDKs report. See
-// Call.CallQualityWarning on Android and TVOCallQualityWarning on iOS.
+// These are the values reported to consumers of this SDK. The Android layer
+// maps to them explicitly, see ReactNativeArgumentsSerializer.
 CallQualityWarningHighRtt=high-rtt
 CallQualityWarningHighJitter=high-jitter
 CallQualityWarningHighPacketsLostFraction=high-packets-lost-fraction

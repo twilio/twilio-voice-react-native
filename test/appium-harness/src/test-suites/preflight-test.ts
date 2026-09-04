@@ -138,7 +138,7 @@ const VALID_OPTIONS: PreflightTest.Options = {
  * per-warning records are covered in depth by the detox suite at
  * `test/app/e2e/suites/preflightTest.test.ts`.
  */
-const REPORT_TYPES = {
+export const REPORT_TYPES = {
   callSid: 'string',
   edge: 'string',
   iceCandidateStats: 'array',
@@ -156,7 +156,7 @@ const REPORT_TYPES = {
  * Fields of an `RTCSample`, as carried by `PreflightTest.Event.Sample` and
  * returned by `getLatestSample()`.
  */
-const SAMPLE_TYPES = {
+export const SAMPLE_TYPES = {
   audioInputLevel: 'number',
   audioOutputLevel: 'number',
   bytesReceived: 'number',

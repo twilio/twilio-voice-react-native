@@ -209,12 +209,30 @@ const STEPS: Array<Step<Voice>> = [
     },
   },
   {
-    name: 'show-av-route-picker-view',
-    description:
-      'showAvRoutePickerView resolves on iOS, where it shows the picker, and ' +
-      'also on Android, where it is a documented no-op rather than a rejection',
+    name: 'show-av-route-picker-view-ios',
+    description: 'showAvRoutePickerView resolves on iOS',
+    platforms: ['ios'],
     run: async (voice) => {
       await voice.showAvRoutePickerView();
+    },
+  },
+  {
+    name: 'show-av-route-picker-view-android',
+    // A documented no-op that resolved, until the no-op was removed for GA.
+    description:
+      'showAvRoutePickerView rejects with an UnsupportedPlatformError on ' +
+      'Android',
+    platforms: ['android'],
+    run: async (voice) => {
+      const result = await safelySettlePromise(voice.showAvRoutePickerView());
+
+      expect(result.status, 'showAvRoutePickerView on Android').toBe(
+        'rejected',
+      );
+      expect(
+        result.status === 'rejected' ? result.error : undefined,
+        'the rejection reason',
+      ).toBeInstanceOf(TwilioErrors.UnsupportedPlatformError);
     },
   },
   {
@@ -245,18 +263,39 @@ const STEPS: Array<Step<Voice>> = [
   },
   {
     name: 'get-device-token',
+    // Resolving with an empty string was the previous contract and is now a
+    // failure. Whether a token exists yet depends on the push configuration of
+    // the build, which this suite does not control, so both outcomes are
+    // accepted and the one taken is logged. `registration-test` asserts the
+    // stricter contract at the one point where a token is guaranteed.
+    //
+    // Ordered after the push registry step: on iOS the token comes from
+    // PushKit and is unavailable until the registry is initialized.
     description:
-      'getDeviceToken resolves with a string. Ordered after the push ' +
-      'registry step, because on iOS the token comes from PushKit and is not ' +
-      'available until the registry is initialized. The value is not ' +
-      'asserted to be non-empty: whether a token exists yet depends on the ' +
-      'push configuration of the build, which this suite does not control',
+      'getDeviceToken resolves with a non-empty string or rejects with an ' +
+      'InvalidStateError',
     run: async (voice, log) => {
-      const deviceToken = await voice.getDeviceToken();
+      const result = await safelySettlePromise(voice.getDeviceToken());
 
-      log.info(JSON.stringify({ deviceTokenLength: deviceToken.length }));
+      log.info(JSON.stringify({
+        getDeviceToken: result.status,
+        deviceTokenLength: result.status === 'resolved'
+          ? result.value.length
+          : undefined,
+        note: result.status === 'rejected'
+          ? describeError(result.error)
+          : undefined,
+      }));
 
-      expect(deviceToken, 'voice.getDeviceToken()').toBeTypeOf('string');
+      if (result.status === 'resolved') {
+        expect(result.value, 'voice.getDeviceToken()').toBeTypeOf('string');
+        expect(result.value, 'voice.getDeviceToken()').not.toHaveLength(0);
+        return;
+      }
+
+      expect(result.error, 'the rejection reason').toBeInstanceOf(
+        TwilioErrors.InvalidStateError,
+      );
     },
   },
   {

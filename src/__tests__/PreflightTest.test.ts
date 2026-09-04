@@ -479,8 +479,7 @@ describe('PreflightTest', () => {
 
       it('returns undefined when the test has not ended', async () => {
         // Both native platforms report `endTime` as a primitive that is `0`
-        // until the PreflightTest ends. See `TVOPreflight.h` on iOS and
-        // `PreflightTest.getEndTime()` on Android.
+        // until the PreflightTest ends.
         spy.mockResolvedValue(mockNativePromiseResolutionValue('0'));
 
         await expect(preflight.getEndTime()).resolves.toBeUndefined();
@@ -531,17 +530,15 @@ describe('PreflightTest', () => {
       });
 
       it('returns undefined when there is no sample yet', async () => {
-        // `latestSample` is nullable in the native iOS SDK, see `TVOPreflight.h`.
+        // On iOS the native layer reports no sample as `null`.
         spy.mockResolvedValue(mockNativePromiseResolutionValue(null));
 
         await expect(preflight.getLatestSample()).resolves.toBeUndefined();
       });
 
       /**
-       * The native Android SDK never reports a null sample. Its
-       * `PreflightTest.getLatestSample()` catches a `JSONException` and returns
-       * an empty `JSONObject`, so the native layer reports "{}" when the
-       * `PreflightTest` has not generated a sample yet.
+       * On Android the native layer never reports a null sample. It reports
+       * "{}" when the `PreflightTest` has not generated a sample yet.
        */
       it('returns undefined when the native layer reports an empty sample', async () => {
         spy.mockResolvedValue(mockNativePromiseResolutionValue('{}'));
@@ -572,10 +569,8 @@ describe('PreflightTest', () => {
       });
 
       /**
-       * The native Android SDK never reports a null report. Its
-       * `PreflightTest.getReport()` returns an empty report when the
-       * `PreflightTest` has not completed, and returns an empty `JSONObject`
-       * when it catches a `JSONException`, so the native layer reports "{}".
+       * On Android the native layer never reports a null report. It reports
+       * "{}" while the `PreflightTest` has not completed.
        */
       it('returns undefined when the native layer reports an empty report', async () => {
         jest

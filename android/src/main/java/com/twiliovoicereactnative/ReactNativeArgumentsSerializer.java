@@ -291,10 +291,9 @@ class ReactNativeArgumentsSerializer {
    *   member of the JS `Call.QualityWarning` enumeration
    */
   private static String callQualityWarningToString(Call.CallQualityWarning warning) {
-    // The native Android SDK names the high packet loss warning
-    // "high-packet-loss", while the native iOS SDK names the same warning
-    // "high-packets-lost-fraction". This SDK reports the iOS name on both
-    // platforms, so this mapping is explicit rather than using `toString()`.
+    // The two platforms name the high packet loss warning differently below
+    // this layer. This SDK reports one value on both platforms, so the mapping
+    // is explicit rather than derived from `toString()`.
     switch (warning) {
       case WARN_HIGH_RTT:
         return CallQualityWarningHighRtt;

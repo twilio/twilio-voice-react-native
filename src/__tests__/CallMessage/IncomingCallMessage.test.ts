@@ -154,8 +154,7 @@ describe('IncomingCallMessage class', () => {
 describe('IncomingCallMessage content typing', () => {
   /**
    * `validateCallMessage` stringifies the content before it reaches the native
-   * layer, and both native platforms report the content back as a string. See
-   * `CallMessage.getContent()` on Android and `TVOCallMessage.content` on iOS.
+   * layer, and both native platforms report the content back as a string.
    * Typing this as `any` hides that from consumers.
    */
   it('exposes the content as a string', () => {
