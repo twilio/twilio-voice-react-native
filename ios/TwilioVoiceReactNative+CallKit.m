@@ -504,17 +504,8 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 - (void)call:(TVOCall *)call
 didReceiveQualityWarnings:(NSSet<NSNumber *> *)currentWarnings
 previousWarnings:(NSSet<NSNumber *> *)previousWarnings {
-    NSMutableArray<NSString *> *currentWarningEvents = [NSMutableArray array];
-    for (NSNumber *warning in currentWarnings) {
-        NSString *event = [self warningNameWithNumber:warning];
-        [currentWarningEvents addObject:event];
-    }
-
-    NSMutableArray<NSString *> *previousWarningEvents = [NSMutableArray array];
-    for (NSNumber *warning in previousWarnings) {
-        NSString *event = [self warningNameWithNumber:warning];
-        [previousWarningEvents addObject:event];
-    }
+    NSMutableArray<NSString *> *currentWarningEvents = [self callQualityWarningsArrayFromSet:currentWarnings];
+    NSMutableArray<NSString *> *previousWarningEvents = [self callQualityWarningsArrayFromSet:previousWarnings];
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCall
                        body:@{kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeCallEventQualityWarningsChanged,

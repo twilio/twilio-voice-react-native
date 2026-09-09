@@ -25,11 +25,13 @@
 
 These three fields were misspelled. The native layer has always reported the correctly spelled keys, so the misspelled fields were always `undefined` at runtime even though they were typed as a required `number`. Applications that read any of these three fields need to update to the corrected spelling.
 
-### PreflightTest getter return types
+### PreflightTest.getEndTime
 
-- `PreflightTest.getEndTime`, `PreflightTest.getLatestSample`, and `PreflightTest.getReport` now resolve with `undefined` when the corresponding value is unavailable, which is the behavior that these methods were already documented to have.
+- `PreflightTest.getEndTime` now resolves with `undefined` when the `PreflightTest` has not ended, which is the behavior that this method was already documented to have.
 
-  - Their return types have been widened to `Promise<number | undefined>`, `Promise<PreflightTest.RTCSample | undefined>`, and `Promise<PreflightTest.Report | undefined>` respectively. Applications that use the resolved values need to handle `undefined`.
+  - Its return type has been widened to `Promise<number | undefined>`. Applications that use the resolved value need to handle `undefined`.
+
+  - The native layer reports the end time as the string of a numeric primitive that stays `"0"` until the `PreflightTest` ends. No real end time can be `0`, so `"0"` is an unambiguous "has not ended" signal that this method now translates.
 
 ### CallInvite.isValid
 
@@ -95,9 +97,9 @@ These three fields were misspelled. The native layer has always reported the cor
 
 ## Fixes
 
-- `PreflightTest.getLatestSample` no longer crashes when it is invoked before the `PreflightTest` has generated its first sample. On iOS, this method previously crashed. On Android, this method previously resolved with a sample whose every member was `undefined` and whose timestamp was `NaN`. On both platforms this method now resolves with `undefined`.
+- `PreflightTest.getLatestSample` no longer crashes on iOS when it is invoked before the `PreflightTest` has generated its first sample. On both platforms this method now resolves with an `RTCSample` whose every member is zero-valued, which is what the native layer itself reports for "no sample yet". Applications that need to distinguish "no sample yet" from a real sample should listen for `PreflightTest.Event.Sample` rather than inspect the resolved value.
 
-- `PreflightTest.getReport` no longer throws when it is invoked before the `PreflightTest` has completed. On iOS, this method previously crashed. On Android, the native layer reports an empty report in this case, and this method previously rejected with a `TypeError`. On both platforms this method now resolves with `undefined`.
+- `PreflightTest.getReport` no longer crashes on iOS when it is invoked before the `PreflightTest` has completed. On both platforms this method now resolves with a `Report` whose every member is zero-valued or empty, which is what the native layer itself reports for "not ready". Applications that need to distinguish "not ready" from a real report should listen for `PreflightTest.Event.Completed` rather than inspect the resolved value.
 
 - `CallInvite.reject` now rejects when the native layer reports an error. Previously the returned `Promise` resolved regardless of the outcome.
 
