@@ -25,9 +25,7 @@ import {
 
 /**
  * How long each suite may run before the runner gives up on it and moves on.
- * Drawn from each suite's own internal timeout constants: no attended suite
- * has run in an aggregate context before, so there is no observed duration to
- * draw from instead.
+ * Drawn from each suite's own internal timeout constants.
  *
  * `incoming-ice` is deliberately not sized to its own worst case. Its source
  * carries a documented 15 minute per-variant ceiling for a rare native hang,

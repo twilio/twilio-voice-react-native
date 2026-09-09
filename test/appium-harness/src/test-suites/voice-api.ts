@@ -218,7 +218,6 @@ const STEPS: Array<Step<Voice>> = [
   },
   {
     name: 'show-av-route-picker-view-android',
-    // A documented no-op that resolved, until the no-op was removed for GA.
     description:
       'showAvRoutePickerView rejects with an UnsupportedPlatformError on ' +
       'Android',

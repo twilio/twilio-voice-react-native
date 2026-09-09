@@ -17,13 +17,6 @@ import { waitForVoiceEvent } from '../utilities/wait-for-event';
  * performs.
  *
  * Attended. The tester plugs in and unplugs a wired headset when prompted.
- *
- * A wired headset is the reason this suite exists. `AudioDevice.Type` gained a
- * `WiredHeadset` member for GA, because Android previously reported a wired
- * headset as `Earpiece` and correct consumer code could have relied on that.
- * Nothing but a device with a headset attached can confirm that the new member
- * is what native now reports, or that selecting the headset actually routes
- * audio to it.
  */
 
 /** How long to wait for the tester to plug in or unplug a headset. */
