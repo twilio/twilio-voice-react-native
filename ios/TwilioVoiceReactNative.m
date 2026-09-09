@@ -547,7 +547,7 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                 if (error) {
                     NSString *errorMessage = [error localizedDescription];
                     NSNumber *errorCode = @(error.code);
-
+                    
                     NSDictionary *payload = @{
                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
                         kTwilioVoiceReactNativeVoiceErrorKeyError: @{
@@ -556,14 +556,14 @@ RCT_EXPORT_METHOD(voice_register:(NSString *)accessToken
                         }
                     };
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:payload];
-
+                    
                     [self rejectPromiseWithCode:resolver code:errorCode message:errorMessage];
                 } else {
                     NSDictionary *payload = @{
                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventRegistered
                     };
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:payload];
-
+                    
                     [self resolvePromise:resolver value:[NSNull null]];
                 }
             }];
@@ -627,7 +627,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                 if (error) {
                     NSString *errorMessage = [error localizedDescription];
                     NSNumber *errorCode = @(error.code);
-
+                    
                     NSDictionary *payload = @{
                         kTwilioVoiceReactNativeVoiceEventType: kTwilioVoiceReactNativeVoiceEventError,
                         kTwilioVoiceReactNativeVoiceErrorKeyError: @{
@@ -635,7 +635,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
                             kTwilioVoiceReactNativeVoiceErrorKeyMessage: errorMessage
                         }
                     };
-
+                    
                     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:payload];
                     [self rejectPromiseWithCode:resolver code:errorCode message:errorMessage];
                 } else {
@@ -648,7 +648,7 @@ RCT_EXPORT_METHOD(voice_unregister:(NSString *)accessToken
             }];
         } else {
             self.registrationInProgress = NO;
-
+            
             NSString *errorMessage = @"Failed to initialize PushKit device token";
             [self rejectPromiseWithName:resolver
                 name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
@@ -771,7 +771,7 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
 
 - (TVOCall *)getCallFromMap:(NSString *)uuid resolver:(RCTPromiseResolveBlock)resolver {
     TVOCall *call = self.callMap[uuid];
-
+    
     if (!call) {
         NSString *errorMessage = [NSString stringWithFormat:@"Call with uuid '%@' not found", uuid];
         [self rejectPromiseWithName:resolver
@@ -780,7 +780,7 @@ RCT_EXPORT_METHOD(voice_setIncomingCallContactHandleTemplate:(NSString *)templat
         ];
         return nil;
     }
-
+    
     return call;
 }
 
@@ -790,7 +790,7 @@ RCT_EXPORT_METHOD(call_disconnect:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
     [self resolvePromise:resolver value:[NSNull null]];
 }
@@ -801,7 +801,7 @@ RCT_EXPORT_METHOD(call_getState:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     NSString *state = [self stringOfState:call.state];
     [self resolvePromise:resolver value:state];
 }
@@ -812,7 +812,7 @@ RCT_EXPORT_METHOD(call_getSid:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     NSString *callSid = call.state != TVOCallStateConnecting ? call.sid : @"";
     [self resolvePromise:resolver value:callSid];
 }
@@ -823,7 +823,7 @@ RCT_EXPORT_METHOD(call_getFrom:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     NSString *from = [call.from length] > 0 ? call.from : @"";
     [self resolvePromise:resolver value:from];
 }
@@ -834,7 +834,7 @@ RCT_EXPORT_METHOD(call_getTo:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     NSString *to = [call.to length] > 0 ? call.to : @"";
     [self resolvePromise:resolver value:to];
 }
@@ -846,7 +846,7 @@ RCT_EXPORT_METHOD(call_hold:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [call setOnHold:onHold];
     [self resolvePromise:resolver value:@(call.isOnHold)];
 }
@@ -857,7 +857,7 @@ RCT_EXPORT_METHOD(call_isOnHold:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [self resolvePromise:resolver value:@(call.isOnHold)];
 }
 
@@ -868,7 +868,7 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [call setMuted:muted];
     [self resolvePromise:resolver value:@(call.isMuted)];
 }
@@ -879,7 +879,7 @@ RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [self resolvePromise:resolver value:@(call.isMuted)];
 }
 
@@ -890,7 +890,7 @@ RCT_EXPORT_METHOD(call_sendDigits:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [call sendDigits:digits];
     [self resolvePromise:resolver value:[NSNull null]];
 }
@@ -903,7 +903,7 @@ RCT_EXPORT_METHOD(call_postFeedback:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [call postFeedback:[self scoreFromString:score] issue:[self issueFromString:issue]];
     [self resolvePromise:resolver value:[NSNull null]];
 }
@@ -914,7 +914,7 @@ RCT_EXPORT_METHOD(call_getStats:(NSString *)uuid
 {
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
-
+    
     [call getStatsWithBlock:^(NSArray<TVOStatsReport *> *statsReports) {
         NSAssert([statsReports count] >= 1, @"Invalid stats reports array size");
         NSArray *statsReportJson = [TwilioVoiceStatsReport jsonWithStatsReportsArray:statsReports];
@@ -957,7 +957,7 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
 
 - (TVOCallInvite *)getCallInviteFromMap:(NSString *)uuid resolver:(RCTPromiseResolveBlock)resolver {
     TVOCallInvite *callInvite = self.callInviteMap[uuid];
-
+    
     if (!callInvite) {
         [self rejectPromiseWithName:resolver
             name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
@@ -965,7 +965,7 @@ RCT_EXPORT_METHOD(call_sendMessage:(NSString *)uuid
         ];
         return nil;
     }
-
+    
     return callInvite;
 }
 
@@ -1023,7 +1023,7 @@ RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)uuid
 {
     TVOCallInvite *callInvite = [self getCallInviteFromMap:uuid resolver:resolver];
     if (!callInvite) return;
-
+    
     [self resolvePromise:resolver value:callInvite.callSid];
 }
 
@@ -1033,7 +1033,7 @@ RCT_EXPORT_METHOD(callInvite_getFrom:(NSString *)uuid
 {
     TVOCallInvite *callInvite = [self getCallInviteFromMap:uuid resolver:resolver];
     if (!callInvite) return;
-
+    
     [self resolvePromise:resolver value:callInvite.from];
 }
 
@@ -1043,7 +1043,7 @@ RCT_EXPORT_METHOD(callInvite_getTo:(NSString *)uuid
 {
     TVOCallInvite *callInvite = [self getCallInviteFromMap:uuid resolver:resolver];
     if (!callInvite) return;
-
+    
     [self resolvePromise:resolver value:callInvite.to];
 }
 
@@ -1054,7 +1054,7 @@ RCT_EXPORT_METHOD(callInvite_updateCallerHandle:(NSString *)uuid
 {
     TVOCallInvite *callInvite = [self getCallInviteFromMap:uuid resolver:resolver];
     if (!callInvite) return;
-
+    
     [self updateCall:uuid callerHandle:handle];
     [self resolvePromise:resolver value:[NSNull null]];
 }
@@ -1066,7 +1066,7 @@ RCT_EXPORT_METHOD(callInvite_updateCallerHandle:(NSString *)uuid
         [self rejectPromiseWithName:resolver name:kTwilioVoiceReactNativeErrorCodeInvalidStateError message:errorMessage];
         return nil;
     }
-
+    
     return cancelledCallInvite;
 }
 
@@ -1076,7 +1076,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getCallSid:(NSString *)uuid
 {
     TVOCancelledCallInvite *cancelledCallInvite = [self getCancelledCallInviteFromMap:uuid resolver:resolver];
     if (!cancelledCallInvite) return;
-
+    
     [self resolvePromise:resolver value:cancelledCallInvite.callSid];
 }
 
@@ -1086,7 +1086,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getFrom:(NSString *)uuid
 {
     TVOCancelledCallInvite *cancelledCallInvite = [self getCancelledCallInviteFromMap:uuid resolver:resolver];
     if (!cancelledCallInvite) return;
-
+    
     [self resolvePromise:resolver value:cancelledCallInvite.from];
 }
 
@@ -1096,7 +1096,7 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)uuid
 {
     TVOCancelledCallInvite *cancelledCallInvite = [self getCancelledCallInviteFromMap:uuid resolver:resolver];
     if (!cancelledCallInvite) return;
-
+    
     [self resolvePromise:resolver value:cancelledCallInvite.to];
 }
 
