@@ -33,6 +33,8 @@ These three fields were misspelled. The native layer has always reported the cor
 
   - The native layer reports the end time as the string of a numeric primitive that stays `"0"` until the `PreflightTest` ends. No real end time can be `0`, so `"0"` is an unambiguous "has not ended" signal that this method now translates.
 
+- `PreflightTest.getLatestSample` and `PreflightTest.getReport` are **not** widened, and their behavior is unchanged. Their documentation was previously ambiguous about what they resolve with before a value exists, and now states it explicitly: both resolve with an all-zero-valued object, which is what the native layer itself reports for "not ready" on both platforms. There is no separate absent state to detect. Applications that need to distinguish "not ready" from a real value should listen for `PreflightTest.Event.Sample` and `PreflightTest.Event.Completed` rather than inspect the resolved value.
+
 ### CallInvite.isValid
 
 - Removed `CallInvite.isValid`.
@@ -96,10 +98,6 @@ These three fields were misspelled. The native layer has always reported the cor
 - Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
 
 ## Fixes
-
-- `PreflightTest.getLatestSample` no longer crashes on iOS when it is invoked before the `PreflightTest` has generated its first sample. On both platforms this method now resolves with an `RTCSample` whose every member is zero-valued, which is what the native layer itself reports for "no sample yet". Applications that need to distinguish "no sample yet" from a real sample should listen for `PreflightTest.Event.Sample` rather than inspect the resolved value.
-
-- `PreflightTest.getReport` no longer crashes on iOS when it is invoked before the `PreflightTest` has completed. On both platforms this method now resolves with a `Report` whose every member is zero-valued or empty, which is what the native layer itself reports for "not ready". Applications that need to distinguish "not ready" from a real report should listen for `PreflightTest.Event.Completed` rather than inspect the resolved value.
 
 - `CallInvite.reject` now rejects when the native layer reports an error. Previously the returned `Promise` resolved regardless of the outcome.
 

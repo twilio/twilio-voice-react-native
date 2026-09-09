@@ -25,7 +25,7 @@ const idGenerator: Generator<number, never, unknown> = (function * () {
 
 // Diagnostics toggle left in to help with manual testing. Allows logs to
 // be viewed through Metro bundler.
-const DO_CONSOLE_LOG: boolean = true;
+const DO_CONSOLE_LOG: boolean = false;
 
 export function useLogging() {
   const [logEntries, setLogEntries] = React.useState<LogEntry[]>([]);

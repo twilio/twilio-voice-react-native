@@ -31,9 +31,11 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise';
  * 3. `stop()`, which ends a second, separate run early and should surface as a
  *    `Failed` event and a `Failed` state.
  *
- * Note that this suite needs an access token with preflight grants, which is
- * not necessarily the token the call suites use - see
- * `getPreflightTestToken` in `src/utilities/token/get-token.ts`.
+ * Note that this suite needs an access token with a PreflightTest TwiML app.
+ * There is no separate preflight token module. This suite uses the same
+ * `getToken()` from `src/utilities/token/get-token.ts` that every other suite
+ * uses. It suffices (currently) that all test suites use a token that is wired
+ * to a PreflightTest TwiML app.
  */
 
 /**

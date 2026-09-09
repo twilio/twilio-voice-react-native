@@ -232,9 +232,12 @@ export const useAudioDeviceTest: UseTestSuite = (
 
       // KNOWN FAILING on iOS: the device record stores the UID of the
       // AVAudioSessionPortHeadphones output port, while selectAudioDevice:
-      // searches availableInputs, so the lookup cannot succeed and the branch
-      // falls through to setPreferredInput:nil while still reporting success.
-      // TODO: VBLOCKS-7140
+      // searches availableInputs, so the lookup cannot succeed. The native
+      // layer does report the failure, returning NO at
+      // `ios/TwilioVoiceReactNative.m:342`. The failure is invisible here
+      // because `select()` discards it, not because native reported success.
+      // TODO: VBLOCKS-7140 for the lookup, VBLOCKS-7139 for the discarded
+      // rejection.
       await step('select-wired-headset', async () => {
         expect(wiredHeadset, 'the wired headset').toBeDefined();
 
@@ -308,14 +311,36 @@ export const useAudioDeviceTest: UseTestSuite = (
       });
     } finally {
       if (typeof originallySelected !== 'undefined') {
-        const original = initial.value.audioDevices.find(
-          (audioDevice) => audioDevice.uuid === originallySelected.uuid,
-        );
+        // The devices are re-read rather than reused from `initial`, and are
+        // matched on name and type rather than on uuid. Android's
+        // `AudioSwitchManager.start` clears its device map and assigns a fresh
+        // `UUID.randomUUID()` to every device on every AudioSwitch update, and
+        // this suite deliberately causes two of those updates by having the
+        // tester plug in and unplug a headset. Every uuid in `initial` is
+        // therefore dead by the time this runs, so a uuid match would select
+        // nothing and leave the following suites on the headset route.
+        const current = await safelySettlePromise(voice.getAudioDevices());
+
+        const original = current.status === 'resolved'
+          ? current.value.audioDevices.find(
+            (audioDevice) =>
+              audioDevice.name === originallySelected.name &&
+              audioDevice.type === originallySelected.type,
+          )
+          : undefined;
 
         // Swallowed deliberately. This is cleanup, and letting it throw here
         // would replace the assertion failure that brought us into the
         // `finally` with a less useful one.
         await safelySettlePromise(original?.select() ?? Promise.resolve());
+
+        // `select()` cannot report a failed selection (VBLOCKS-7139), so the
+        // restore is logged rather than asserted. A later suite running on an
+        // unexpected route is otherwise very hard to trace back to here.
+        log.info(JSON.stringify({
+          restoredAudioDevice: original?.name ?? 'not-found',
+          expected: originallySelected.name,
+        }));
       }
     }
 

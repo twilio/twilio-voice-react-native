@@ -20,8 +20,8 @@ exist in a fresh clone.
 
 | Module | Export | Used by |
 | --- | --- | --- |
-| `e2e-token.ios.ts` | `token` | Every suite, on iOS |
-| `e2e-token.android.ts` | `token` | Every suite, on Android |
+| `e2e-tests-token.ios.ts` | `token` | Every suite, on iOS |
+| `e2e-tests-token.android.ts` | `token` | Every suite, on Android |
 | `e2e-tests-ice-server.ts` | `iceServer` | The `valid-*` variants of `outgoing-ice` and `incoming-ice` |
 
 Metro resolves the platform suffix, so only the token module for the platform
@@ -38,27 +38,39 @@ carries `No bundled ICE server`.
 
 ## The suites
 
-Run these in order. The unattended suites come first, and the two suites that
-need inbound calls come last.
+Run these in order. The unattended suites come first, and the attended suites,
+which need you to place inbound calls or handle a headset, come last.
 
 | Order | Suite ID | What it needs from you |
 | --- | --- | --- |
-| 1 | `preflight-test` | Nothing |
-| 2 | `registration` | Nothing |
-| 3 | `voice-api` | Nothing |
-| 4 | `errors` | Nothing |
-| 5 | `outgoing-call` | Nothing |
-| 6 | `connect-options` | Nothing |
-| 7 | `call-controls` | Nothing |
-| 8 | `call-message` | Nothing |
-| 9 | `outgoing-ice` | ICE credentials, for the `valid-*` variants |
-| 10 | `quality-warnings` | A host whose audio input is unchanging |
-| 11 | `incoming-ice` | Four inbound calls, one per variant |
-| 12 | `incoming-call-manual` | Nine inbound calls, each driven through the system call UI |
+| 1 | `voice-api` | Nothing |
+| 2 | `errors` | Nothing |
+| 3 | `registration` | Nothing |
+| 4 | `outgoing-call` | Nothing |
+| 5 | `call-controls` | Nothing |
+| 6 | `rtc-stats` | Nothing |
+| 7 | `call-message` | Nothing |
+| 8 | `quality-warnings` | A host whose audio input is unchanging |
+| 9 | `connect-options` | Nothing |
+| 10 | `outgoing-ice` | ICE credentials, for the `valid-*` variants |
+| 11 | `preflight-test-early-state` | Nothing |
+| 12 | `preflight-test` | Nothing |
+| 13 | `audio-device` | A wired headset, plugged in and unplugged when prompted |
+| 14 | `call-invite-reject` | Two inbound calls, placed when prompted |
+| 15 | `incoming-ice` | Four inbound calls, one per variant |
+| 16 | `incoming-call-manual` | Nine inbound calls, each driven through the system call UI |
 
-Keep a checklist of the suite IDs for the platform you are testing and tick each
-one off as it finishes. A full pass is long enough that it is easy to lose track
-of which suite produced which log.
+Two composite suites run these for you in exactly this order, which is the
+easier way to do a full pass. `unattended-all` runs entries 1 through 12 with no
+interaction at all. `attended-all` runs entries 13 through 16 and prompts you
+for each action. Their membership and ordering live in
+`src/test-suites/unattended-all.ts` and `src/test-suites/attended-all.ts`, which
+are the source of truth for this table.
+
+If you run the suites individually instead, keep a checklist of the suite IDs
+for the platform you are testing and tick each one off as it finishes. A full
+pass is long enough that it is easy to lose track of which suite produced which
+log.
 
 ## Running one suite
 
