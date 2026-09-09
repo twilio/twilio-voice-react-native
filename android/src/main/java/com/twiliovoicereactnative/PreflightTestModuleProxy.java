@@ -6,6 +6,8 @@ import android.os.Looper;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.twilio.voice.PreflightTest;
 
+import org.json.JSONObject;
+
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -40,8 +42,15 @@ class PreflightTestModuleProxy {
 
     mainHandler.post(() -> {
       logger.debug(String.format(".getPreflightRecord(%s) > runnable", uuidStr));
-      final Object result = onSuccess.apply(record.getPreflightTest());
-      promise.resolve(result);
+      // This runs on the main handler, so an uncaught throw from the native
+      // layer would crash the application instead of settling the promise.
+      try {
+        final Object result = onSuccess.apply(record.getPreflightTest());
+        promise.resolve(result);
+      } catch (RuntimeException error) {
+        logger.warning(error.getMessage());
+        promise.rejectWithName(CommonConstants.ErrorCodeInvalidStateError, error.getMessage());
+      }
     });
   }
 
@@ -68,7 +77,16 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getLatestSample(%s) > runnable", uuid));
-      return preflightTest.getLatestSample().toString();
+      // The native layer reports "no sample yet" as an all-zero sample, not as
+      // null, so this throw is unreachable today. Throwing keeps the JS type
+      // `NativePromise<string>` honest if that ever changes.
+      final JSONObject latestSample = preflightTest.getLatestSample();
+      if (latestSample == null) {
+        throw new IllegalStateException(
+          "The PreflightTest reported no latest sample."
+        );
+      }
+      return latestSample.toString();
     });
   }
 
@@ -77,7 +95,14 @@ class PreflightTestModuleProxy {
 
     getPreflightTest(uuid, promise, (preflightTest) -> {
       logger.debug(String.format(".getReport(%s) > runnable", uuid));
-      return preflightTest.getReport().toString();
+      // The native layer reports "not ready" as an all-zero report, not as
+      // null, so this throw is unreachable today. Throwing keeps the JS type
+      // `NativePromise<string>` honest if that ever changes.
+      final JSONObject report = preflightTest.getReport();
+      if (report == null) {
+        throw new IllegalStateException("The PreflightTest reported no report.");
+      }
+      return report.toString();
     });
   }
 

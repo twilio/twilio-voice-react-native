@@ -7,6 +7,84 @@
 
 ## Breaking Changes
 
+### Call.getStats
+
+- `Call.getStats` now resolves with an array of `RTCStats.StatsReport` objects instead of a single `RTCStats.StatsReport`.
+
+  - Both native SDKs report one `StatsReport` for every `PeerConnection` of a call, and the native layer has always resolved with an array. The previous return type described a single object, so every member access on the resolved value, such as `peerConnectionId` or `iceCandidatePairStats`, was `undefined`.
+
+  - Applications need to index into the array, or iterate it. Use `RTCStats.StatsReport.peerConnectionId` to identify which `PeerConnection` a report describes.
+
+### RTCStats field names
+
+- Renamed `RTCStats.IceCandidatePairStats.requestsReceieved` to `requestsReceived`.
+
+- Renamed `RTCStats.IceCandidatePairStats.responsesRecieved` to `responsesReceived`.
+
+- Renamed `RTCStats.RemoteTrackStats.bytesRecieved` to `bytesReceived`.
+
+These three fields were misspelled. The native layer has always reported the correctly spelled keys, so the misspelled fields were always `undefined` at runtime even though they were typed as a required `number`. Applications that read any of these three fields need to update to the corrected spelling.
+
+### PreflightTest.getEndTime
+
+- `PreflightTest.getEndTime` now resolves with `undefined` when the `PreflightTest` has not ended, which is the behavior that this method was already documented to have.
+
+  - Its return type has been widened to `Promise<number | undefined>`. Applications that use the resolved value need to handle `undefined`.
+
+  - The native layer reports the end time as the string of a numeric primitive that stays `"0"` until the `PreflightTest` ends. No real end time can be `0`, so `"0"` is an unambiguous "has not ended" signal that this method now translates.
+
+### PreflightTest.getLatestSample and PreflightTest.getReport
+
+- `PreflightTest.getLatestSample` and `PreflightTest.getReport` are **not** widened, and their behavior is unchanged. Their documentation was previously ambiguous about what they resolve with before a value exists, and now states it explicitly: both resolve with an all-zero-valued object, which is what the native layer itself reports for "not ready" on both platforms. There is no separate absent state to detect. Applications that need to distinguish "not ready" from a real value should listen for `PreflightTest.Event.Sample` and `PreflightTest.Event.Completed` rather than inspect the resolved value.
+
+### CallInvite.isValid
+
+- Removed `CallInvite.isValid`.
+
+  - This method was an unused alpha and did not provide any utility for consumers.
+
+### IncomingCallMessage.getContent
+
+- `IncomingCallMessage.getContent` now returns `string` instead of `any`.
+
+  - The content of a call message is always a string. Content that is not a string is serialized to a JSON string before it reaches the native layer, and both native platforms report the content of a received message as a string. Applications that send structured content are responsible for parsing the value returned by this method.
+
+  - This method always returned `string` values in the past and the type now declares that properly.
+
+### Voice.showAvRoutePickerView
+
+- `Voice.showAvRoutePickerView` now rejects with an `UnsupportedPlatformError` on Android, which matches the behavior of the other iOS-only methods on `Voice`.
+
+  - Previously this method performed no operation on Android and its returned `Promise` resolved, which made an unsupported call indistinguishable from a successful one.
+
+### Voice.getDeviceToken
+
+- On iOS, `Voice.getDeviceToken` now rejects with an `InvalidStateError` when no Device token is available. Previously this method resolved with an empty string, which made "no Device token yet" indistinguishable from a real Device token. Android already rejected when it was unable to fetch the Firebase token, so both platforms now signal this condition the same way.
+
+  - Applications that check the resolved value for an empty string need to handle a rejected `Promise` instead.
+
+### Call.QualityWarning
+
+- Added `Call.QualityWarning.ConstantAudioOutputLevel`. Both native SDKs report this warning, but this SDK did not describe it.
+
+- Renamed `Call.QualityWarning.HighPacketLoss` to `Call.QualityWarning.HighPacketsLostFraction`, and its value is now `"high-packets-lost-fraction"` instead of `"high-packet-loss"`. Both platforms now report that value.
+
+  - Applications that reference `Call.QualityWarning.HighPacketLoss`, or that compare against a hard-coded `"high-packet-loss"`, need to use `Call.QualityWarning.HighPacketsLostFraction` instead.
+
+- On iOS, a constant audio output level warning, and any warning that this SDK does not recognize, previously reported the value `"undefined"`. Constant audio output level warnings now report `Call.QualityWarning.ConstantAudioOutputLevel`, and unrecognized warnings are omitted rather than reported as a value that is not a member of `Call.QualityWarning`.
+
+  - These changes apply to both `Call.Event.QualityWarningsChanged` and `PreflightTest.Event.QualityWarning`.
+
+### AudioDevice.Type.WiredHeadset
+
+- Added `AudioDevice.Type.WiredHeadset`, reported when the native layer describes a wired headset. Both platforms report this value.
+
+- On Android, a wired headset previously reported `AudioDevice.type` as `AudioDevice.Type.Earpiece`, which described the wired headset as the built-in earpiece. A wired headset now reports `AudioDevice.Type.WiredHeadset`.
+
+  - Applications that detect a wired headset by comparing `AudioDevice.type` against `AudioDevice.Type.Earpiece` need to compare against `AudioDevice.Type.WiredHeadset` instead. Note that `AudioDevice.nativeType` already distinguished the two devices, and the value of `AudioDevice.nativeType` has not changed.
+
+- On iOS, a wired headset previously reported `AudioDevice.type` as `AudioDevice.Type.Unknown`, because the SDK did not recognize the `AVAudioSessionPortHeadphones` port. A wired headset now reports `AudioDevice.Type.WiredHeadset`.
+
 ### AudioDevice.Type and AudioDevice.nativeType
 
 - Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer.
@@ -22,6 +100,8 @@
 - Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
 
 ## Fixes
+
+- `CallInvite.reject` now rejects when the native layer reports an error. Previously the returned `Promise` resolved regardless of the outcome.
 
 ### Platform Specific Fixes
 

@@ -11,7 +11,7 @@ import { safelySettlePromise } from './safely-settle-promise';
  * because the orchestrator reads these entries.
  *
  * What is deliberately *not* here: the suites that place a call per variant
- * (`connect-options.ts`, `ice-test.ts`, `incoming-ice-test.ts`) keep their own
+ * (`connect-options.ts`, `outgoing-ice.ts`, `incoming-ice.ts`) keep their own
  * loops. Their per-variant work is connect / assert / tear down rather than a
  * single assertion block, so folding them in would mean a runner with enough
  * options to be worse than the duplication. `connect-options.ts` still shares

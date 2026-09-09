@@ -1,6 +1,7 @@
 import { createNativeAudioDeviceInfo } from '../__mocks__/AudioDevice';
 import { AudioDevice } from '../AudioDevice';
 import { NativeModule } from '../common';
+import { Constants } from '../constants';
 
 const MockNativeModule = jest.mocked(NativeModule);
 
@@ -77,6 +78,18 @@ describe('AudioDevice namespace', () => {
 
     it('Type.Unknown', () => {
       expect(AudioDevice.Type.Unknown).toBe('unknown');
+    });
+
+    /**
+     * Both platforms detect a wired headset. Android reports an
+     * `AudioDevice.WiredHeadset` through AudioSwitch, and iOS reports the
+     * `AVAudioSessionPortHeadphones` port.
+     */
+    it('Type.WiredHeadset', () => {
+      expect(AudioDevice.Type.WiredHeadset).toBe('wiredHeadset');
+      expect(AudioDevice.Type.WiredHeadset).toBe(
+        Constants.AudioDeviceKeyWiredHeadset
+      );
     });
   });
 });

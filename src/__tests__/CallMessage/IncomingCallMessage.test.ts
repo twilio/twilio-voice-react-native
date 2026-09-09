@@ -150,3 +150,26 @@ describe('IncomingCallMessage class', () => {
     });
   });
 });
+
+describe('IncomingCallMessage content typing', () => {
+  /**
+   * `validateCallMessage` stringifies the content before it reaches the native
+   * layer, and both native platforms report the content back as a string.
+   * Typing this as `any` hides that from consumers.
+   */
+  it('exposes the content as a string', () => {
+    const incomingCallMessage = new IncomingCallMessage({
+      content: JSON.stringify({ foo: 'bar' }),
+      contentType: 'application/json',
+      messageType: 'user-defined-message',
+      voiceEventSid: 'mock-voice-event-sid',
+    });
+
+    const content: string = incomingCallMessage.getContent();
+    expect(content).toBe(JSON.stringify({ foo: 'bar' }));
+
+    // @ts-expect-error The content is a string, not a parsed object.
+    const asObject: { foo: string } = incomingCallMessage.getContent();
+    expect(asObject).toBeDefined();
+  });
+});

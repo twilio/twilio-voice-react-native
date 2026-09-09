@@ -266,6 +266,116 @@ export const expectedReport: PreflightTest.Report = {
   ],
 };
 
+/**
+ * Both platforms report this exact all-zero-valued sample/report before the
+ * PreflightTest has a real one to report.
+ */
+export const mockAllZeroSample = {
+  audioInputLevel: 0,
+  audioOutputLevel: 0,
+  bytesReceived: 0,
+  bytesSent: 0,
+  codec: '',
+  jitter: 0,
+  mos: 0,
+  packetsLost: 0,
+  packetsLostFraction: 0,
+  packetsReceived: 0,
+  packetsSent: 0,
+  rtt: 0,
+  timestamp: '0',
+};
+
+export const expectedAllZeroSample: PreflightTest.RTCSample = {
+  ...mockAllZeroSample,
+  timestamp: 0,
+};
+
+const mockAllZeroIceCandidateStats = {
+  candidateType: '',
+  deleted: false,
+  ip: '',
+  isRemote: false,
+  networkCost: 0,
+  networkId: 0,
+  networkType: '',
+  port: 0,
+  priority: 0,
+  protocol: '',
+  relatedAddress: '',
+  relatedPort: 0,
+  tcpType: '',
+  transportId: '',
+  url: '',
+};
+
+const expectedAllZeroIceCandidateStats: PreflightTest.RTCIceCandidateStats =
+  mockAllZeroIceCandidateStats;
+
+const mockAllZeroTiming = {
+  duration: 0,
+  endTime: 0,
+  startTime: 0,
+};
+
+const expectedAllZeroTiming: PreflightTest.TimeMeasurement = {
+  duration: 0,
+  end: 0,
+  start: 0,
+};
+
+const mockAllZeroRtcStats = {
+  jitter: { average: 0, max: 0, min: 0 },
+  mos: { average: 0, max: 0, min: 0 },
+  rtt: { average: 0, max: 0, min: 0 },
+};
+
+export const mockAllZeroReport = {
+  callSid: '',
+  callQuality: null,
+  edge: '',
+  iceCandidates: [],
+  isTurnRequired: null,
+  networkStats: mockAllZeroRtcStats,
+  networkTiming: {
+    signaling: mockAllZeroTiming,
+    peerConnection: mockAllZeroTiming,
+    iceConnection: mockAllZeroTiming,
+    preflightTest: mockAllZeroTiming,
+  },
+  statsSamples: [],
+  selectedEdge: '',
+  selectedIceCandidatePair: {
+    localCandidate: mockAllZeroIceCandidateStats,
+    remoteCandidate: mockAllZeroIceCandidateStats,
+  },
+  warnings: [],
+  warningsCleared: [],
+};
+
+export const expectedAllZeroReport: PreflightTest.Report = {
+  callSid: '',
+  callQuality: null,
+  edge: '',
+  iceCandidateStats: [],
+  isTurnRequired: null,
+  stats: mockAllZeroRtcStats,
+  networkTiming: {
+    signaling: expectedAllZeroTiming,
+    peerConnection: expectedAllZeroTiming,
+    ice: expectedAllZeroTiming,
+  },
+  testTiming: expectedAllZeroTiming,
+  samples: [],
+  selectedEdge: '',
+  selectedIceCandidatePairStats: {
+    localCandidate: expectedAllZeroIceCandidateStats,
+    remoteCandidate: expectedAllZeroIceCandidateStats,
+  },
+  warnings: [],
+  warningsCleared: [],
+};
+
 export const makeMockNativePreflightEvent = (eventType: any) => ({
   [Constants.PreflightTestEventKeyUuid]: mockUuid,
   [Constants.PreflightTestEventKeyType]: eventType,

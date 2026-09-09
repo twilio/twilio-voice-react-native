@@ -27,7 +27,7 @@ import { waitForCallEvent, waitForVoiceEvent } from '../utilities/wait-for-event
  * the far end. The paths and the events they assert are identical on both
  * platforms, and have been run green on both.
  *
- * `incoming-call-test-manual` runs all nine paths in order, each waiting for its
+ * `incoming-call-manual` runs all nine paths in order, each waiting for its
  * own incoming call.
  *
  * Android's `VoiceService.acceptCall`/`rejectCall` emit the same JS events

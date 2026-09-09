@@ -69,6 +69,16 @@ RCT_EXPORT_METHOD(preflightTest_getLatestSample:(NSString *)uuid
     }
     
     NSString *jsonSample = [self preflightStatsSampleToJsonString:self.preflightTest.latestSample];
+    if (jsonSample == nil) {
+        // The native layer reports "no sample yet" as an all-zero sample, not as
+        // nil, so this path is unreachable today. Rejecting keeps the JS type
+        // `NativePromise<string>` honest if that ever changes.
+        [self rejectPromiseWithName:resolver
+                               name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
+                            message:@"The PreflightTest could not serialize its latest sample."];
+        return;
+    }
+
     [self resolvePromise:resolver value:jsonSample];
 }
 
@@ -81,6 +91,16 @@ RCT_EXPORT_METHOD(preflightTest_getReport:(NSString *)uuid
     }
     
     NSString *jsonReport = [self preflightReportToJsonString:self.preflightTest.preflightReport];
+    if (jsonReport == nil) {
+        // The native layer reports "not ready" as an all-zero report, not as
+        // nil, so this path is unreachable today. Rejecting keeps the JS type
+        // `NativePromise<string>` honest if that ever changes.
+        [self rejectPromiseWithName:resolver
+                               name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
+                            message:@"The PreflightTest could not serialize its report."];
+        return;
+    }
+
     [self resolvePromise:resolver value:jsonReport];
 }
 
@@ -151,6 +171,14 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (NSString *)preflightStatsSampleToJsonString:(TVOPreflightStatsSample *)statsSample {
+    // The sample is nil until the preflight test generates its first one.
+    // Building the dictionary below with a nil sample raises an
+    // NSInvalidArgumentException, because `codec` and `timestamp` would both be
+    // nil values in a dictionary literal.
+    if (statsSample == nil) {
+        return nil;
+    }
+
     NSDictionary *sampleDict = @{
         kTwilioVoiceReactNativePreflightRTCSampleAudioInputLevel: @(statsSample.audioInputLevel),
         kTwilioVoiceReactNativePreflightRTCSampleAudioOutputLevel: @(statsSample.audioOutputLevel),
@@ -173,17 +201,34 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
         // warn that we could not parse the sample as json
         NSLog(@"Failed to parse sample as json: %@", jsonParseError);
     }
+    if (jsonData == nil) {
+        return nil;
+    }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
     return jsonString;
 }
 
 - (NSString *)preflightReportToJsonString:(TVOPreflightReport *)report {
+    // The report is nil until one is available. Passing a nil JSON object to
+    // NSJSONSerialization raises an NSInvalidArgumentException.
+    if (report == nil) {
+        return nil;
+    }
+
+    NSDictionary *reportDict = [report dictionaryReport];
+    if (reportDict == nil) {
+        return nil;
+    }
+
     NSError *jsonParseError;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[report dictionaryReport] options:NSJSONWritingFragmentsAllowed error:&jsonParseError];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reportDict options:NSJSONWritingFragmentsAllowed error:&jsonParseError];
     if (jsonParseError != nil) {
         // warn that we could not parse the report as json
         NSLog(@"Failed to parse report as json: %@", jsonParseError);
+    }
+    if (jsonData == nil) {
+        return nil;
     }
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
@@ -302,10 +347,18 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (void)preflight:(nonnull TVOPreflightTest *)preflightTest didCompleteWithReport:(nonnull TVOPreflightReport *)report {
+    NSString *jsonReport = [self preflightReportToJsonString:report];
+    // A nil value in a dictionary literal raises an NSInvalidArgumentException.
+    // The report is nonnull here, so only a serialization failure reaches this.
+    if (jsonReport == nil) {
+        NSLog(@"Dropping PreflightTest completed event, could not serialize the report.");
+        return;
+    }
+
     [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueCompleted,
-        kTwilioVoiceReactNativePreflightTestCompletedEventKeyReport: [self preflightReportToJsonString:report],
+        kTwilioVoiceReactNativePreflightTestCompletedEventKeyReport: jsonReport,
     }];
 }
 
@@ -340,10 +393,17 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (void)preflight:(TVOPreflightTest *)preflightTest didReceiveStatsSample:(TVOPreflightStatsSample *)statsSample {
+    NSString *jsonSample = [self preflightStatsSampleToJsonString:statsSample];
+    // A nil value in a dictionary literal raises an NSInvalidArgumentException.
+    if (jsonSample == nil) {
+        NSLog(@"Dropping PreflightTest sample event, could not serialize the sample.");
+        return;
+    }
+
     [self sendPreflightEvent:@{
         kTwilioVoiceReactNativePreflightTestEventKeyUuid: self.preflightTestUuid,
         kTwilioVoiceReactNativePreflightTestEventKeyType: kTwilioVoiceReactNativePreflightTestEventTypeValueSample,
-        kTwilioVoiceReactNativePreflightTestSampleEventKeySample: [self preflightStatsSampleToJsonString:statsSample],
+        kTwilioVoiceReactNativePreflightTestSampleEventKeySample: jsonSample,
     }];
 }
 

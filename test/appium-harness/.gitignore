@@ -53,5 +53,9 @@ app-example
 ###
 # Tokens
 ###
-/src/utilities/token/e2e-*-token*
-/src/utilities/token/e2e-tests-ice-server*
+# Deliberately broader than the filenames actually in use. These files hold
+# live access tokens and ICE credentials, so a near-miss filename must still be
+# ignored rather than committed.
+/src/utilities/token/e2e-*token*
+/src/utilities/token/e2e-*ice-server*
+/src/utilities/config/e2e-tests-default-suite-id*

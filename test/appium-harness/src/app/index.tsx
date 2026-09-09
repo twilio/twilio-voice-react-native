@@ -3,61 +3,84 @@ import { Button, Platform, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVoice } from '../hooks/useVoice';
 import { useLogging } from '../hooks/useLogging';
+import { useAttendedAllTest } from '../test-suites/attended-all';
+import { useAudioDeviceTest } from '../test-suites/audio-device';
 import { useCallControlsTest } from '../test-suites/call-controls';
+import { useCallInviteRejectTest } from '../test-suites/call-invite-reject';
 import { useCallMessageTest } from '../test-suites/call-message';
 import { useConnectOptionsTest } from '../test-suites/connect-options';
 import { useErrorsTest } from '../test-suites/errors';
 import { useIncomingCallManualTest } from '../test-suites/incoming-call-manual';
 import { useOutgoingCallTest } from '../test-suites/outgoing-call';
-import { useIceTest } from '../test-suites/ice-test';
-import { useIncomingIceTest } from '../test-suites/incoming-ice-test';
-import { usePreflightTest } from '../test-suites/preflight';
+import { useIceTest } from '../test-suites/outgoing-ice';
+import { useIncomingIceTest } from '../test-suites/incoming-ice';
+import { usePreflightTest } from '../test-suites/preflight-test';
+import { usePreflightEarlyStateTest } from '../test-suites/preflight-test-early-state';
 import { useQualityWarningsTest } from '../test-suites/quality-warnings';
 import { useRegistrationTest } from '../test-suites/registration';
+import { useRtcStatsTest } from '../test-suites/rtc-stats';
+import { useUnattendedAllTest } from '../test-suites/unattended-all';
 import { useVoiceApiTest } from '../test-suites/voice-api';
 import { TestStatus } from '../test-suites';
 import { getToken } from '../utilities/token/get-token';
+import { getDefaultTestSuiteId } from '../utilities/config/get-config';
 
 /**
  * NOTE: VBLOCKS-6582
  * As part of increasing code coverage, consider refactoring the command-bus
  * so that instead of starting whole test suites via the bus
- * ("outgoing-call-test"), we use more granular commands such as
+ * ("outgoing-call"), we use more granular commands such as
  * "call.connect(...)".
  */
 
+/**
+ * Every suite id this app can dispatch to. `unattended-all` and
+ * `attended-all` are suites like any other here: this file does not know or
+ * care that they each run several other suites internally. See
+ * `src/test-suites/unattended-all.ts` and `src/test-suites/attended-all.ts`.
+ */
 type TEST_SUITE_ID =
-  | 'incoming-call-test-manual'
-  | 'call-controls-test'
-  | 'call-message-test'
+  | 'incoming-call-manual'
+  | 'audio-device'
+  | 'call-controls'
+  | 'call-invite-reject'
+  | 'call-message'
   | 'preflight-test'
-  | 'registration-test'
-  | 'quality-warnings-test'
-  | 'outgoing-call-test'
-  | 'incoming-ice-test'
-  | 'voice-api-test'
-  | 'errors-test'
-  | 'connect-options-test'
-  | 'ice-test';
+  | 'preflight-test-early-state'
+  | 'voice-api'
+  | 'registration'
+  | 'errors'
+  | 'quality-warnings'
+  | 'rtc-stats'
+  | 'connect-options'
+  | 'outgoing-call'
+  | 'outgoing-ice'
+  | 'incoming-ice'
+  | 'unattended-all'
+  | 'attended-all';
 
 export const Application = () => {
-  // Intentional that we use the preflight test token by default for all suites
-  // here. We're reusing the token generation for the other test apps and the
-  // preflight test token works best here.
   const [token, setToken] = React.useState<string>(getToken);
-  const [testSuiteId, setTestSuiteId] = React.useState<string>('');
+  const [testSuiteId, setTestSuiteId] =
+    React.useState<string>(getDefaultTestSuiteId);
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
   const logging = useLogging();
 
   const voice = useVoice(logging);
 
+  const audioDeviceTest =
+    useAudioDeviceTest(token, voice, logging, setTestStatus);
   const callControlsTest =
     useCallControlsTest(token, voice, logging, setTestStatus);
+  const callInviteRejectTest =
+    useCallInviteRejectTest(token, voice, logging, setTestStatus);
   const callMessageTest =
     useCallMessageTest(token, voice, logging, setTestStatus);
   const preflightTest =
     usePreflightTest(token, voice, logging, setTestStatus);
+  const preflightEarlyStateTest =
+    usePreflightEarlyStateTest(token, voice, logging, setTestStatus);
   const voiceApiTest =
     useVoiceApiTest(token, voice, logging, setTestStatus);
   const registrationTest =
@@ -66,6 +89,8 @@ export const Application = () => {
     useErrorsTest(token, voice, logging, setTestStatus);
   const qualityWarningsTest =
     useQualityWarningsTest(token, voice, logging, setTestStatus);
+  const rtcStatsTest =
+    useRtcStatsTest(token, voice, logging, setTestStatus);
   const connectOptionsTest =
     useConnectOptionsTest(token, voice, logging, setTestStatus);
   const outgoingCallTest =
@@ -76,6 +101,10 @@ export const Application = () => {
     useIncomingIceTest(token, voice, logging, setTestStatus);
   const incomingCallManualTest =
     useIncomingCallManualTest(token, voice, logging, setTestStatus);
+  const unattendedAllTest =
+    useUnattendedAllTest(token, voice, logging, setTestStatus);
+  const attendedAllTest =
+    useAttendedAllTest(token, voice, logging, setTestStatus);
 
   const performTest = React.useCallback(() => {
     if (testStatus !== 'not-started') {
@@ -96,18 +125,24 @@ export const Application = () => {
     }
 
     const suites: Record<TEST_SUITE_ID, () => Promise<void>> = {
-      'incoming-call-test-manual': incomingCallManualTest.perform,
-      'call-controls-test': callControlsTest.perform,
-      'call-message-test': callMessageTest.perform,
+      'incoming-call-manual': incomingCallManualTest.perform,
+      'audio-device': audioDeviceTest.perform,
+      'call-controls': callControlsTest.perform,
+      'call-invite-reject': callInviteRejectTest.perform,
+      'call-message': callMessageTest.perform,
       'preflight-test': preflightTest.perform,
-      'voice-api-test': voiceApiTest.perform,
-      'registration-test': registrationTest.perform,
-      'errors-test': errorsTest.perform,
-      'quality-warnings-test': qualityWarningsTest.perform,
-      'connect-options-test': connectOptionsTest.perform,
-      'outgoing-call-test': outgoingCallTest.perform,
-      'ice-test': iceTest.perform,
-      'incoming-ice-test': incomingIceTest.perform,
+      'preflight-test-early-state': preflightEarlyStateTest.perform,
+      'voice-api': voiceApiTest.perform,
+      'registration': registrationTest.perform,
+      'errors': errorsTest.perform,
+      'quality-warnings': qualityWarningsTest.perform,
+      'rtc-stats': rtcStatsTest.perform,
+      'connect-options': connectOptionsTest.perform,
+      'outgoing-call': outgoingCallTest.perform,
+      'outgoing-ice': iceTest.perform,
+      'incoming-ice': incomingIceTest.perform,
+      'unattended-all': unattendedAllTest.perform,
+      'attended-all': attendedAllTest.perform,
     };
 
     // `hasOwnProperty` rather than a plain lookup so that a suite id naming an
@@ -146,18 +181,24 @@ export const Application = () => {
     // TODO: VBLOCKS-7138
     return perform();
   }, [
+    audioDeviceTest.perform,
     callControlsTest.perform,
+    callInviteRejectTest.perform,
     callMessageTest.perform,
     preflightTest.perform,
+    preflightEarlyStateTest.perform,
     voiceApiTest.perform,
     registrationTest.perform,
     errorsTest.perform,
     qualityWarningsTest.perform,
+    rtcStatsTest.perform,
     connectOptionsTest.perform,
     outgoingCallTest.perform,
     iceTest.perform,
     incomingIceTest.perform,
     incomingCallManualTest.perform,
+    unattendedAllTest.perform,
+    attendedAllTest.perform,
     logging.log,
     setTestStatus,
     testSuiteId,
