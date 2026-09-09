@@ -245,12 +245,18 @@ export const useCallInviteRejectTest: UseTestSuite = (
     // Called in the same tick as the await above resolves. `_state` is only
     // set to `Rejected` by the handler for the native `Rejected` event, which
     // arrives over the bridge on a later tick, so the second call is still
-    // `Pending` in JS and reaches native. Native then fails, because the
-    // invite is gone. Before this change that native failure resolved
-    // silently. Which of the two rejection paths wins is a race, so the
-    // assertion is that the call rejected and the log records the path.
+    // `Pending` in JS and reaches native. On Android native then fails,
+    // because the invite is gone. Before this change that native failure
+    // resolved silently. Which of the two rejection paths wins is a race, so
+    // the assertion is that the call rejected and the log records the path.
     const secondReject = await safelySettlePromise(firstInvite.reject());
 
+    // KNOWN FAILING on iOS: `callInvite_reject` fires the CallKit end-call
+    // transaction and resolves without checking that the invite exists or
+    // waiting for the transaction result, so no native rejection path exists
+    // and only the JS guard can fail. Passes on Android, where
+    // `CallInviteModuleProxy.reject` looks up the call record first.
+    // TODO: VBLOCKS-7159
     await step('second-reject-rejects', () => {
       const error = secondReject.status === 'rejected'
         ? secondReject.error
