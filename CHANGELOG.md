@@ -33,6 +33,8 @@ These three fields were misspelled. The native layer has always reported the cor
 
   - The native layer reports the end time as the string of a numeric primitive that stays `"0"` until the `PreflightTest` ends. No real end time can be `0`, so `"0"` is an unambiguous "has not ended" signal that this method now translates.
 
+### PreflightTest.getLatestSample and PreflightTest.getReport
+
 - `PreflightTest.getLatestSample` and `PreflightTest.getReport` are **not** widened, and their behavior is unchanged. Their documentation was previously ambiguous about what they resolve with before a value exists, and now states it explicitly: both resolve with an all-zero-valued object, which is what the native layer itself reports for "not ready" on both platforms. There is no separate absent state to detect. Applications that need to distinguish "not ready" from a real value should listen for `PreflightTest.Event.Sample` and `PreflightTest.Event.Completed` rather than inspect the resolved value.
 
 ### CallInvite.isValid
