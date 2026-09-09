@@ -282,8 +282,7 @@ const STEPS: Array<Step<Call>> = [
   // KNOWN FAILING on both platforms: RTCStats.IceCandidatePairState holds
   // SCREAMING_SNAKE values while both native platforms emit camelCase, so
   // every comparison against the enum is false.
-  // VBLOCKS-TODO: this drift has no ticket yet. File one and replace this
-  // marker with the number.
+  // TODO: VBLOCKS-7160
   {
     name: 'ice-candidate-pair-state-is-a-known-value',
     // A consumer comparing a reported state against the enum has to be able to

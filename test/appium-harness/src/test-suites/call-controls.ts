@@ -126,7 +126,7 @@ const STEPS: Array<Step<Call>> = [
   },
   {
     name: 'get-stats',
-    // Smoke check only. `rtc-stats-test` asserts the report contents.
+    // Smoke check only. `rtc-stats` asserts the report contents.
     description: 'getStats resolves with a non-empty array of reports',
     run: async (call) => {
       const reports = await call.getStats();

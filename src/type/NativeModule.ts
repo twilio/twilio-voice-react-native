@@ -137,15 +137,11 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
 
   preflightTest_getCallSid(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getEndTime(preflightTestUuid: Uuid): NativePromise<string>;
-  // The native layer reports no value as `null` on iOS, and by omitting the
-  // value key on Android, where `constructJSMap` drops null entries. The JS
-  // layer guards for both, so these describe `null` rather than `string` alone.
-  preflightTest_getLatestSample(
-    preflightTestUuid: Uuid
-  ): NativePromise<string | null>;
-  preflightTest_getReport(
-    preflightTestUuid: Uuid
-  ): NativePromise<string | null>;
+  // Before a sample/report exists, both platforms serialize the same
+  // all-zero-valued native object rather than reporting an absent value, so
+  // this always resolves with a JSON string.
+  preflightTest_getLatestSample(preflightTestUuid: Uuid): NativePromise<string>;
+  preflightTest_getReport(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getStartTime(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getState(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_stop(preflightTestUuid: Uuid): NativePromise<void>;

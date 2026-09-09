@@ -16,9 +16,9 @@ import { waitForCallEvent } from '../utilities/wait-for-event';
 /**
  * `Voice.ConnectOptions` and the call registry that a live call appears in.
  *
- * `ice-test.ts` covers `iceServers` and `iceTransportPolicy`, so this suite
+ * `outgoing-ice.ts` covers `iceServers` and `iceTransportPolicy`, so this suite
  * takes the rest - `params`, `contactHandle`, `notificationDisplayName` - plus
- * `voice.getCalls()` against a live call, which `voice-api-test` can only check
+ * `voice.getCalls()` against a live call, which `voice-api` can only check
  * while empty. Each variant places its own call and tears it down.
  *
  * Those three options only have observable effects outside the app: `params`

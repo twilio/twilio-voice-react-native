@@ -9,8 +9,12 @@ import { InvalidStateError } from '../error/InvalidStateError';
 import { TwilioError } from '../error/TwilioError';
 import {
   baseMockReport,
+  expectedAllZeroReport,
+  expectedAllZeroSample,
   expectedReport,
   makeMockNativePreflightEvent,
+  mockAllZeroReport,
+  mockAllZeroSample,
   mockSample,
   mockUuid,
 } from '../__mock-data__/PreflightTest';
@@ -529,55 +533,28 @@ describe('PreflightTest', () => {
         });
       });
 
-      it('returns undefined when there is no sample yet', async () => {
-        // On iOS the native layer reports no sample as `null`.
-        spy.mockResolvedValue(mockNativePromiseResolutionValue(null));
+      it('returns an all-zero sample before a sample has been generated', async () => {
+        spy.mockResolvedValue(
+          mockNativePromiseResolutionValue(JSON.stringify(mockAllZeroSample))
+        );
 
-        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
-      });
+        const sample = await preflight.getLatestSample();
 
-      /**
-       * On Android the native layer never reports a null sample. It reports
-       * "{}" when the `PreflightTest` has not generated a sample yet.
-       */
-      it('returns undefined when the native layer reports an empty sample', async () => {
-        spy.mockResolvedValue(mockNativePromiseResolutionValue('{}'));
-
-        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
-      });
-
-      /**
-       * Neither platform reports the JSON literal "null" today. This covers the
-       * guard that exists in case a native layer starts to, since
-       * `typeof null` is "object" and the empty-object guard alone would throw
-       * on `Object.keys(null)`.
-       */
-      it('returns undefined when the native layer reports a JSON null', async () => {
-        spy.mockResolvedValue(mockNativePromiseResolutionValue('null'));
-
-        await expect(preflight.getLatestSample()).resolves.toBeUndefined();
+        expect(sample).toEqual(expectedAllZeroSample);
       });
     });
 
     describe('getReport', () => {
-      it('returns undefined when the report is unavailable', async () => {
+      it('returns an all-zero report before the report is ready', async () => {
         jest
           .spyOn(Common.NativeModule, 'preflightTest_getReport')
-          .mockResolvedValue(mockNativePromiseResolutionValue(null));
+          .mockResolvedValue(
+            mockNativePromiseResolutionValue(JSON.stringify(mockAllZeroReport))
+          );
 
-        await expect(preflight.getReport()).resolves.toBeUndefined();
-      });
+        const report = await preflight.getReport();
 
-      /**
-       * On Android the native layer never reports a null report. It reports
-       * "{}" while the `PreflightTest` has not completed.
-       */
-      it('returns undefined when the native layer reports an empty report', async () => {
-        jest
-          .spyOn(Common.NativeModule, 'preflightTest_getReport')
-          .mockResolvedValue(mockNativePromiseResolutionValue('{}'));
-
-        await expect(preflight.getReport()).resolves.toBeUndefined();
+        expect(report).toEqual(expectedAllZeroReport);
       });
 
       it('invokes the native module', async () => {

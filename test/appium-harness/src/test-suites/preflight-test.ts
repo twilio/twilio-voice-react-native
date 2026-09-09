@@ -74,7 +74,7 @@ const BOGUS_ICE_SERVER = {
 
 /**
  * Options that JS validation should refuse, before `runPreflight` ever reaches
- * native. Mirrors the `invalid-*` variants of `ice-test.ts`, extended with the
+ * native. Mirrors the `invalid-*` variants of `outgoing-ice.ts`, extended with the
  * `preferredAudioCodecs` validation that is unique to preflight options.
  */
 const INVALID_OPTIONS = {
@@ -480,14 +480,11 @@ const runSuccessfulRunPhase = async (
 
   await step('get-report-after-completed', async () => {
     const report = await preflightTest.getReport();
-    // `getReport` resolves with `undefined` when no report is available, so a
-    // completed PreflightTest returning a defined report is itself an
-    // assertion this suite makes.
-    expect(report, 'getReport()').toBeDefined();
-    assertReport(report!);
-    expect(report!.callSid, 'getReport().callSid').toBe(
-      terminal.report.callSid,
-    );
+    // `getReport` resolves with an all-zero report until the PreflightTest
+    // completes, so a real `callSid` here is what distinguishes a completed
+    // report from that placeholder.
+    assertReport(report);
+    expect(report.callSid, 'getReport().callSid').toBe(terminal.report.callSid);
   });
 
   await step('get-state-after-completed', async () => {

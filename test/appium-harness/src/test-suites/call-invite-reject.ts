@@ -50,6 +50,20 @@ const REJECTED_SETTLE_DELAY_MS = 2_000;
 const SETTLE_DELAY_MS = 3_000;
 
 /**
+ * How long to wait for `CallInvite.Event.Accepted` after `accept()` resolves.
+ *
+ * This is a same-process bridge round trip, not a wait on a human, so it
+ * should land in milliseconds under normal conditions. Bounded well below
+ * `MANUAL_ACTION_TIMEOUT_MS` so a native regression here is reported as a
+ * fast, clear failure rather than a two-minute hang.
+ *
+ * Not a nicety: `_state` only becomes `Accepted` once this event is
+ * processed, so `reject-after-accept` cannot safely call `reject()` until it
+ * has landed. See the KNOWN CRASH note below.
+ */
+const ACCEPTED_EVENT_TIMEOUT_MS = 5_000;
+
+/**
  * Binds a `CallInvite` listener by event name.
  *
  * `Call`, `Voice`, `OutgoingCallMessage` and `PreflightTest` all declare a
@@ -73,6 +87,47 @@ const onInvite = (
     listener,
   );
 };
+
+const offInvite = (
+  callInvite: CallInvite,
+  eventName: CallInvite.Event,
+  listener: LooseListener,
+) => {
+  (callInvite.off as unknown as (e: string, l: LooseListener) => void)(
+    eventName,
+    listener,
+  );
+};
+
+/**
+ * Races one `CallInvite` event against a timeout. Resolves `true` if the
+ * event landed first, `false` on timeout. Always unbinds its listener.
+ */
+const waitForInviteEvent = (
+  callInvite: CallInvite,
+  eventName: CallInvite.Event,
+  timeoutMs: number,
+): Promise<boolean> => new Promise((resolve) => {
+  let settled = false;
+
+  const settle = (didRaise: boolean) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    clearTimeout(timeoutId);
+    offInvite(callInvite, eventName, onEvent);
+    resolve(didRaise);
+  };
+
+  const timeoutId = setTimeout(() => settle(false), timeoutMs);
+
+  function onEvent() {
+    settle(true);
+  }
+
+  onInvite(callInvite, eventName, onEvent);
+});
 
 /**
  * Logs an instruction the tester must act on.
@@ -203,9 +258,11 @@ export const useCallInviteRejectTest: UseTestSuite = (
 
       log.info(JSON.stringify({
         secondReject: secondReject.status,
-        rejectionPath: error instanceof TwilioErrors.InvalidStateError
-          ? 'js-guard'
-          : 'native',
+        rejectionPath: secondReject.status !== 'rejected'
+          ? 'none'
+          : error instanceof TwilioErrors.InvalidStateError
+            ? 'js-guard'
+            : 'native',
         note: typeof error === 'undefined' ? undefined : describeError(error),
       }));
 
@@ -251,6 +308,14 @@ export const useCallInviteRejectTest: UseTestSuite = (
       return;
     }
 
+    // Bound before `accept()` is called, so a fast bridge round trip cannot
+    // raise the event before this is listening for it.
+    const pendingAccepted = waitForInviteEvent(
+      secondInvite,
+      CallInvite.Event.Accepted,
+      ACCEPTED_EVENT_TIMEOUT_MS,
+    );
+
     const acceptResult = await safelySettlePromise(secondInvite.accept());
 
     results.push(
@@ -263,7 +328,26 @@ export const useCallInviteRejectTest: UseTestSuite = (
         : { step: 'accept', outcome: 'passed' },
     );
 
+    // KNOWN CRASH on Android, VBLOCKS-7158:
+    // `accept()`'s promise resolves before the native `Accepted` event is
+    // processed, so `_state` is still `Pending` at that point. Calling
+    // `reject()` before `_state` has actually become `Accepted` reaches
+    // native on an invite whose call is simultaneously still connecting,
+    // which crashes the whole app rather than rejecting. This step only
+    // calls `reject()` once `Accepted` has actually been observed, so it
+    // exercises the JS guard `reject()` is meant to test instead of racing
+    // into the native crash.
+    const didAccept = acceptResult.status === 'resolved'
+      ? await pendingAccepted
+      : false;
+
     await step('reject-after-accept', async () => {
+      expect(
+        didAccept,
+        `CallInvite.Event.Accepted was raised within ` +
+          `${ACCEPTED_EVENT_TIMEOUT_MS}ms of accept() resolving`,
+      ).toBe(true);
+
       const result = await safelySettlePromise(secondInvite.reject());
 
       expect(result.status, 'reject() on an accepted invite').toBe('rejected');

@@ -266,7 +266,7 @@ const STEPS: Array<Step<Voice>> = [
     // Resolving with an empty string was the previous contract and is now a
     // failure. Whether a token exists yet depends on the push configuration of
     // the build, which this suite does not control, so both outcomes are
-    // accepted and the one taken is logged. `registration-test` asserts the
+    // accepted and the one taken is logged. `registration` asserts the
     // stricter contract at the one point where a token is guaranteed.
     //
     // Ordered after the push registry step: on iOS the token comes from

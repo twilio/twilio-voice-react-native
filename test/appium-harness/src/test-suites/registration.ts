@@ -16,7 +16,7 @@ import { waitForVoiceEvent } from '../utilities/wait-for-event';
  * `voice.register` / `voice.unregister` and the `Voice` events they raise.
  *
  * Otherwise registration is only exercised as a precondition inside
- * `incoming-ice-test.ts`, where a registration failure reports itself as an ICE
+ * `incoming-ice.ts`, where a registration failure reports itself as an ICE
  * variant timing out. Covering it here means a regression names itself.
  *
  * Waits for no incoming call, so it runs unattended. Always ends unregistered,
@@ -136,7 +136,7 @@ const STEPS: Array<Step<Context>> = [
       'getDeviceToken resolves with a non-empty string once the device is ' +
       'registered. This is the one point in the suite where a device token is ' +
       'guaranteed to exist, which is why it is asserted here rather than in ' +
-      'voice-api-test',
+      'voice-api',
     run: async ({ voice }, log) => {
       const deviceToken = await voice.getDeviceToken();
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PreflightTest } from '@twilio/voice-react-native-sdk';
 import type { UseTestSuite } from '../test-suites';
-import { REPORT_TYPES, SAMPLE_TYPES } from './preflight';
+import { REPORT_TYPES, SAMPLE_TYPES } from './preflight-test';
 import { delay } from '../utilities/delay';
 import { expect } from '../utilities/expect';
 import {
@@ -16,19 +16,18 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise';
  * The `PreflightTest` getters read before the value they report exists.
  *
  * `preflight-test` covers a completed run. This suite covers everything before
- * that point, which is where `getReport`, `getLatestSample` and `getEndTime`
- * resolve with `undefined`. Those three return types were widened for GA, and
- * nothing else exercises the `undefined` half of them.
+ * that point.
  *
- * Two facts about the native layer could not be settled from source and are
- * settled here. Whether Android reports a no-sample state as an empty object or
- * as a zero-filled object falls out of the first phase rather than needing its
- * own probe. A result of `undefined` means the native layer sent an empty
- * object, because an empty object is the only shape the JS guard catches. A
- * defined sample whose members are all zero means the native layer sent a
- * zero-filled object, and the guard should be widened. The suite logs the value
- * either way. Whether Android can report a partial report before the test
- * completes is settled by `get-report-after-first-sample`.
+ * `getReport` and `getLatestSample` resolve with an all-zero-valued object
+ * before the `PreflightTest` has a real one to report, because that is what
+ * the native layer itself reports for "not ready" on both platforms. The SDK
+ * passes that object through rather than translating it into `undefined`, so
+ * this suite asserts the all-zero object is what actually arrives. Only
+ * `getEndTime` resolves with `undefined` before the `PreflightTest` ends, and
+ * nothing else exercises the `undefined` half of that return type.
+ *
+ * Whether Android can report a partial report before the test completes is
+ * settled by `get-report-after-first-sample`.
  */
 
 /**
@@ -174,7 +173,17 @@ export const usePreflightEarlyStateTest: UseTestSuite = (
     await step('get-report-before-first-sample', async () => {
       const report = await preflightTest.getReport();
       log.info(JSON.stringify({ reportBeforeFirstSample: report }));
-      expect(report, 'getReport() before the test completes').toBeUndefined();
+      expect(report, 'getReport() before the test completes').toMatchRecordTypes(
+        REPORT_TYPES,
+      );
+      expect(
+        report.callSid,
+        'getReport().callSid before the test completes',
+      ).toBe('');
+      expect(
+        report.samples,
+        'getReport().samples before the test completes',
+      ).toHaveLength(0);
     });
 
     await step('get-latest-sample-before-first-sample', async () => {
@@ -183,7 +192,15 @@ export const usePreflightEarlyStateTest: UseTestSuite = (
       expect(
         sample,
         'getLatestSample() before the first sample',
-      ).toBeUndefined();
+      ).toMatchRecordTypes(SAMPLE_TYPES);
+      expect(
+        sample.timestamp,
+        'getLatestSample().timestamp before the first sample',
+      ).toBe(0);
+      expect(
+        sample.codec,
+        'getLatestSample().codec before the first sample',
+      ).toBe('');
     });
 
     await step('get-end-time-before-end', async () => {
@@ -227,24 +244,27 @@ export const usePreflightEarlyStateTest: UseTestSuite = (
       await step('get-latest-sample-after-first-sample', async () => {
         const sample = await preflightTest.getLatestSample();
 
+        expect(sample, 'getLatestSample()').toMatchRecordTypes(SAMPLE_TYPES);
         expect(
-          sample,
-          'getLatestSample() after the first sample',
-        ).toBeDefined();
-        expect(sample!, 'getLatestSample()').toMatchRecordTypes(SAMPLE_TYPES);
-        expect(
-          Number.isFinite(sample!.timestamp),
+          Number.isFinite(sample.timestamp),
           'getLatestSample().timestamp is a finite number',
         ).toBe(true);
       });
 
+      // The native layer only populates the report once the test completes,
+      // so a test that is still running reports the same all-zero report as
+      // before the first sample.
       await step('get-report-after-first-sample', async () => {
         const report = await preflightTest.getReport();
         log.info(JSON.stringify({ reportAfterFirstSample: report }));
         expect(
           report,
           'getReport() while the test is still running',
-        ).toBeUndefined();
+        ).toMatchRecordTypes(REPORT_TYPES);
+        expect(
+          report.callSid,
+          'getReport().callSid while the test is still running',
+        ).toBe('');
       });
     }
 
@@ -286,19 +306,17 @@ export const usePreflightEarlyStateTest: UseTestSuite = (
       ).toBe(true);
     });
 
-    // A stopped test has no documented report contract, so the shape is
-    // asserted only when a report is reported at all. What this records is
-    // whether a stopped run leaves a readable report behind.
+    // A stopped test has no documented report contract, so only the shape is
+    // asserted. What this records is what a stopped run leaves behind, which
+    // may be a real report or the same all-zero report as a running test.
     await step('get-report-after-stop', async () => {
       const report = await preflightTest.getReport();
 
       log.info(JSON.stringify({ reportAfterStop: report }));
 
-      if (typeof report !== 'undefined') {
-        expect(report, 'getReport() after stop()').toMatchRecordTypes(
-          REPORT_TYPES,
-        );
-      }
+      expect(report, 'getReport() after stop()').toMatchRecordTypes(
+        REPORT_TYPES,
+      );
     });
 
     const { failed } = summarizeResults(results, log);

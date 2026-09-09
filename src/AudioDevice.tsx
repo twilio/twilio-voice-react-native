@@ -90,7 +90,7 @@ export class AudioDevice {
    *    - Rejects if the audio device cannot be selected.
    */
   async select(): Promise<void> {
-    // VBLOCKS-TODO: this does not reject when the selection fails, so the
+    // VBLOCKS-7139: this does not reject when the selection fails, so the
     // failure is undetectable. The native layer reports a failure by resolving
     // with a rejection envelope rather than by rejecting, see
     // `TwilioVoiceReactNative+PromiseAdapter.m` and
