@@ -205,6 +205,21 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             // See VBLOCKS-7040
             [self.iceServersMap removeObjectForKey:uuid.UUIDString];
             [self.iceTransportPolicyMap removeObjectForKey:uuid.UUIDString];
+
+            // Settle the promise `voice_connect_ios` stored. Its resolver is
+            // otherwise only invoked from `performVoiceCallWithUUID`, which
+            // CallKit never calls when the transaction itself fails, so
+            // `Voice.connect()` stayed pending for the lifetime of the app and
+            // the caller saw a hang rather than an error. Cleared afterwards so
+            // a later call cannot settle against a stale block.
+            if (self.callPromiseResolver) {
+                [self rejectPromiseWithName:self.callPromiseResolver
+                                       name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
+                                    message:[NSString stringWithFormat:
+                                             @"CallKit rejected the start-call transaction: %@",
+                                             [error localizedDescription]]];
+                self.callPromiseResolver = nil;
+            }
         } else {
             NSLog(@"StartCallAction transaction request successful");
 

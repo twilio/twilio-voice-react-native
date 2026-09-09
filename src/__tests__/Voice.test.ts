@@ -365,13 +365,16 @@ describe('Voice class', () => {
         ['android', 'ios'],
         'throws when params is defined and not an object',
         async () => {
-          for (const invalidParams of ['string', 101, false]) {
+          // `null` included deliberately: `typeof null` is "object", so it
+          // slipped past the guard and reached Object.entries(null), which
+          // threw a raw TypeError instead of InvalidArgumentError.
+          for (const invalidParams of ['string', 101, false, null]) {
             options.params = invalidParams as unknown as Record<string, string>;
             await expect(
               new Voice().connect(token, options)
             ).rejects.toThrowError(
-              'Optional argument "params" must be undefined or of type ' +
-                '"object".'
+              'Optional argument "params" must be undefined or a non-null ' +
+                'object.'
             );
           }
         }

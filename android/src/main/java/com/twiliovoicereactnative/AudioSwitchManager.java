@@ -78,6 +78,20 @@ class AudioSwitchManager {
   }
 
   /**
+   * Identity for an AudioDevice that survives AudioSwitch handing back a new
+   * instance for the same physical device.
+   *
+   * Uses the type string from {@link #getAudioDeviceNativeType} rather than the
+   * class name, for the same reason that method does: code shrinkers rename
+   * AudioSwitch's classes in a consuming app's release build. The name is
+   * included so two devices of the same type, such as two Bluetooth headsets,
+   * keep distinct handles.
+   */
+  private static String audioDeviceIdentity(AudioDevice audioDevice) {
+    return getAudioDeviceNativeType(audioDevice) + "|" + audioDevice.getName();
+  }
+
+  /**
    * Map of UUIDs to all available AudioDevices. Kept up-to-date by the AudioSwitch.
    */
   private final HashMap<String, AudioDevice> audioDevices;
@@ -93,6 +107,18 @@ class AudioSwitchManager {
    * The UUID of the selected audio device.
    */
   private String selectedAudioDeviceUuid = null;
+  /**
+   * Stable UUIDs, keyed by a device identity that survives an AudioSwitch update.
+   *
+   * AudioSwitch hands back fresh AudioDevice instances on every update, and
+   * selecting a device causes an update. Minting a new random UUID each time
+   * meant `AudioDevice.uuid` changed underneath the caller, so an application
+   * that selected a device and then compared `selectedDevice.uuid` against the
+   * device it had selected saw a mismatch even though the correct device was
+   * active. The UUID is the handle `select()` takes, so it has to be stable for
+   * as long as the device is present.
+   */
+  private final HashMap<String, String> audioDeviceUuids = new HashMap<>();
 
   /**
    * Constructor for the AudioSwitchManager class. Intended to be a singleton.
@@ -107,13 +133,26 @@ class AudioSwitchManager {
     audioSwitch.start((devices, selectedDevice) -> {
 
       audioDevices.clear();
+
+      final HashMap<String, String> seen = new HashMap<>();
       for (AudioDevice device : devices) {
-        String uuid = UUID.randomUUID().toString();
+        final String identity = audioDeviceIdentity(device);
+        String uuid = audioDeviceUuids.get(identity);
+        if (uuid == null) {
+          uuid = UUID.randomUUID().toString();
+        }
+        seen.put(identity, uuid);
+
         audioDevices.put(uuid, device);
         if (device.equals(selectedDevice)) {
           selectedAudioDeviceUuid = uuid;
         }
       }
+
+      // Retain only devices still present, so a device that disappears and
+      // returns is treated as new rather than resurrecting a stale handle.
+      audioDeviceUuids.clear();
+      audioDeviceUuids.putAll(seen);
 
       if (this.listener != null) {
         this.listener.apply(audioDevices, selectedAudioDeviceUuid, selectedDevice);

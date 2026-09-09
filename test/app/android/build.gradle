@@ -12,15 +12,24 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
+        // Pinned rather than left to the plugin's version catalog, which does
+        // not reach this buildscript and left the AGP coordinate versionless.
+        // 8.7.2 is what React Native 0.83.6 declares.
+        classpath("com.android.tools.build:gradle:8.7.2")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.gms:google-services:4.4.1")
     }
 }
 
 allprojects {
     repositories {
+        // React Native 0.83 publishes hermes-android and the other artifacts to
+        // Maven Central, and `com.facebook.react.rootproject` no longer injects
+        // repositories, so they have to be declared here. Without them the
+        // release build fails to resolve com.facebook.react:hermes-android.
+        google()
+        mavenCentral()
         maven {
             url("$rootDir/../node_modules/detox/Detox-android")
         }

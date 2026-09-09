@@ -1206,7 +1206,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:2)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type ConnectFailure = (error: TwilioError) => void;
 
@@ -1218,7 +1218,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:3)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type Reconnecting = (error: TwilioError) => void;
 
@@ -1240,7 +1240,7 @@ export namespace Call {
      * @remarks
      * See {@link (Call:interface).(addListener:5)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type Disconnected = (error?: TwilioError) => void;
 

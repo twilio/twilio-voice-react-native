@@ -32,7 +32,47 @@ export type Log = {
   error: (body: string) => void;
 };
 
-export type StepOutcome = 'passed' | 'failed' | 'skipped';
+export type StepOutcome = 'passed' | 'failed' | 'skipped' | 'blocked';
+
+/**
+ * Failures that mean "this environment cannot run the step", not "the SDK is
+ * wrong". They are reported as `blocked` so a run against an incomplete
+ * environment does not look like a product regression, and so a real failure in
+ * the same suite is not lost among them.
+ */
+const BLOCKED_BY_ENVIRONMENT: { pattern: RegExp; reason: string }[] = [
+  {
+    // Firebase Installations refused the credentials: the google-services.json
+    // is a placeholder, or its package name does not match the applicationId.
+    pattern: /FIS_AUTH_ERROR/,
+    reason:
+      'google-services.json is a placeholder or its package does not match ' +
+      'the applicationId; see MASTER_TEST_PLAN 9.1',
+  },
+  {
+    // Google Play Services on the device could not reach FCM. Seen on the API
+    // 37 emulator image while API 31, 34 and 36 succeed against the same
+    // Firebase project, so it is the image rather than the configuration.
+    pattern: /SERVICE_NOT_AVAILABLE/,
+    reason:
+      'Google Play Services on this device could not reach FCM; see ' +
+      'MASTER_TEST_PLAN 9.1',
+  },
+  {
+    // Any other failure to obtain an FCM token.
+    pattern: /Fetching FCM registration token failed/,
+    reason: 'could not obtain an FCM token; see MASTER_TEST_PLAN 9.1',
+  },
+];
+
+/**
+ * Classify a thrown error as an environment block, or `undefined` if it is a
+ * genuine failure.
+ */
+export function environmentBlockReason(error: unknown): string | undefined {
+  const text = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  return BLOCKED_BY_ENVIRONMENT.find(({ pattern }) => pattern.test(text))?.reason;
+}
 
 export type StepResult = {
   step: string;
@@ -101,10 +141,13 @@ export const runStep = async <C>(
   );
 
   if (result.status === 'rejected') {
+    const blocked = environmentBlockReason(result.error);
     return {
       step: step.name,
-      outcome: 'failed',
-      note: describeError(result.error),
+      outcome: blocked ? 'blocked' : 'failed',
+      note: blocked
+        ? `${blocked} (${describeError(result.error)})`
+        : describeError(result.error),
     };
   }
 
@@ -150,10 +193,16 @@ export const runSteps = async <C>(
 export const summarizeResults = (
   results: StepResult[],
   log: Log,
-): { passed: number; failed: number; skipped: number } => {
+): {
+  passed: number;
+  failed: number;
+  skipped: number;
+  blocked: number;
+} => {
   const passed = results.filter((r) => r.outcome === 'passed');
   const failed = results.filter((r) => r.outcome === 'failed');
   const skipped = results.filter((r) => r.outcome === 'skipped');
+  const blocked = results.filter((r) => r.outcome === 'blocked');
 
   log.info(JSON.stringify({
     summary: {
@@ -161,14 +210,34 @@ export const summarizeResults = (
       passed: passed.length,
       failed: failed.length,
       skipped: skipped.length,
+      blocked: blocked.length,
     },
     failed: failed.map((r) => ({ step: r.step, note: r.note })),
     skipped: skipped.map((r) => r.step),
+    blocked: blocked.map((r) => ({ step: r.step, note: r.note })),
   }));
 
   return {
     passed: passed.length,
     failed: failed.length,
     skipped: skipped.length,
+    blocked: blocked.length,
   };
+};
+
+/**
+ * Map a summary onto the status the orchestrator reads.
+ *
+ * `blocked` is deliberately not folded into either of the other two: reporting
+ * it as success would overstate coverage when a dependency was missing, and
+ * reporting it as failure would call a missing dependency a defect.
+ */
+export const statusFromSummary = (summary: {
+  failed: number;
+  blocked: number;
+}): 'success' | 'failure' | 'blocked' => {
+  if (summary.failed > 0) {
+    return 'failure';
+  }
+  return summary.blocked > 0 ? 'blocked' : 'success';
 };

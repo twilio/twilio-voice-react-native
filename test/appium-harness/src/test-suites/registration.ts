@@ -5,7 +5,9 @@ import { delay } from '../utilities/delay';
 import { expect } from '../utilities/expect';
 import {
   describeError,
+  environmentBlockReason,
   runSteps,
+  statusFromSummary,
   summarizeResults,
   type Step,
 } from '../utilities/run-steps';
@@ -228,6 +230,18 @@ const STEPS: Array<Step<Context>> = [
 
       const error = result.status === 'rejected' ? result.error : undefined;
 
+      /**
+       * On Android `register` fetches an FCM token before it ever looks at the
+       * access token, so without a usable Firebase project this rejects for
+       * that reason instead and the assertions below would report a missing
+       * error code, which reads as an SDK defect. Rethrow the original error so
+       * the step is classified as blocked by its real cause.
+       */
+      const blocked = environmentBlockReason(error);
+      if (blocked) {
+        throw error;
+      }
+
       expect(error, 'the rejection reason').toBeInstanceOf(
         TwilioErrors.TwilioError,
       );
@@ -313,9 +327,9 @@ export const useRegistrationTest: UseTestSuite = (
       voice.off(eventName, listener);
     });
 
-    const { failed } = summarizeResults(results, log);
+    const { failed, blocked } = summarizeResults(results, log);
 
-    setTestStatus(failed === 0 ? 'success' : 'failure');
+    setTestStatus(statusFromSummary({ failed, blocked }));
   }, [token, voice, log, setTestStatus]);
 
   return { perform };

@@ -1,6 +1,33 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+pluginManagement {
+  // Resolve the plugin through this app's own react-native rather than the
+  // hoisted path. The linked SDK brings a second, older react-native into the
+  // tree, and yarn hoisted its 0.77 gradle plugin to the top level, so the
+  // literal path picked up a plugin six minor versions behind react-native
+  // itself. That plugin does not substitute com.facebook.react:hermes-android
+  // for com.facebook.hermes:hermes-android, so the build could not resolve
+  // Hermes at all.
+  def reactNativeGradlePlugin = new File(
+    providers.exec {
+      workingDir(rootDir)
+      commandLine("node", "--print",
+        "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+    }.standardOutput.asText.get().trim()
+  ).getParentFile().absolutePath
+  includeBuild(reactNativeGradlePlugin)
+}
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'TwilioVoiceExampleNewArch'
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+
+// Also included at the top level, not only inside pluginManagement, so the
+// versionless `com.facebook.react:react-native-gradle-plugin` on the root
+// buildscript classpath is substituted by this composite build.
+includeBuild(new File(
+  providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print",
+      "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+  }.standardOutput.asText.get().trim()
+).getParentFile().absolutePath)
+

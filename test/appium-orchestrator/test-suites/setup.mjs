@@ -7,34 +7,141 @@ import { remote } from 'webdriverio';
 import secrets from '../secrets.json' with { type: 'json' };
 import tokenJson from '../token.json' with { type: 'json' };
 
+/**
+ * Capabilities shared by every platform. Platform-specific capabilities are
+ * added by the per-platform helpers below.
+ */
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const COMMON_CAPABILITIES = {
+  'appium:autoAcceptAlerts': true,
+};
+
+/** @type {Parameters<typeof remote>['0']['capabilities']} */
+const IOS_CAPABILITIES = {
+  ...COMMON_CAPABILITIES,
   platformName: 'iOS',
   'appium:automationName': 'XCUITest',
-  'appium:autoAcceptAlerts': true,
+};
+
+/**
+ * Android runtime permissions are granted at install time rather than dismissed
+ * from a dialog, because the SDK requests microphone, Bluetooth and
+ * notification permissions on first activity create and a missed dialog stalls
+ * every suite.
+ */
+/** @type {Parameters<typeof remote>['0']['capabilities']} */
+const ANDROID_CAPABILITIES = {
+  ...COMMON_CAPABILITIES,
+  platformName: 'Android',
+  'appium:automationName': 'UiAutomator2',
+  'appium:autoGrantPermissions': true,
+  'appium:newCommandTimeout': 300,
 };
 
 // NOTE: VBLOCKS-6582
 // Consider adding other things to the env helper function, such as overriding
 // hostname, port, Sauce Labs options, etc.
 const getEnv = () => {
+  const platform = (process.env.PLATFORM || 'ios').toLowerCase();
+  if (platform !== 'ios' && platform !== 'android') {
+    throw new Error(`PLATFORM must be "ios" or "android", got "${platform}".`);
+  }
+
   return {
     USE_SAUCE: process.env.USE_SAUCE === 'true',
+    PLATFORM: /** @type {'ios' | 'android'} */ (platform),
+    /** Comma-separated suite ids, or all of them when unset. */
+    SUITES: process.env.SUITES,
+    /** Recorded in results so a run can be attributed to an API level. */
+    AVD: process.env.AVD,
+    /** 'simulator' or 'device'; only meaningful when PLATFORM is ios. */
+    IOS_TARGET: (process.env.IOS_TARGET || 'device').toLowerCase(),
   };
 };
 
-const getLocalOptions = () => {
+const getLocalAndroidOptions = () => {
   /** @type {Parameters<typeof remote>['0']['capabilities']} */
   const capabilities = {
-    ...COMMON_CAPABILITIES,
+    ...ANDROID_CAPABILITIES,
+    // Overridable so the same orchestrator drives the bare example app, whose
+    // application id differs from the Expo harness's.
+    'appium:appPackage': process.env.ANDROID_PACKAGE || secrets.android.appPackage,
+    'appium:appActivity': secrets.android.appActivity || '.MainActivity',
+    ...(secrets.android.udid ? { 'appium:udid': secrets.android.udid } : {}),
+    ...(secrets.android.app ? { 'appium:app': secrets.android.app } : {}),
+  };
+
+  /** @type {Parameters<typeof remote>['0']} */
+  return {
+    hostname: process.env.APPIUM_HOST || 'localhost',
+    port: parseInt(process.env.APPIUM_PORT || '') || 4723,
+    logLevel: 'info',
+    capabilities,
+  };
+};
+
+/**
+ * iOS Simulator. Useful for everything that does not need CallKit or PushKit:
+ * the SDK initialises, enumerates audio devices and runs its JavaScript surface
+ * there. Calls are expected to fail; what fails and how is worth recording
+ * rather than assuming.
+ */
+const getLocalIosSimulatorOptions = () => {
+  /** @type {Parameters<typeof remote>['0']['capabilities']} */
+  const capabilities = {
+    ...IOS_CAPABILITIES,
+    'appium:deviceName': process.env.IOS_SIM_NAME || 'iPhone 17 Pro',
+    'appium:platformVersion': process.env.IOS_SIM_VERSION || '26.5',
+    'appium:bundleId': process.env.IOS_BUNDLE_ID || secrets.ios.bundleId,
+    /**
+     * `noReset` suppressed the launch: Appium attached a session but left the
+     * simulator on its home screen, so every selector missed and it read as a
+     * broken harness. Make Appium launch the app.
+     */
+    'appium:forceAppLaunch': true,
+    'appium:shouldTerminateApp': true,
+    'appium:wdaLaunchTimeout': 240000,
+  };
+
+  /** @type {Parameters<typeof remote>['0']} */
+  return {
+    hostname: process.env.APPIUM_HOST || 'localhost',
+    port: parseInt(process.env.APPIUM_PORT || '') || 4723,
+    logLevel: 'info',
+    capabilities,
+  };
+};
+
+const getLocalIosOptions = () => {
+  /** @type {Parameters<typeof remote>['0']['capabilities']} */
+  const capabilities = {
+    ...IOS_CAPABILITIES,
     'appium:udid': secrets.ios.udid,
-    'appium:bundleId': secrets.ios.bundleId,
+    'appium:bundleId': process.env.IOS_BUNDLE_ID || secrets.ios.bundleId,
     'appium:xcodeOrgId': secrets.ios.xcodeOrgId,
     'appium:xcodeSigningId': 'Apple Development',
     'appium:updatedWDABundleId': secrets.ios.wdaBundleId,
     'appium:showXcodeLog': true,
     'appium:allowProvisioningDeviceRegistration': true,
+    /**
+     * Same reason as the simulator path: without these Appium attaches to
+     * whatever is already on screen instead of launching the harness. WDA has
+     * to be built and installed on the device on a cold run, which is far
+     * slower than on a simulator, hence the longer launch timeout.
+     */
+    'appium:forceAppLaunch': true,
+    'appium:shouldTerminateApp': true,
+    'appium:wdaLaunchTimeout': 360000,
   };
+
+  /**
+   * `devicectl` only drives iOS 17 and later, and `ios-deploy` is not
+   * installed, so Appium performs the install when given a built `.app`.
+   * Without IOS_APP the app is expected to be on the device already.
+   */
+  if (process.env.IOS_APP) {
+    capabilities['appium:app'] = process.env.IOS_APP;
+  }
 
   /** @type {Parameters<typeof remote>['0']} */
   const remoteOptions = {
@@ -47,15 +154,29 @@ const getLocalOptions = () => {
   return remoteOptions;
 };
 
-const getSauceOptions = () => {
+/**
+ * @param {'ios' | 'android'} platform
+ */
+const getSauceOptions = (platform) => {
   /** @type {string} */
   const buildName = `build test ${Date.now()}`;
 
+  const platformCapabilities =
+    platform === 'android'
+      ? {
+          ...ANDROID_CAPABILITIES,
+          'appium:deviceName': secrets.sauce.androidDeviceName || 'Google.*',
+          'appium:platformVersion': secrets.sauce.androidPlatformVersion || '14',
+        }
+      : {
+          ...IOS_CAPABILITIES,
+          'appium:deviceName': 'iPhone.*',
+          'appium:platformVersion': '26',
+        };
+
   /** @type {Parameters<typeof remote>['0']['capabilities']} */
   const capabilities = {
-    ...COMMON_CAPABILITIES,
-    'appium:deviceName': 'iPhone.*',
-    'appium:platformVersion': '26',
+    ...platformCapabilities,
     'appium:app': secrets.sauce.storageFilename,
     'sauce:options': {
       appiumVersion: 'latest',
@@ -87,8 +208,12 @@ export const setupTestOrchestrator = async () => {
   const env = getEnv();
 
   const remoteOptions = env.USE_SAUCE
-    ? getSauceOptions()
-    : getLocalOptions();
+    ? getSauceOptions(env.PLATFORM)
+    : env.PLATFORM === 'android'
+      ? getLocalAndroidOptions()
+      : env.IOS_TARGET === 'simulator'
+        ? getLocalIosSimulatorOptions()
+        : getLocalIosOptions();
 
   const driver = await remote(remoteOptions);
 
@@ -101,7 +226,28 @@ export const setupTestOrchestrator = async () => {
       startTestSuite: driver.$('~button_startTestSuite'),
     },
     text: {
-      testSuiteStatus: driver.$('~text_testSuiteStatus'),
+      /**
+       * Selected by resource-id on Android and by accessibility id on iOS.
+       *
+       * This element carries no accessibilityLabel, because on iOS one would
+       * replace the text XCUITest reports and the status could never be read.
+       * Without a label, Android's "~" selector cannot find it, so Android
+       * matches the testID as a resource-id instead.
+       */
+      testSuiteStatus:
+        env.PLATFORM === 'android'
+          ? driver.$('//*[@resource-id="text_testSuiteStatus"]')
+          : driver.$('~text_testSuiteStatus'),
+
+      /**
+       * The suite's log entries, rendered by the harness. Read only when a
+       * suite does not pass, so a failure carries the step that failed rather
+       * than just the word "failure". Same selector rules as the status above.
+       */
+      testSuiteOutput:
+        env.PLATFORM === 'android'
+          ? driver.$('//*[@resource-id="text_testSuiteOutput"]')
+          : driver.$('~text_testSuiteOutput'),
     },
   };
 

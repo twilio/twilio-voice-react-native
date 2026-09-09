@@ -50,6 +50,11 @@ jobs:
 
       - run: yarn --cwd test/appium-orchestrator install --immutable
 
+      # Guards the property that 2.x lost: the package autolinks in a bare
+      # React Native app. Needs no Android SDK, so it runs in this job rather
+      # than gating on a device runner.
+      - run: yarn run check:linking
+
       - run: yarn run check
 
       # The runner group is self-hosted, so $HOME can outlive the job.

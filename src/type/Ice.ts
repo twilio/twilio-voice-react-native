@@ -2,6 +2,8 @@ import { Constants } from '../constants';
 
 /**
  * Ice transport policy.
+ *
+ * @public
  */
 export enum IceTransportPolicy {
   /**
@@ -16,6 +18,8 @@ export enum IceTransportPolicy {
 
 /**
  * Ice server configuration.
+ *
+ * @public
  */
 export type IceServer = Partial<{
   [Constants.IceServerKeyPassword]: string;

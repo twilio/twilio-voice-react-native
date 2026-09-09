@@ -23,9 +23,16 @@ const idGenerator: Generator<number, never, unknown> = (function * () {
   }
 })();
 
-// Diagnostics toggle left in to help with manual testing. Allows logs to
-// be viewed through Metro bundler.
-const DO_CONSOLE_LOG: boolean = false;
+/**
+ * Echo every log entry to the console, and therefore to Metro and logcat.
+ *
+ * On by default. The orchestrator only reads a suite's final status, so with
+ * this off a failure arrives as the bare word "failure" with no indication of
+ * which step failed or why, which makes an automated run unactionable. Entries
+ * are redacted before they reach here, so tokens and ICE credentials are not
+ * exposed by turning it on.
+ */
+const DO_CONSOLE_LOG: boolean = true;
 
 export function useLogging() {
   const [logEntries, setLogEntries] = React.useState<LogEntry[]>([]);

@@ -418,7 +418,7 @@ export class Voice extends EventEmitter {
 
   /**
    * Error event handler. Creates an error from the namespace
-   * {@link TwilioErrors} from the info raised by the native layer and emits it.
+   * `TwilioErrors.TwilioError` from the info raised by the native layer and emits it.
    * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
    */
   private _handleError = (nativeVoiceEvent: NativeVoiceEvent) => {
@@ -511,7 +511,7 @@ export class Voice extends EventEmitter {
    * Custom ICE configuration can be provided via the iceServers and
    * iceTransportPolicy options. These options allow specifying custom
    * STUN/TURN servers and transport policy for the call, and behave
-   * consistently with the configuration supported by {@link Voice.runPreflight}
+   * consistently with the configuration supported by {@link (Voice:class).runPreflight}
    *
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
@@ -523,7 +523,7 @@ export class Voice extends EventEmitter {
    *  - Resolves with a call when the call is created.
    *  - Rejects:
    *    * When a call is not able to be created on the native layer.
-   *    * With an {@link TwilioErrors.InvalidArgumentError} when invalid
+   *    * With an `TwilioErrors.InvalidArgumentError` when invalid
    *      arguments are passed.
    */
   async connect(
@@ -549,9 +549,12 @@ export class Voice extends EventEmitter {
       );
     }
 
-    if (typeof params !== 'object') {
+    // `typeof null` is "object", so null must be rejected explicitly. Without
+    // this, Object.entries(null) below throws a raw TypeError instead of the
+    // documented InvalidArgumentError.
+    if (typeof params !== 'object' || params === null) {
       throw new InvalidArgumentError(
-        'Optional argument "params" must be undefined or of type "object".'
+        'Optional argument "params" must be undefined or a non-null object.'
       );
     }
 
@@ -947,7 +950,7 @@ export class Voice extends EventEmitter {
    * @returns
    * A Promise that:
    * - Resolves with a {@link (PreflightTest:class)} object.
-   * - Rejects with a {@link TwilioErrors} if unable to perform a
+   * - Rejects with a `TwilioErrors.TwilioError` if unable to perform a
    *   {@link (PreflightTest:class)}.
    */
   async runPreflight(
@@ -1108,7 +1111,7 @@ export namespace Voice {
      *
      * See {@link (Voice:interface).(addListener:3)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type Error = (error: TwilioError) => void;
 

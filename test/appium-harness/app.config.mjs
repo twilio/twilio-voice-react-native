@@ -16,19 +16,13 @@ const config = {
       supportsTablet: true,
       bundleIdentifier: secrets.ios.bundleIdentifier,
       appleTeamId: secrets.ios.appleTeamId,
-      infoPlist: {
-        NSMicrophoneUsageDescription: 'Voice calling capabilities.',
-        UIBackgroundModes: ['audio', 'voip'],
-      },
-      entitlements: {
-        'aps-environment': 'development',
-      },
     },
     android: {
       package: secrets.android.package,
       googleServicesFile: './google-services.json',
     },
     plugins: [
+      '@twilio/voice-react-native-sdk',
       'expo-router',
     ],
     experiments: {

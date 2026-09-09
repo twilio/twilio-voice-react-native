@@ -18,4 +18,11 @@ export type TestStatus =
   | 'not-started'
   | 'in-progress'
   | 'success'
+  /**
+   * Everything runnable passed, but at least one step could not run in this
+   * environment. Distinct from `success` so a run against an incomplete
+   * environment is not reported as full coverage, and distinct from `failure`
+   * so a missing dependency is not reported as a defect.
+   */
+  | 'blocked'
   | 'failure';

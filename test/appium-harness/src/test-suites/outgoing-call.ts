@@ -1,15 +1,29 @@
 import * as React from 'react';
 import { Call } from '@twilio/voice-react-native-sdk';
 import { UseTestSuite } from '../test-suites';
-import { describeError, summarizeResults } from '../utilities/run-steps';
+import {
+  describeError,
+  statusFromSummary,
+  summarizeResults,
+} from '../utilities/run-steps';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
-// TODO: VBLOCKS-7138
-// Add a timeout race for this one. The default TwiML that this suite expects
-// the other end to hangup eventually, but this is not necessarily true and
-// should time out if that is not the case.
+/**
+ * How long to stay connected before hanging up. Long enough for media to be
+ * flowing and a quality-warning cycle to be observed, short enough to keep the
+ * suite quick.
+ */
+const CONNECTED_HOLD_MS = 5_000;
+
+/**
+ * Ceiling for the whole suite, comfortably under the orchestrator's per-suite
+ * timeout so a failure here is reported with detail rather than as an opaque
+ * orchestrator timeout. Resolves VBLOCKS-7138.
+ */
+const OUTGOING_CALL_TIMEOUT_MS = 60_000;
+
 export const useOutgoingCallTest: UseTestSuite = (
   token,
   { voice },
@@ -61,12 +75,12 @@ export const useOutgoingCallTest: UseTestSuite = (
         raisedEvents: raisedCallEvents.map(({ eventName }) => eventName),
       }));
 
-      const { failed } = summarizeResults(
+      const { failed, blocked } = summarizeResults(
         [{ step: 'outgoing-call', outcome, note }],
         log,
       );
 
-      setTestStatus(failed === 0 ? 'success' : 'failure');
+      setTestStatus(statusFromSummary({ failed, blocked }));
     };
 
     call.on(Call.Event.ConnectFailure, (error) => {
@@ -80,6 +94,36 @@ export const useOutgoingCallTest: UseTestSuite = (
       }
       settle('passed');
     });
+
+    /**
+     * Hang up once the call is up, rather than waiting for the far end to.
+     *
+     * Observed: the TwiML endpoint echoes indefinitely and never hangs up, so
+     * the call stayed connected and the suite ran until the orchestrator's
+     * ceiling, presenting as a product hang. Ending the call here makes the
+     * suite independent of far-end behaviour, which is what call-controls-test
+     * already does.
+     */
+    call.once(Call.Event.Connected, () => {
+      setTimeout(() => {
+        if (!settled) {
+          void safelySettlePromise(call.disconnect());
+        }
+      }, CONNECTED_HOLD_MS);
+    });
+
+    /**
+     * Backstop, so a call that never reaches Connected, or never raises
+     * Disconnected after disconnect(), fails with a readable note rather than
+     * running out the orchestrator's clock.
+     */
+    setTimeout(() => {
+      settle(
+        'failed',
+        `call did not disconnect within ${OUTGOING_CALL_TIMEOUT_MS}ms; raised: ` +
+          `${raisedCallEvents.map(({ eventName }) => eventName).join(', ') || 'nothing'}`,
+      );
+    }, OUTGOING_CALL_TIMEOUT_MS);
 
   }, [voice, log, token, setTestStatus]);
 

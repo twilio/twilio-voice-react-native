@@ -1,25 +1,62 @@
-2.0.0-preview.3 (In Progress)
-=============================
+1.8.0 (In Progress)
+===================
+
+Expo support arrives additively. Framework-less ("bare") React Native
+applications are unaffected and upgrade with no code change; Expo applications
+add one config plugin entry. This supersedes the `2.0.0-preview.x` line, which
+delivered the same capability by replacing the Android binding and in doing so
+removed bare React Native support. Those preview versions are discontinued.
 
 ## Features
 
-- Added support for configuring custom ICE servers and ICE transport policy when accepting incoming calls using `CallInvite.accept` via the new `iceServers` and `iceTransportPolicy` options.
+### Expo
 
-## Breaking Changes
+- Expo applications are supported through a config plugin. Add
+  `"@twilio/voice-react-native-sdk"` to `plugins` in your app config and run
+  `expo prebuild`. See the [Expo setup guide](/docs/expo/app-config.md).
 
-### AudioDevice.Type and AudioDevice.nativeType
+  A [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+  is required. Expo Go is not supported, because this library contains native
+  code that Expo Go does not include.
 
-- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer.
+  Set `android.googleServicesFile` in your app config. Expo installs your
+  `google-services.json` and applies the Google Services Gradle plugin from it,
+  and incoming calls will not reach the device without it.
 
-- Added `AudioDevice.Type.Unknown`, reported via `AudioDevice.type` when the native layer reports a device type that isn't one of the other well-known `AudioDevice.Type` values.
+  Verified on Expo SDK 52, 54, 55, 56 and 57.
 
-#### iOS
+### ICE configuration
 
-- Audio devices with an unrecognized native port type (for example, non-HFP Bluetooth profiles) previously reported that raw native type string, e.g. `"BluetoothA2DP"`, as `AudioDevice.type` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown` and `AudioDevice.nativeType` now reports the native value, e.g. `"BluetoothA2DP"`.
+- Added support for custom ICE servers and ICE transport policy on outgoing
+  calls started with `Voice.connect`, via the new `iceServers` and
+  `iceTransportPolicy` options.
 
-#### Android
+- The same two options are supported when accepting an incoming call with
+  `CallInvite.accept`.
 
-- Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
+### AudioDevice
+
+- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as
+  reported by the native layer, alongside the well-known `AudioDevice.type`.
+
+## Changes
+
+- Updated the native Twilio Voice SDK dependencies.
+
+  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+
+  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+
+- Errors raised by native methods are now consistently surfaced as
+  `TwilioErrors` subclasses. Previously this applied to some methods but not
+  others: `Voice.connect` and `CallInvite.accept` already constructed a typed
+  error, while methods such as `Call.mute`, `Call.disconnect` and
+  `Voice.getVersion` let the underlying React Native bridge error propagate.
+  `message` and `code` are unchanged. Applications that read the bridge's
+  undocumented `error.userInfo` property from those methods should read
+  `error.code` and `error.message` instead.
+
+- Updated the local TypeScript version used by the library.
 
 ## Fixes
 
@@ -27,35 +64,37 @@
 
 #### Android
 
-- Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
+- Fixed `Call.hold` and `Call.mute` returning an incorrect value.
 
-2.0.0-preview.2 (April 29, 2026)
-================================
+- Fixed `CallInvite.sendMessage`.
 
-## Features
+- Fixed null pointer exception crashes that could occur when accepting or
+  rejecting invalid `CallInvite`s from the native notification.
 
-- Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
+- Fixed `AudioDevice.uuid` changing whenever the available audio devices were
+  re-evaluated, which happens when a device is selected. An application that
+  selected a device and then compared `selectedDevice.uuid` against the device
+  it had selected saw a mismatch even though the correct device was active. A
+  device now keeps its `uuid` for as long as it remains available.
 
-## Changes
+- Fixed audio device types being misreported in release builds where a code
+  shrinker had renamed the underlying AudioSwitch classes.
 
-- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependencies.
+#### iOS
 
-  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+- Fixed `PreflightTest` rejection paths.
 
-  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+## Migrating from 2.0.0-preview.x
 
-2.0.0-preview.1 (January 5, 2026)
-=================================
+- Reinstall from npm as `@twilio/voice-react-native-sdk@1.8.0`. The version
+  number moves backwards, so no consumer upgrades into it by default.
 
-## Features
+- If you were using Expo, replace any manual `Info.plist`, entitlements and
+  Google Services configuration with the config plugin entry described above.
 
-- Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
-
-  If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
-
-## Changes
-
-- Updated local Typescript version used by the library.
+- If you were using bare React Native, you were required to fork this SDK. Delete
+  the fork and install from npm. Forking stopped you receiving native SDK and
+  security updates, and is no longer necessary.
 
 1.7.0 (October 8, 2025)
 =======================

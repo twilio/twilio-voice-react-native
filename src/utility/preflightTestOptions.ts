@@ -14,11 +14,14 @@ export { validateIceServers, validateIceTransportPolicy } from './IceOptions';
 function validateAudioCodec(
   audioCodec: AudioCodec
 ): OptionValidation<{ audioCodec: AudioCodec }> {
-  if (typeof audioCodec !== 'object') {
+  // `typeof null` is "object", so null must be rejected explicitly. Without
+  // this, the `'type' in audioCodec` check below throws a raw TypeError instead
+  // of the documented InvalidArgumentError.
+  if (typeof audioCodec !== 'object' || audioCodec === null) {
     return {
       status: 'error',
       error: new InvalidArgumentError(
-        'If "audioCodec" is present, it must be an object.'
+        'If "audioCodec" is present, it must be a non-null object.'
       ),
     };
   }

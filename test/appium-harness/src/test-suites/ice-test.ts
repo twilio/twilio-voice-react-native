@@ -62,11 +62,17 @@ const HAS_VALID_ICE_SERVER =
  * How long to wait for a variant to settle. Variants expecting a
  * `ConnectFailure` have to wait out ICE gathering and connectivity checks
  * before the SDK gives up, so they need considerably longer.
+ *
+ * Measured on an Android emulator: `relay-policy-only` and
+ * `bogus-servers-relay-policy` raise `ConnectFailure` somewhere between 60 and
+ * 150 seconds. At the previous 60 second ceiling both recorded a timeout, which
+ * read as the SDK failing to surface a connect failure at all when it was the
+ * test giving up first.
  */
 const TEST_TIMEOUT_MS: Record<Expectation, number> = {
   [EXPECTED_VOICE_CONNECT_REJECTION]: 5_000,
   [Call.Event.Connected]: 30_000,
-  [Call.Event.ConnectFailure]: 60_000,
+  [Call.Event.ConnectFailure]: 150_000,
   [Call.Event.Disconnected]: 60_000,
 };
 
