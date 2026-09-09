@@ -710,8 +710,8 @@ export class PreflightTest extends EventEmitter {
     constructor(uuid: string);
     getCallSid(): Promise<string>;
     getEndTime(): Promise<number | undefined>;
-    getLatestSample(): Promise<PreflightTest.RTCSample | undefined>;
-    getReport(): Promise<PreflightTest.Report | undefined>;
+    getLatestSample(): Promise<PreflightTest.RTCSample>;
+    getReport(): Promise<PreflightTest.Report>;
     getStartTime(): Promise<number>;
     getState(): Promise<PreflightTest.State>;
     stop(): Promise<void>;
