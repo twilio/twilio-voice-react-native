@@ -11,7 +11,14 @@ export function getExpoVersion(): string | undefined {
         ? JSON.parse(expoManifest)
         : expoManifest;
 
-    const sdkVersion = manifest?.sdkVersion;
+    /**
+     * Embedded manifests carry the SDK version at the top level. Manifests
+     * served by expo-updates instead nest the app config under
+     * `extra.expoClient`, so the top-level lookup finds nothing for an app
+     * running an over-the-air update.
+     */
+    const sdkVersion =
+      manifest?.sdkVersion ?? manifest?.extra?.expoClient?.sdkVersion;
 
     if (typeof sdkVersion === 'string') {
       return sdkVersion;

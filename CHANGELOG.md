@@ -23,6 +23,8 @@
 
 ## Fixes
 
+- Fixed issues where the Expo SDK version could be absent from call insights metadata. On iOS, this could previously persist for the remainder of an app session when a call, registration, or preflight test was started before the SDK had finished recording the version, which is more likely shortly after `Voice` construction. On all platforms, the version was not reported for apps running an over-the-air update.
+
 ### Platform Specific Fixes
 
 #### Android
