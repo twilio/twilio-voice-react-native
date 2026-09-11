@@ -479,10 +479,7 @@ jobs:
           done
 
       - name: Download the android apk
-        # TODO: replace <PLACEHOLDER_SHA> with the commit SHA for
-        # actions/download-artifact, matching how every other action in this
-        # workflow is pinned, and update the trailing version comment.
-        uses: actions/download-artifact@<PLACEHOLDER_SHA> # <PLACEHOLDER_VERSION>
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
         with:
           name: appium-harness-android-apk
           path: artifact
@@ -514,11 +511,9 @@ jobs:
       - name: Fetch SauceLabs credentials and upload the apk
         id: upload
         env:
-          VENDOR_URL: ${{ vars.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_URL: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
           VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
-          # TODO: replace <PLACEHOLDER_SAUCE_LABS_URL> with the SauceLabs app
-          # storage upload endpoint.
-          SAUCE_UPLOAD_URL: <PLACEHOLDER_SAUCE_LABS_URL>
+          SAUCE_UPLOAD_URL: ${{ vars.SAUCE_UPLOAD_URL }}
         run: |
           set -euo pipefail
 
@@ -663,10 +658,7 @@ jobs:
           done
 
       - name: Download the ios ipa
-        # TODO: replace <PLACEHOLDER_SHA> with the commit SHA for
-        # actions/download-artifact, matching how every other action in this
-        # workflow is pinned, and update the trailing version comment.
-        uses: actions/download-artifact@<PLACEHOLDER_SHA> # <PLACEHOLDER_VERSION>
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
         with:
           name: appium-harness-ios-ipa
           path: artifact
@@ -698,11 +690,9 @@ jobs:
       - name: Fetch SauceLabs credentials and upload the ipa
         id: upload
         env:
-          VENDOR_URL: ${{ vars.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_URL: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
           VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
-          # TODO: replace <PLACEHOLDER_SAUCE_LABS_URL> with the SauceLabs app
-          # storage upload endpoint.
-          SAUCE_UPLOAD_URL: <PLACEHOLDER_SAUCE_LABS_URL>
+          SAUCE_UPLOAD_URL: ${{ vars.SAUCE_UPLOAD_URL }}
         run: |
           set -euo pipefail
 
