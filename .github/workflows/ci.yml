@@ -445,3 +445,368 @@ jobs:
             test/appium-harness/secrets.json \
             test/appium-harness/google-services.json \
             test/appium-harness/android/app/google-services.json
+
+  ###
+  # Upload the Android harness build to SauceLabs
+  ###
+  upload-android-saucelabs:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-android
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    # This job deliberately runs no actions/checkout. The job reads no file from
+    # the repository, so a checkout would only widen what the job can touch.
+    steps:
+      - name: Verify the runner has the tools this job needs
+        run: |
+          set -euo pipefail
+
+          for tool in curl jq; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::${tool} not found. This job makes its requests with curl and parses both the vendor response and the SauceLabs response with jq."
+              exit 1
+            fi
+          done
+
+      - name: Download the android apk
+        # TODO: replace <PLACEHOLDER_SHA> with the commit SHA for
+        # actions/download-artifact, matching how every other action in this
+        # workflow is pinned, and update the trailing version comment.
+        uses: actions/download-artifact@<PLACEHOLDER_SHA> # <PLACEHOLDER_VERSION>
+        with:
+          name: appium-harness-android-apk
+          path: artifact
+
+      # An empty or unexpected download should fail here with a message naming what
+      # was actually found, rather than further down inside a curl invocation whose
+      # error describes a missing file path and nothing else.
+      - name: Verify the apk was downloaded
+        run: |
+          set -euo pipefail
+
+          # build-android uploads a single file, so the artifact carries that
+          # file's basename. Renaming the APK in build-android fails here rather
+          # than silently uploading whatever else landed in artifact/.
+          APK_PATH=artifact/app-release.apk
+
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected ${APK_PATH} from the appium-harness-android-apk artifact. Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          echo "APK_PATH=${APK_PATH}" >> "$GITHUB_ENV"
+
+      # The credential fetch and the upload share one step on purpose. The SauceLabs
+      # username and access key stay as shell locals and are never written to
+      # $GITHUB_ENV. The runner group is self-hosted, so $HOME and the workspace can
+      # outlive the job, and a value that is never written out has no cleanup step
+      # to forget.
+      - name: Fetch SauceLabs credentials and upload the apk
+        id: upload
+        env:
+          VENDOR_URL: ${{ vars.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          # TODO: replace <PLACEHOLDER_SAUCE_LABS_URL> with the SauceLabs app
+          # storage upload endpoint.
+          SAUCE_UPLOAD_URL: <PLACEHOLDER_SAUCE_LABS_URL>
+        run: |
+          set -euo pipefail
+
+          if [ -z "$VENDOR_URL" ]; then
+            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository variable is not set."
+            exit 1
+          fi
+
+          if [ -z "$VENDOR_AUDIENCE" ]; then
+            echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."
+            exit 1
+          fi
+
+          # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+          #    --data-urlencode into the query string rather than a POST body.
+          #    Encoding the audience instead of splicing the audience into the URL
+          #    keeps the request well-formed whatever the value contains.
+          GITHUB_JWT=$(curl -sS -G \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+            | jq -r '.value')
+          if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+            echo "::error::Failed to obtain a GitHub OIDC JWT"
+            exit 1
+          fi
+          echo "::add-mask::$GITHUB_JWT"
+
+          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"get-saucelabs-credentials","platform":"android"}')
+
+          # Each value is masked the moment the value is parsed, before the failure
+          # branch below can print anything. A partial response that carries only
+          # the username must not reach the log unmasked.
+          SAUCE_USERNAME=$(echo "$VENDOR_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_USERNAME" ]; then
+            echo "::add-mask::$SAUCE_USERNAME"
+          fi
+
+          SAUCE_ACCESS_KEY=$(echo "$VENDOR_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_ACCESS_KEY" ]; then
+            echo "::add-mask::$SAUCE_ACCESS_KEY"
+          fi
+
+          if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+            echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+            # Redact every key whose name contains "token" or "key". Withhold the
+            # body entirely when the body is not valid JSON, rather than printing a
+            # raw unredacted body.
+            echo "$VENDOR_RESP" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+              || echo "::error::(response withheld - not valid JSON)"
+            exit 1
+          fi
+
+          # 3. Upload. The filename is tagged with the commit SHA, so every build
+          #    lands in its own SauceLabs app group and a given run's build is
+          #    addressable without ambiguity.
+          FILENAME="twilio-voice-react-native-appium-harness-${GITHUB_SHA}.apk"
+
+          # --write-out appends the status code on its own trailing line. -f is
+          # deliberately not used, because -f discards the response body on an
+          # error, and the body is the only description of what went wrong.
+          UPLOAD_RESP=$(curl -sS \
+            -u "${SAUCE_USERNAME}:${SAUCE_ACCESS_KEY}" \
+            -F "payload=@${APK_PATH}" \
+            -F "name=${FILENAME}" \
+            --write-out '\n%{http_code}' \
+            "$SAUCE_UPLOAD_URL")
+
+          HTTP_CODE=$(echo "$UPLOAD_RESP" | tail -n 1)
+          BODY=$(echo "$UPLOAD_RESP" | sed '$d')
+
+          if [ "${HTTP_CODE:0:1}" != "2" ]; then
+            echo "::error::SauceLabs upload failed with HTTP ${HTTP_CODE}. Response body below:"
+            echo "$BODY"
+            exit 1
+          fi
+
+          FILE_ID=$(echo "$BODY" | jq -r '.item.id // empty' 2>/dev/null || true)
+          if [ -z "$FILE_ID" ]; then
+            echo "::error::SauceLabs answered ${HTTP_CODE} but the response carried no .item.id. Response body below:"
+            echo "$BODY"
+            exit 1
+          fi
+
+          # Neither value is a secret. The filename derives from the commit SHA and
+          # the file id is an opaque storage handle.
+          {
+            echo "filename=${FILENAME}"
+            echo "file_id=${FILE_ID}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### SauceLabs upload (android)"
+            echo ""
+            echo "- filename: \`${FILENAME}\`"
+            echo "- file id: \`${FILE_ID}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The runner group is self-hosted, so the workspace can outlive the job, and
+      # this job runs no checkout to clear the workspace on a later run.
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Upload the iOS harness build to SauceLabs
+  ###
+  upload-ios-saucelabs:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-ios
+    # ubuntu-x64, not macos-arm. This job posts a file that build-ios already
+    # produced, so this job needs no macOS toolchain and should not occupy a
+    # macOS runner.
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    # This job deliberately runs no actions/checkout. The job reads no file from
+    # the repository, so a checkout would only widen what the job can touch.
+    steps:
+      - name: Verify the runner has the tools this job needs
+        run: |
+          set -euo pipefail
+
+          for tool in curl jq; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::${tool} not found. This job makes its requests with curl and parses both the vendor response and the SauceLabs response with jq."
+              exit 1
+            fi
+          done
+
+      - name: Download the ios ipa
+        # TODO: replace <PLACEHOLDER_SHA> with the commit SHA for
+        # actions/download-artifact, matching how every other action in this
+        # workflow is pinned, and update the trailing version comment.
+        uses: actions/download-artifact@<PLACEHOLDER_SHA> # <PLACEHOLDER_VERSION>
+        with:
+          name: appium-harness-ios-ipa
+          path: artifact
+
+      # An empty or unexpected download should fail here with a message naming what
+      # was actually found, rather than further down inside a curl invocation whose
+      # error describes a missing file path and nothing else.
+      - name: Verify the ipa was downloaded
+        run: |
+          set -euo pipefail
+
+          # build-ios zips this exact name, and the scheme name is already
+          # hardcoded throughout build-ios. Renaming the scheme fails here rather
+          # than silently uploading whatever else landed in artifact/.
+          IPA_PATH=artifact/twiliovoicereactnativesdkappiumharness.ipa
+
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected ${IPA_PATH} from the appium-harness-ios-ipa artifact. Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          echo "IPA_PATH=${IPA_PATH}" >> "$GITHUB_ENV"
+
+      # The credential fetch and the upload share one step on purpose. The SauceLabs
+      # username and access key stay as shell locals and are never written to
+      # $GITHUB_ENV. The runner group is self-hosted, so $HOME and the workspace can
+      # outlive the job, and a value that is never written out has no cleanup step
+      # to forget.
+      - name: Fetch SauceLabs credentials and upload the ipa
+        id: upload
+        env:
+          VENDOR_URL: ${{ vars.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          # TODO: replace <PLACEHOLDER_SAUCE_LABS_URL> with the SauceLabs app
+          # storage upload endpoint.
+          SAUCE_UPLOAD_URL: <PLACEHOLDER_SAUCE_LABS_URL>
+        run: |
+          set -euo pipefail
+
+          if [ -z "$VENDOR_URL" ]; then
+            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository variable is not set."
+            exit 1
+          fi
+
+          if [ -z "$VENDOR_AUDIENCE" ]; then
+            echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."
+            exit 1
+          fi
+
+          # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+          #    --data-urlencode into the query string rather than a POST body.
+          #    Encoding the audience instead of splicing the audience into the URL
+          #    keeps the request well-formed whatever the value contains.
+          GITHUB_JWT=$(curl -sS -G \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+            | jq -r '.value')
+          if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+            echo "::error::Failed to obtain a GitHub OIDC JWT"
+            exit 1
+          fi
+          echo "::add-mask::$GITHUB_JWT"
+
+          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"get-saucelabs-credentials","platform":"ios"}')
+
+          # Each value is masked the moment the value is parsed, before the failure
+          # branch below can print anything. A partial response that carries only
+          # the username must not reach the log unmasked.
+          SAUCE_USERNAME=$(echo "$VENDOR_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_USERNAME" ]; then
+            echo "::add-mask::$SAUCE_USERNAME"
+          fi
+
+          SAUCE_ACCESS_KEY=$(echo "$VENDOR_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_ACCESS_KEY" ]; then
+            echo "::add-mask::$SAUCE_ACCESS_KEY"
+          fi
+
+          if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+            echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+            # Redact every key whose name contains "token" or "key". Withhold the
+            # body entirely when the body is not valid JSON, rather than printing a
+            # raw unredacted body.
+            echo "$VENDOR_RESP" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+              || echo "::error::(response withheld - not valid JSON)"
+            exit 1
+          fi
+
+          # 3. Upload. The filename is tagged with the commit SHA, so every build
+          #    lands in its own SauceLabs app group and a given run's build is
+          #    addressable without ambiguity.
+          FILENAME="twilio-voice-react-native-appium-harness-${GITHUB_SHA}.ipa"
+
+          # --write-out appends the status code on its own trailing line. -f is
+          # deliberately not used, because -f discards the response body on an
+          # error, and the body is the only description of what went wrong.
+          UPLOAD_RESP=$(curl -sS \
+            -u "${SAUCE_USERNAME}:${SAUCE_ACCESS_KEY}" \
+            -F "payload=@${IPA_PATH}" \
+            -F "name=${FILENAME}" \
+            --write-out '\n%{http_code}' \
+            "$SAUCE_UPLOAD_URL")
+
+          HTTP_CODE=$(echo "$UPLOAD_RESP" | tail -n 1)
+          BODY=$(echo "$UPLOAD_RESP" | sed '$d')
+
+          if [ "${HTTP_CODE:0:1}" != "2" ]; then
+            echo "::error::SauceLabs upload failed with HTTP ${HTTP_CODE}. Response body below:"
+            echo "$BODY"
+            exit 1
+          fi
+
+          FILE_ID=$(echo "$BODY" | jq -r '.item.id // empty' 2>/dev/null || true)
+          if [ -z "$FILE_ID" ]; then
+            echo "::error::SauceLabs answered ${HTTP_CODE} but the response carried no .item.id. Response body below:"
+            echo "$BODY"
+            exit 1
+          fi
+
+          # Neither value is a secret. The filename derives from the commit SHA and
+          # the file id is an opaque storage handle.
+          {
+            echo "filename=${FILENAME}"
+            echo "file_id=${FILE_ID}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### SauceLabs upload (ios)"
+            echo ""
+            echo "- filename: \`${FILENAME}\`"
+            echo "- file id: \`${FILE_ID}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The runner group is self-hosted, so the workspace can outlive the job, and
+      # this job runs no checkout to clear the workspace on a later run.
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
