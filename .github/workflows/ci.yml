@@ -63,6 +63,11 @@ jobs:
   # Build Android artifacts
   ###
   build-android:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-x64
     timeout-minutes: 60
     permissions:
@@ -147,10 +152,10 @@ jobs:
           {
             "ios": {
               "appleTeamId": "PLACEHOLDER",
-              "bundleIdentifier": "com.twilio.voice.reactnative.appiumharness"
+              "bundleIdentifier": "com.example.twilioreactnativeappiumharness"
             },
             "android": {
-              "package": "com.twilio.voice.reactnative.appiumharness"
+              "package": "com.example.twilioreactnativeappiumharness"
             }
           }
           EOF
@@ -163,7 +168,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          cat google-services.json <<EOF
+          cat > google-services.json <<EOF
           {
             "project_info": {
               "project_number": "000000000000",
@@ -208,11 +213,12 @@ jobs:
       # point of publishing it.
       - name: Assemble release APK
         working-directory: test/appium-harness/android
-        env:
-          # RN 0.83 new-arch codegen is memory-hungry, and the Expo app template's
-          # default heap is lower than what the SDK's own gradle.properties asks for.
-          GRADLE_OPTS: -Xmx4g
-        run: ./gradlew assembleRelease --no-daemon
+        # RN 0.83 new-arch codegen is memory-hungry, and the Expo app template's
+        # default heap is lower than what the SDK's own gradle.properties asks for.
+        # The heap is raised with -Dorg.gradle.jvmargs instead of GRADLE_OPTS.
+        # GRADLE_OPTS only sizes the launcher JVM, and the build itself runs in a
+        # separate JVM sized by org.gradle.jvmargs.
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
 
       - name: Upload appium harness android apk
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
@@ -239,6 +245,11 @@ jobs:
   # Build iOS artifacts
   ###
   build-ios:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
     runs-on: macos-arm
     timeout-minutes: 60
     permissions:
@@ -324,10 +335,10 @@ jobs:
           {
             "ios": {
               "appleTeamId": "PLACEHOLDER",
-              "bundleIdentifier": "com.twilio.voice.reactnative.appiumharness"
+              "bundleIdentifier": "com.example.twilioreactnativeappiumharness"
             },
             "android": {
-              "package": "com.twilio.voice.reactnative.appiumharness"
+              "package": "com.example.twilioreactnativeappiumharness"
             }
           }
           EOF
@@ -359,7 +370,7 @@ jobs:
       # The CODE_SIGN* overrides are what make this work with no certificate on the
       # runner. app.config.mjs declares aps-environment entitlements, which would
       # otherwise demand a matching provisioning profile - CODE_SIGN_ENTITLEMENTS=""
-      # is what drops them. Keep all four in sync with build-ios-harness.fish.
+      # is what drops them. Keep all four of the CODE_SIGN* overrides in sync.
       - name: Build unsigned release app
         working-directory: test/appium-harness/ios
         run: |
