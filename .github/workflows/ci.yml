@@ -1,7 +1,9 @@
 name: CI
 on:
   push:
-    branches: [main]
+    # TODO:
+    # TEMPORARY! remove task/build-appium-harness before merging this to main!
+    branches: [main, task/build-appium-harness]
   pull_request:
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
@@ -56,3 +58,376 @@ jobs:
       - name: Remove Artifactory credentials
         if: always()
         run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
+  # Build Android artifacts
+  ###
+  build-android:
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Enable Corepack so `yarn` resolves to the version pinned in package.json's
+      # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
+      # Must run before setup-node, whose `cache: yarn` step invokes yarn.
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      # JDK 17 matches what CircleCI's e2e-android job selects via the Android orb,
+      # and is what RN 0.83 / AGP 8.x expect.
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Runs before the installs, which take ~10 minutes: a runner group without an
+      # Android SDK should fail in seconds rather than at the very end. We do not
+      # provision the SDK here - if this step ever fails, the fix is to add a
+      # cmdline-tools + sdkmanager + license-acceptance step, not to weaken this check.
+      - name: Verify the runner has an Android SDK
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner (ANDROID_HOME and ANDROID_SDK_ROOT are unset or point at a missing directory). This workflow assumes the ubuntu-x64 runner group provides one; if it does not, an SDK provisioning step must be added."
+            exit 1
+          fi
+
+          for tool_dir in platform-tools cmdline-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/. The SDK install on this runner is incomplete."
+              exit 1
+            fi
+          done
+
+          # Export under the canonical name so Gradle picks it up even if only
+          # ANDROID_SDK_ROOT was set. `expo prebuild` writes local.properties itself.
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - run: yarn install --immutable
+
+      # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
+      # android/src/main/java/com/twiliovoicereactnative/CommonConstants.java - a
+      # gitignored file the SDK's Java sources import, so the Android compile fails
+      # on a fresh checkout without it. The harness depends on the SDK via
+      # `portal:../../`, and Yarn does not run a portal target's lifecycle scripts,
+      # so nothing else triggers this. CircleCI's install-dependencies does the same.
+      - run: yarn run prepare
+
+      - run: |
+          cd test/appium-harness
+          yarn install --immutable
+
+      # app.config.mjs statically imports ./secrets.json, so it cannot even be
+      # loaded without this file. These are placeholder values, not real credentials:
+      # this workflow deliberately adds no repository secrets or variables. The
+      # ios.* fields are read at config-load time even for an Android-only prebuild.
+      - name: Write placeholder secrets.json
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat > secrets.json <<EOF
+          {
+            "ios": {
+              "appleTeamId": "PLACEHOLDER",
+              "bundleIdentifier": "com.twilio.voice.reactnative.appiumharness"
+            },
+            "android": {
+              "package": "com.twilio.voice.reactnative.appiumharness"
+            }
+          }
+          EOF
+
+      # app.config.mjs references `./google-services.json`, so Expo cannot prebuild
+      # without this file. These are placeholder values, not real credentials:
+      # this workflow deliberately adds no repository secrets or variables.
+      - name: Write placeholder google-services.json
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat google-services.json <<EOF
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "placeholder-project",
+              "storage_bucket": "placeholder"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+                  "android_client_info": {
+                    "package_name": "com.example.twilioreactnativeappiumharness"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      # Generates the gitignored android/ project: gradlew, the wrapper, the debug
+      # keystore, local.properties, and the release signing config (which points at
+      # the debug keystore - that is why no signing secret is needed).
+      - name: Expo prebuild (android)
+        run: |
+          cd test/appium-harness
+          yarn run prebuild --clean --platform=android
+
+      # assembleRelease, not assembleDebug: a release build bundles the JS into the
+      # APK, so the artifact runs standalone with no Metro server. That is the whole
+      # point of publishing it.
+      - name: Assemble release APK
+        working-directory: test/appium-harness/android
+        env:
+          # RN 0.83 new-arch codegen is memory-hungry, and the Expo app template's
+          # default heap is lower than what the SDK's own gradle.properties asks for.
+          GRADLE_OPTS: -Xmx4g
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload appium harness android apk
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: appium-harness-android-apk
+          path: test/appium-harness/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # The runner group is self-hosted, so $HOME and the workspace can outlive the
+      # job. secrets.json holds only placeholders today, but clearing it keeps a
+      # future run from silently inheriting a stale one.
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/appium-harness/secrets.json \
+            test/appium-harness/google-services.json \
+            test/appium-harness/android/app/google-services.json
+
+  ###
+  # Build iOS artifacts
+  ###
+  build-ios:
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+
+      # Runs before everything else, and before the installs that take ~10 minutes:
+      # a runner group without an iOS toolchain should fail in seconds rather than
+      # at the very end. We do not provision anything here - if this step ever
+      # fails, the fix is to fix the runner image, not to weaken the check.
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found. This workflow assumes the macos-arm runner group provides Xcode; if it does not, an Xcode provisioning step must be added."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found. \`expo prebuild\` installs the harness pods and cannot do so without it."
+            exit 1
+          fi
+
+          # The artifactory-oidc action below parses its token exchange with jq and
+          # hard-fails without it. Present on GitHub-hosted macOS images, but not
+          # guaranteed on a self-hosted one.
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found. The artifactory-oidc action requires it."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the one in use -
+          # it is the first thing to check when a build starts failing for no
+          # apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      # Enable Corepack so `yarn` resolves to the version pinned in package.json's
+      # "packageManager" field (Yarn 4) instead of the runner's global Yarn 1.
+      # Must run before setup-node, whose `cache: yarn` step invokes yarn.
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      # Load-bearing, and easy to miss. `prepare` runs build:constants, which writes
+      # ios/TwilioVoiceReactNativeConstants.h - a gitignored file matched by the
+      # podspec's ios/**/*.{h,m,mm} glob and imported by the SDK's Objective-C
+      # sources, so the Xcode build fails on a fresh checkout without it. It also
+      # runs `bob build` to produce lib/, which the harness bundles. The harness
+      # depends on the SDK via `portal:../../`, and Yarn does not run a portal
+      # target's lifecycle scripts, so nothing else triggers this. CircleCI's
+      # install-dependencies does the same.
+      - run: yarn run prepare
+
+      - run: |
+          cd test/appium-harness
+          yarn install --immutable
+
+      # app.config.mjs statically imports ./secrets.json, so it cannot even be
+      # loaded without this file. These are placeholder values, not real credentials:
+      # this workflow deliberately adds no repository secrets or variables.
+      #
+      # appleTeamId is irrelevant here - every CODE_SIGN* setting is disabled in the
+      # xcodebuild step below - but the config reads it unconditionally.
+      - name: Write placeholder secrets
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat > secrets.json <<EOF
+          {
+            "ios": {
+              "appleTeamId": "PLACEHOLDER",
+              "bundleIdentifier": "com.twilio.voice.reactnative.appiumharness"
+            },
+            "android": {
+              "package": "com.twilio.voice.reactnative.appiumharness"
+            }
+          }
+          EOF
+
+      # Fake google-services.json file. Does not need to be as elaborate as the
+      # Android build pipeline.
+      - name: Write placeholder google-services.json
+        working-directory: test/appium-harness
+        run: |
+          set -euo pipefail
+
+          cat > google-services.json <<EOF
+          {}
+          EOF
+
+      # Generates the gitignored ios/ project: the Xcode project, the workspace, the
+      # Podfile, and the entitlements file. This also runs `pod install` - `expo
+      # prebuild` installs CocoaPods unless --no-install is passed, so there is no
+      # separate pod step.
+      - name: Expo prebuild (ios)
+        run: |
+          cd test/appium-harness
+          yarn run prebuild --clean --platform=ios
+
+      # -configuration Release, not Debug: a release build bundles the JS into the
+      # app, so the artifact runs standalone with no Metro server. That is the whole
+      # point of publishing it.
+      #
+      # The CODE_SIGN* overrides are what make this work with no certificate on the
+      # runner. app.config.mjs declares aps-environment entitlements, which would
+      # otherwise demand a matching provisioning profile - CODE_SIGN_ENTITLEMENTS=""
+      # is what drops them. Keep all four in sync with build-ios-harness.fish.
+      - name: Build unsigned release app
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "twiliovoicereactnativesdkappiumharness.xcworkspace" \
+            -scheme "twiliovoicereactnativesdkappiumharness" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      # `xcodebuild build` emits a .app, not a .ipa. The usual -archivePath +
+      # -exportArchive route needs an export options plist and a signing identity,
+      # so for an unsigned artifact we build the IPA layout by hand: an .ipa is
+      # just a zip with the .app under Payload/.
+      #
+      # -y preserves the symlinks inside the embedded frameworks; without it the zip
+      # inflates and the framework layout is subtly wrong.
+      - name: Package unsigned ipa
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          PRODUCTS_DIR=build/Build/Products/Release-iphoneos
+          APP_PATH="${PRODUCTS_DIR}/twiliovoicereactnativesdkappiumharness.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::xcodebuild reported success but ${APP_PATH} does not exist. Products dir contains: $(ls -1 "$PRODUCTS_DIR" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          # Sanity check the whole reason for using a Release configuration.
+          if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
+            echo "::error::${APP_PATH} has no main.jsbundle - the JS was not embedded, so this app would need a Metro server to run."
+            exit 1
+          fi
+
+          rm -rf ../ipa
+          mkdir -p ../ipa/Payload
+          cp -R "$APP_PATH" ../ipa/Payload/
+
+          cd ../ipa
+          zip -qry "twiliovoicereactnativesdkappiumharness.ipa" Payload
+          rm -rf Payload
+
+      - name: Upload appium harness ios ipa
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: appium-harness-ios-ipa
+          path: test/appium-harness/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      # The runner group is self-hosted, so $HOME and the workspace can outlive the
+      # job. secrets.json holds only placeholders today, but clearing it keeps a
+      # future run from silently inheriting a stale one.
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/appium-harness/secrets.json \
+            test/appium-harness/google-services.json \
+            test/appium-harness/android/app/google-services.json
