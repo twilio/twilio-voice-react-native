@@ -289,6 +289,17 @@ export class Voice extends EventEmitter {
   >;
 
   /**
+   * Resolves once the native layer has recorded the Expo version. Awaited by
+   * the entry points that can cause the native layer to emit an insights
+   * event, so that the version is present in that event's metadata.
+   *
+   * @privateRemarks
+   * Never rejects. Failing to record the Expo version is a telemetry concern
+   * and must never prevent a call, registration, or preflight test.
+   */
+  private _expoVersionPromise: Promise<void>;
+
+  /**
    * Main entry-point of the Voice SDK. Provides access to the entire
    * feature-set of the library.
    */
@@ -324,7 +335,9 @@ export class Voice extends EventEmitter {
       this._handleNativeEvent
     );
 
-    NativeModule.voice_setExpoVersion(getExpoVersion());
+    this._expoVersionPromise = settleNativePromise(
+      NativeModule.voice_setExpoVersion(getExpoVersion())
+    ).catch(() => undefined);
   }
 
   /**
@@ -565,6 +578,8 @@ export class Voice extends EventEmitter {
 
     validateConnectOptions({ iceServers, iceTransportPolicy });
 
+    await this._expoVersionPromise;
+
     switch (Platform.OS) {
       case 'ios':
         return this._connect_ios(
@@ -702,6 +717,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been registered.
    */
   async register(token: string): Promise<void> {
+    await this._expoVersionPromise;
     await settleNativePromise(NativeModule.voice_register(token));
   }
 
@@ -713,6 +729,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been unregistered.
    */
   async unregister(token: string): Promise<void> {
+    await this._expoVersionPromise;
     await settleNativePromise(NativeModule.voice_unregister(token));
   }
 
@@ -800,6 +817,7 @@ export class Voice extends EventEmitter {
   async initializePushRegistry(): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
+        await this._expoVersionPromise;
         await settleNativePromise(NativeModule.voice_initializePushRegistry());
         return;
       default:
@@ -958,6 +976,8 @@ export class Voice extends EventEmitter {
     if (optionValidationResult.status === 'error') {
       throw optionValidationResult.error;
     }
+
+    await this._expoVersionPromise;
 
     const preflightTestUuid = await settleNativePromise(
       NativeModule.voice_runPreflight(accessToken, options)
