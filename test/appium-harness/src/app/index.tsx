@@ -188,6 +188,7 @@ export const Application = () => {
       <Text
         testID='text_testSuiteStatus'
         accessibilityLabel='text_testSuiteStatus'
+        accessibilityValue={{ text: testStatus }}
       >
         {testStatus}
       </Text>

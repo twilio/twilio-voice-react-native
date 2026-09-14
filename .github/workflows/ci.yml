@@ -113,7 +113,7 @@ jobs:
             exit 1
           fi
 
-          for tool_dir in platform-tools cmdline-tools; do
+          for tool_dir in platforms build-tools; do
             if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
               echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/. The SDK install on this runner is incomplete."
               exit 1
@@ -515,12 +515,20 @@ jobs:
           set -euo pipefail
 
           if [ -z "$VENDOR_URL" ]; then
-            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository variable is not set."
+            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository secret is not set."
             exit 1
           fi
 
           if [ -z "$VENDOR_AUDIENCE" ]; then
             echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."
+            exit 1
+          fi
+
+          # Checked here rather than at the upload below, so an unset value fails
+          # before the credential exchange rather than after, and fails with a
+          # message that names the setting instead of curl's "no URL specified".
+          if [ -z "$SAUCE_UPLOAD_URL" ]; then
+            echo "::error::The SAUCE_UPLOAD_URL repository variable is not set."
             exit 1
           fi
 
@@ -694,12 +702,20 @@ jobs:
           set -euo pipefail
 
           if [ -z "$VENDOR_URL" ]; then
-            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository variable is not set."
+            echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository secret is not set."
             exit 1
           fi
 
           if [ -z "$VENDOR_AUDIENCE" ]; then
             echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."
+            exit 1
+          fi
+
+          # Checked here rather than at the upload below, so an unset value fails
+          # before the credential exchange rather than after, and fails with a
+          # message that names the setting instead of curl's "no URL specified".
+          if [ -z "$SAUCE_UPLOAD_URL" ]; then
+            echo "::error::The SAUCE_UPLOAD_URL repository variable is not set."
             exit 1
           fi
 
@@ -797,3 +813,397 @@ jobs:
       - name: Remove the downloaded artifact
         if: always()
         run: rm -rf artifact
+
+  ###
+  # Run the appium orchestrator against the uploaded iOS harness build
+  ###
+  e2e-ios-saucelabs:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-ios-saucelabs
+    runs-on: ubuntu-x64
+    # Thirty rather than the upload jobs' fifteen. A real device cloud run pays
+    # device allocation and app installation before the orchestrator's own 120
+    # second suite wait begins.
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    # Unlike the upload jobs, this job does check out. The orchestrator is code
+    # in this repository and this job runs the orchestrator.
+    steps:
+      - uses: actions/checkout@<TODO>
+
+      - name: Verify the runner has the tools this job needs
+        run: |
+          set -euo pipefail
+
+          for tool in curl jq; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::${tool} not found. This job makes its requests with curl and builds both orchestrator config files with jq."
+              exit 1
+            fi
+          done
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@<TODO>
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn --cwd test/appium-orchestrator install --immutable
+
+      # The credential fetch and the config write share one step on purpose. The
+      # SauceLabs service account and the access token stay as shell locals and
+      # are never written to $GITHUB_ENV. The runner group is self-hosted, so a
+      # value that is never written out has no cleanup step to forget.
+      - name: Fetch credentials and write the orchestrator config
+        env:
+          VENDOR_URL: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          SAUCE_HOSTNAME: ${{ vars.SAUCE_HOSTNAME }}
+          SAUCE_PORT: ${{ vars.SAUCE_PORT }}
+          SAUCE_BASE_URL: ${{ vars.SAUCE_BASE_URL }}
+          STORAGE_FILENAME: ${{ needs.upload-ios-saucelabs.outputs.filename }}
+        run: |
+          set -euo pipefail
+
+          # Both config files carry credentials, so they are created readable by
+          # this user only.
+          umask 077
+
+          for required in VENDOR_URL VENDOR_AUDIENCE SAUCE_HOSTNAME SAUCE_PORT SAUCE_BASE_URL STORAGE_FILENAME; do
+            if [ -z "${!required}" ]; then
+              echo "::error::${required} is not set."
+              exit 1
+            fi
+          done
+
+          # Redact every key whose name contains "token" or "key". Withhold the
+          # body entirely when the body is not valid JSON, rather than printing
+          # a raw unredacted body.
+          redact_response() {
+            echo "$1" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+              || echo "::error::(response withheld - not valid JSON)"
+          }
+
+          # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+          #    --data-urlencode into the query string rather than a POST body.
+          #    Encoding the audience instead of splicing the audience into the
+          #    URL keeps the request well-formed whatever the value contains.
+          GITHUB_JWT=$(curl -sS -G \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+            | jq -r '.value')
+          if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+            echo "::error::Failed to obtain a GitHub OIDC JWT"
+            exit 1
+          fi
+          echo "::add-mask::$GITHUB_JWT"
+
+          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          #    Each value is masked the moment the value is parsed, before the
+          #    failure branch below can print anything.
+          SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"get-saucelabs-credentials","platform":"ios"}')
+
+          SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_USERNAME" ]; then
+            echo "::add-mask::$SAUCE_USERNAME"
+          fi
+
+          SAUCE_ACCESS_KEY=$(echo "$SAUCE_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_ACCESS_KEY" ]; then
+            echo "::add-mask::$SAUCE_ACCESS_KEY"
+          fi
+
+          if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+            echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+            redact_response "$SAUCE_RESP"
+            exit 1
+          fi
+
+          # 3. Mint the access token the harness dials with. The ttl is the
+          #    vendor's 3600 second ceiling rather than the vendor's 300 second
+          #    default, which would very plausibly expire during device
+          #    allocation, before the harness ever dials. A ttl above the
+          #    ceiling is capped rather than rejected.
+          TOKEN_REQ=$(jq -nc --arg identity "ci-ios-${GITHUB_SHA}-$(date +%s%3N)" \
+            '{action: "mint-voice-token", identity: $identity, ttl: 3600}')
+
+          TOKEN_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d "$TOKEN_REQ")
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESP" | jq -r '.token // empty' 2>/dev/null || true)
+          if [ -n "$ACCESS_TOKEN" ]; then
+            echo "::add-mask::$ACCESS_TOKEN"
+          fi
+
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "::error::The credential vendor minted no access token. Redacted response below:"
+            redact_response "$TOKEN_RESP"
+            exit 1
+          fi
+
+          # 4. Write the two gitignored config files the orchestrator imports.
+          #    Both files are built with jq --arg rather than by splicing values
+          #    into a JSON literal. A credential containing a quote or a
+          #    backslash would otherwise break the file or inject sibling
+          #    fields. The port is --argjson, so a non-numeric port fails here
+          #    rather than inside WebdriverIO.
+          jq -n --arg accessToken "$ACCESS_TOKEN" \
+            '{accessToken: $accessToken}' \
+            > test/appium-orchestrator/token.json
+
+          jq -n \
+            --arg user "$SAUCE_USERNAME" \
+            --arg key "$SAUCE_ACCESS_KEY" \
+            --arg hostname "$SAUCE_HOSTNAME" \
+            --argjson port "$SAUCE_PORT" \
+            --arg baseUrl "$SAUCE_BASE_URL" \
+            --arg storageFilename "storage:filename=${STORAGE_FILENAME}" \
+            '{sauce: {user: $user, key: $key, hostname: $hostname, port: $port, baseUrl: $baseUrl, storageFilename: $storageFilename}}' \
+            > test/appium-orchestrator/secrets.json
+
+      # The orchestrator already sets a non-zero exit code on failure and
+      # already stamps sauce:job-result, so this step needs no result parsing.
+      - name: Run the orchestrator
+        working-directory: test/appium-orchestrator
+        env:
+          USE_SAUCE: "true"
+          PLATFORM: ios
+        run: node test-suites/index.mjs
+
+      - name: Report which build was exercised
+        if: always()
+        env:
+          STORAGE_FILENAME: ${{ needs.upload-ios-saucelabs.outputs.filename }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo "### SauceLabs e2e (ios)"
+            echo ""
+            echo "- app: \`${STORAGE_FILENAME}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The runner group is self-hosted, so the workspace and $HOME can outlive
+      # the job.
+      - name: Remove the generated credentials
+        if: always()
+        run: |
+          rm -f test/appium-orchestrator/secrets.json \
+                test/appium-orchestrator/token.json \
+                ~/.npmrc \
+                ~/.yarnrc.yml
+
+  ###
+  # Run the appium orchestrator against the uploaded Android harness build
+  ###
+  e2e-android-saucelabs:
+    # Allowlists event names - add any new trigger here too, such as 'schedule'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-android-saucelabs
+    runs-on: ubuntu-x64
+    # Thirty rather than the upload jobs' fifteen. A real device cloud run pays
+    # device allocation and app installation before the orchestrator's own 120
+    # second suite wait begins.
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    # Unlike the upload jobs, this job does check out. The orchestrator is code
+    # in this repository and this job runs the orchestrator.
+    steps:
+      - uses: actions/checkout@<TODO>
+
+      - name: Verify the runner has the tools this job needs
+        run: |
+          set -euo pipefail
+
+          for tool in curl jq; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::${tool} not found. This job makes its requests with curl and builds both orchestrator config files with jq."
+              exit 1
+            fi
+          done
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@<TODO>
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - run: yarn --cwd test/appium-orchestrator install --immutable
+
+      # The credential fetch and the config write share one step on purpose. The
+      # SauceLabs service account and the access token stay as shell locals and
+      # are never written to $GITHUB_ENV. The runner group is self-hosted, so a
+      # value that is never written out has no cleanup step to forget.
+      - name: Fetch credentials and write the orchestrator config
+        env:
+          VENDOR_URL: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          VENDOR_AUDIENCE: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          SAUCE_HOSTNAME: ${{ vars.SAUCE_HOSTNAME }}
+          SAUCE_PORT: ${{ vars.SAUCE_PORT }}
+          SAUCE_BASE_URL: ${{ vars.SAUCE_BASE_URL }}
+          STORAGE_FILENAME: ${{ needs.upload-android-saucelabs.outputs.filename }}
+        run: |
+          set -euo pipefail
+
+          # Both config files carry credentials, so they are created readable by
+          # this user only.
+          umask 077
+
+          for required in VENDOR_URL VENDOR_AUDIENCE SAUCE_HOSTNAME SAUCE_PORT SAUCE_BASE_URL STORAGE_FILENAME; do
+            if [ -z "${!required}" ]; then
+              echo "::error::${required} is not set."
+              exit 1
+            fi
+          done
+
+          # Redact every key whose name contains "token" or "key". Withhold the
+          # body entirely when the body is not valid JSON, rather than printing
+          # a raw unredacted body.
+          redact_response() {
+            echo "$1" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+              || echo "::error::(response withheld - not valid JSON)"
+          }
+
+          # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+          #    --data-urlencode into the query string rather than a POST body.
+          #    Encoding the audience instead of splicing the audience into the
+          #    URL keeps the request well-formed whatever the value contains.
+          GITHUB_JWT=$(curl -sS -G \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+            | jq -r '.value')
+          if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+            echo "::error::Failed to obtain a GitHub OIDC JWT"
+            exit 1
+          fi
+          echo "::add-mask::$GITHUB_JWT"
+
+          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          #    Each value is masked the moment the value is parsed, before the
+          #    failure branch below can print anything.
+          SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d '{"action":"get-saucelabs-credentials","platform":"android"}')
+
+          SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_USERNAME" ]; then
+            echo "::add-mask::$SAUCE_USERNAME"
+          fi
+
+          SAUCE_ACCESS_KEY=$(echo "$SAUCE_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+          if [ -n "$SAUCE_ACCESS_KEY" ]; then
+            echo "::add-mask::$SAUCE_ACCESS_KEY"
+          fi
+
+          if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+            echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+            redact_response "$SAUCE_RESP"
+            exit 1
+          fi
+
+          # 3. Mint the access token the harness dials with. The ttl is the
+          #    vendor's 3600 second ceiling rather than the vendor's 300 second
+          #    default, which would very plausibly expire during device
+          #    allocation, before the harness ever dials. A ttl above the
+          #    ceiling is capped rather than rejected.
+          TOKEN_REQ=$(jq -nc --arg identity "ci-android-${GITHUB_SHA}-$(date +%s%3N)" \
+            '{action: "mint-voice-token", identity: $identity, ttl: 3600}')
+
+          TOKEN_RESP=$(curl -sS "$VENDOR_URL" \
+            -H "Authorization: Bearer ${GITHUB_JWT}" \
+            -H 'Content-Type: application/json' \
+            -d "$TOKEN_REQ")
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESP" | jq -r '.token // empty' 2>/dev/null || true)
+          if [ -n "$ACCESS_TOKEN" ]; then
+            echo "::add-mask::$ACCESS_TOKEN"
+          fi
+
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "::error::The credential vendor minted no access token. Redacted response below:"
+            redact_response "$TOKEN_RESP"
+            exit 1
+          fi
+
+          # 4. Write the two gitignored config files the orchestrator imports.
+          #    Both files are built with jq --arg rather than by splicing values
+          #    into a JSON literal. A credential containing a quote or a
+          #    backslash would otherwise break the file or inject sibling
+          #    fields. The port is --argjson, so a non-numeric port fails here
+          #    rather than inside WebdriverIO.
+          jq -n --arg accessToken "$ACCESS_TOKEN" \
+            '{accessToken: $accessToken}' \
+            > test/appium-orchestrator/token.json
+
+          jq -n \
+            --arg user "$SAUCE_USERNAME" \
+            --arg key "$SAUCE_ACCESS_KEY" \
+            --arg hostname "$SAUCE_HOSTNAME" \
+            --argjson port "$SAUCE_PORT" \
+            --arg baseUrl "$SAUCE_BASE_URL" \
+            --arg storageFilename "storage:filename=${STORAGE_FILENAME}" \
+            '{sauce: {user: $user, key: $key, hostname: $hostname, port: $port, baseUrl: $baseUrl, storageFilename: $storageFilename}}' \
+            > test/appium-orchestrator/secrets.json
+
+      # The orchestrator already sets a non-zero exit code on failure and
+      # already stamps sauce:job-result, so this step needs no result parsing.
+      - name: Run the orchestrator
+        working-directory: test/appium-orchestrator
+        env:
+          USE_SAUCE: "true"
+          PLATFORM: android
+        run: node test-suites/index.mjs
+
+      - name: Report which build was exercised
+        if: always()
+        env:
+          STORAGE_FILENAME: ${{ needs.upload-android-saucelabs.outputs.filename }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo "### SauceLabs e2e (android)"
+            echo ""
+            echo "- app: \`${STORAGE_FILENAME}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The runner group is self-hosted, so the workspace and $HOME can outlive
+      # the job.
+      - name: Remove the generated credentials
+        if: always()
+        run: |
+          rm -f test/appium-orchestrator/secrets.json \
+                test/appium-orchestrator/token.json \
+                ~/.npmrc \
+                ~/.yarnrc.yml
