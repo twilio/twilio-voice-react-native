@@ -171,10 +171,10 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (NSString *)preflightStatsSampleToJsonString:(TVOPreflightStatsSample *)statsSample {
-    // The sample is nil until the preflight test generates its first one.
-    // Building the dictionary below with a nil sample raises an
-    // NSInvalidArgumentException, because `codec` and `timestamp` would both be
-    // nil values in a dictionary literal.
+    // The native layer reports "no sample yet" as an all-zero sample, not as
+    // nil, so this guard is defensive. Building the dictionary below with a nil
+    // sample would raise an NSInvalidArgumentException, because `codec` and
+    // `timestamp` would both be nil values in a dictionary literal.
     if (statsSample == nil) {
         return nil;
     }
@@ -210,7 +210,8 @@ RCT_EXPORT_METHOD(preflightTest_flushEvents:(RCTPromiseResolveBlock)resolver
 }
 
 - (NSString *)preflightReportToJsonString:(TVOPreflightReport *)report {
-    // The report is nil until one is available. Passing a nil JSON object to
+    // The native layer reports "not ready" as an all-zero report, not as nil,
+    // so this guard is defensive. Passing a nil JSON object to
     // NSJSONSerialization raises an NSInvalidArgumentException.
     if (report == nil) {
         return nil;
