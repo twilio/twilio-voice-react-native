@@ -478,7 +478,15 @@ export class CallInvite extends EventEmitter {
    * Reject a call invite. Sets the state of this call invite to
    * {@link (CallInvite:namespace).State.Rejected}.
    * @returns
+   * A `Promise` that
    *  - Resolves when the {@link (CallInvite:class)} has been rejected.
+   *  - Rejects with an {@link TwilioErrors.InvalidStateError} when this
+   *    {@link (CallInvite:class)} is not in the
+   *    {@link (CallInvite:namespace).State.Pending} state.
+   *  - Rejects with an {@link TwilioErrors.InvalidArgumentError} on Android
+   *    platforms when the native layer has no record of this
+   *    {@link (CallInvite:class)}. The native layer discards that record once
+   *    the invite is rejected or cancelled.
    */
   async reject(): Promise<void> {
     if (this._state !== CallInvite.State.Pending) {

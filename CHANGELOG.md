@@ -101,11 +101,11 @@ These three fields were misspelled. The native layer has always reported the cor
 
 ## Fixes
 
-- `CallInvite.reject` now rejects when the native layer reports an error. Previously the returned `Promise` resolved regardless of the outcome.
-
 ### Platform Specific Fixes
 
 #### Android
+
+- `CallInvite.reject` now rejects with an `InvalidArgumentError` when no record exists for the invite, which happens when the invite was already rejected or was cancelled. The native layer already reported this condition and the returned `Promise` resolved anyway.
 
 - Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
 
