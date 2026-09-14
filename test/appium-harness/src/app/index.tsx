@@ -163,6 +163,11 @@ export const Application = () => {
     testSuiteId,
   ]);
 
+  const testSuiteStatusAccessibilityValue = React.useMemo(
+    () => Platform.OS === 'ios' ? { text: testStatus } : undefined,
+    [testStatus]
+  );
+
   return (
     <SafeAreaView>
       <Text>Twilio Access Token</Text>
@@ -188,7 +193,7 @@ export const Application = () => {
       <Text
         testID='text_testSuiteStatus'
         accessibilityLabel='text_testSuiteStatus'
-        accessibilityValue={{ text: testStatus }}
+        accessibilityValue={testSuiteStatusAccessibilityValue}
       >
         {testStatus}
       </Text>
