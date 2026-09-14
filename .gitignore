@@ -41,8 +41,7 @@ test/app/android/app/google-services.json
 # Cocoapods
 #
 test/app/ios/Pods
-test/app/ios/build-device/
-test/app/ios/build-verify/
+test/app/ios/build-*/
 test/app/ios/*.xcworkspace/
 
 # node.js

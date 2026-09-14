@@ -31,12 +31,12 @@ const SUITES = [
   {
     id: 'incoming-ice-test',
     kind: 'blocked',
-    reason: 'incoming calls need a real FCM push credential; see MASTER_TEST_PLAN 9.1',
+    reason: 'incoming calls need a real FCM push credential',
   },
   {
     id: 'quality-warnings-test',
     kind: 'blocked',
-    reason: 'needs deterministic host audio input; see MASTER_TEST_PLAN 9.5',
+    reason: 'needs deterministic host audio input',
   },
   {
     id: 'incoming-call-test-manual',

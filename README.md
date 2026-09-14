@@ -48,11 +48,17 @@ Verified for 1.8.0, on Android:
 | --- | --- |
 | Expo SDK | 52, 54, 55, 56, 57 |
 | React Native, through those Expo versions | 0.76.9, 0.81.5, 0.83.10, 0.85.3, 0.86.3 |
-| React Native, bare | 0.77.0 |
-| Android API level | 24, 31, 34, 36, 37 |
+| React Native, bare | 0.83.6 |
+| Android API level | 31, 33, 34, 36, 37 |
 
-Expo 53 was not exercised. Versions outside this list are expected to work but are untested. iOS
-support is unchanged from 1.7.0 and was not re-verified for this release.
+`minSdkVersion` remains 24. Expo 53 was not exercised. Versions outside this list are expected to
+work but are untested.
+
+On iOS, 1.8.0 updates the native Twilio Voice iOS SDK and fixes three defects in audio device
+selection and `Voice.connect` error handling; see [CHANGELOG.md](./CHANGELOG.md). The Expo config
+plugin's iOS mods and outgoing calls were exercised on physical hardware. Incoming calls and
+registration were not: both need a PushKit VoIP token, which requires an `aps-environment`
+entitlement the test signing identity could not issue.
 
 The 2.x preview line is discontinued. It made Expo work by replacing the Android binding, which
 removed bare React Native support. 1.8.0 delivers the same Expo support additively, so bare

@@ -4,14 +4,25 @@
 # Registration and incoming suites are excluded: both need a PushKit VoIP token,
 # which a simulator cannot obtain. Everything else, including outgoing calls,
 # is expected to work.
+#
+# Build the app bundle first, for example:
+#
+#   xcodebuild -workspace test/appium-harness/ios/<name>.xcworkspace \
+#     -scheme <name> -configuration Debug -destination "generic/platform=iOS Simulator" \
+#     -derivedDataPath test/appium-harness/ios/build-sim
+#
+# Usage: run-e2e-ios-sim.sh [suite,suite,...]
 set -euo pipefail
 
 SUITES="${1:-}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-BUNDLE_ID="com.twilio.voicereactnative.appiumharness"
-APP="${IOS_APP:-/tmp/dd-h3/Build/Products/Debug-iphonesimulator/twiliovoicereactnativesdkappiumharness.app}"
+DERIVED="${IOS_DERIVED_DATA:-$REPO/test/appium-harness/ios/build-sim}"
+APP="${IOS_APP:-$DERIVED/Build/Products/Debug-iphonesimulator/twiliovoicereactnativesdkappiumharness.app}"
 
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode-26.6.0.app/Contents/Developer}"
+# Honour an explicit DEVELOPER_DIR, otherwise use the selected Xcode.
+export DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
+
+[ -d "$APP" ] || { echo "no app bundle at $APP" >&2; exit 2; }
 
 LOCK="/tmp/twilio-voice-e2e-ios.lock"
 if ! mkdir "$LOCK" 2>/dev/null; then
@@ -66,9 +77,9 @@ echo "    up"
 echo "--- suites ---"
 RESULTS_DIR="$REPO/test/results"; mkdir -p "$RESULTS_DIR"
 SIMLOG="$RESULTS_DIR/ios-sim-$(date +%Y%m%d-%H%M%S).log"
-# `processImagePath` matched almost nothing; the app's console output arrives
-# under the process name. Stream broadly and filter after, and also take a
-# `log show` dump at the end so a missed stream still leaves evidence.
+# The app's console output arrives under the process name rather than
+# `processImagePath`. Stream broadly and filter after, and take a `log show`
+# dump at the end so a missed stream still leaves evidence.
 xcrun simctl spawn "$SIM" log stream --level debug \
   --predicate 'process CONTAINS "appiumharness" OR senderImagePath CONTAINS "appiumharness"' \
   > "$SIMLOG" 2>&1 &
@@ -81,7 +92,7 @@ EXIT=$?
 set -e
 kill "$LOGPID" 2>/dev/null || true
 
-# Belt and braces: a retrospective dump, in case the stream captured nothing.
+# Retrospective dump, in case the stream captured nothing.
 xcrun simctl spawn "$SIM" log show --last 15m --level debug \
   --predicate 'process CONTAINS "appiumharness"' >> "$SIMLOG" 2>/dev/null || true
 

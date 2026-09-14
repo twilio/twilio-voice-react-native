@@ -47,21 +47,19 @@ const BLOCKED_BY_ENVIRONMENT: { pattern: RegExp; reason: string }[] = [
     pattern: /FIS_AUTH_ERROR/,
     reason:
       'google-services.json is a placeholder or its package does not match ' +
-      'the applicationId; see MASTER_TEST_PLAN 9.1',
+      'the applicationId',
   },
   {
-    // Google Play Services on the device could not reach FCM. Seen on the API
-    // 37 emulator image while API 31, 34 and 36 succeed against the same
-    // Firebase project, so it is the image rather than the configuration.
+    // Google Play Services on the device could not reach FCM. Emulator images
+    // without a working Play Services install hit this while a device with one
+    // succeeds against the same Firebase project.
     pattern: /SERVICE_NOT_AVAILABLE/,
-    reason:
-      'Google Play Services on this device could not reach FCM; see ' +
-      'MASTER_TEST_PLAN 9.1',
+    reason: 'Google Play Services on this device could not reach FCM',
   },
   {
     // Any other failure to obtain an FCM token.
     pattern: /Fetching FCM registration token failed/,
-    reason: 'could not obtain an FCM token; see MASTER_TEST_PLAN 9.1',
+    reason: 'could not obtain an FCM token',
   },
 ];
 

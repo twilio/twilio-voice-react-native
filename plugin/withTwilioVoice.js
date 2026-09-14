@@ -185,7 +185,8 @@ function conflictMessage(method, proxy = 'voiceActivityProxy') {
     '',
     `    ${proxy}.${method}(${arg})`,
     '',
-    'See docs/expo/app-config.md for the full manual wiring.',
+    'Full manual wiring: https://github.com/twilio/twilio-voice-react-native' +
+      '/blob/latest/docs/expo/app-config.md',
   ].join('\n');
 }
 

@@ -84,6 +84,20 @@ removed bare React Native support. Those preview versions are discontinued.
 
 - Fixed `PreflightTest` rejection paths.
 
+- Fixed `Voice.connect` never settling when CallKit rejected the start-call
+  transaction, for example while another call was already active. The promise
+  stayed pending for the lifetime of the application, so the caller saw a hang
+  rather than an error. It now rejects with the reason CallKit reported.
+
+- Fixed `AudioDevice.uuid` changing whenever the available audio devices were
+  re-evaluated, the same defect fixed on Android above. A device now keeps its
+  `uuid` for as long as it remains available.
+
+- Fixed the speaker output override never being cleared. After the speaker had
+  been selected once, selecting any other device moved only the input, so audio
+  kept playing out of the speaker and `getAudioDevices` correctly reported
+  `Speaker` as the active route.
+
 ## Migrating from 2.0.0-preview.x
 
 - Reinstall from npm as `@twilio/voice-react-native-sdk@1.8.0`. The version

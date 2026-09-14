@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # Mint the short-lived credentials every e2e run needs.
 #
-# Extracted so the Android and iOS runners cannot drift. They did: the Android
-# runner minted TURN credentials and the iOS runners did not, so iOS ran the
-# ice-test valid-* variants against whatever a previous Android run had left
-# behind. Those carry a one hour TTL, so after an hour they fail rather than
-# skip, which reads as an SDK fault.
+# Shared by every runner so they cannot drift. A runner that does not mint TURN
+# credentials leaves the ice-test valid-* variants running against whatever a
+# previous run left behind. Those carry a one hour TTL, so they fail rather than
+# skip once expired, which reads as an SDK fault.
 #
 # Usage: mint-e2e-credentials.sh <repo-root>
 set -uo pipefail

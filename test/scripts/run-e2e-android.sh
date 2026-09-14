@@ -3,8 +3,8 @@
 #
 # Sequence matters. The harness is a debug build with no embedded JS bundle, so
 # Metro must be serving the harness project and reachable from the device before
-# the app is launched. Getting this wrong produces a 2-of-3 marker failure that
-# looks exactly like a product regression; see MASTER_TEST_PLAN section 10.
+# the app is launched. Getting this wrong produces a partial marker failure that
+# looks exactly like a product regression.
 #
 # Usage: run-e2e-android.sh <avd> [suite,suite,...]
 set -euo pipefail
@@ -15,8 +15,8 @@ SUITES="${2:-}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Only one run at a time. Cleanup kills Metro and Appium by pattern, to clear
-# strays from a previous run, so two concurrent runs kill each other's servers.
-# That presented as a mid-run ECONNREFUSED and cost a debugging cycle.
+# strays from a previous run, so two concurrent runs would kill each other's
+# servers and present as a mid-run ECONNREFUSED.
 # macOS has no flock(1); mkdir is atomic and portable.
 LOCK="/tmp/twilio-voice-e2e-android.lock"
 if ! mkdir "$LOCK" 2>/dev/null; then
@@ -29,10 +29,10 @@ if ! mkdir "$LOCK" 2>/dev/null; then
   mkdir "$LOCK"
 fi
 echo $$ > "$LOCK/pid"
-SDK="$HOME/Library/Android/sdk"
+SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
 ADB="$SDK/platform-tools/adb"
 EMULATOR="$SDK/emulator/emulator"
-APP_PACKAGE="com.twilio.voicereactnative.appiumharness"
+[ -x "$ADB" ] || { echo "no adb at $ADB; set ANDROID_HOME" >&2; exit 2; }
 # Which app hosts the suites. Defaults to the Expo harness; E2E_APK and
 # E2E_METRO_DIR point the same runner at the bare app, whose native project
 # builds the harness entry via -PentryFile=index.harness.js.
@@ -40,7 +40,12 @@ APK="${E2E_APK:-$REPO/test/appium-harness/android/app/build/outputs/apk/debug/ap
 METRO_DIR="${E2E_METRO_DIR:-$REPO/test/appium-harness}"
 METRO_CMD="${E2E_METRO_CMD:-npx expo start --port 8081}"
 
-export JAVA_HOME="$(brew --prefix openjdk@17)"
+# Gradle needs a JDK 17. Honour an existing JAVA_HOME, otherwise try Homebrew.
+if [ -z "${JAVA_HOME:-}" ] && command -v brew >/dev/null 2>&1; then
+  JAVA_HOME="$(brew --prefix openjdk@17 2>/dev/null || true)"
+fi
+[ -n "${JAVA_HOME:-}" ] || { echo "set JAVA_HOME to a JDK 17" >&2; exit 2; }
+export JAVA_HOME
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cleanup() {
@@ -48,8 +53,8 @@ cleanup() {
   rm -rf "$LOCK"
   # Metro and Appium are npx wrappers, so the real node process is a child and
   # has to be killed too. Kill the child then the wrapper, never the process
-  # group: these run in the caller's group, so a group kill also killed the
-  # loop driving the matrix, which stopped it dead after exactly one AVD.
+  # group: these run in the caller's group, so a group kill also takes out any
+  # loop driving the matrix.
   for pid in "${METRO_PID:-}" "${APPIUM_PID:-}"; do
     [ -z "$pid" ] && continue
     pkill -P "$pid" 2>/dev/null || true

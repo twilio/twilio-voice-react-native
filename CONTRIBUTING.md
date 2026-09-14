@@ -14,37 +14,43 @@ yarn
 
 > While it's possible to use [`npm`](https://github.com/npm/cli), the tooling is built around [`yarn`](https://classic.yarnpkg.com/), so you'll have an easier time if you use `yarn` for development.
 
-While developing, you can run the [example app](/example/) to test your changes. Any changes you make in your library's JavaScript code will be reflected in the example app without a rebuild. If you change any native code, then you'll need to rebuild the example app.
+While developing, you can run one of the [test applications](test/) to try your changes. Any
+change to the library's JavaScript is picked up by Metro without a rebuild. Native changes need
+a rebuild.
 
-To start the packager:
+Install the test applications' dependencies first:
 
 ```sh
-yarn example start
+yarn bootstrap
 ```
 
-To run the example app on Android:
+Then run one of them from its own directory:
 
 ```sh
-yarn example android
+cd test/app     # framework-less React Native
+yarn start      # Metro
+yarn android
+yarn ios
 ```
 
-To run the example app on iOS:
-
 ```sh
-yarn example ios
+cd test/expo    # Expo
+yarn start      # Metro
+yarn android
+yarn ios
 ```
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh
-yarn typescript
-yarn lint
+yarn check:type
+yarn check:lint
 ```
 
 To fix formatting errors, run the following:
 
 ```sh
-yarn lint --fix
+yarn check:lint --fix
 ```
 
 Remember to add tests for your change if possible. Run the unit tests by:
@@ -53,13 +59,14 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/TwilioVoiceReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > twilio-voice-react-native`.
+`yarn check` runs the whole gate in order: constants, errors, docs, API report, linking,
+types, lint and tests with coverage. Run it before opening a pull request.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `twiliovoicereactnative` under `Android`.
+To edit the Objective-C files, open `test/app/ios/TwilioVoiceExampleNewArch.xcworkspace` in
+Xcode and find the source files at `Pods > Development Pods > twilio-voice-react-native`.
 
-> Note: the `example/` paths and `yarn example *` scripts above are stale. The test
-> applications live in `test/app` (framework-less React Native) and `test/expo` (Expo). The
-> equivalent scripts are `yarn app` and the per-app scripts in each app's `package.json`.
+To edit the Java files, open `test/app/android` in Android Studio and find the source files at
+`twiliovoicereactnative` under `Android`.
 
 ### Working with the test applications
 
@@ -168,13 +175,15 @@ yarn release
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn bootstrap`: setup project by installing all dependencies and pods.
-- `yarn typescript`: type-check files with TypeScript.
-- `yarn lint`: lint files with ESLint.
+- `yarn bootstrap`: install all dependencies, in the library and in every test application, and install pods.
+- `yarn check`: run the full gate (constants, errors, docs, API report, linking, types, lint, tests with coverage).
+- `yarn check:type`: type-check the library with TypeScript.
+- `yarn check:type:apps`: type-check the test applications.
+- `yarn check:lint`: lint files with ESLint.
+- `yarn check:linking`: verify the package still autolinks in a framework-less React Native app.
 - `yarn test`: run unit tests with Jest.
-- `yarn example start`: start the Metro server for the example app.
-- `yarn example android`: run the example app on Android.
-- `yarn example ios`: run the example app on iOS.
+- `yarn build:docs`: regenerate the API report and the Markdown API reference under `docs/api`.
+- `yarn app`: run the full gate, then install dependencies for `test/app`.
 
 ### Sending a pull request
 

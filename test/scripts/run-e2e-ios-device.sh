@@ -2,17 +2,30 @@
 # Run the Appium suites against a physical iOS device.
 #
 # The app is built Release, so no Metro is required; the JavaScript bundle is
-# embedded. Registration and incoming suites still need a PushKit VoIP token,
-# which needs an `aps-environment` entitlement a Personal Team cannot sign, so
-# those remain excluded until the build is signed by an organisation team.
+# embedded. Registration and incoming suites need a PushKit VoIP token, which
+# needs an `aps-environment` entitlement. A signing team that cannot issue that
+# entitlement has to strip it, and those suites are then unrunnable.
+#
+# Xcode's CoreDevice requires iOS 17 or later for on-device XCUITest. Older
+# devices install and launch but cannot be driven by Appium.
+#
+# Build the app bundle first, for example:
+#
+#   xcodebuild -workspace test/appium-harness/ios/<name>.xcworkspace \
+#     -scheme <name> -configuration Release -destination "id=$IOS_UDID" \
+#     -derivedDataPath test/appium-harness/ios/build-device
+#
+# Usage: IOS_UDID=<udid> run-e2e-ios-device.sh [suite,suite,...]
 set -euo pipefail
 
 SUITES="${1:-}"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-UDID="${IOS_UDID:-0c11f94b4df2aa068fdd699ca83e4212dacf2be0}"
-APP="${IOS_APP:-$REPO/test/appium-harness/ios/build-device/Build/Products/Release-iphoneos/twiliovoicereactnativesdkappiumharness.app}"
+UDID="${IOS_UDID:?set IOS_UDID to the target device UDID (xcrun xctrace list devices)}"
+DERIVED="${IOS_DERIVED_DATA:-$REPO/test/appium-harness/ios/build-device}"
+APP="${IOS_APP:-$DERIVED/Build/Products/Release-iphoneos/twiliovoicereactnativesdkappiumharness.app}"
 
-export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode-26.6.0.app/Contents/Developer}"
+# Honour an explicit DEVELOPER_DIR, otherwise use the selected Xcode.
+export DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
 
 [ -d "$APP" ] || { echo "no app bundle at $APP" >&2; exit 2; }
 
