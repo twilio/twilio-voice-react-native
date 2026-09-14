@@ -6,10 +6,22 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise';
 
 type CallEvent = { eventName: Call.Event; args: any[] };
 
-// TODO: VBLOCKS-7138
-// Add a timeout race for this one. The default TwiML that this suite expects
-// the other end to hangup eventually, but this is not necessarily true and
-// should time out if that is not the case.
+/**
+ * Places one outgoing call and waits for the far end to end it.
+ *
+ * `perform` resolves only once the call has settled, which every other suite
+ * here also does. That contract is what lets `unattended-all` run suites back
+ * to back: the runner treats a resolved `perform` as the suite being finished,
+ * so a suite that resolved while still working would have its result read too
+ * early and would leave a live call running into the next suite.
+ *
+ * This suite has no timeout of its own. It expects the default TwiML to hang
+ * up eventually, which is not guaranteed. Run under `unattended-all` the
+ * runner's per-suite timeout bounds it; run on its own it can wait forever.
+ *
+ * TODO: VBLOCKS-7138 - give this suite its own timeout so a single-suite run
+ * is bounded too.
+ */
 export const useOutgoingCallTest: UseTestSuite = (
   token,
   { voice },
@@ -51,6 +63,15 @@ export const useOutgoingCallTest: UseTestSuite = (
 
     let settled = false;
 
+    // The definite-assignment assertion is load-bearing: a Promise executor
+    // runs synchronously, so `resolveSettled` is assigned before anything can
+    // read it, but TypeScript does not track assignments made inside a
+    // callback.
+    let resolveSettled!: () => void;
+    const settledPromise = new Promise<void>((resolve) => {
+      resolveSettled = resolve;
+    });
+
     const settle = (outcome: 'passed' | 'failed', note?: string) => {
       if (settled) {
         return;
@@ -67,6 +88,7 @@ export const useOutgoingCallTest: UseTestSuite = (
       );
 
       setTestStatus(failed === 0 ? 'success' : 'failure');
+      resolveSettled();
     };
 
     call.on(Call.Event.ConnectFailure, (error) => {
@@ -81,6 +103,9 @@ export const useOutgoingCallTest: UseTestSuite = (
       settle('passed');
     });
 
+    // Held open until the call settles, so that resolving `perform` means the
+    // suite is finished rather than only that its listeners are bound.
+    await settledPromise;
   }, [voice, log, token, setTestStatus]);
 
   return { perform };

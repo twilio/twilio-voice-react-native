@@ -183,7 +183,7 @@ const assertErrorContract = (
  * The disconnect on the unexpected-resolution path matters: if validation ever
  * lets one of these through, the step would not only fail, it would leave a live
  * call running through every step that follows - and later steps here, in
- * `voice-api-test`, and in `connect-options-test` assert that no call is up.
+ * `voice-api`, and in `connect-options` assert that no call is up.
  * Cleaning up means a validation regression fails one step instead of
  * cascading.
  */
@@ -380,7 +380,7 @@ const STEPS: Array<Step<Context>> = [
     run: async ({ voice }, log) => {
       // Note that this is an outgoing call, so `connect` resolves before the
       // outcome is known - the refusal arrives later as an event. See the
-      // comment at the top of `incoming-ice-test.ts` for why the accept side
+      // comment at the top of `incoming-ice.ts` for why the accept side
       // behaves differently.
       const connectResult = await safelySettlePromise(
         voice.connect(MALFORMED_TOKEN),

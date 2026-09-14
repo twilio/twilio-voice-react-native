@@ -31,9 +31,9 @@ export namespace RTCStats {
     relayProtocol: string;
     remoteCandidateId: string;
     remoteCandidateIp: string;
-    requestsReceieved: number;
+    requestsReceived: number;
     requestsSent: number;
-    responsesRecieved: number;
+    responsesReceived: number;
     responsesSent: number;
     retransmissionsReceived: number;
     retransmissionsSent: number;
@@ -75,7 +75,7 @@ export namespace RTCStats {
   }
 
   export interface RemoteTrackStats extends BaseTrackStats {
-    bytesRecieved: number;
+    bytesReceived: number;
     packetsReceived: number;
   }
 

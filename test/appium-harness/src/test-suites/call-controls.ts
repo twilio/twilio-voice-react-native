@@ -50,27 +50,6 @@ const CONTROL_SETTLE_DELAY_MS = 1_000;
 const DTMF_DIGITS = '1234567890*#';
 
 /**
- * Shape of one entry of the `call.getStats()` payload.
- *
- * `getStats()` is typed as resolving with a single `RTCStats.StatsReport`, but
- * both native layers resolve with an *array*, one per peer connection. This
- * asserts what is actually returned.
- *
- * Top level only, and not exhaustively - the nested records may gain fields.
- * `test/app/e2e/common/rtcStatsValidators.ts` covers those in depth.
- *
- * TODO: VBLOCKS-7113 - correct the declared return type to `StatsReport[]` and
- * drop the cast in the `get-stats` step.
- */
-const STATS_REPORT_TYPES = {
-  iceCandidatePairStats: 'array',
-  iceCandidateStats: 'array',
-  localAudioTrackStats: 'array',
-  peerConnectionId: 'string',
-  remoteAudioTrackStats: 'array',
-} as const;
-
-/**
  * Steps run in order against a single connected call.
  */
 const STEPS: Array<Step<Call>> = [
@@ -147,26 +126,16 @@ const STEPS: Array<Step<Call>> = [
   },
   {
     name: 'get-stats',
-    description:
-      'getStats resolves with WebRTC stats reports for the ongoing call',
+    // Smoke check only. `rtc-stats` asserts the report contents.
+    description: 'getStats resolves with a non-empty array of reports',
     run: async (call) => {
-      const stats = await call.getStats();
-
-      // See the note on STATS_REPORT_TYPES: the runtime payload is an array,
-      // whereas the declared return type is a single report.
-      const reports = stats as unknown as unknown[];
+      const reports = await call.getStats();
 
       expect(reports, 'call.getStats()').toBeTypeOf('array');
       expect(
         reports.length > 0,
         'call.getStats() returned at least one report'
       ).toBe(true);
-
-      reports.forEach((report, index) => {
-        expect(report, `call.getStats()[${index}]`).toMatchRecordTypes(
-          STATS_REPORT_TYPES
-        );
-      });
     },
   },
   {

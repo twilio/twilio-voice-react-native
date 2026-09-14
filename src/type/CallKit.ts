@@ -35,7 +35,7 @@ export namespace CallKit {
      * Supported handle types.
      *
      * @remarks
-     * See {@link CallKit.HandleType}.
+     * Pass members of {@link CallKit.HandleType} rather than numbers.
      */
     callKitSupportedHandleTypes: HandleType[];
   };
@@ -43,6 +43,10 @@ export namespace CallKit {
   /**
    * @public
    * Enumeration of all supported handle types by iOS CallKit.
+   *
+   * @remarks
+   * Always pass a member of `CallKit.HandleType`. The numeric value behind each
+   * member is not part of the API of this SDK and can change.
    */
   export enum HandleType {
     /**

@@ -31,9 +31,11 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise';
  * 3. `stop()`, which ends a second, separate run early and should surface as a
  *    `Failed` event and a `Failed` state.
  *
- * Note that this suite needs an access token with preflight grants, which is
- * not necessarily the token the call suites use - see
- * `getPreflightTestToken` in `src/utilities/token/get-token.ts`.
+ * Note that this suite needs an access token with a PreflightTest TwiML app.
+ * There is no separate preflight token module. This suite uses the same
+ * `getToken()` from `src/utilities/token/get-token.ts` that every other suite
+ * uses. It suffices (currently) that all test suites use a token that is wired
+ * to a PreflightTest TwiML app.
  */
 
 /**
@@ -74,7 +76,7 @@ const BOGUS_ICE_SERVER = {
 
 /**
  * Options that JS validation should refuse, before `runPreflight` ever reaches
- * native. Mirrors the `invalid-*` variants of `ice-test.ts`, extended with the
+ * native. Mirrors the `invalid-*` variants of `outgoing-ice.ts`, extended with the
  * `preferredAudioCodecs` validation that is unique to preflight options.
  */
 const INVALID_OPTIONS = {
@@ -138,7 +140,7 @@ const VALID_OPTIONS: PreflightTest.Options = {
  * per-warning records are covered in depth by the detox suite at
  * `test/app/e2e/suites/preflightTest.test.ts`.
  */
-const REPORT_TYPES = {
+export const REPORT_TYPES = {
   callSid: 'string',
   edge: 'string',
   iceCandidateStats: 'array',
@@ -156,7 +158,7 @@ const REPORT_TYPES = {
  * Fields of an `RTCSample`, as carried by `PreflightTest.Event.Sample` and
  * returned by `getLatestSample()`.
  */
-const SAMPLE_TYPES = {
+export const SAMPLE_TYPES = {
   audioInputLevel: 'number',
   audioOutputLevel: 'number',
   bytesReceived: 'number',
@@ -480,10 +482,11 @@ const runSuccessfulRunPhase = async (
 
   await step('get-report-after-completed', async () => {
     const report = await preflightTest.getReport();
+    // `getReport` resolves with an all-zero report until the PreflightTest
+    // completes, so a real `callSid` here is what distinguishes a completed
+    // report from that placeholder.
     assertReport(report);
-    expect(report.callSid, 'getReport().callSid').toBe(
-      terminal.report.callSid,
-    );
+    expect(report.callSid, 'getReport().callSid').toBe(terminal.report.callSid);
   });
 
   await step('get-state-after-completed', async () => {
@@ -495,9 +498,13 @@ const runSuccessfulRunPhase = async (
   await step('get-end-time-after-completed', async () => {
     const endTime = await preflightTest.getEndTime();
     const startTime = await preflightTest.getStartTime();
+    // `getEndTime` resolves with `undefined` until the PreflightTest ends, so a
+    // completed PreflightTest returning a defined end time is itself an
+    // assertion this suite makes.
+    expect(endTime, 'getEndTime()').toBeDefined();
     expect(endTime, 'getEndTime()').toBeTypeOf('number');
     expect(
-      endTime >= startTime,
+      endTime! >= startTime,
       'getEndTime() is at or after getStartTime()',
     ).toBe(true);
   });

@@ -6,7 +6,7 @@ device. Each suite is a hook under `test/appium-harness/src/test-suites`.
 ## Before you start
 
 Use a physical device. The incoming call suites depend on the system call UI,
-and `quality-warnings-test` depends on the audio the host feeds the device.
+and `quality-warnings` depends on the audio the host feeds the device.
 
 Set `DO_CONSOLE_LOG` to `true` in `src/hooks/useLogging.ts`. That flag gates the
 only `console.log` in the logger, and it is `false` by default. With it left
@@ -20,9 +20,9 @@ exist in a fresh clone.
 
 | Module | Export | Used by |
 | --- | --- | --- |
-| `e2e-token.ios.ts` | `token` | Every suite, on iOS |
-| `e2e-token.android.ts` | `token` | Every suite, on Android |
-| `e2e-tests-ice-server.ts` | `iceServer` | The `valid-*` variants of `ice-test` and `incoming-ice-test` |
+| `e2e-tests-token.ios.ts` | `token` | Every suite, on iOS |
+| `e2e-tests-token.android.ts` | `token` | Every suite, on Android |
+| `e2e-tests-ice-server.ts` | `iceServer` | The `valid-*` variants of `outgoing-ice` and `incoming-ice` |
 
 Metro resolves the platform suffix, so only the token module for the platform
 you are testing has to be present.
@@ -38,27 +38,39 @@ carries `No bundled ICE server`.
 
 ## The suites
 
-Run these in order. The unattended suites come first, and the two suites that
-need inbound calls come last.
+Run these in order. The unattended suites come first, and the attended suites,
+which need you to place inbound calls or handle a headset, come last.
 
 | Order | Suite ID | What it needs from you |
 | --- | --- | --- |
-| 1 | `preflight-test` | Nothing |
-| 2 | `registration-test` | Nothing |
-| 3 | `voice-api-test` | Nothing |
-| 4 | `errors-test` | Nothing |
-| 5 | `outgoing-call-test` | Nothing |
-| 6 | `connect-options-test` | Nothing |
-| 7 | `call-controls-test` | Nothing |
-| 8 | `call-message-test` | Nothing |
-| 9 | `ice-test` | ICE credentials, for the `valid-*` variants |
-| 10 | `quality-warnings-test` | A host whose audio input is unchanging |
-| 11 | `incoming-ice-test` | Four inbound calls, one per variant |
-| 12 | `incoming-call-test-manual` | Nine inbound calls, each driven through the system call UI |
+| 1 | `voice-api` | Nothing |
+| 2 | `errors` | Nothing |
+| 3 | `registration` | Nothing |
+| 4 | `outgoing-call` | Nothing |
+| 5 | `call-controls` | Nothing |
+| 6 | `rtc-stats` | Nothing |
+| 7 | `call-message` | Nothing |
+| 8 | `quality-warnings` | A host whose audio input is unchanging |
+| 9 | `connect-options` | Nothing |
+| 10 | `outgoing-ice` | ICE credentials, for the `valid-*` variants |
+| 11 | `preflight-test-early-state` | Nothing |
+| 12 | `preflight-test` | Nothing |
+| 13 | `audio-device` | A wired headset, plugged in and unplugged when prompted |
+| 14 | `call-invite-reject` | Two inbound calls, placed when prompted |
+| 15 | `incoming-ice` | Four inbound calls, one per variant |
+| 16 | `incoming-call-manual` | Nine inbound calls, each driven through the system call UI |
 
-Keep a checklist of the suite IDs for the platform you are testing and tick each
-one off as it finishes. A full pass is long enough that it is easy to lose track
-of which suite produced which log.
+Two composite suites run these for you in exactly this order, which is the
+easier way to do a full pass. `unattended-all` runs entries 1 through 12 with no
+interaction at all. `attended-all` runs entries 13 through 16 and prompts you
+for each action. Their membership and ordering live in
+`src/test-suites/unattended-all.ts` and `src/test-suites/attended-all.ts`, which
+are the source of truth for this table.
+
+If you run the suites individually instead, keep a checklist of the suite IDs
+for the platform you are testing and tick each one off as it finishes. A full
+pass is long enough that it is easy to lose track of which suite produced which
+log.
 
 ## Running one suite
 
@@ -113,11 +125,15 @@ Keep the far end on the line long enough for the suite to accept. A far end that
 hangs up too early fails the variant waiting to accept, and one that never hangs
 up fails the variants expecting a remote disconnect.
 
-`incoming-ice-test` waits up to 60 seconds per variant and has four variants.
+`incoming-ice` waits up to 60 seconds per variant. It defines six variants,
+but two are iOS-only and two are Android-only (each ICE combo expected to
+fail has one variant per platform, since the two platforms settle a bad ICE
+combo through different signals), so any single run needs four calls: the
+platform-independent two, plus whichever platform-specific pair applies.
 The suite accepts and disconnects the call itself, so only place the call. Do
 not touch the system call UI during this suite.
 
-`incoming-call-test-manual` waits up to 120 seconds per action and has nine
+`incoming-call-manual` waits up to 120 seconds per action and has nine
 variants. This is the suite that needs you to drive the system call UI, which is
 the CallKit screen on iOS and the notification on Android.
 
@@ -147,11 +163,11 @@ recorded failure carries a note describing what was expected and what happened.
 Three outcomes are not regressions.
 
 A step recorded as `skipped` did not run. The `valid-*` ICE variants skip when
-no ICE credentials are bundled. The `disconnect` step of `call-controls-test`
+no ICE credentials are bundled. The `disconnect` step of `call-controls`
 skips when the far end ended the call before teardown, which means
 `disconnect()` was never exercised on that run.
 
-A `quality-warnings-test` failure depends on the host. The suite waits for
+A `quality-warnings` failure depends on the host. The suite waits for
 `constant-audio-input-level`, which the SDK raises when the audio input level is
 unchanged for ten seconds on an unmuted call. The condition is unchanged rather
 than quiet, so digital silence is the deterministic case, and a real microphone

@@ -105,7 +105,7 @@ Appium/Webdriverio orchestrator.
 
 Test Suite behavior is defined client-side, meaning the test code and
 functionality exists in this codebase. The orchestrator simply requests from
-the app to start a test, i.e. "outgoing-call-test", and waits for the result
+the app to start a test, i.e. "outgoing-call", and waits for the result
 from the Test Harness app.
 
 ```
@@ -118,7 +118,7 @@ from the Test Harness app.
 |  |                   (WebdriverIO / Node)                  |  |
 |  |                                                         |  |
 |  |  it("outgoing call", async () => {                      |  |
-|  |    await sendCommand("outgoing-call-test")              |  |
+|  |    await sendCommand("outgoing-call")                   |  |
 |  |    await waitForResult()                                |  |
 |  |  });                                                    |  |
 |  +---------------------------------------------------------+  |
@@ -142,7 +142,7 @@ from the Test Harness app.
 |                         TEST HARNESS                          |
 |                     (Expo / React Native)                     |
 |                                                               |
-|  receives command string e.g. "outgoing-call-test"            |
+|  receives command string e.g. "outgoing-call"                 |
 |                              |                                |
 |                              v                                |
 |  +---------------------------------------------------------+  |

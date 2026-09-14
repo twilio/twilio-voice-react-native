@@ -20,22 +20,22 @@ const CALL_INVITE_ACCEPT_REJECTED = 'call-invite-accept-rejected';
 const CALL_DISCONNECTED_WITHOUT_ERROR = 'call-disconnected-without-error';
 
 /**
- * TODO: Android behavior diverges from iOS. Instead of rejecting the
- * `callInvite.accept` promise, Android will instead emit a `Connected` event
- * and then emit a `ConnectFailure` event. Address this difference in
- * VBLOCKS-7047.
+ * `callInvite.accept()` resolved, the call connected, and it later raised
+ * `Call.Event.ConnectFailure` rather than disconnecting cleanly.
  *
- * The call was established and raised a ConnectFailure event.
+ * This is Android's actual behavior for a bad ICE combo, confirmed on-device,
+ * and is why this suite carries separate `-ios` and `-android` variants for
+ * every ICE combo that fails: see the docblock below.
  */
-// const CALL_CONNECT_FAILURE = 'call-connect-failure-event-raised';
+const CALL_CONNECT_FAILURE = 'call-connect-failure-event-raised';
 
 /**
  * What a variant is expected to settle on.
  *
- * Unlike `ice-test.ts` (outgoing calls, where `voice.connect()` resolves
- * before any ICE outcome is known and `Call.Event.Connected` /
- * `ConnectFailure` fire afterward and are reliably observed), on the accept
- * side the *promise itself* is the connect/fail signal:
+ * On the accept side, unlike `outgoing-ice.ts` (outgoing calls, where
+ * `voice.connect()` resolves before any ICE outcome is known and
+ * `Call.Event.Connected` / `ConnectFailure` fire afterward and are reliably
+ * observed), iOS's *promise itself* is the connect/fail signal:
  *
  * - `answerCallInvite:completion:`'s callback
  *   (`ios/TwilioVoiceReactNative+CallKit.m:115-141`) is only invoked from
@@ -55,18 +55,36 @@ const CALL_DISCONNECTED_WITHOUT_ERROR = 'call-disconnected-without-error';
  *   observed). Instead `call:didFailToConnectWithError:` fires and rejects
  *   the promise directly; the `Call` object never reaches JS.
  *
- * So there is nothing to gain from racing `Connected` / `ConnectFailure` here
- * - only `Disconnected`, and only after a successful `accept()`, is ever
- * observable.
+ * On iOS, then, there is nothing to gain from racing `Connected` /
+ * `ConnectFailure` for a rejected accept - only `Disconnected`, and only
+ * after a successful `accept()`, is ever observable there.
+ *
+ * Android diverges from this, confirmed on-device rather than assumed:
+ * `accept()` resolves even for a bad ICE combo, the call connects, and only
+ * afterward does `Call.Event.ConnectFailure` fire instead of a clean
+ * `Disconnected`. Tracked as VBLOCKS-7047. Because the two platforms settle a
+ * failing ICE combo through genuinely different signals - a rejected promise
+ * on iOS, a later event on Android - a single variant cannot correctly assert
+ * both. Each ICE combo that is expected to fail is therefore split into an
+ * `-ios` variant, expecting `CALL_INVITE_ACCEPT_REJECTED`, and an `-android`
+ * variant, expecting `CALL_CONNECT_FAILURE`, each restricted to its platform
+ * via `TestVariant.platforms`.
  */
 type Expectation =
   | typeof CALL_INVITE_ACCEPT_REJECTED
-  | typeof CALL_DISCONNECTED_WITHOUT_ERROR;
+  | typeof CALL_DISCONNECTED_WITHOUT_ERROR
+  | typeof CALL_CONNECT_FAILURE;
 
 type TestVariant = {
   description: string;
   options: CallInvite.AcceptOptions;
   expectation: Expectation;
+  /**
+   * Restricts this variant to the named platforms. Omit to run on both.
+   * A variant excluded this way is reported as `skipped`, not silently
+   * absent, so the suite's summary still accounts for it.
+   */
+  platforms?: Array<typeof Platform.OS>;
 };
 
 const BOGUS_ICE_SERVER = {
@@ -97,17 +115,22 @@ const HAS_VALID_ICE_SERVER =
 const WAIT_FOR_CALL_INVITE_TIMEOUT_MS = 60_000;
 
 /**
- * How long to wait for `callInvite.accept()` to settle. A bad ICE combo may
- * still have to exhaust real ICE gathering/connectivity checks before the
- * native side gives up and rejects.
+ * How long to wait for `callInvite.accept()` to settle. Only relevant on iOS,
+ * where a bad ICE combo settles the promise itself: it may still have to
+ * exhaust real ICE gathering/connectivity checks before the native side gives
+ * up and rejects. On Android `accept()` resolves regardless of the ICE combo,
+ * so this window is not exercised there - see the docblock above
+ * `Expectation`.
  */
 const ACCEPT_SETTLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 /**
- * How long to wait for `Call.Event.Disconnected` once a call has been
- * accepted. This is entirely tester-paced - it fires once the far end hangs
- * up - so it gets a generous window rather than anything tied to network
- * timing.
+ * How long to wait for a call's terminal event - `Disconnected` or, on
+ * Android, `ConnectFailure` - once a call has been accepted. Mostly
+ * tester-paced for the variants expecting `Disconnected`, which fires once
+ * the far end hangs up, so it gets a generous window rather than anything
+ * tied to network timing. The `-android` variants expecting `ConnectFailure`
+ * do not depend on the tester and typically settle well inside this window.
  *
  * Revisit with VBLOCKS-7044 when we can automate incoming calls.
  */
@@ -126,24 +149,49 @@ const VARIANTS = {
     options: {},
     expectation: CALL_DISCONNECTED_WITHOUT_ERROR,
   },
-  'relay-policy-only': {
+  'relay-policy-only-ios': {
     description:
       'relay policy, no servers; should fail to connect because there are ' +
       'no relay candidates to use. Isolates the transport policy path from ' +
-      'server parsing on the accept side',
+      'server parsing on the accept side. iOS: accept() rejects',
     options: { iceTransportPolicy: IceTransportPolicy.Relay },
     expectation: CALL_INVITE_ACCEPT_REJECTED,
+    platforms: ['ios'],
   },
-  'bogus-servers-relay-policy': {
+  'relay-policy-only-android': {
+    description:
+      'relay policy, no servers; should fail to connect because there are ' +
+      'no relay candidates to use. Isolates the transport policy path from ' +
+      'server parsing on the accept side. Android: accept() resolves, the ' +
+      'call connects, then ConnectFailure fires - see VBLOCKS-7047',
+    options: { iceTransportPolicy: IceTransportPolicy.Relay },
+    expectation: CALL_CONNECT_FAILURE,
+    platforms: ['android'],
+  },
+  'bogus-servers-relay-policy-ios': {
     description:
       'unreachable turn server, relay-only policy; should fail to connect. ' +
       'The decisive variant: proves the accept-path ICE builder still ' +
-      'applies servers and policy',
+      'applies servers and policy. iOS: accept() rejects',
     options: {
       iceServers: [BOGUS_ICE_SERVER],
       iceTransportPolicy: IceTransportPolicy.Relay,
     },
     expectation: CALL_INVITE_ACCEPT_REJECTED,
+    platforms: ['ios'],
+  },
+  'bogus-servers-relay-policy-android': {
+    description:
+      'unreachable turn server, relay-only policy; should fail to connect. ' +
+      'The decisive variant: proves the accept-path ICE builder still ' +
+      'applies servers and policy. Android: accept() resolves, the call ' +
+      'connects, then ConnectFailure fires - see VBLOCKS-7047',
+    options: {
+      iceServers: [BOGUS_ICE_SERVER],
+      iceTransportPolicy: IceTransportPolicy.Relay,
+    },
+    expectation: CALL_CONNECT_FAILURE,
+    platforms: ['android'],
   },
   'valid-servers-relay-policy': {
     description: 'real turn server, relay-only policy; should connect',
@@ -168,8 +216,9 @@ type VariantName = keyof typeof VARIANTS;
  *   surface.
  * - `call-disconnected-with-error`: the call was accepted, but later ended
  *   with a `Disconnected` that carried an error - i.e. it did not go cleanly.
- * - `call-disconnect-timeout`: the call was accepted, but no `Disconnected`
- *   was raised before the tester (or the SDK) acted.
+ * - `call-disconnect-timeout`: the call was accepted, but neither
+ *   `Disconnected` nor `ConnectFailure` was raised before the wait window
+ *   closed.
  */
 type Actual =
   | Expectation
@@ -271,32 +320,40 @@ const acceptCallInvite = (
 });
 
 /**
- * Results from listening for the call disconnected event.
+ * Results from listening for a call's terminal event.
+ *
+ * Races `Disconnected` and `ConnectFailure` together, rather than only
+ * `Disconnected`, because an accepted call can still end via `ConnectFailure`
+ * on Android for a bad ICE combo - see the docblock above `Expectation`.
+ * Listening for only `Disconnected` would report every such call as a
+ * `call-disconnect-timeout` after the full wait window, rather than as what
+ * actually happened.
  */
-type CallDisconnectResult =
-  | { settled: 'call-disconnected-without-error' }
+type CallTerminalResult =
+  | { settled: typeof CALL_DISCONNECTED_WITHOUT_ERROR }
   | { settled: 'disconnected-with-error', error: unknown }
+  | { settled: typeof CALL_CONNECT_FAILURE, error: unknown }
   | { settled: 'timeout' };
 
 /**
- * Listen for a call disconnect event here by binding a timeout race.
+ * Listen for a call's terminal event here by binding a timeout race.
  *
- * Timeout if the call disconnect event does not arrive in the appropriate
- * time.
+ * Timeout if neither event arrives in the appropriate time.
  */
-const listenForCallDisconnect = (
+const listenForCallTerminalEvent = (
   call: Call
-) => new Promise<CallDisconnectResult>(
+) => new Promise<CallTerminalResult>(
   (resolve) => {
     let settled = false;
 
-    const settle = (terminal: CallDisconnectResult) => {
+    const settle = (terminal: CallTerminalResult) => {
       if (settled) {
         return;
       }
       settled = true;
       clearTimeout(timeoutId);
       call.off(Call.Event.Disconnected, onDisconnected);
+      call.off(Call.Event.ConnectFailure, onConnectFailure);
       resolve(terminal);
     };
 
@@ -310,7 +367,12 @@ const listenForCallDisconnect = (
         : { settled: CALL_DISCONNECTED_WITHOUT_ERROR });
     }
 
+    function onConnectFailure(error: unknown) {
+      settle({ settled: CALL_CONNECT_FAILURE, error });
+    }
+
     call.on(Call.Event.Disconnected, onDisconnected);
+    call.on(Call.Event.ConnectFailure, onConnectFailure);
   });
 
 /**
@@ -321,7 +383,13 @@ const runVariant = async (
   voice: Voice,
   log: ReturnType<typeof useLogging>['log']
 ): Promise<VariantResult> => {
-  const { description, options, expectation } = VARIANTS[variantName];
+  // Widened to `TestVariant` explicitly. `VARIANTS` is checked with
+  // `satisfies` rather than annotated, so each entry keeps its own narrow
+  // literal type - a union of differently-typed `platforms` arrays, one per
+  // variant, rather than the single `Array<typeof Platform.OS> | undefined`
+  // `TestVariant` declares. `.includes()` below needs the latter.
+  const { description, options, expectation, platforms }: TestVariant =
+    VARIANTS[variantName];
 
   if (requiresValidIceServer(variantName) && !HAS_VALID_ICE_SERVER) {
     return {
@@ -330,6 +398,16 @@ const runVariant = async (
       expected: expectation,
       actual: null,
       note: 'VALID_ICE_SERVER is not filled in',
+    };
+  }
+
+  if (platforms && !platforms.includes(Platform.OS)) {
+    return {
+      variant: variantName,
+      outcome: 'skipped',
+      expected: expectation,
+      actual: null,
+      note: `only runs on ${platforms.join(', ')}`,
     };
   }
 
@@ -416,37 +494,44 @@ const runVariant = async (
     });
   });
 
-  const callDisconnectPromise = listenForCallDisconnect(call);
+  const callTerminalPromise = listenForCallTerminalEvent(call);
 
   log.info(JSON.stringify({
     message: 'call connected; hang up from the far end now to conclude ' +
       `this variant. Waiting up to ${CALL_DISCONNECT_EVENT_TIMEOUT_MS}ms`,
   }));
 
-  const callDisconnect = await callDisconnectPromise;
+  const callTerminal = await callTerminalPromise;
 
   // Whatever happened, make sure the call is torn down before the next
   // variant waits for another one. A no-op if it already disconnected
-  // cleanly or with an error; ends a call that's still up if we timed out
-  // waiting for it to disconnect.
+  // cleanly or with an error, or already ended via ConnectFailure; ends a
+  // call that's still up if we timed out waiting for a terminal event.
   await safelySettlePromise(call.disconnect());
 
-  if (callDisconnect.settled === 'timeout') {
+  if (callTerminal.settled === 'timeout') {
     return settleVariant(
       'call-disconnect-timeout',
-      'call did not receive disconnect event within ' +
+      'call did not receive a terminal event within ' +
         `${CALL_DISCONNECT_EVENT_TIMEOUT_MS}ms`,
     );
   }
 
-  if (callDisconnect.settled === 'disconnected-with-error') {
+  if (callTerminal.settled === 'disconnected-with-error') {
     return settleVariant(
       'call-disconnected-with-error',
-      `call disconnected with error ${String(callDisconnect.error)}`,
+      `call disconnected with error ${String(callTerminal.error)}`,
     );
   }
 
-  return settleVariant('call-disconnected-without-error');
+  if (callTerminal.settled === CALL_CONNECT_FAILURE) {
+    return settleVariant(
+      CALL_CONNECT_FAILURE,
+      `call raised ConnectFailure: ${String(callTerminal.error)}`,
+    );
+  }
+
+  return settleVariant(CALL_DISCONNECTED_WITHOUT_ERROR);
 };
 
 /**

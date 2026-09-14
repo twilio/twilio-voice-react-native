@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyEarpiece;
+import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyWiredHeadset;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeySpeaker;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyBluetooth;
 import static com.twiliovoicereactnative.CommonConstants.AudioDeviceKeyUnknown;
@@ -45,8 +46,9 @@ class AudioSwitchManager {
       return AudioDeviceKeySpeaker;
     } else if (audioDevice instanceof AudioDevice.BluetoothHeadset) {
       return AudioDeviceKeyBluetooth;
-    } else if (audioDevice instanceof AudioDevice.WiredHeadset
-      || audioDevice instanceof AudioDevice.Earpiece) {
+    } else if (audioDevice instanceof AudioDevice.WiredHeadset) {
+      return AudioDeviceKeyWiredHeadset;
+    } else if (audioDevice instanceof AudioDevice.Earpiece) {
       return AudioDeviceKeyEarpiece;
     } else {
       return AudioDeviceKeyUnknown;

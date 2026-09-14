@@ -272,6 +272,8 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return kTwilioVoiceReactNativeAudioDeviceKeySpeaker;
     } else if ([portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
         return kTwilioVoiceReactNativeAudioDeviceKeyBluetooth;
+    } else if ([portType isEqualToString:AVAudioSessionPortHeadphones]) {
+        return kTwilioVoiceReactNativeAudioDeviceKeyWiredHeadset;
     }
 
     return kTwilioVoiceReactNativeAudioDeviceKeyUnknown;
@@ -314,6 +316,30 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
         if (!portDescription) {
             NSLog(@"Bluetooth device %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
+            return NO;
+        }
+    } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyWiredHeadset]) {
+        // VBLOCKS-7140: this lookup cannot succeed, and the `unknown` branch
+        // below has the same defect. A wired headset record is only created by
+        // the `currentRoute.outputs` path in `availableAudioDevices`, so the
+        // stored uid is the uid of the AVAudioSessionPortHeadphones OUTPUT
+        // port, while this searches `availableInputs`, where a wired headset
+        // appears as AVAudioSessionPortHeadsetMic under a different uid, and
+        // where mic-less headphones do not appear at all. Selecting a wired
+        // headset therefore returns NO. This predates the wired headset type;
+        // headsets previously mapped to `unknown` and hit the identical lookup.
+        // Fixing it likely means matching on the port type rather than the uid,
+        // and needs verification on a device.
+        NSArray *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+        for (AVAudioSessionPortDescription *port in availableInputs) {
+            if ([port.UID isEqualToString:portUid]) {
+                portDescription = port;
+                break;
+            }
+        }
+
+        if (!portDescription) {
+            NSLog(@"Wired headset %@ not found", device[kTwilioVoiceReactNativeAudioDeviceKeyName]);
             return NO;
         }
     } else if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeyUnknown]) {
@@ -469,7 +495,10 @@ RCT_EXPORT_METHOD(voice_getDeviceToken:(RCTPromiseResolveBlock)resolver
         }
         [self resolvePromise:resolver value:deviceTokenString];
     } else {
-        [self resolvePromise:resolver value:@""];
+        // Resolving with an empty string here would make "no device token yet"
+        // indistinguishable from a real device token.
+        NSString *errorMessage = @"No device token. The device token is available after the SDK receives a PushKit device token.";
+        [self rejectPromiseWithName:resolver name:kTwilioVoiceReactNativeErrorCodeInvalidStateError message:errorMessage];
     }
 }
 
@@ -637,8 +666,8 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    [self makeCallWithAccessToken:accessToken 
-                           params:params 
+    [self makeCallWithAccessToken:accessToken
+                           params:params
                     contactHandle:contactHandle
                        iceServers:iceServers
                iceTransportPolicy:iceTransportPolicy];
@@ -978,19 +1007,14 @@ RCT_EXPORT_METHOD(callInvite_accept:(NSString *)uuid
     }];
 }
 
+// VBLOCKS-7159
+// This method resolves the JS promise unconditionally.
 RCT_EXPORT_METHOD(callInvite_reject:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
     [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
     [self resolvePromise:resolver value:[NSNull null]];
-}
-
-RCT_EXPORT_METHOD(callInvite_isValid:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolver
-                  rejecter:(RCTPromiseRejectBlock)rejecter)
-{
-    [self resolvePromise:resolver value:@(YES)];
 }
 
 RCT_EXPORT_METHOD(callInvite_getCallSid:(NSString *)uuid
@@ -1132,25 +1156,25 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)uuid
 }
 
 - (NSString *)warningNameWithNumber:(NSNumber *)warning {
-    if ([warning intValue] < 0 || [warning intValue] > 4) {
-        NSLog(@"Warning number out of TVOCallQualityWarning range");
-        return @"undefined";
-    }
-    
     TVOCallQualityWarning warningValue = [warning intValue];
     switch (warningValue) {
         case TVOCallQualityWarningHighRtt:
-            return @"high-rtt";
+            return kTwilioVoiceReactNativeCallQualityWarningHighRtt;
         case TVOCallQualityWarningHighJitter:
-            return @"high-jitter";
+            return kTwilioVoiceReactNativeCallQualityWarningHighJitter;
         case TVOCallQualityWarningHighPacketsLostFraction:
-            return @"high-packets-lost-fraction";
+            return kTwilioVoiceReactNativeCallQualityWarningHighPacketsLostFraction;
         case TVOCallQualityWarningLowMos:
-            return @"low-mos";
+            return kTwilioVoiceReactNativeCallQualityWarningLowMos;
         case TVOCallQualityWarningConstantAudioInputLevel:
-            return @"constant-audio-input-level";
+            return kTwilioVoiceReactNativeCallQualityWarningConstantAudioInputLevel;
+        case TVOCallQualityWarningConstantAudioOutputLevel:
+            return kTwilioVoiceReactNativeCallQualityWarningConstantAudioOutputLevel;
         default:
-            return @"undefined";
+            // The JS layer types a quality warning as a member of
+            // Call.QualityWarning, so a warning that does not map to a member
+            // is omitted rather than reported as an unrepresentable value.
+            return nil;
     }
 }
 
@@ -1158,6 +1182,11 @@ RCT_EXPORT_METHOD(cancelledCallInvite_getTo:(NSString *)uuid
   NSMutableArray<NSString *> *warningEvents = [NSMutableArray array];
   for (NSNumber *warning in qualityWarnings) {
       NSString *event = [self warningNameWithNumber:warning];
+      // Adding nil to an NSMutableArray raises an NSInvalidArgumentException.
+      if (event == nil) {
+          NSLog(@"Skipping unrecognized TVOCallQualityWarning: %@", warning);
+          continue;
+      }
       [warningEvents addObject:event];
   }
   return warningEvents;

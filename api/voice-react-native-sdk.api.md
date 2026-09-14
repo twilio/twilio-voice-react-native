@@ -37,7 +37,8 @@ export namespace AudioDevice {
         Bluetooth = "bluetooth",
         Earpiece = "earpiece",
         Speaker = "speaker",
-        Unknown = "unknown"
+        Unknown = "unknown",
+        WiredHeadset = "wiredHeadset"
     }
 }
 
@@ -215,7 +216,7 @@ export class Call extends EventEmitter {
     getInitialConnectedTimestamp(): Date | undefined;
     getSid(): string | undefined;
     getState(): Call.State;
-    getStats(): Promise<RTCStats.StatsReport>;
+    getStats(): Promise<RTCStats.StatsReport[]>;
     getTo(): string | undefined;
     hold(hold: boolean): Promise<boolean>;
     isMuted(): boolean | undefined;
@@ -260,8 +261,9 @@ export namespace Call {
     }
     export enum QualityWarning {
         'ConstantAudioInputLevel' = "constant-audio-input-level",
+        'ConstantAudioOutputLevel' = "constant-audio-output-level",
         'HighJitter' = "high-jitter",
-        'HighPacketLoss' = "high-packet-loss",
+        'HighPacketsLostFraction' = "high-packets-lost-fraction",
         'HighRtt' = "high-rtt",
         'LowMos' = "low-mos"
     }
@@ -318,8 +320,6 @@ export class CallInvite extends EventEmitter {
     getFrom(): string;
     getState(): CallInvite.State;
     getTo(): string;
-    // @alpha
-    isValid(): Promise<boolean>;
     reject(): Promise<void>;
     sendMessage(message: CallMessage): Promise<OutgoingCallMessage>;
     updateCallerHandle(newHandle: string): Promise<void>;
@@ -539,7 +539,7 @@ export class IncomingCallMessage extends EventEmitter {
     //
     // @internal
     constructor(callMessageInfo: NativeCallMessageInfo);
-    getContent(): any;
+    getContent(): string;
     getContentType(): string;
     getMessageType(): string;
     getSid(): string | undefined;
@@ -709,7 +709,7 @@ export class PreflightTest extends EventEmitter {
     // @internal
     constructor(uuid: string);
     getCallSid(): Promise<string>;
-    getEndTime(): Promise<number>;
+    getEndTime(): Promise<number | undefined>;
     getLatestSample(): Promise<PreflightTest.RTCSample>;
     getReport(): Promise<PreflightTest.Report>;
     getStartTime(): Promise<number>;
@@ -923,11 +923,11 @@ export namespace RTCStats {
         // (undocumented)
         remoteCandidateIp: string;
         // (undocumented)
-        requestsReceieved: number;
+        requestsReceived: number;
         // (undocumented)
         requestsSent: number;
         // (undocumented)
-        responsesRecieved: number;
+        responsesReceived: number;
         // (undocumented)
         responsesSent: number;
         // (undocumented)
@@ -992,7 +992,7 @@ export namespace RTCStats {
     // (undocumented)
     export interface RemoteTrackStats extends BaseTrackStats {
         // (undocumented)
-        bytesRecieved: number;
+        bytesReceived: number;
         // (undocumented)
         packetsReceived: number;
     }
@@ -1254,6 +1254,6 @@ export namespace Voice {
 
 // Warnings were encountered during analysis:
 //
-// lib/typescript/type/Ice.d.ts:19:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
+// lib/typescript/type/Ice.d.ts:25:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```

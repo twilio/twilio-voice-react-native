@@ -52,7 +52,7 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
    * Call bindings.
    */
   call_disconnect(callUuid: Uuid): NativePromise<void>;
-  call_getStats(callUuid: Uuid): NativePromise<RTCStats.StatsReport>;
+  call_getStats(callUuid: Uuid): NativePromise<RTCStats.StatsReport[]>;
   call_hold(callUuid: Uuid, hold: boolean): NativePromise<boolean>;
   call_isOnHold(callUuid: Uuid): NativePromise<boolean>;
   call_isMuted(callUuid: Uuid): NativePromise<boolean>;
@@ -77,7 +77,6 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
     callInviteUuid: Uuid,
     acceptOptions: CallInvite.AcceptOptions
   ): NativePromise<NativeCallInfo>;
-  callInvite_isValid(callInviteUuid: Uuid): NativePromise<boolean>;
   callInvite_reject(callInviteUuid: Uuid): NativePromise<void>;
   callInvite_sendMessage(
     callInviteUuid: Uuid,
@@ -138,6 +137,9 @@ export interface TwilioVoiceReactNative extends NativeModulesStatic {
 
   preflightTest_getCallSid(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getEndTime(preflightTestUuid: Uuid): NativePromise<string>;
+  // Before a sample/report exists, both platforms serialize the same
+  // all-zero-valued native object rather than reporting an absent value, so
+  // this always resolves with a JSON string.
   preflightTest_getLatestSample(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getReport(preflightTestUuid: Uuid): NativePromise<string>;
   preflightTest_getStartTime(preflightTestUuid: Uuid): NativePromise<string>;

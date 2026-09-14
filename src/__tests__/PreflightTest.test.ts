@@ -9,8 +9,12 @@ import { InvalidStateError } from '../error/InvalidStateError';
 import { TwilioError } from '../error/TwilioError';
 import {
   baseMockReport,
+  expectedAllZeroReport,
+  expectedAllZeroSample,
   expectedReport,
   makeMockNativePreflightEvent,
+  mockAllZeroReport,
+  mockAllZeroSample,
   mockSample,
   mockUuid,
 } from '../__mock-data__/PreflightTest';
@@ -476,6 +480,20 @@ describe('PreflightTest', () => {
 
         expect(endTime).toEqual(100);
       });
+
+      it('returns undefined when the test has not ended', async () => {
+        // Both native platforms report `endTime` as a primitive that is `0`
+        // until the PreflightTest ends.
+        spy.mockResolvedValue(mockNativePromiseResolutionValue('0'));
+
+        await expect(preflight.getEndTime()).resolves.toBeUndefined();
+      });
+
+      it('returns undefined when the native layer reports no end time', async () => {
+        spy.mockResolvedValue(mockNativePromiseResolutionValue(null));
+
+        await expect(preflight.getEndTime()).resolves.toBeUndefined();
+      });
     });
 
     describe('getLatestSample', () => {
@@ -514,9 +532,31 @@ describe('PreflightTest', () => {
           timestamp: 120,
         });
       });
+
+      it('returns an all-zero sample before a sample has been generated', async () => {
+        spy.mockResolvedValue(
+          mockNativePromiseResolutionValue(JSON.stringify(mockAllZeroSample))
+        );
+
+        const sample = await preflight.getLatestSample();
+
+        expect(sample).toEqual(expectedAllZeroSample);
+      });
     });
 
     describe('getReport', () => {
+      it('returns an all-zero report before the report is ready', async () => {
+        jest
+          .spyOn(Common.NativeModule, 'preflightTest_getReport')
+          .mockResolvedValue(
+            mockNativePromiseResolutionValue(JSON.stringify(mockAllZeroReport))
+          );
+
+        const report = await preflight.getReport();
+
+        expect(report).toEqual(expectedAllZeroReport);
+      });
+
       it('invokes the native module', async () => {
         const spy = jest
           .spyOn(Common.NativeModule, 'preflightTest_getReport')

@@ -778,6 +778,21 @@ describe('Voice class', () => {
           'mock-nativemodule-devicetoken'
         );
       });
+
+      it('rejects when no device token is available', async () => {
+        jest
+          .mocked(MockNativeModule.voice_getDeviceToken)
+          .mockResolvedValueOnce(
+            mockNativePromiseRejectionWithNameValue(
+              Constants.ErrorCodeInvalidStateError,
+              'mock-no-device-token'
+            ) as any
+          );
+
+        await expect(new Voice().getDeviceToken()).rejects.toBeInstanceOf(
+          InvalidStateError
+        );
+      });
     });
 
     describe('.getCalls', () => {
@@ -934,14 +949,19 @@ describe('Voice class', () => {
         await expect(showAvRoutePickerViewPromise).resolves.toBeUndefined();
       });
 
-      performTestForPlatforms(['android'], 'performs a no-op', async () => {
-        await expect(
-          new Voice().showAvRoutePickerView()
-        ).resolves.toBeUndefined();
-        expect(
-          jest.mocked(MockNativeModule.voice_showNativeAvRoutePicker).mock.calls
-        ).toEqual([]);
-      });
+      performTestForPlatforms(
+        ['android'],
+        'rejects with an UnsupportedPlatformError',
+        async () => {
+          await expect(
+            new Voice().showAvRoutePickerView()
+          ).rejects.toBeInstanceOf(UnsupportedPlatformError);
+          expect(
+            jest.mocked(MockNativeModule.voice_showNativeAvRoutePicker).mock
+              .calls
+          ).toEqual([]);
+        }
+      );
 
       performTestForPlatforms(
         ['foobar'],
