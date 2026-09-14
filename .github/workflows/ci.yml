@@ -547,11 +547,11 @@ jobs:
           fi
           echo "::add-mask::$GITHUB_JWT"
 
-          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          # 2. Exchange the JWT for the SauceLabs service account.
           VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
             -H "Authorization: Bearer ${GITHUB_JWT}" \
             -H 'Content-Type: application/json' \
-            -d '{"action":"get-saucelabs-credentials","platform":"android"}')
+            -d '{"action":"get-saucelabs-credentials"}')
 
           # Each value is masked the moment the value is parsed, before the failure
           # branch below can print anything. A partial response that carries only
@@ -734,11 +734,11 @@ jobs:
           fi
           echo "::add-mask::$GITHUB_JWT"
 
-          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          # 2. Exchange the JWT for the SauceLabs service account.
           VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
             -H "Authorization: Bearer ${GITHUB_JWT}" \
             -H 'Content-Type: application/json' \
-            -d '{"action":"get-saucelabs-credentials","platform":"ios"}')
+            -d '{"action":"get-saucelabs-credentials"}')
 
           # Each value is masked the moment the value is parsed, before the failure
           # branch below can print anything. A partial response that carries only
@@ -911,13 +911,13 @@ jobs:
           fi
           echo "::add-mask::$GITHUB_JWT"
 
-          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          # 2. Exchange the JWT for the SauceLabs service account.
           #    Each value is masked the moment the value is parsed, before the
           #    failure branch below can print anything.
           SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
             -H "Authorization: Bearer ${GITHUB_JWT}" \
             -H 'Content-Type: application/json' \
-            -d '{"action":"get-saucelabs-credentials","platform":"ios"}')
+            -d '{"action":"get-saucelabs-credentials"}')
 
           SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
           if [ -n "$SAUCE_USERNAME" ]; then
@@ -1108,13 +1108,13 @@ jobs:
           fi
           echo "::add-mask::$GITHUB_JWT"
 
-          # 2. Exchange the JWT for this platform's SauceLabs service account.
+          # 2. Exchange the JWT for the SauceLabs service account.
           #    Each value is masked the moment the value is parsed, before the
           #    failure branch below can print anything.
           SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
             -H "Authorization: Bearer ${GITHUB_JWT}" \
             -H 'Content-Type: application/json' \
-            -d '{"action":"get-saucelabs-credentials","platform":"android"}')
+            -d '{"action":"get-saucelabs-credentials"}')
 
           SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
           if [ -n "$SAUCE_USERNAME" ]; then
