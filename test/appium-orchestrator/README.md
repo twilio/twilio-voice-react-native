@@ -58,6 +58,15 @@ mobile device.
 
    To test using Sauce Labs, ensure that `USE_SAUCE=true`.
 
+   The `PLATFORM` environment variable selects the platform under test. The
+   accepted values are `ios` and `android`. The `PLATFORM` environment variable
+   is inferred `ios` by default, so an iOS run needs no `PLATFORM` definition.
+   Any other value throws during setup.
+
+   ```bash
+   PLATFORM=android node test-suites/index.mjs
+   ```
+
 ## Architecture Overview
 
 Please see the `Architecture Overview` section in the

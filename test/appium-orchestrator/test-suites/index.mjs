@@ -16,6 +16,7 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise.mjs';
  */
 async function runTest(accessToken, driver, testElements) {
   await testElements.textInput.token.waitForExist({ timeout: 10000, interval: 1000 });
+  await testElements.textInput.token.clearValue();
   await testElements.textInput.token.setValue(accessToken, { mask: true });
 
   // NOTE: Increase code coverage: VBLOCKS-6582

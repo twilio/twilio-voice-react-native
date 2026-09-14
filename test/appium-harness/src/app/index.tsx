@@ -168,6 +168,7 @@ export const Application = () => {
       <Text>Twilio Access Token</Text>
       <TextInput
         testID='textInput_token'
+        accessibilityLabel='textInput_token'
         placeholder='Enter Token'
         secureTextEntry={true}
         value={token}
@@ -177,18 +178,23 @@ export const Application = () => {
       <Text>Test Suite ID</Text>
       <TextInput
         testID='textInput_testSuiteId'
+        accessibilityLabel='textInput_testSuiteId'
         placeholder='Enter Test Suite ID'
         value={testSuiteId}
         onChangeText={(text) => setTestSuiteId(text)}
       />
 
       <Text>Test Suite Status</Text>
-      <Text testID='text_testSuiteStatus'>
+      <Text
+        testID='text_testSuiteStatus'
+        accessibilityLabel='text_testSuiteStatus'
+      >
         {testStatus}
       </Text>
 
       <Button
         testID='button_startTestSuite'
+        accessibilityLabel='button_startTestSuite'
         title='Start Test Suite'
         disabled={testStatus !== 'not-started'}
         onPress={performTest}
