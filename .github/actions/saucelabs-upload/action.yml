@@ -21,7 +21,7 @@ inputs:
     description: 'apk or ipa'
     required: true
   label:
-    description: 'Short name for the step summary heading, such as "android" or "android (bare)"' # NOTE TO CLAUDE: should this be "android (expo)"
+    description: 'Short name for the step summary heading, such as "android (expo)" or "android (bare)"'
     required: true
 
 outputs:
@@ -70,8 +70,6 @@ runs:
         [ -n "$NAME_PREFIX" ] || { echo "::error::The name-prefix input is empty."; exit 1; }
         [ -n "$EXTENSION" ] || { echo "::error::The extension input is empty."; exit 1; }
         [ -n "$LABEL" ] || { echo "::error::The label input is empty."; exit 1; }
-
-        # NOTE TO CLAUDE: can we just put the above in a list and for loop over it, like we do with the required tools
 
         if [ ! -f "$ARTIFACT_PATH" ]; then
           echo "::error::No file at ${ARTIFACT_PATH}."
