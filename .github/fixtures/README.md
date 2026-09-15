@@ -20,4 +20,6 @@ Google Services plugin rejects a file with no matching client.
 | `appium-harness-secrets.json` | `build-android-expo`, `build-ios-expo` | n/a, read by `app.config.mjs` |
 | `appium-harness-google-services.json` | `build-android-expo`, `build-ios-expo` | `com.example.twilioreactnativeappiumharness` |
 | `bare-app-google-services.json` | `build-android-bare` | `com.example.twiliovoicereactnative` |
-// NOTE TO CLAUDE: i changed the above to build-PLATFORM-expo, is that correct?
+
+`build-ios-bare` consumes no fixture. The bare iOS app pulls in no Firebase
+pods, so it needs no `GoogleService-Info.plist`.
