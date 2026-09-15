@@ -118,51 +118,6 @@ async function hideKeyboardIfPresent(driver) {
 }
 
 /**
- * Dismiss a system sheet presented over the harness.
- *
- * The `show-av-route-picker-view` step of `voice-api-test` raises the iOS AV
- * route picker, and the SDK offers no way to take the picker back down. The
- * picker is presented modally, so XCUITest stops reporting the harness
- * elements underneath it and the status text cannot be read until the picker
- * is gone. Tapping the dimmed area above the sheet dismisses it.
- *
- * @param {TestOrchestratorSetup['driver']} driver
- */
-async function dismissSystemSheetIfPresent(driver) {
-  if (!driver.isIOS) {
-    return;
-  }
-
-  try {
-    const { width } = await driver.getWindowSize();
-    await driver.execute('mobile: tap', { x: Math.floor(width / 2), y: 40 });
-  } catch {
-    // A tap that lands on nothing is not an error here. The caller retries the
-    // read either way.
-  }
-}
-
-/**
- * Read the harness status, dismissing a system sheet that covers it.
- *
- * Returns an empty string when the status still cannot be read. An empty
- * string is never terminal, so a polling caller simply keeps waiting rather
- * than failing on the unreadable element.
- *
- * @param {TestOrchestratorSetup['driver']} driver
- * @param {TestOrchestratorSetup['testElements']} testElements
- * @returns {Promise<string>}
- */
-async function readTestStatus(driver, testElements) {
-  try {
-    return await testElements.text.testSuiteStatus.getText();
-  } catch {
-    await dismissSystemSheetIfPresent(driver);
-    return '';
-  }
-}
-
-/**
  * Drive one suite to completion.
  *
  * @param {TestOrchestratorSetup['accessToken']} accessToken
@@ -198,32 +153,18 @@ async function runSuite(accessToken, driver, testElements, suiteId) {
   // Guard against a suite that fails so fast it never reports in-progress.
   await driver.waitUntil(
     async () => {
-      const status = await readTestStatus(driver, testElements);
+      const status = await testElements.text.testSuiteStatus.getText();
       return status === 'in-progress' || TERMINAL.includes(status);
     },
     { timeout: 15000, interval: 500, timeoutMsg: `${suiteId} never left not-started` }
   );
 
-  /**
-   * Captured from the polling condition rather than read again afterwards. A
-   * re-read can land while a system sheet covers the status element, which
-   * would report an empty status for a suite that had already finished.
-   */
-  let finalStatus = '';
-
   await driver.waitUntil(
-    async () => {
-      const status = await readTestStatus(driver, testElements);
-      if (!TERMINAL.includes(status)) {
-        return false;
-      }
-
-      finalStatus = status;
-      return true;
-    },
+    async () => TERMINAL.includes(await testElements.text.testSuiteStatus.getText()),
     { timeout: SUITE_TIMEOUT_MS, interval: 2000, timeoutMsg: `${suiteId} timed out` }
   );
 
+  const finalStatus = await testElements.text.testSuiteStatus.getText();
   if (finalStatus === 'failure') {
     throw new Error(`${suiteId} reported failure: ${await failingSteps(testElements)}`);
   }

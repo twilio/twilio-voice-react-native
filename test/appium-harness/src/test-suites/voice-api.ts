@@ -209,11 +209,18 @@ const STEPS: Array<Step<Voice>> = [
       await voice.setIncomingCallContactHandleTemplate();
     },
   },
+  // Android only, for now. On iOS the call shows the AV route picker, the
+  // picker is presented modally over the app, and the SDK exposes no way to
+  // dismiss it. XCUITest then stops reporting the harness elements underneath
+  // the picker, so the orchestrator can no longer read the test status and the
+  // suite times out. Dismissing the picker from the orchestrator was tried and
+  // did not work. Restoring iOS coverage needs a dismiss path in the SDK.
   {
     name: 'show-av-route-picker-view',
     description:
-      'showAvRoutePickerView resolves on iOS, where it shows the picker, and ' +
-      'also on Android, where it is a documented no-op rather than a rejection',
+      'showAvRoutePickerView resolves on Android, where it is a documented ' +
+      'no-op rather than a rejection',
+    platforms: ['android'],
     run: async (voice) => {
       await voice.showAvRoutePickerView();
     },
