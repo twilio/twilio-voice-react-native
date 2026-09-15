@@ -42,15 +42,24 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      - run: YARN_ENABLE_HARDENED_MODE=false yarn install --immutable
+      - name: Install dependencies
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/app install --immutable
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/expo install --immutable
+      - name: Install test/expo dependencies
+        working-directory: test/expo
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/appium-harness install --immutable
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/appium-orchestrator install --immutable
+      - name: Install test/appium-orchestrator dependencies
+        working-directory: test/appium-orchestrator
+        run: yarn install --immutable
 
       # `yarn run check` includes check:linking, which guards the property that
       # 2.x lost: the package autolinks in a bare React Native app. It needs no
@@ -116,15 +125,15 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
-      - run: yarn install --immutable
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Prepare the RN SDK
         run: yarn run prepare
 
-      - name: Install Appium Harness dependencies
-        run: |
-          cd test/appium-harness
-          yarn install --immutable
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
 
       - name: Place the CI config fixtures
         run: |
@@ -212,13 +221,15 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      - run: yarn install --immutable
+      - name: Install dependencies
+        run: yarn install --immutable
 
-      - run: yarn run prepare
+      - name: Prepare the RN SDK
+        run: yarn run prepare
 
-      - run: |
-          cd test/appium-harness
-          yarn install --immutable
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
 
       - name: Place the CI config fixtures
         run: |
@@ -353,11 +364,15 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
-      - run: yarn install --immutable
+      - name: Install dependencies
+        run: yarn install --immutable
 
-      - run: yarn run prepare
+      - name: Prepare the RN SDK
+        run: yarn run prepare
 
-      - run: yarn --cwd test/app install --immutable
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
 
       - name: Place the CI config fixture
         run: cp .github/fixtures/bare-app-google-services.json test/app/android/app/google-services.json
@@ -466,11 +481,15 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      - run: yarn install --immutable
+      - name: Install dependencies
+        run: yarn install --immutable
 
-      - run: yarn run prepare
+      - name: Prepare the RN SDK
+        run: yarn run prepare
 
-      - run: yarn --cwd test/app install --immutable
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
 
       - run: yarn run pods
 
