@@ -724,6 +724,15 @@ RCT_EXPORT_METHOD(voice_getAudioDevices:(RCTPromiseResolveBlock)resolver
     [self resolvePromise:resolver value:payload];
 }
 
+// This does not update `selectedAudioDevice`. The selection is recomputed from
+// the route the session settled on, by `handleRouteChange:`. With no call in
+// progress the session is never activated, so the route never moves, no
+// notification arrives, and `voice_getAudioDevices` keeps reporting the
+// previous device. Selecting the earpiece before dialing reports the speaker.
+//
+// TODO: VBLOCKS-7216
+// Investigate setting `selectedAudioDevice` here, so the selection reports the
+// caller's intent rather than only a route change that cannot happen yet.
 RCT_EXPORT_METHOD(voice_selectAudioDevice:(NSString *)uuid
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
