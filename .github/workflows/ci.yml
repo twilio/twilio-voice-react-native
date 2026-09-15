@@ -331,7 +331,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Verify the runner has an Android SDK
+      - name: Verify the runner has an Android SDK and unzip
         run: |
           set -euo pipefail
 
@@ -348,6 +348,11 @@ jobs:
               exit 1
             fi
           done
+
+          if ! command -v unzip >/dev/null 2>&1; then
+            echo "::error::unzip not found. This job inspects the built APK with it."
+            exit 1
+          fi
 
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
@@ -780,7 +785,7 @@ jobs:
         with:
           platform: ios
           label: ios
-          storage-filename: ${{ needs.upload-ios-saucelabs.outputs.filename }}
+          storage-filename: ${{ needs.upload-ios-expo-saucelabs.outputs.filename }}
           ios-bundle-id: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
           vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
@@ -810,7 +815,7 @@ jobs:
         with:
           platform: android
           label: android # NOTE TO CLAUDE: let's label expo as "android (expo)"
-          storage-filename: ${{ needs.upload-android-saucelabs.outputs.filename }}
+          storage-filename: ${{ needs.upload-android-expo-saucelabs.outputs.filename }}
           android-package: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
           vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
