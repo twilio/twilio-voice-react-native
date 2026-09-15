@@ -123,8 +123,6 @@ jobs:
       - name: Prepare the RN SDK
         run: yarn run prepare
 
-      # NOTE TO CLAUDE: prefer naming steps and not having verbose comments
-      # if the comment can be easily summarized in the name
       - name: Install Appium Harness dependencies
         run: |
           cd test/appium-harness
@@ -149,7 +147,7 @@ jobs:
       - name: Upload appium harness android apk
         uses: actions/upload-artifact@<TODO>
         with:
-          name: appium-harness-android-apk
+          name: expo-appium-harness-android-apk
           path: test/appium-harness/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -283,7 +281,7 @@ jobs:
       - name: Upload appium harness ios ipa
         uses: actions/upload-artifact@<TODO>
         with:
-          name: appium-harness-ios-ipa
+          name: expo-appium-harness-ios-ipa
           path: test/appium-harness/ipa/*.ipa
           if-no-files-found: error
           retention-days: 14
@@ -405,7 +403,7 @@ jobs:
       - name: Upload bare android apk
         uses: actions/upload-artifact@<TODO>
         with:
-          name: appium-harness-bare-android-apk
+          name: bare-appium-harness-android-apk
           path: test/app/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -516,8 +514,7 @@ jobs:
           fi
 
           if ! grep -q 'textInput_testSuiteId' "${APP_PATH}/main.jsbundle"; then
-            echo "::error::main.jsbundle has no textInput_testSuiteId, so this app hosts the example app rather than the harness. Check that ENTRY_FILE=index.harness.js reached react-native-xcode.sh."
-            # NOTE TO CLAUDE: why do we refer to the react-native-xcode.sh script here?
+            echo "::error::main.jsbundle has no textInput_testSuiteId, so this app hosts the example app rather than the harness. Check that the xcodebuild step above still passes ENTRY_FILE=index.harness.js."
             exit 1
           fi
 
@@ -534,7 +531,7 @@ jobs:
       - name: Upload bare ios ipa
         uses: actions/upload-artifact@<TODO>
         with:
-          name: appium-harness-bare-ios-ipa
+          name: bare-appium-harness-ios-ipa
           path: test/app/ipa/TwilioVoiceExampleNewArch.ipa
           if-no-files-found: error
           retention-days: 14
@@ -568,7 +565,7 @@ jobs:
       - name: Download the android apk
         uses: actions/download-artifact@<TODO>
         with:
-          name: appium-harness-android-apk
+          name: expo-appium-harness-android-apk
           path: artifact
 
       - name: Verify the apk was downloaded
@@ -578,7 +575,7 @@ jobs:
           APK_PATH=artifact/app-release.apk
 
           if [ ! -f "$APK_PATH" ]; then
-            echo "::error::Expected ${APK_PATH} from the appium-harness-android-apk artifact."
+            echo "::error::Expected ${APK_PATH} from the expo-appium-harness-android-apk artifact."
             echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
             exit 1
           fi
@@ -591,9 +588,9 @@ jobs:
           vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
           sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
           artifact-path: artifact/app-release.apk
-          filename: twilio-voice-react-native-appium-harness-${{ github.sha }}.apk
-          # NOTE TO CLAUDE: let's make sure the artifacts and uploads are very clearly named. i would like "twilio-voice-react-native-expo-appium-harness-SHA-DATE_MS_UNIX_TIMESTAMP"
-          label: android
+          name-prefix: twilio-voice-react-native-expo-appium-harness
+          extension: apk
+          label: android (expo)
 
       - name: Remove the downloaded artifact
         if: always()
@@ -624,7 +621,7 @@ jobs:
       - name: Download the ios ipa
         uses: actions/download-artifact@<TODO>
         with:
-          name: appium-harness-ios-ipa
+          name: expo-appium-harness-ios-ipa
           path: artifact
 
       - name: Verify the ipa was downloaded
@@ -634,7 +631,7 @@ jobs:
           IPA_PATH=artifact/twiliovoicereactnativesdkappiumharness.ipa
 
           if [ ! -f "$IPA_PATH" ]; then
-            echo "::error::Expected ${IPA_PATH} from the appium-harness-ios-ipa artifact."
+            echo "::error::Expected ${IPA_PATH} from the expo-appium-harness-ios-ipa artifact."
             echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
             exit 1
           fi
@@ -647,8 +644,9 @@ jobs:
           vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
           sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
           artifact-path: artifact/twiliovoicereactnativesdkappiumharness.ipa
-          filename: twilio-voice-react-native-appium-harness-${{ github.sha }}.ipa
-          label: ios
+          name-prefix: twilio-voice-react-native-expo-appium-harness
+          extension: ipa
+          label: ios (expo)
 
       - name: Remove the downloaded artifact
         if: always()
@@ -679,7 +677,7 @@ jobs:
       - name: Download the bare android apk
         uses: actions/download-artifact@<TODO>
         with:
-          name: appium-harness-bare-android-apk
+          name: bare-appium-harness-android-apk
           path: artifact
 
       - name: Verify the apk was downloaded
@@ -689,7 +687,7 @@ jobs:
           APK_PATH=artifact/app-release.apk
 
           if [ ! -f "$APK_PATH" ]; then
-            echo "::error::Expected ${APK_PATH} from the appium-harness-bare-android-apk artifact."
+            echo "::error::Expected ${APK_PATH} from the bare-appium-harness-android-apk artifact."
             echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
             exit 1
           fi
@@ -702,8 +700,9 @@ jobs:
           vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
           sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
           artifact-path: artifact/app-release.apk
-          filename: twilio-voice-react-native-appium-harness-bare-${{ github.sha }}.apk
-          label: android (bare) # NOTE TO CLAUDE: let's also label the expo ones as "android (expo)" and "ios (expo)"
+          name-prefix: twilio-voice-react-native-bare-appium-harness
+          extension: apk
+          label: android (bare)
 
       - name: Remove the downloaded artifact
         if: always()
@@ -734,7 +733,7 @@ jobs:
       - name: Download the bare ios ipa
         uses: actions/download-artifact@<TODO>
         with:
-          name: appium-harness-bare-ios-ipa
+          name: bare-appium-harness-ios-ipa
           path: artifact
 
       - name: Verify the ipa was downloaded
@@ -744,7 +743,7 @@ jobs:
           IPA_PATH=artifact/TwilioVoiceExampleNewArch.ipa
 
           if [ ! -f "$IPA_PATH" ]; then
-            echo "::error::Expected ${IPA_PATH} from the appium-harness-bare-ios-ipa artifact."
+            echo "::error::Expected ${IPA_PATH} from the bare-appium-harness-ios-ipa artifact."
             echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
             exit 1
           fi
@@ -757,7 +756,8 @@ jobs:
           vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
           sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
           artifact-path: artifact/TwilioVoiceExampleNewArch.ipa
-          filename: twilio-voice-react-native-appium-harness-bare-${{ github.sha }}.ipa
+          name-prefix: twilio-voice-react-native-bare-appium-harness
+          extension: ipa
           label: ios (bare)
 
       - name: Remove the downloaded artifact
@@ -784,7 +784,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: ios
-          label: ios
+          label: ios (expo)
           storage-filename: ${{ needs.upload-ios-expo-saucelabs.outputs.filename }}
           ios-bundle-id: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -814,7 +814,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: android
-          label: android # NOTE TO CLAUDE: let's label expo as "android (expo)"
+          label: android (expo)
           storage-filename: ${{ needs.upload-android-expo-saucelabs.outputs.filename }}
           android-package: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -844,7 +844,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: android
-          label: android, bare app # NOTE TO CLAUDE: let's label as "android (bare)"
+          label: android (bare)
           storage-filename: ${{ needs.upload-android-bare-saucelabs.outputs.filename }}
           android-package: com.example.twiliovoicereactnative
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -874,7 +874,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: ios
-          label: ios, bare app
+          label: ios (bare)
           storage-filename: ${{ needs.upload-ios-bare-saucelabs.outputs.filename }}
           ios-bundle-id: com.twilio.TwilioVoiceReactNativeExample
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
