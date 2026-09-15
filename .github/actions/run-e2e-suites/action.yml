@@ -1,0 +1,184 @@
+name: 'Run E2E Suites'
+description: 'Install the orchestrator, fetch credentials, run the Appium suites against a SauceLabs device, and report what ran'
+
+inputs:
+  platform:
+    description: 'ios or android'
+    required: true
+  label:
+    description: 'Names this run in the step summary heading, such as "android" or "android, bare app"'
+    required: true
+  storage-filename:
+    description: 'The app in SauceLabs storage to run against, from the upload job output'
+    required: true
+  android-package:
+    description: 'The uploaded app''s applicationId. Set this when platform is android.'
+    required: false
+    default: ''
+  ios-bundle-id:
+    description: 'The uploaded app''s bundle id. Set this when platform is ios.'
+    required: false
+    default: ''
+  artifactory-url:
+    description: 'Base URL of the artifactory instance'
+    required: true
+  vendor-url:
+    description: 'Credential vendor endpoint'
+    required: true
+  vendor-audience:
+    description: 'Audience the GitHub OIDC token is requested for'
+    required: true
+  sauce-hostname:
+    description: 'SauceLabs hostname'
+    required: true
+  sauce-port:
+    description: 'SauceLabs port. Must be numeric.'
+    required: true
+  sauce-base-url:
+    description: 'SauceLabs base url'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # Runs before the install, so a runner group missing either tool fails in
+    # seconds rather than after the orchestrator install.
+    - name: Verify the runner has the tools and the caller named the app
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        ANDROID_PACKAGE: ${{ inputs.android-package }}
+        IOS_BUNDLE_ID: ${{ inputs.ios-bundle-id }}
+      run: |
+        set -euo pipefail
+
+        for tool in curl jq; do
+          if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::${tool} not found."
+            exit 1
+          fi
+        done
+
+        # Without an identifier the session still starts and every suite then
+        # fails on restartApp, costing a real device for the full job timeout.
+        case "$PLATFORM" in
+          android)
+            if [ -z "$ANDROID_PACKAGE" ]; then
+              echo "::error::platform is android but android-package is empty. Pass the uploaded app's applicationId."
+              exit 1
+            fi
+            ;;
+          ios)
+            if [ -z "$IOS_BUNDLE_ID" ]; then
+              echo "::error::platform is ios but ios-bundle-id is empty. Pass the uploaded app's bundle id."
+              exit 1
+            fi
+            ;;
+          *)
+            echo "::error::platform must be android or ios, got \"${PLATFORM}\"."
+            exit 1
+            ;;
+        esac
+
+    - name: Artifactory OIDC Auth
+      uses: ./.github/actions/artifactory-oidc
+      with:
+        artifactory_url: ${{ inputs.artifactory-url }}
+
+    - shell: bash
+      run: corepack enable
+
+    - uses: actions/setup-node@<TODO>
+      with:
+        node-version: "22.13"
+        cache: yarn
+
+    - shell: bash
+      run: yarn --cwd test/appium-orchestrator install --immutable
+
+    - name: Fetch credentials and write the orchestrator config
+      uses: ./.github/actions/e2e-credentials
+      with:
+        platform: ${{ inputs.platform }}
+        vendor-url: ${{ inputs.vendor-url }}
+        vendor-audience: ${{ inputs.vendor-audience }}
+        sauce-hostname: ${{ inputs.sauce-hostname }}
+        sauce-port: ${{ inputs.sauce-port }}
+        sauce-base-url: ${{ inputs.sauce-base-url }}
+        storage-filename: ${{ inputs.storage-filename }}
+
+    # SUITES is an allowlist of suites to run, not a filter over the default set.
+    # The orchestrator auto-skips its `blocked` and `manual` suites only while
+    # SUITES is unset, so listing incoming-call-test-manual here would hang the
+    # job until the per-suite timeout. registration-test is left out because no
+    # CI build carries a real push credential. ice-test stays in and reports
+    # Blocked, which is not a failure, when no TURN credentials are bundled.
+    - name: Run the allowlisted suites
+      shell: bash
+      working-directory: test/appium-orchestrator
+      env:
+        USE_SAUCE: "true"
+        PLATFORM: ${{ inputs.platform }}
+        ANDROID_PACKAGE: ${{ inputs.android-package }}
+        IOS_BUNDLE_ID: ${{ inputs.ios-bundle-id }}
+        SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
+        RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
+      run: node test-suites/index.mjs
+
+    # The orchestrator writes RESULTS_JSON before returning its exit code, so a
+    # failing run still has the file to report from.
+    - name: Report what this run exercised
+      if: always()
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        LABEL: ${{ inputs.label }}
+        STORAGE_FILENAME: ${{ inputs.storage-filename }}
+        RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
+      run: |
+        set -euo pipefail
+
+        {
+          echo "### SauceLabs e2e (${LABEL})"
+          echo ""
+          echo "- app: \`${STORAGE_FILENAME}\`"
+
+          if [ -f "$RESULTS_JSON" ]; then
+            SESSION_ID=$(jq -r '.sessionId // empty' "$RESULTS_JSON")
+            if [ -n "$SESSION_ID" ]; then
+              echo "- session: https://app.saucelabs.com/tests/${SESSION_ID}"
+            fi
+
+            echo ""
+            echo "| suite | status | seconds | detail |"
+            echo "| --- | --- | --- | --- |"
+            jq -r '.results[] | "| \(.id) | \(.status) | \(.seconds // "") | \(.detail // "") |"' "$RESULTS_JSON"
+          else
+            echo "- no results file; the orchestrator did not reach its report"
+          fi
+
+          # A green run must not read as more coverage than it is.
+          echo ""
+          echo "**Not exercised by this run**"
+          echo ""
+
+          if [ "$PLATFORM" = "android" ]; then
+            echo "- \`registration-test\`: the build receives a placeholder google-services.json, so it has no real FCM push credential."
+          else
+            echo "- \`registration-test\`: the build is unsigned and carries no aps-environment entitlement, so it can obtain no PushKit VoIP token."
+          fi
+
+          echo "- \`ice-test\` valid-* variants: no TURN credentials are bundled at build time, so those variants skip and the suite reports Blocked."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    # The runner group is self-hosted, so the workspace and $HOME can outlive the
+    # job.
+    - name: Remove the generated credentials
+      if: always()
+      shell: bash
+      run: |
+        rm -f test/appium-orchestrator/secrets.json \
+              test/appium-orchestrator/token.json \
+              test/appium-orchestrator/results.json \
+              ~/.npmrc \
+              ~/.yarnrc.yml

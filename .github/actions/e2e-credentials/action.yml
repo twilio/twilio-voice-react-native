@@ -46,7 +46,7 @@ runs:
 
         for tool in curl jq; do
           if ! command -v "$tool" >/dev/null 2>&1; then
-            echo "::error::${tool} not found. This action makes its requests with curl and builds both orchestrator config files with jq."
+            echo "::error::${tool} not found."
             exit 1
           fi
         done
