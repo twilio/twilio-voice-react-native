@@ -93,8 +93,17 @@ runs:
         node-version: "22.13"
         cache: yarn
 
-    - shell: bash
-      run: yarn --cwd test/appium-orchestrator install --immutable
+    # Same hardened mode opt-out as the installs in ci.yml. This lockfile
+    # resolves proxy-addr through Appium's Express 5 dependency, and Artifactory
+    # serves a broken packument for proxy-addr, so the re-resolution that
+    # hardened mode forces on pull requests fails.
+    # Remove once SSCHELP-2959 is fixed.
+    - name: Install test/appium-orchestrator dependencies
+      shell: bash
+      working-directory: test/appium-orchestrator
+      env:
+        YARN_ENABLE_HARDENED_MODE: "false"
+      run: yarn install --immutable
 
     - name: Fetch credentials and write the orchestrator config
       uses: ./.github/actions/e2e-credentials
