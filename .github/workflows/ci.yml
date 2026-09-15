@@ -42,7 +42,14 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       - name: Install test/app dependencies
@@ -57,8 +64,13 @@ jobs:
         working-directory: test/appium-harness
         run: yarn install --immutable
 
+      # Same hardened mode opt-out as the root install above: this lockfile
+      # also resolves proxy-addr, through Appium's Express 5 dependency.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install test/appium-orchestrator dependencies
         working-directory: test/appium-orchestrator
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       # `yarn run check` includes check:linking, which guards the property that
@@ -125,7 +137,14 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       - name: Prepare the RN SDK
@@ -221,7 +240,14 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       - name: Prepare the RN SDK
@@ -364,7 +390,14 @@ jobs:
           echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
           echo "::notice::Using Android SDK at ${SDK_DIR}"
 
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       - name: Prepare the RN SDK
@@ -481,7 +514,14 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
       - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
         run: yarn install --immutable
 
       - name: Prepare the RN SDK
