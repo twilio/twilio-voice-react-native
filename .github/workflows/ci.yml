@@ -908,6 +908,7 @@ jobs:
         env:
           USE_SAUCE: "true"
           PLATFORM: ios
+          IOS_BUNDLE_ID: com.example.twilioreactnativeappiumharness
           SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
           RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
         run: node test-suites/index.mjs
@@ -1042,6 +1043,7 @@ jobs:
         env:
           USE_SAUCE: "true"
           PLATFORM: android
+          ANDROID_PACKAGE: com.example.twilioreactnativeappiumharness
           SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
           RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
         run: node test-suites/index.mjs
