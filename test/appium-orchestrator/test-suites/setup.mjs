@@ -161,17 +161,31 @@ const getSauceOptions = (platform) => {
   /** @type {string} */
   const buildName = `build test ${Date.now()}`;
 
+  /**
+   * Stated so `restartApp` does not depend on Sauce Labs echoing the
+   * identifier back in the session capabilities. Override when the uploaded
+   * build is not the Expo harness.
+   *
+   * Read with `?.` because a CI run writes a `secrets.json` holding only the
+   * `sauce` block.
+   */
+  const androidPackage =
+    process.env.ANDROID_PACKAGE || secrets.android?.appPackage;
+  const iosBundleId = process.env.IOS_BUNDLE_ID || secrets.ios?.bundleId;
+
   const platformCapabilities =
     platform === 'android'
       ? {
           ...ANDROID_CAPABILITIES,
           'appium:deviceName': secrets.sauce.androidDeviceName || 'Google.*',
           'appium:platformVersion': secrets.sauce.androidPlatformVersion || '14',
+          ...(androidPackage ? { 'appium:appPackage': androidPackage } : {}),
         }
       : {
           ...IOS_CAPABILITIES,
           'appium:deviceName': 'iPhone.*',
           'appium:platformVersion': '26',
+          ...(iosBundleId ? { 'appium:bundleId': iosBundleId } : {}),
         };
 
   /** @type {Parameters<typeof remote>['0']['capabilities']} */
