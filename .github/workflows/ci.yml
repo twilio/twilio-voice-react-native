@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    # TODO:
-    # TEMPORARY! remove task/build-appium-harness before merging this to main!
-    branches: [main, expo-1.x-build-appium-harness]
+    branches: [main]
   pull_request:
 
 # No default permissions; each job below declares exactly what it needs.
