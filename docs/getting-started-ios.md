@@ -60,3 +60,7 @@ voice.on(Voice.Event.CallInvite, (callInvite) => {
 // Make an outgoing call
 const call = await voice.connect(token, params);
 ```
+
+**Important Note**
+
+`voice.initializePushRegistry()` should be invoked on _every_ JS runtime start-up and should happen _as soon as possible_ in the JS lifecycle. Ideally, this means placing it in the entry-point to your application (i.e. `index.tsx`).
