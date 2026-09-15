@@ -4,7 +4,7 @@
 /* eslint-disable jest/valid-expect */
 
 import * as React from 'react';
-import { Call, TwilioErrors } from '@twilio/voice-react-native-sdk';
+import { Call, TwilioErrors, Voice } from '@twilio/voice-react-native-sdk';
 import type { UseTestSuite } from '../test-suites';
 import { delay } from '../utilities/delay';
 import { expect } from '../utilities/expect';
@@ -72,15 +72,27 @@ const STATS_REPORT_TYPES = {
 } as const;
 
 /**
+ * What the steps run against.
+ *
+ * `voice` is carried alongside `call` because the audio device surface hangs
+ * off `Voice` rather than off `Call`, and asserting it needs a call in progress
+ * so the audio session is active.
+ */
+type CallControlsContext = {
+  call: Call;
+  voice: Voice;
+};
+
+/**
  * Steps run in order against a single connected call.
  */
-const STEPS: Array<Step<Call>> = [
+const STEPS: Array<Step<CallControlsContext>> = [
   {
     name: 'getters-while-connected',
     description:
       'the getters report a connected call once Call.Event.Connected has ' +
       'been raised',
-    run: async (call) => {
+    run: async ({ call }) => {
       expect(call.getState(), 'call.getState()').toBe(Call.State.Connected);
       expect(call.getSid(), 'call.getSid()').toBeTypeOf('string');
       expect(
@@ -112,7 +124,7 @@ const STEPS: Array<Step<Call>> = [
     description:
       'mute(true) then mute(false) resolve with the new muted status, and ' +
       'isMuted() agrees with it',
-    run: async (call) => {
+    run: async ({ call }) => {
       expect(await call.mute(true), 'call.mute(true)').toBe(true);
       expect(call.isMuted(), 'call.isMuted() while muted').toBe(true);
 
@@ -129,7 +141,7 @@ const STEPS: Array<Step<Call>> = [
     description:
       'hold(true) then hold(false) resolve with the new hold status, and ' +
       'isOnHold() agrees with it',
-    run: async (call) => {
+    run: async ({ call }) => {
       expect(await call.hold(true), 'call.hold(true)').toBe(true);
       expect(call.isOnHold(), 'call.isOnHold() while on hold').toBe(true);
 
@@ -142,7 +154,7 @@ const STEPS: Array<Step<Call>> = [
   {
     name: 'send-digits',
     description: 'sendDigits resolves for every DTMF digit the SDK accepts',
-    run: async (call) => {
+    run: async ({ call }) => {
       await call.sendDigits(DTMF_DIGITS);
     },
   },
@@ -150,7 +162,7 @@ const STEPS: Array<Step<Call>> = [
     name: 'get-stats',
     description:
       'getStats resolves with WebRTC stats reports for the ongoing call',
-    run: async (call) => {
+    run: async ({ call }) => {
       const stats = await call.getStats();
 
       // See the note on STATS_REPORT_TYPES: the runtime payload is an array,
@@ -170,10 +182,72 @@ const STEPS: Array<Step<Call>> = [
       });
     },
   },
+  // Placed after `get-stats` so the stats above are read from a call that has
+  // not been re-routed mid-suite.
+  //
+  // iOS only. On Android selecting regenerates every device uuid, so the uuid
+  // read back never matches the one selected. That bug is already reported by
+  // the `select-audio-device` step of `voice-api-test`, and repeating it here
+  // would turn `call-controls-test` red on Android for a defect that is
+  // already tracked.
+  // TODO: VBLOCKS-7133
+  {
+    name: 'select-audio-device-while-connected',
+    description:
+      'selecting each audio device during a connected call is reflected by ' +
+      'getAudioDevices',
+    platforms: ['ios'],
+    run: async ({ voice }, log) => {
+      const initial = await voice.getAudioDevices();
+
+      // The restore runs in a `finally` because audio routing is device-wide
+      // state that outlives this suite. Without it, a mid-loop assertion
+      // failure would leave the device on whatever was selected last, and
+      // every later call would run through that route.
+      try {
+        for (const audioDevice of initial.audioDevices) {
+          await audioDevice.select();
+          await delay(CONTROL_SETTLE_DELAY_MS);
+
+          const { selectedDevice } = await voice.getAudioDevices();
+
+          log.info(
+            JSON.stringify({
+              selected: audioDevice.name,
+              reported: selectedDevice?.name,
+            })
+          );
+
+          // The device names are in the label because the orchestrator reports
+          // only the last few failing entries, so the `log.info` above does not
+          // reach the run summary and a bare uuid pair says nothing about
+          // which route the session actually settled on.
+          expect(
+            selectedDevice?.uuid,
+            `the device selected after selecting "${audioDevice.name}" ` +
+              `(reported "${selectedDevice?.name}")`
+          ).toBe(audioDevice.uuid);
+        }
+      } finally {
+        const { selectedDevice: originallySelected } = initial;
+
+        if (typeof originallySelected !== 'undefined') {
+          const original = initial.audioDevices.find(
+            (audioDevice) => audioDevice.uuid === originallySelected.uuid
+          );
+
+          // Swallowed deliberately: this is cleanup, and letting it throw here
+          // would replace the assertion failure that brought us into the
+          // `finally` with a less useful one.
+          await safelySettlePromise(original?.select() ?? Promise.resolve());
+        }
+      }
+    },
+  },
   {
     name: 'post-feedback',
     description: 'postFeedback resolves for a valid score and issue',
-    run: async (call) => {
+    run: async ({ call }) => {
       await call.postFeedback(Call.Score.Five, Call.Issue.AudioLatency);
     },
   },
@@ -182,7 +256,7 @@ const STEPS: Array<Step<Call>> = [
     description:
       'postFeedback rejects with an InvalidArgumentError for a score outside ' +
       'the Call.Score enum, without reaching native',
-    run: async (call) => {
+    run: async ({ call }) => {
       const result = await safelySettlePromise(
         call.postFeedback(6 as Call.Score, Call.Issue.AudioLatency)
       );
@@ -201,7 +275,7 @@ const STEPS: Array<Step<Call>> = [
     description:
       'postFeedback rejects with an InvalidArgumentError for an issue ' +
       'outside the Call.Issue enum, without reaching native',
-    run: async (call) => {
+    run: async ({ call }) => {
       const result = await safelySettlePromise(
         call.postFeedback(Call.Score.Five, 'not-an-issue' as Call.Issue)
       );
@@ -280,7 +354,7 @@ export const useCallControlsTest: UseTestSuite = (
       })
     );
 
-    const results = await runSteps(STEPS, call, log);
+    const results = await runSteps(STEPS, { call, voice }, log);
 
     // Teardown doubles as the coverage for `disconnect()` and the state the
     // call settles into, so it is recorded as a step of its own.
