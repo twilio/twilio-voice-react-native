@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, testing_cache-issue-expo-1.x-build-appium-harness]
   pull_request:
 
 # No default permissions; each job below declares exactly what it needs.
@@ -40,7 +40,9 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
           node-version: "22.13"
-          cache: yarn
+          # cache: yarn
+
+      - run: yarn cache clean --all
 
       - run: yarn install --immutable
 
