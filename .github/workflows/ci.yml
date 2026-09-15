@@ -42,6 +42,65 @@ jobs:
           node-version: "22.13"
           # cache: yarn
 
+      # TEMPORARY: remove before merging.
+      #
+      # Diagnoses why a cold `yarn install` resolves on a push and fails on a
+      # pull request with `YN0016: proxy-addr@npm:2.0.7: Registry failed to
+      # return reference "2.0.7"`. The GitHub OIDC `sub` claim is
+      # `repo:ORG/REPO:ref:refs/heads/<branch>` on a push and
+      # `repo:ORG/REPO:pull_request` on a pull request, so a JFrog identity
+      # mapping written against the ref form admits one and rejects the other.
+      #
+      # Run on both a push and a pull request, then compare. Reading the two
+      # runs:
+      #   403 or 401 on the pull request, 200 on the push -> the identity
+      #     mapping rejects the `pull_request` subject.
+      #   200 on both, `has 2.0.7` false on the pull request -> the packument
+      #     is filtered per identity.
+      #   200 on both with `has 2.0.7` true -> neither, and the cause is
+      #     elsewhere.
+      #
+      # Prints two HTTP status codes and one boolean about a public npm
+      # package. No token is decoded, no claim is printed, no registry URL is
+      # printed and no response body is printed, because this repo is public
+      # and its workflow logs are world readable.
+      #
+      # Placed after setup-node so `yarn` is Yarn 4, and before the credential
+      # cleanup step that removes `~/.yarnrc.yml`.
+      - name: TEMPORARY - probe Artifactory for proxy-addr
+        # No `-e`: a failing probe should still print its status rather than
+        # abort the step.
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          REGISTRY=$(yarn config get npmRegistryServer)
+          ARTIFACTORY_TOKEN=$(yarn config get npmAuthToken)
+
+          # `-s` without `-S`, and stderr discarded: a curl failure message
+          # carries the registry host, and this log is world readable. A
+          # transport failure surfaces as code 000 instead.
+          PACKUMENT_CODE=$(curl -s -o /tmp/proxy-addr.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${ARTIFACTORY_TOKEN}" \
+            "${REGISTRY}proxy-addr" 2>/dev/null)
+          echo "packument HTTP ${PACKUMENT_CODE}"
+
+          # `// false` covers a body with no `.versions` key, which is what an
+          # error payload looks like. The body itself is never printed.
+          jq -r '"has 2.0.7: \(.versions? | has("2.0.7") // false)"' \
+            /tmp/proxy-addr.json 2>/dev/null \
+            || echo "has 2.0.7: unknown (no readable packument)"
+
+          # Probed separately: the packument can list a version the tarball
+          # fetch is still refused for.
+          TARBALL_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${ARTIFACTORY_TOKEN}" \
+            "${REGISTRY}proxy-addr/-/proxy-addr-2.0.7.tgz" 2>/dev/null)
+          echo "tarball HTTP ${TARBALL_CODE}"
+
+          # The runner group is self-hosted, so /tmp can outlive the job.
+          rm -f /tmp/proxy-addr.json
+
       - run: yarn cache clean --all
 
       - run: yarn install --immutable
