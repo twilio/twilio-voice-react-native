@@ -14,6 +14,7 @@ import tokenJson from '../token.json' with { type: 'json' };
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const COMMON_CAPABILITIES = {
   'appium:autoAcceptAlerts': true,
+  'appium:newCommandTimeout': 300,
 };
 
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
@@ -35,7 +36,6 @@ const ANDROID_CAPABILITIES = {
   platformName: 'Android',
   'appium:automationName': 'UiAutomator2',
   'appium:autoGrantPermissions': true,
-  'appium:newCommandTimeout': 300,
 };
 
 // NOTE: VBLOCKS-6582
@@ -206,6 +206,7 @@ const getSauceOptions = (platform) => {
     hostname: secrets.sauce.hostname,
     port: secrets.sauce.port,
     baseUrl: secrets.sauce.baseUrl,
+    connectionRetryTimeout: 600000,
     capabilities,
   };
 
