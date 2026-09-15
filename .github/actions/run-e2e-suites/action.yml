@@ -152,7 +152,16 @@ runs:
             echo ""
             echo "| suite | status | seconds | detail |"
             echo "| --- | --- | --- | --- |"
-            jq -r '.results[] | "| \(.id) | \(.status) | \(.seconds // "") | \(.detail // "") |"' "$RESULTS_JSON"
+            # `detail` is escaped because the orchestrator joins failing steps
+            # with a literal " | " and reports a rejection as its raw error
+            # message. Either one would otherwise split the row into extra
+            # columns or end the table early, on the failure path where the
+            # detail matters most.
+            jq -r '
+              def cell: (. // "") | gsub("\\|"; "\\|") | gsub("\r?\n"; " ");
+              .results[]
+              | "| \(.id | cell) | \(.status | cell) | \(.seconds // "") | \(.detail | cell) |"
+            ' "$RESULTS_JSON"
           else
             echo "- no results file; the orchestrator did not reach its report"
           fi

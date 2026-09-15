@@ -70,15 +70,28 @@ runs:
             || echo "::error::(response withheld - not valid JSON)"
         }
 
+        # GitHub injects these two only when the calling job declares
+        # `permissions: id-token: write`. Without that permission they are
+        # unset rather than empty, so `set -u` would kill the script below with
+        # a bare "unbound variable" before the JWT check could explain why.
+        if [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ] \
+          || [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+          echo "::error::The calling job needs permissions: id-token: write."
+          exit 1
+        fi
+
         # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
         #    --data-urlencode into the query string rather than a POST body.
         #    Encoding the audience instead of splicing the audience into the
         #    URL keeps the request well-formed whatever the value contains.
+        #
+        #    `|| true` so a curl failure reaches the JWT check below instead of
+        #    aborting on `pipefail` with curl's exit code and no explanation.
         GITHUB_JWT=$(curl -sS -G \
           -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
           --data-urlencode "audience=${VENDOR_AUDIENCE}" \
           "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
-          | jq -r '.value')
+          | jq -r '.value' || true)
         if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
           echo "::error::Failed to obtain a GitHub OIDC JWT"
           exit 1
