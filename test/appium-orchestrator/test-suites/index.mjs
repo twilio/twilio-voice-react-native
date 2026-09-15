@@ -2,6 +2,8 @@
 
 'use strict';
 
+import { writeFileSync } from 'node:fs';
+
 /**
  * @import { TestOrchestratorSetup } from './setup.mjs'
  */
@@ -308,12 +310,38 @@ const main = async () => {
     }
   }
 
+  // Read while the session is open. `deleteSession` below clears it.
+  const sessionId = driver.sessionId;
+
   if (env.USE_SAUCE) {
     const sauceJobResult = results.some((r) => r.status === 'Fail') ? 'failed' : 'passed';
     await safelySettlePromise(driver.execute(`sauce:job-result=${sauceJobResult}`));
   }
 
   await safelySettlePromise(driver.deleteSession());
+
+  if (process.env.RESULTS_JSON) {
+    // A run that produced results but could not write the file should still
+    // report those results and still set its own exit code. The failure is
+    // announced rather than thrown.
+    try {
+      writeFileSync(
+        process.env.RESULTS_JSON,
+        JSON.stringify(
+          {
+            platform: env.PLATFORM,
+            avd: env.AVD || null,
+            sessionId: sessionId || null,
+            results,
+          },
+          null,
+          2
+        )
+      );
+    } catch (error) {
+      console.log(`could not write ${process.env.RESULTS_JSON}: ${String(error)}`);
+    }
+  }
 
   return report(results, { platform: env.PLATFORM, avd: env.AVD });
 };

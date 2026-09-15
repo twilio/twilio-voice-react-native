@@ -1,0 +1,158 @@
+name: 'E2E Credentials'
+description: 'Exchange GitHub OIDC for SauceLabs credentials and a Voice access token, then write the orchestrator config files'
+
+inputs:
+  platform:
+    description: 'ios or android. Used only to build the access token identity.'
+    required: true
+  vendor-url:
+    description: 'Credential vendor endpoint'
+    required: true
+  vendor-audience:
+    description: 'Audience the GitHub OIDC token is requested for'
+    required: true
+  sauce-hostname:
+    description: 'SauceLabs hostname written into secrets.json'
+    required: true
+  sauce-port:
+    description: 'SauceLabs port written into secrets.json. Must be numeric.'
+    required: true
+  sauce-base-url:
+    description: 'SauceLabs base url written into secrets.json'
+    required: true
+  storage-filename:
+    description: 'Filename of the app already uploaded to SauceLabs storage'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # The credential fetch and the config write share one step on purpose. The
+    # SauceLabs service account and the access token stay as shell locals and
+    # are never written to $GITHUB_ENV. The runner group is self-hosted, so a
+    # value that is never written out has no cleanup step to forget.
+    - name: Fetch credentials and write the orchestrator config
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        VENDOR_URL: ${{ inputs.vendor-url }}
+        VENDOR_AUDIENCE: ${{ inputs.vendor-audience }}
+        SAUCE_HOSTNAME: ${{ inputs.sauce-hostname }}
+        SAUCE_PORT: ${{ inputs.sauce-port }}
+        SAUCE_BASE_URL: ${{ inputs.sauce-base-url }}
+        STORAGE_FILENAME: ${{ inputs.storage-filename }}
+      run: |
+        set -euo pipefail
+
+        for tool in curl jq; do
+          if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::${tool} not found. This action makes its requests with curl and builds both orchestrator config files with jq."
+            exit 1
+          fi
+        done
+
+        # Both config files carry credentials, so they are created readable by
+        # this user only.
+        umask 077
+
+        for required in PLATFORM VENDOR_URL VENDOR_AUDIENCE SAUCE_HOSTNAME SAUCE_PORT SAUCE_BASE_URL STORAGE_FILENAME; do
+          if [ -z "${!required}" ]; then
+            echo "::error::${required} is not set."
+            exit 1
+          fi
+        done
+
+        # Redact every key whose name contains "token" or "key". Withhold the
+        # body entirely when the body is not valid JSON, rather than printing
+        # a raw unredacted body.
+        redact_response() {
+          echo "$1" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+            || echo "::error::(response withheld - not valid JSON)"
+        }
+
+        # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+        #    --data-urlencode into the query string rather than a POST body.
+        #    Encoding the audience instead of splicing the audience into the
+        #    URL keeps the request well-formed whatever the value contains.
+        GITHUB_JWT=$(curl -sS -G \
+          -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+          --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+          "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+          | jq -r '.value')
+        if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+          echo "::error::Failed to obtain a GitHub OIDC JWT"
+          exit 1
+        fi
+        echo "::add-mask::$GITHUB_JWT"
+
+        # 2. Exchange the JWT for the SauceLabs service account.
+        #    Each value is masked the moment the value is parsed, before the
+        #    failure branch below can print anything.
+        SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
+          -H "Authorization: Bearer ${GITHUB_JWT}" \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"get-saucelabs-credentials"}')
+
+        SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_USERNAME" ]; then
+          echo "::add-mask::$SAUCE_USERNAME"
+        fi
+
+        SAUCE_ACCESS_KEY=$(echo "$SAUCE_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_ACCESS_KEY" ]; then
+          echo "::add-mask::$SAUCE_ACCESS_KEY"
+        fi
+
+        if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+          echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+          redact_response "$SAUCE_RESP"
+          exit 1
+        fi
+
+        # 3. Mint the access token the harness dials with. The ttl is the
+        #    vendor's 3600 second ceiling rather than the vendor's 300 second
+        #    default, which would very plausibly expire during device
+        #    allocation, before the harness ever dials. A ttl above the
+        #    ceiling is capped rather than rejected.
+        TOKEN_REQ=$(jq -nc --arg identity "ci-${PLATFORM}-${GITHUB_SHA}-$(date +%s%3N)" \
+          '{action: "mint-voice-token", identity: $identity, ttl: 3600}')
+
+        TOKEN_RESP=$(curl -sS "$VENDOR_URL" \
+          -H "Authorization: Bearer ${GITHUB_JWT}" \
+          -H 'Content-Type: application/json' \
+          -d "$TOKEN_REQ")
+
+        ACCESS_TOKEN=$(echo "$TOKEN_RESP" | jq -r '.token // empty' 2>/dev/null || true)
+        if [ -n "$ACCESS_TOKEN" ]; then
+          echo "::add-mask::$ACCESS_TOKEN"
+        fi
+
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "::error::The credential vendor minted no access token. Redacted response below:"
+          redact_response "$TOKEN_RESP"
+          exit 1
+        fi
+
+        # 4. Write the two gitignored config files the orchestrator imports.
+        #    Both files are built with jq --arg rather than by splicing values
+        #    into a JSON literal. A credential containing a quote or a
+        #    backslash would otherwise break the file or inject sibling
+        #    fields. The port is --argjson, so a non-numeric port fails here
+        #    rather than inside WebdriverIO.
+        #
+        #    The paths are anchored to GITHUB_WORKSPACE. A composite action
+        #    step inherits no working-directory from the calling job, so a
+        #    relative path would be ambiguous.
+        jq -n --arg accessToken "$ACCESS_TOKEN" \
+          '{accessToken: $accessToken}' \
+          > "${GITHUB_WORKSPACE}/test/appium-orchestrator/token.json"
+
+        jq -n \
+          --arg user "$SAUCE_USERNAME" \
+          --arg key "$SAUCE_ACCESS_KEY" \
+          --arg hostname "$SAUCE_HOSTNAME" \
+          --argjson port "$SAUCE_PORT" \
+          --arg baseUrl "$SAUCE_BASE_URL" \
+          --arg storageFilename "storage:filename=${STORAGE_FILENAME}" \
+          '{sauce: {user: $user, key: $key, hostname: $hostname, port: $port, baseUrl: $baseUrl, storageFilename: $storageFilename}}' \
+          > "${GITHUB_WORKSPACE}/test/appium-orchestrator/secrets.json"
