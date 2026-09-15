@@ -60,6 +60,21 @@ removed bare React Native support. Those preview versions are discontinued.
 
 ## Fixes
 
+- Fixed the Expo SDK version being absent from call insights metadata.
+
+  `Voice` records the version natively during construction. That call was
+  fire-and-forget, so a call, registration or preflight test started shortly
+  after construction could reach the native layer first. On iOS the native SDK
+  memoizes publisher metadata on the first insights event, so a miss there
+  persisted for the rest of the application session. `connect`, `register`,
+  `unregister`, `runPreflight` and `initializePushRegistry` now wait for the
+  version to be recorded. Failing to record it can no longer reject any of
+  them.
+
+  Separately, the version was not reported at all for applications running an
+  over-the-air update, whose manifests nest the app config under
+  `extra.expoClient` rather than carrying `sdkVersion` at the top level.
+
 ### Platform Specific Fixes
 
 #### Android
