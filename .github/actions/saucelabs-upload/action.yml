@@ -1,0 +1,165 @@
+name: 'SauceLabs Upload'
+description: 'Exchange GitHub OIDC for SauceLabs credentials and upload an app to SauceLabs storage'
+
+inputs:
+  vendor-url:
+    description: 'Credential vendor endpoint'
+    required: true
+  vendor-audience:
+    description: 'Audience the GitHub OIDC token is requested for'
+    required: true
+  sauce-upload-url:
+    description: 'SauceLabs storage upload endpoint'
+    required: true
+  artifact-path:
+    description: 'Path to the already-downloaded app file to upload'
+    required: true
+  name-prefix:
+    description: 'Identifies the app, e.g. twilio-voice-react-native-expo-appium-harness. The commit SHA and a millisecond timestamp are appended.'
+    required: true
+  extension:
+    description: 'apk or ipa'
+    required: true
+  label:
+    description: 'Short name for the step summary heading, such as "android" or "android (bare)"' # NOTE TO CLAUDE: should this be "android (expo)"
+    required: true
+
+outputs:
+  filename:
+    description: 'The name the app was stored under'
+    value: ${{ steps.upload.outputs.filename }}
+  file_id:
+    description: 'The opaque SauceLabs storage handle'
+    value: ${{ steps.upload.outputs.file_id }}
+
+runs:
+  using: 'composite'
+  steps:
+    # One step on purpose. The runner group is self-hosted, so the workspace can
+    # outlive the job, and credentials kept as shell locals need no cleanup step.
+    - name: Fetch SauceLabs credentials and upload the app
+      id: upload
+      shell: bash
+      env:
+        VENDOR_URL: ${{ inputs.vendor-url }}
+        VENDOR_AUDIENCE: ${{ inputs.vendor-audience }}
+        SAUCE_UPLOAD_URL: ${{ inputs.sauce-upload-url }}
+        ARTIFACT_PATH: ${{ inputs.artifact-path }}
+        NAME_PREFIX: ${{ inputs.name-prefix }}
+        EXTENSION: ${{ inputs.extension }}
+        LABEL: ${{ inputs.label }}
+      run: |
+        set -euo pipefail
+
+        for tool in curl jq; do
+          if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::${tool} not found."
+            exit 1
+          fi
+        done
+
+        # Named by the repository setting a reader has to go and change, not by
+        # the variable name inside this action.
+        [ -n "$VENDOR_URL" ] || { echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository secret is not set."; exit 1; }
+        [ -n "$VENDOR_AUDIENCE" ] || { echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."; exit 1; }
+        [ -n "$SAUCE_UPLOAD_URL" ] || { echo "::error::The SAUCE_UPLOAD_URL repository variable is not set."; exit 1; }
+
+        # Supplied by the calling job rather than configured, so these name the
+        # action input instead.
+        [ -n "$ARTIFACT_PATH" ] || { echo "::error::The artifact-path input is empty."; exit 1; }
+        [ -n "$NAME_PREFIX" ] || { echo "::error::The name-prefix input is empty."; exit 1; }
+        [ -n "$EXTENSION" ] || { echo "::error::The extension input is empty."; exit 1; }
+        [ -n "$LABEL" ] || { echo "::error::The label input is empty."; exit 1; }
+
+        # NOTE TO CLAUDE: can we just put the above in a list and for loop over it, like we do with the required tools
+
+        if [ ! -f "$ARTIFACT_PATH" ]; then
+          echo "::error::No file at ${ARTIFACT_PATH}."
+          exit 1
+        fi
+
+        # -G puts --data-urlencode in the query string rather than a POST body.
+        # Encoding the audience keeps the request well-formed whatever it holds.
+        GITHUB_JWT=$(curl -sS -G \
+          -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+          --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+          "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+          | jq -r '.value')
+        if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+          echo "::error::Failed to obtain a GitHub OIDC JWT"
+          exit 1
+        fi
+        echo "::add-mask::$GITHUB_JWT"
+
+        VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
+          -H "Authorization: Bearer ${GITHUB_JWT}" \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"get-saucelabs-credentials"}')
+
+        # Masked as parsed, before the failure branch below can print a partial
+        # response.
+        SAUCE_USERNAME=$(echo "$VENDOR_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_USERNAME" ]; then
+          echo "::add-mask::$SAUCE_USERNAME"
+        fi
+
+        SAUCE_ACCESS_KEY=$(echo "$VENDOR_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_ACCESS_KEY" ]; then
+          echo "::add-mask::$SAUCE_ACCESS_KEY"
+        fi
+
+        if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+          echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
+          # Redact every key named like a token, and withhold a body that is not
+          # valid JSON rather than printing it raw.
+          echo "$VENDOR_RESP" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
+            || echo "::error::(response withheld - not valid JSON)"
+          exit 1
+        fi
+
+        # Built here rather than by each caller, so all four uploads are named
+        # one way. The SHA identifies the commit and the millisecond timestamp
+        # separates repeat runs of it, which otherwise overwrite each other in
+        # SauceLabs storage.
+        FILENAME="${NAME_PREFIX}-${GITHUB_SHA}-$(date +%s%3N).${EXTENSION}"
+        echo "::notice::Uploading as ${FILENAME}"
+
+        # --write-out appends the status code on its own trailing line. -f is
+        # deliberately unused: it discards the response body on an error, and the
+        # body is the only description of what went wrong.
+        UPLOAD_RESP=$(curl -sS \
+          -u "${SAUCE_USERNAME}:${SAUCE_ACCESS_KEY}" \
+          -F "payload=@${ARTIFACT_PATH}" \
+          -F "name=${FILENAME}" \
+          --write-out '\n%{http_code}' \
+          "$SAUCE_UPLOAD_URL")
+
+        HTTP_CODE=$(echo "$UPLOAD_RESP" | tail -n 1)
+        BODY=$(echo "$UPLOAD_RESP" | sed '$d')
+
+        if [ "${HTTP_CODE:0:1}" != "2" ]; then
+          echo "::error::SauceLabs upload failed with HTTP ${HTTP_CODE}. Response body below:"
+          echo "$BODY"
+          exit 1
+        fi
+
+        FILE_ID=$(echo "$BODY" | jq -r '.item.id // empty' 2>/dev/null || true)
+        if [ -z "$FILE_ID" ]; then
+          echo "::error::SauceLabs answered ${HTTP_CODE} but the response carried no .item.id. Response body below:"
+          echo "$BODY"
+          exit 1
+        fi
+
+        # Neither value is a secret. The filename derives from the commit SHA and
+        # the file id is an opaque storage handle.
+        {
+          echo "filename=${FILENAME}"
+          echo "file_id=${FILE_ID}"
+        } >> "$GITHUB_OUTPUT"
+
+        {
+          echo "### SauceLabs upload (${LABEL})"
+          echo ""
+          echo "- filename: \`${FILENAME}\`"
+          echo "- file id: \`${FILE_ID}\`"
+        } >> "$GITHUB_STEP_SUMMARY"
