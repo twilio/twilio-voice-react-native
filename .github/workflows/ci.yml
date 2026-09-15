@@ -100,9 +100,15 @@ jobs:
 
           # `// false` covers a body with no `.versions` key, which is what an
           # error payload looks like. The body itself is never printed.
-          jq -r '"has 2.0.7: \(.versions? | has("2.0.7") // false)"' \
+          # Lists the 2.0.x versions the registry admits. `~2.0.7` is
+          # `>=2.0.7 <2.1.0`, so any 2.0.x at or above 2.0.7 satisfies the
+          # Express 4 range and the lockfile can simply move to it. Only public
+          # npm version numbers are printed.
+          jq -r '"2.0.x offered: \(.versions? // {} | keys
+                   | map(select(startswith("2.0."))) | tostring)  " +
+                 "latest tag: \(.["dist-tags"]?.latest // "none")"' \
             /tmp/proxy-addr.json 2>/dev/null \
-            || echo "has 2.0.7: unknown (no readable packument)"
+            || echo "2.0.x offered: unknown (no readable packument)"
 
           # Probed separately: the packument can list a version the tarball
           # fetch is still refused for.
