@@ -162,9 +162,9 @@ const getSauceOptions = (platform) => {
   const buildName = `build test ${Date.now()}`;
 
   /**
-   * Stated so `restartApp` does not depend on Sauce Labs echoing the
-   * identifier back in the session capabilities. Override when the uploaded
-   * build is not the Expo harness.
+   * Stated so `restartApp` can fall back to the requested capabilities when
+   * Sauce Labs does not echo the identifier back in the session capabilities.
+   * Override when the uploaded build is not the Expo harness.
    *
    * Read with `?.` because a CI run writes a `secrets.json` holding only the
    * `sauce` block.

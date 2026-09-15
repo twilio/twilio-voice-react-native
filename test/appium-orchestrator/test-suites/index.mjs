@@ -67,7 +67,15 @@ const SUITE_TIMEOUT_MS = parseInt(process.env.SUITE_TIMEOUT_MS || '', 10) || 600
  * @param {TestOrchestratorSetup['driver']} driver
  */
 async function restartApp(driver) {
-  const caps = /** @type {Record<string, any>} */ (driver.capabilities || {});
+  // `capabilities` is what the server returned and `requestedCapabilities` is
+  // what the session asked for. The returned set wins where it carries the
+  // identifier, and the requested set fills the gap when Sauce Labs does not
+  // echo the identifier back. A missing identifier fails every suite in the
+  // run, because `restartApp` runs before each one.
+  const caps = /** @type {Record<string, any>} */ ({
+    ...(driver.requestedCapabilities || {}),
+    ...(driver.capabilities || {}),
+  });
   const appId =
     caps['appium:appPackage'] ||
     caps.appPackage ||
