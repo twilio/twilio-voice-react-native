@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, testing_cache-issue-expo-1.x-build-appium-harness]
+    branches: [main]
   pull_request:
 
 # No default permissions; each job below declares exactly what it needs.
@@ -26,6 +26,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -98,6 +100,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -203,6 +207,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Verify the runner has an iOS toolchain
         run: |
@@ -346,6 +352,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -477,6 +485,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Verify the runner has an iOS toolchain
         run: |
@@ -837,6 +847,8 @@ jobs:
       id-token: write # for the Artifactory and credential vendor OIDC exchanges
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/run-e2e-suites
         with:
@@ -867,6 +879,8 @@ jobs:
       id-token: write # for the Artifactory and credential vendor OIDC exchanges
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/run-e2e-suites
         with:
@@ -897,6 +911,8 @@ jobs:
       id-token: write # for the Artifactory and credential vendor OIDC exchanges
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/run-e2e-suites
         with:
@@ -927,6 +943,8 @@ jobs:
       id-token: write # for the Artifactory and credential vendor OIDC exchanges
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/run-e2e-suites
         with:

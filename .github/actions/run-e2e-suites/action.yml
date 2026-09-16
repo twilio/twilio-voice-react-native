@@ -131,8 +131,12 @@ runs:
         ANDROID_PACKAGE: ${{ inputs.android-package }}
         IOS_BUNDLE_ID: ${{ inputs.ios-bundle-id }}
         SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
-        RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
-      run: node test-suites/index.mjs
+        RESULTS_JSON: ${{ github.workspace }}/temp/results.json
+      run: |
+        # The orchestrator announces a failed write rather than throwing, so a
+        # missing directory would lose the results silently.
+        mkdir -p "$(dirname "$RESULTS_JSON")"
+        node test-suites/index.mjs
 
     # The orchestrator writes RESULTS_JSON before returning its exit code, so a
     # failing run still has the file to report from.
@@ -143,7 +147,7 @@ runs:
         PLATFORM: ${{ inputs.platform }}
         LABEL: ${{ inputs.label }}
         STORAGE_FILENAME: ${{ inputs.storage-filename }}
-        RESULTS_JSON: ${{ github.workspace }}/test/appium-orchestrator/results.json
+        RESULTS_JSON: ${{ github.workspace }}/temp/results.json
       run: |
         set -euo pipefail
 
@@ -197,6 +201,6 @@ runs:
       run: |
         rm -f test/appium-orchestrator/secrets.json \
               test/appium-orchestrator/token.json \
-              test/appium-orchestrator/results.json \
+              temp/results.json \
               ~/.npmrc \
               ~/.yarnrc.yml
