@@ -137,18 +137,25 @@ jobs:
           git add -f android/src/main/java/com/twiliovoicereactnative/CommonConstants.java
           git commit --no-verify -m "chore: prepare release ${RELEASE_VERSION}"
 
+          # Tag the fully built commit. release.yml reuses this tag for the
+          # GitHub Release instead of creating its own.
+          git tag "${RELEASE_VERSION}"
+
           echo "::notice::Release commit hash: $(git rev-parse HEAD)"
 
       # Known gap: re-dispatching this workflow for a version whose branch was
       # already pushed rebuilds everything and then fails here, because the
       # fresh local branch has no shared history with the remote one. Loud and
       # recoverable, but only after the whole build has run again, and recovery
-      # means deleting the remote branch by hand.
+      # means deleting the remote branch and tag by hand.
       #
       # Deliberately not a force-push. That would discard whatever is on the
       # existing branch. If this becomes annoying, check for the remote branch
       # before the build rather than relaxing the push.
-      - name: Push release branch
+      - name: Push release branch and tag
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
-        run: git push origin "release/${RELEASE_VERSION}"
+        run: |
+          git push origin \
+            "release/${RELEASE_VERSION}" \
+            "refs/tags/${RELEASE_VERSION}"
