@@ -8,7 +8,8 @@
 
 const withTwilioVoice = require('../withTwilioVoice');
 
-const baseConfig = (props) => withTwilioVoice({ name: 't', slug: 't' }, props);
+const baseConfig = (props, extra = {}) =>
+  withTwilioVoice({ name: 't', slug: 't', ...extra }, props);
 
 const runMod = async (config, platform, name, modResults) => {
   const mod = config.mods?.[platform]?.[name];
@@ -73,12 +74,34 @@ describe('Info.plist', () => {
 });
 
 describe('entitlements', () => {
-  it('defaults aps-environment to development', async () => {
-    const out = await runMod(baseConfig(), 'ios', 'entitlements', {});
-    expect(out['aps-environment']).toBe('development');
+  let warn;
+
+  beforeEach(() => {
+    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
-  it('honours a custom apsEnvironment', async () => {
+  afterEach(() => {
+    warn.mockRestore();
+  });
+
+  /**
+   * The severe case is a release build that silently registers its VoIP token
+   * against the APNs sandbox: it builds, `Voice.register()` resolves, and
+   * incoming calls never arrive. Nothing at runtime reports it, so the only
+   * place it can be caught is the prebuild output.
+   */
+  it('defaults aps-environment to development and says so', async () => {
+    const out = await runMod(baseConfig(), 'ios', 'entitlements', {});
+    expect(out['aps-environment']).toBe('development');
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    const flat = warn.mock.calls[0][0].replace(/\s+/g, ' ');
+    expect(flat).toContain('defaulting to "development"');
+    expect(flat).toContain('"aps-environment": "production"');
+    expect(flat).toContain('"apsEnvironment": "production"');
+  });
+
+  it('honours a custom apsEnvironment without warning', async () => {
     const out = await runMod(
       baseConfig({ apsEnvironment: 'production' }),
       'ios',
@@ -86,6 +109,7 @@ describe('entitlements', () => {
       {}
     );
     expect(out['aps-environment']).toBe('production');
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('does not overwrite a value the app already set', async () => {
@@ -93,6 +117,109 @@ describe('entitlements', () => {
       'aps-environment': 'production',
     });
     expect(out['aps-environment']).toBe('production');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('honours ios.entitlements from app config', async () => {
+    const out = await runMod(
+      baseConfig(undefined, {
+        ios: { entitlements: { 'aps-environment': 'production' } },
+      }),
+      'ios',
+      'entitlements',
+      {}
+    );
+    expect(out['aps-environment']).toBe('production');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('prefers app config over the plugin prop', async () => {
+    const out = await runMod(
+      baseConfig(
+        { apsEnvironment: 'development' },
+        { ios: { entitlements: { 'aps-environment': 'production' } } }
+      ),
+      'ios',
+      'entitlements',
+      {}
+    );
+    expect(out['aps-environment']).toBe('production');
+  });
+});
+
+describe('Expo SDK version recorded at build time', () => {
+  /**
+   * An incoming call on Android runs no JavaScript before the native layer
+   * emits its first insights event, so the version reported from `Voice` is
+   * absent on that path. These mods bake it into the built application
+   * instead.
+   */
+  it('adds the Android manifest meta-data', async () => {
+    const manifest = {
+      manifest: {
+        application: [{ $: { 'android:name': '.MainApplication' } }],
+      },
+    };
+    const out = await runMod(
+      baseConfig(undefined, { sdkVersion: '52.0.0' }),
+      'android',
+      'manifest',
+      manifest
+    );
+    const metaData = out.manifest.application[0]['meta-data'];
+    expect(metaData).toStrictEqual([
+      {
+        $: {
+          'android:name': 'com.twilio.voice.expo_version',
+          'android:value': '52.0.0',
+        },
+      },
+    ]);
+  });
+
+  it('adds nothing to the manifest when the sdk version is unknown', async () => {
+    const manifest = {
+      manifest: {
+        application: [{ $: { 'android:name': '.MainApplication' } }],
+      },
+    };
+    const out = await runMod(baseConfig(), 'android', 'manifest', manifest);
+    expect(out.manifest.application[0]['meta-data']).toBeUndefined();
+  });
+
+  it('adds the iOS Info.plist key', async () => {
+    const out = await runMod(
+      baseConfig(undefined, { sdkVersion: '52.0.0' }),
+      'ios',
+      'infoPlist',
+      {}
+    );
+    expect(out.TwilioVoiceExpoVersion).toBe('52.0.0');
+  });
+
+  it('adds nothing to Info.plist when the sdk version is unknown', async () => {
+    const out = await runMod(baseConfig(), 'ios', 'infoPlist', {});
+    expect('TwilioVoiceExpoVersion' in out).toBe(false);
+  });
+
+  it('ignores a non-string sdk version', async () => {
+    const out = await runMod(
+      baseConfig(undefined, { sdkVersion: 52 }),
+      'ios',
+      'infoPlist',
+      {}
+    );
+    expect('TwilioVoiceExpoVersion' in out).toBe(false);
+  });
+
+  it('ignores an empty sdk version', async () => {
+    const out = await runMod(
+      baseConfig(undefined, { sdkVersion: '' }),
+      'ios',
+      'infoPlist',
+      {}
+    );
+    expect('TwilioVoiceExpoVersion' in out).toBe(false);
   });
 });
 
@@ -215,11 +342,13 @@ class MainApplication : Application(), ReactApplication {
     expect(flat).toContain('voiceApplicationProxy.onTerminate()');
   });
 
-  it('still inserts onCreate when super.onCreate is absent', async () => {
+  it('throws when onCreate does not call super.onCreate', async () => {
     /**
-     * The onCreate anchor is optional. Without a super.onCreate() call to
-     * anchor to, the proxy call goes to the top of the method rather than
-     * failing.
+     * The anchor is required. Inserting at the top of the method instead runs
+     * the proxy before the superclass has initialised: on MainActivity that
+     * means requestPermissions() against an activity whose super.onCreate has
+     * not run. A prebuild failure naming the method is visible; a half
+     * initialised activity at runtime is not.
      */
     const src = `import android.app.Application
 
@@ -229,8 +358,18 @@ class MainApplication : Application(), ReactApplication {
   }
 }
 `;
-    const out = await runApplication(src);
-    expect(out.contents).toContain('voiceApplicationProxy.onCreate()');
+    let error;
+    try {
+      await runApplication(src);
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeDefined();
+    const flat = error.message.replace(/\s+/g, ' ');
+    expect(flat).toContain(
+      'cannot hook MainApplication.onCreate() because it does not call super.onCreate()'
+    );
+    expect(flat).toContain('docs/expo/app-config.md');
   });
 
   it('throws when a matched class declaration has no body', async () => {

@@ -167,10 +167,32 @@ function assertPluginApplied() {
       failures.push(`${file} lacks: ${needle}`);
     }
   }
+
+  /**
+   * The Expo SDK version the plugin bakes into the manifest. The native layer
+   * reads it before any JavaScript runs, which is the only way an incoming call
+   * that launches the process cold can report the version, so a prebuild that
+   * silently stopped emitting it would go unnoticed until the insights data came
+   * back wrong.
+   */
+  const manifest = join(appDir, 'android/app/src/main/AndroidManifest.xml');
+  if (!existsSync(manifest)) {
+    failures.push('AndroidManifest.xml missing');
+  } else {
+    const meta = readFileSync(manifest, 'utf8').match(
+      /android:name="com\.twilio\.voice\.expo_version"\s+android:value="([^"]*)"/
+    );
+    if (!meta) {
+      failures.push('AndroidManifest.xml lacks com.twilio.voice.expo_version');
+    } else if (!/^\d+\.\d+\.\d+$/.test(meta[1])) {
+      failures.push(`com.twilio.voice.expo_version unresolved: "${meta[1]}"`);
+    }
+  }
+
   if (failures.length) {
     throw new Error(`plugin output incomplete:\n  - ${failures.join('\n  - ')}`);
   }
-  process.stderr.write(`  all ${checks.length} assertions passed\n`);
+  process.stderr.write(`  all ${checks.length + 1} assertions passed\n`);
 }
 
 function main() {

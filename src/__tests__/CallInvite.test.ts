@@ -5,6 +5,7 @@ import {
 } from '../__mocks__/CallInvite';
 import {
   mockNativePromiseRejectionWithCodeValue,
+  mockNativePromiseResolutionValue,
   NativeEventEmitter as MockNativeEventEmitterType,
 } from '../__mocks__/common';
 import { Call } from '../Call';
@@ -351,6 +352,82 @@ describe('CallInvite class', () => {
       }
 
       it(testMessage, shouldPass ? shouldResolve : shouldReject);
+    });
+  });
+
+  /**
+   * Accepting an invite makes the native layer emit insights events, so the
+   * Expo version has to reach the native layer first, for the same reason
+   * `Voice.connect` waits for it. This is the only entry point reached from an
+   * incoming call rather than from application code, so it cannot rely on a
+   * `Voice` instance having already waited.
+   */
+  describe('.accept() expo version', () => {
+    const flushPromises = () =>
+      new Promise<void>((resolve) => setImmediate(resolve));
+
+    it('waits for the expo version to be recorded before accepting', async () => {
+      let settle!: (value: unknown) => void;
+      jest.mocked(MockNativeModule.voice_setExpoVersion).mockReturnValueOnce(
+        new Promise((resolve) => {
+          settle = resolve;
+        }) as any
+      );
+
+      const acceptPromise = new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept();
+      await flushPromises();
+
+      expect(MockNativeModule.callInvite_accept).not.toHaveBeenCalled();
+
+      settle(mockNativePromiseResolutionValue(undefined));
+      await acceptPromise;
+
+      expect(MockNativeModule.callInvite_accept).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts when the expo version binding rejects', async () => {
+      jest
+        .mocked(MockNativeModule.voice_setExpoVersion)
+        .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept();
+
+      expect(MockNativeModule.callInvite_accept).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts when the expo version binding rejects with a code', async () => {
+      jest
+        .mocked(MockNativeModule.voice_setExpoVersion)
+        .mockResolvedValueOnce(
+          mockNativePromiseRejectionWithCodeValue(
+            31401,
+            'mock expo version failure'
+          )
+        );
+
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Pending
+      ).accept();
+
+      expect(MockNativeModule.callInvite_accept).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not record the version when the invite is not pending', async () => {
+      await new CallInvite(
+        createNativeCallInviteInfo(),
+        CallInvite.State.Accepted
+      )
+        .accept()
+        .catch(() => undefined);
+
+      expect(MockNativeModule.voice_setExpoVersion).not.toHaveBeenCalled();
     });
   });
 

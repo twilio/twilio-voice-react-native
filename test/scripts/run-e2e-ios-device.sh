@@ -24,8 +24,9 @@ UDID="${IOS_UDID:?set IOS_UDID to the target device UDID (xcrun xctrace list dev
 DERIVED="${IOS_DERIVED_DATA:-$REPO/test/appium-harness/ios/build-device}"
 APP="${IOS_APP:-$DERIVED/Build/Products/Release-iphoneos/twiliovoicereactnativesdkappiumharness.app}"
 
-# Honour an explicit DEVELOPER_DIR, otherwise use the selected Xcode.
-export DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}"
+# shellcheck source=test/scripts/lib-xcode.sh
+. "$(dirname "${BASH_SOURCE[0]}")/lib-xcode.sh"
+resolve_developer_dir
 
 [ -d "$APP" ] || { echo "no app bundle at $APP" >&2; exit 2; }
 

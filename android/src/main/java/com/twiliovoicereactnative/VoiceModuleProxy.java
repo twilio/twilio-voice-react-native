@@ -303,11 +303,20 @@ class VoiceModuleProxy {
     });
   }
 
+  /**
+   * Record the host application's Expo SDK version, as read from the running
+   * manifest by JavaScript.
+   *
+   * An absent version leaves whatever is already recorded in place rather than
+   * clearing it. {@link VoiceApplicationProxy#onCreate} records the version
+   * baked in at build time so that the incoming-call path, which runs before
+   * any JavaScript, reports it; clearing on an absent value here would undo
+   * that whenever JavaScript could not read the manifest. The property is unset
+   * at process start, so there is nothing to clear in a non-Expo application.
+   */
   public void setExpoVersion(String expoVersion, ModuleProxy.UniversalPromise promise) {
     logger.debug(String.format(".setExpoVersion(%s)", expoVersion));
-    if (expoVersion == null || expoVersion.isEmpty()) {
-      System.clearProperty(Constants.EXPO_VERSION);
-    } else {
+    if (expoVersion != null && !expoVersion.isEmpty()) {
       System.setProperty(Constants.EXPO_VERSION, expoVersion);
     }
     promise.resolve(null);

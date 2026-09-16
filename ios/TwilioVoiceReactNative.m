@@ -99,12 +99,26 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         _audioDeviceUuids = [NSMutableDictionary dictionary];
         _iceServersMap = [NSMutableDictionary dictionary];
         _iceTransportPolicyMap = [NSMutableDictionary dictionary];
+        _callPromiseResolvers = [NSMutableDictionary dictionary];
 
         NSString *reactNativeSDK = kTwilioVoiceReactNativeReactNativeVoiceSDK;
         setenv("global-env-sdk", [reactNativeSDK UTF8String], 1);
 
         NSString *reactNativeSdkVersion = kTwilioVoiceReactNativeReactNativeVoiceSDKVer;
         setenv("com.twilio.voice.env.sdk.version", [reactNativeSdkVersion UTF8String], 1);
+
+        // The Expo SDK version baked in by the config plugin, if any. `Voice`
+        // also reports this version from JavaScript, but a PushKit wake-up can
+        // reach the native layer before the JavaScript bundle has constructed
+        // `Voice`, and the native SDK memoizes publisher metadata on its first
+        // insights event, so a miss there persists for the rest of the process.
+        // The value from JavaScript arrives later and takes precedence, because
+        // it is read from the running manifest rather than baked in at build
+        // time.
+        id expoVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"TwilioVoiceExpoVersion"];
+        if ([expoVersion isKindOfClass:[NSString class]] && [(NSString *)expoVersion length] > 0) {
+            setenv("com.twilio.voice.env.sdk.expo_version", [(NSString *)expoVersion UTF8String], 1);
+        }
 
         sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
@@ -680,12 +694,16 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    [self makeCallWithAccessToken:accessToken 
-                           params:params 
+    // The resolver is handed over rather than assigned afterwards: the CallKit
+    // transaction is asynchronous, so its completion block could otherwise run
+    // before the assignment, find no resolver and leave this promise pending
+    // for the lifetime of the application.
+    [self makeCallWithAccessToken:accessToken
+                           params:params
                     contactHandle:contactHandle
                        iceServers:iceServers
-               iceTransportPolicy:iceTransportPolicy];
-    self.callPromiseResolver = resolver;
+               iceTransportPolicy:iceTransportPolicy
+                         resolver:resolver];
 }
 
 RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolver
@@ -762,10 +780,11 @@ RCT_EXPORT_METHOD(voice_setExpoVersion:(NSString *)expoVersion
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
+    // An absent version leaves whatever was baked into Info.plist in place
+    // rather than unsetting it. The variable is unset at process start, so
+    // there is nothing to clear in a non-Expo application.
     if ([expoVersion length] > 0) {
         setenv("com.twilio.voice.env.sdk.expo_version", [expoVersion UTF8String], 1);
-    } else {
-        unsetenv("com.twilio.voice.env.sdk.expo_version");
     }
     [self resolvePromise:resolver value:[NSNull null]];
 }

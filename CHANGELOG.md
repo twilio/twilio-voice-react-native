@@ -52,9 +52,29 @@ removed bare React Native support. Those preview versions are discontinued.
   others: `Voice.connect` and `CallInvite.accept` already constructed a typed
   error, while methods such as `Call.mute`, `Call.disconnect` and
   `Voice.getVersion` let the underlying React Native bridge error propagate.
-  `message` and `code` are unchanged. Applications that read the bridge's
-  undocumented `error.userInfo` property from those methods should read
-  `error.code` and `error.message` instead.
+
+  This changes what those methods throw. Where the native layer reports a
+  Twilio error code, the error is the matching `TwilioErrors` subclass and
+  `code` carries that code, as before. Where it reports a failure without a
+  code, the error is now an `InvalidStateError`, an `InvalidArgumentError` or
+  an `UnexpectedNativeError`, and `code` on those three is `undefined` --
+  1.7.0 gave the React Native bridge's generic `'EUNSPECIFIED'` there.
+
+  Applications that read the bridge's undocumented `error.userInfo` property,
+  or that relied on `code` being present, should read `error.message` and
+  branch on `instanceof` instead:
+
+  ```ts
+  import { InvalidStateError } from '@twilio/voice-react-native-sdk';
+
+  try {
+    await call.mute(true);
+  } catch (error) {
+    if (error instanceof InvalidStateError) {
+      // the call was not in a state that can be muted
+    }
+  }
+  ```
 
 - Updated the local TypeScript version used by the library.
 
@@ -74,6 +94,25 @@ removed bare React Native support. Those preview versions are discontinued.
   Separately, the version was not reported at all for applications running an
   over-the-air update, whose manifests nest the app config under
   `extra.expoClient` rather than carrying `sdkVersion` at the top level.
+
+  `CallInvite.accept` now waits for it as well, and the config plugin records
+  the version in the built application -- as Android manifest meta-data and as
+  an iOS `Info.plist` key -- so that an incoming call on a cold start reports
+  it too. That path runs before the application's JavaScript has constructed
+  `Voice`, so no amount of waiting in JavaScript could have covered it.
+
+- Fixed an unresolved native module surfacing as a `TypeError` naming a
+  property rather than an error naming the cause. Importing the SDK into an
+  application whose native code is missing -- not rebuilt since the dependency
+  was added, `pod install` not run, or running in Expo Go -- now throws an
+  `InvalidStateError` listing what to check. React Native raises its own
+  invariant for this on iOS but not on Android, so on Android the first symptom
+  came from wherever the module was first read.
+
+- Fixed `new Voice()` being able to throw. Recording the Expo SDK version is
+  telemetry and is documented as never preventing a call, registration or
+  preflight test, but a synchronous failure from the native binding propagated
+  out of the constructor rather than being swallowed.
 
 ### Platform Specific Fixes
 
@@ -95,6 +134,13 @@ removed bare React Native support. Those preview versions are discontinued.
 - Fixed audio device types being misreported in release builds where a code
   shrinker had renamed the underlying AudioSwitch classes.
 
+- Fixed `getAudioDevices` dropping a device when two devices of the same type
+  reported the same name, which two headsets of the same model do. The two
+  shared one `uuid`, so the list returned one entry short and the `uuid` that
+  went missing was no longer accepted by `selectAudioDevice`. Selecting a
+  device triggers a re-evaluation, so the list shrank immediately after a
+  selection.
+
 #### iOS
 
 - Fixed `PreflightTest` rejection paths.
@@ -103,6 +149,16 @@ removed bare React Native support. Those preview versions are discontinued.
   transaction, for example while another call was already active. The promise
   stayed pending for the lifetime of the application, so the caller saw a hang
   rather than an error. It now rejects with the reason CallKit reported.
+
+  The same promise is now owned by whichever path settles it first, keyed by
+  the call's UUID. Previously the resolver was stored only after the CallKit
+  transaction had already started, so a fast failure could still find no
+  resolver and hang; the success path did not clear it, so a later failure
+  could settle an already-settled promise; and it was read and written from two
+  queues without synchronization.
+
+- Fixed `Voice.connect` never settling when the Twilio Voice iOS SDK declined
+  to create the call. It now rejects with an `InvalidStateError`.
 
 - Fixed `AudioDevice.uuid` changing whenever the available audio devices were
   re-evaluated, the same defect fixed on Android above. A device now keeps its

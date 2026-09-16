@@ -157,7 +157,8 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
                          params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle
                      iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
-             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy {
+             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy
+                       resolver:(RCTPromiseResolveBlock)resolver {
     self.accessToken = accessToken;
     self.twimlParams = params;
 
@@ -175,6 +176,11 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     if (iceTransportPolicy) {
         self.iceTransportPolicyMap[uuid.UUIDString] = iceTransportPolicy;
     }
+
+    // Stored before the transaction starts. The completion block below can run
+    // on any queue and is the settle path when the transaction fails, so it has
+    // to be able to find the resolver as soon as it runs.
+    [self storeCallPromiseResolver:resolver forUuid:uuid.UUIDString];
 
     CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
     CXTransaction *transaction = [[CXTransaction alloc] initWithAction:startCallAction];
@@ -206,19 +212,19 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
             [self.iceServersMap removeObjectForKey:uuid.UUIDString];
             [self.iceTransportPolicyMap removeObjectForKey:uuid.UUIDString];
 
-            // Settle the promise `voice_connect_ios` stored. Its resolver is
-            // otherwise only invoked from `performVoiceCallWithUUID`, which
+            // Settle the promise `voice_connect_ios` handed over. Its resolver
+            // is otherwise only invoked from `performVoiceCallWithUUID`, which
             // CallKit never calls when the transaction itself fails, so
             // `Voice.connect()` stayed pending for the lifetime of the app and
-            // the caller saw a hang rather than an error. Cleared afterwards so
-            // a later call cannot settle against a stale block.
-            if (self.callPromiseResolver) {
-                [self rejectPromiseWithName:self.callPromiseResolver
+            // the caller saw a hang rather than an error. Taken rather than
+            // read, so that `performVoiceCallWithUUID` cannot settle it too.
+            RCTPromiseResolveBlock resolver = [self takeCallPromiseResolverForUuid:uuid.UUIDString];
+            if (resolver) {
+                [self rejectPromiseWithName:resolver
                                        name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
                                     message:[NSString stringWithFormat:
                                              @"CallKit rejected the start-call transaction: %@",
                                              [error localizedDescription]]];
-                self.callPromiseResolver = nil;
             }
         } else {
             NSLog(@"StartCallAction transaction request successful");
@@ -260,9 +266,21 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
     }];
 
     TVOCall *call = [TwilioVoiceSDK connectWithOptions:connectOptions delegate:self];
+
+    // Taken rather than read, so the transaction's completion block cannot
+    // settle this promise as well. A nil `call` used to fall through without
+    // settling it at all, which left `Voice.connect()` pending for the lifetime
+    // of the application.
+    RCTPromiseResolveBlock resolver = [self takeCallPromiseResolverForUuid:uuidString];
     if (call) {
         self.callMap[call.uuid.UUIDString] = call;
-        [self resolvePromise:self.callPromiseResolver value:[self callInfo:call]];
+        if (resolver) {
+            [self resolvePromise:resolver value:[self callInfo:call]];
+        }
+    } else if (resolver) {
+        [self rejectPromiseWithName:resolver
+                               name:kTwilioVoiceReactNativeErrorCodeInvalidStateError
+                            message:@"The Twilio Voice SDK could not create the call."];
     }
     self.callKitCompletionCallback = completionHandler;
 }

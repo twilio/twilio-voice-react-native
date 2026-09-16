@@ -10,10 +10,10 @@ import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import {
-  getExpoVersion,
   NativeEventEmitter,
   NativeModule,
   Platform,
+  recordExpoVersion,
 } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
@@ -295,7 +295,9 @@ export class Voice extends EventEmitter {
    *
    * @privateRemarks
    * Never rejects. Failing to record the Expo version is a telemetry concern
-   * and must never prevent a call, registration, or preflight test.
+   * and must never prevent a call, registration, or preflight test. See
+   * {@link recordExpoVersion}, which is shared with
+   * {@link (CallInvite:class).accept}.
    */
   private _expoVersionPromise: Promise<void>;
 
@@ -335,9 +337,7 @@ export class Voice extends EventEmitter {
       this._handleNativeEvent
     );
 
-    this._expoVersionPromise = settleNativePromise(
-      NativeModule.voice_setExpoVersion(getExpoVersion())
-    ).catch(() => undefined);
+    this._expoVersionPromise = recordExpoVersion();
   }
 
   /**

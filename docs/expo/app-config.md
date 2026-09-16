@@ -66,11 +66,29 @@ native projects, so anything you edit inside `android/` or `ios/` by hand is dis
 | --- | --- |
 | `withMainApplication` | Adds a `VoiceApplicationProxy` field, calls `onCreate()` after `super.onCreate()`, and adds an `onTerminate()` override |
 | `withMainActivity` | Adds a `VoiceActivityProxy` field with a permission-rationale handler, hooks `onCreate`, and adds `onDestroy` and `onNewIntent` overrides |
-| `withInfoPlist` | Sets `NSMicrophoneUsageDescription` and adds `audio` and `voip` to `UIBackgroundModes` |
+| `withAndroidManifest` | Adds a `com.twilio.voice.expo_version` meta-data entry carrying your Expo SDK version |
+| `withInfoPlist` | Sets `NSMicrophoneUsageDescription`, adds `audio` and `voip` to `UIBackgroundModes`, and sets `TwilioVoiceExpoVersion` |
 | `withEntitlementsPlist` | Sets `aps-environment` |
 
 The plugin never overwrites a value you set yourself. `UIBackgroundModes` is merged, not replaced,
 and an `NSMicrophoneUsageDescription` or `aps-environment` already present in your app config wins.
+
+The Expo SDK version is recorded in two places so that it reaches call insights. `Voice` reports it
+from JavaScript, but an incoming call on Android runs before your JavaScript bundle has constructed
+`Voice`, so the build-time value is what that path uses. Neither value affects call behaviour.
+
+### Prebuild fails rather than half-wiring a file
+
+Three cases stop the prebuild with an error naming the file and the remedy, rather than producing an
+app that builds, installs and then does not ring:
+
+- `MainActivity` or `MainApplication` already contains some of the SDK's members but not all of them,
+  which is what a partly completed [manual wiring](#if-prebuild-fails-with-an-override-conflict)
+  leaves behind.
+- The `onCreate` the plugin hooks has an expression body, or does not call `super.onCreate`. The
+  SDK's setup call goes immediately after `super.onCreate`, because it requires the superclass to
+  have run.
+- Another config plugin already declares `onNewIntent`, `onDestroy` or `onTerminate`. See below.
 
 ## Options
 
@@ -92,8 +110,35 @@ and an `NSMicrophoneUsageDescription` or `aps-environment` already present in yo
 
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `apsEnvironment` | `development` | The `aps-environment` entitlement. Set to `production` for release builds |
+| `apsEnvironment` | `development`, with a warning | The `aps-environment` entitlement. Set to `production` for release builds |
 | `microphoneUsageDescription` | `This app uses the microphone for voice calls.` | The `NSMicrophoneUsageDescription` string shown in the iOS permission prompt |
+
+### `aps-environment`
+
+This entitlement decides which APNs environment your VoIP token is issued against, and getting it
+wrong is invisible: a release build with `development` builds successfully, `Voice.register()`
+resolves, and incoming calls never arrive. Nothing at runtime reports it.
+
+The plugin resolves it in this order, and warns during prebuild when it falls through to the default:
+
+1. `ios.entitlements["aps-environment"]` in your app config.
+2. An `aps-environment` another config plugin has already set.
+3. The `apsEnvironment` plugin option.
+4. `development`.
+
+Set it in app config if you already manage entitlements there:
+
+```json
+{
+  "expo": {
+    "ios": {
+      "entitlements": {
+        "aps-environment": "production"
+      }
+    }
+  }
+}
+```
 
 ## If prebuild fails with an override conflict
 

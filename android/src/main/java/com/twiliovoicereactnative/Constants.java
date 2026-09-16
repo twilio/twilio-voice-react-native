@@ -24,4 +24,11 @@ class Constants {
   public static final String GLOBAL_ENV = "com.twilio.voice.env";
   public static final String SDK_VERSION = "com.twilio.voice.env.sdk.version";
   public static final String EXPO_VERSION = "com.twilio.voice.env.sdk.expo_version";
+  /**
+   * Manifest meta-data the Expo config plugin writes with the host
+   * application's Expo SDK version, read by
+   * {@link VoiceApplicationProxy#onCreate} so that the version is available on
+   * the incoming-call path, which runs before any JavaScript.
+   */
+  public static final String EXPO_VERSION_METADATA = "com.twilio.voice.expo_version";
 }

@@ -10,6 +10,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
 
 import com.facebook.react.ReactNativeHost;
@@ -65,6 +67,8 @@ public class VoiceApplicationProxy {
   }
   public void onCreate() {
     logger.debug("onCreate(..) invoked");
+    // record the Expo SDK version before anything can emit an insights event
+    recordExpoVersion();
     // construct JS event engine
     jsEventEmitter = new JSEventEmitter();
     // construct notification channels
@@ -79,6 +83,49 @@ public class VoiceApplicationProxy {
     mediaPlayerManager = new MediaPlayerManager(context);
     audioSwitchManager.start();
   }
+  /**
+   * Record the host application's Expo SDK version from the manifest meta-data
+   * the Expo config plugin writes.
+   *
+   * `Voice` also reports this version from JavaScript, but an incoming call on
+   * a cold start reaches {@link VoiceFirebaseMessagingService#onMessageReceived}
+   * -- and through it the native SDK's first insights event -- before the
+   * application's JavaScript bundle has constructed `Voice`, so on that path
+   * there is no JavaScript to report it. The native SDK memoizes publisher
+   * metadata on its first insights event, so a miss there persists for the rest
+   * of the process.
+   *
+   * Does nothing when the meta-data is absent, which is the case for a bare
+   * React Native application and for an Expo application prebuilt with an
+   * earlier version of the config plugin. The value from JavaScript still
+   * applies in both cases, and takes precedence when it arrives because it is
+   * read from the running manifest rather than baked in at build time.
+   */
+  private void recordExpoVersion() {
+    if (null != System.getProperty(Constants.EXPO_VERSION)) {
+      return;
+    }
+
+    try {
+      final ApplicationInfo applicationInfo = context
+        .getPackageManager()
+        .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+      if (null == applicationInfo.metaData) {
+        return;
+      }
+
+      final Object value = applicationInfo.metaData.get(Constants.EXPO_VERSION_METADATA);
+      if (null == value || String.valueOf(value).isEmpty()) {
+        return;
+      }
+
+      System.setProperty(Constants.EXPO_VERSION, String.valueOf(value));
+    } catch (PackageManager.NameNotFoundException e) {
+      logger.warning(e, String.format(
+        "Could not read the \"%s\" manifest meta-data", Constants.EXPO_VERSION_METADATA));
+    }
+  }
+
   public void onTerminate() {
     logger.debug("onTerminate(..) invoked");
     // shutdown notificaiton channels
