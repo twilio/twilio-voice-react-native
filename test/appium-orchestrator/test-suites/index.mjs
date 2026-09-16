@@ -2,6 +2,8 @@
 
 'use strict';
 
+import { writeFileSync } from 'node:fs';
+
 /**
  * @import { TestOrchestratorSetup } from './setup.mjs'
  */
@@ -65,7 +67,15 @@ const SUITE_TIMEOUT_MS = parseInt(process.env.SUITE_TIMEOUT_MS || '', 10) || 600
  * @param {TestOrchestratorSetup['driver']} driver
  */
 async function restartApp(driver) {
-  const caps = /** @type {Record<string, any>} */ (driver.capabilities || {});
+  // `capabilities` is what the server returned and `requestedCapabilities` is
+  // what the session asked for. The returned set wins where it carries the
+  // identifier, and the requested set fills the gap when Sauce Labs does not
+  // echo the identifier back. A missing identifier fails every suite in the
+  // run, because `restartApp` runs before each one.
+  const caps = /** @type {Record<string, any>} */ ({
+    ...(driver.requestedCapabilities || {}),
+    ...(driver.capabilities || {}),
+  });
   const appId =
     caps['appium:appPackage'] ||
     caps.appPackage ||
@@ -308,12 +318,38 @@ const main = async () => {
     }
   }
 
+  // Read while the session is open. `deleteSession` below clears it.
+  const sessionId = driver.sessionId;
+
   if (env.USE_SAUCE) {
     const sauceJobResult = results.some((r) => r.status === 'Fail') ? 'failed' : 'passed';
     await safelySettlePromise(driver.execute(`sauce:job-result=${sauceJobResult}`));
   }
 
   await safelySettlePromise(driver.deleteSession());
+
+  if (process.env.RESULTS_JSON) {
+    // A run that produced results but could not write the file should still
+    // report those results and still set its own exit code. The failure is
+    // announced rather than thrown.
+    try {
+      writeFileSync(
+        process.env.RESULTS_JSON,
+        JSON.stringify(
+          {
+            platform: env.PLATFORM,
+            avd: env.AVD || null,
+            sessionId: sessionId || null,
+            results,
+          },
+          null,
+          2
+        )
+      );
+    } catch (error) {
+      console.log(`could not write ${process.env.RESULTS_JSON}: ${String(error)}`);
+    }
+  }
 
   return report(results, { platform: env.PLATFORM, avd: env.AVD });
 };

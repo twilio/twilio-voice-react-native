@@ -1,0 +1,175 @@
+name: 'E2E Credentials'
+description: 'Exchange GitHub OIDC for SauceLabs credentials and a Voice access token, then write the orchestrator config files'
+
+inputs:
+  platform:
+    description: 'ios or android. Used only to build the access token identity.'
+    required: true
+  vendor-url:
+    description: 'Credential vendor endpoint'
+    required: true
+  vendor-audience:
+    description: 'Audience the GitHub OIDC token is requested for'
+    required: true
+  sauce-hostname:
+    description: 'SauceLabs hostname written into secrets.json'
+    required: true
+  sauce-port:
+    description: 'SauceLabs port written into secrets.json. Must be numeric.'
+    required: true
+  sauce-base-url:
+    description: 'SauceLabs base url written into secrets.json'
+    required: true
+  storage-filename:
+    description: 'Filename of the app already uploaded to SauceLabs storage'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # The credential fetch and the config write share one step on purpose. The
+    # SauceLabs service account and the access token stay as shell locals and
+    # are never written to $GITHUB_ENV. The runner group is self-hosted, so a
+    # value that is never written out has no cleanup step to forget.
+    - name: Fetch credentials and write the orchestrator config
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        VENDOR_URL: ${{ inputs.vendor-url }}
+        VENDOR_AUDIENCE: ${{ inputs.vendor-audience }}
+        SAUCE_HOSTNAME: ${{ inputs.sauce-hostname }}
+        SAUCE_PORT: ${{ inputs.sauce-port }}
+        SAUCE_BASE_URL: ${{ inputs.sauce-base-url }}
+        STORAGE_FILENAME: ${{ inputs.storage-filename }}
+      run: |
+        set -euo pipefail
+
+        for tool in curl jq; do
+          if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::${tool} not found."
+            exit 1
+          fi
+        done
+
+        # Both config files carry credentials, so they are created readable by
+        # this user only.
+        umask 077
+
+        for required in PLATFORM VENDOR_URL VENDOR_AUDIENCE SAUCE_HOSTNAME SAUCE_PORT SAUCE_BASE_URL STORAGE_FILENAME; do
+          if [ -z "${!required}" ]; then
+            echo "::error::${required} is not set."
+            exit 1
+          fi
+        done
+
+        # GitHub injects these two only when the calling job declares
+        # `permissions: id-token: write`. Without that permission they are
+        # unset rather than empty, so `set -u` would kill the script below with
+        # a bare "unbound variable" before the JWT check could explain why.
+        if [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ] \
+          || [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+          echo "::error::The calling job needs permissions: id-token: write."
+          exit 1
+        fi
+
+        # 1. Request a GitHub OIDC JWT for the vendor's audience. -G puts the
+        #    --data-urlencode into the query string rather than a POST body.
+        #    Encoding the audience instead of splicing the audience into the
+        #    URL keeps the request well-formed whatever the value contains.
+        #
+        #    `|| true` so a curl failure reaches the JWT check below instead of
+        #    aborting on `pipefail` with curl's exit code and no explanation.
+        GITHUB_JWT=$(curl -sS -G \
+          -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+          --data-urlencode "audience=${VENDOR_AUDIENCE}" \
+          "${ACTIONS_ID_TOKEN_REQUEST_URL}" \
+          | jq -r '.value' || true)
+        if [ -z "$GITHUB_JWT" ] || [ "$GITHUB_JWT" = 'null' ]; then
+          echo "::error::Failed to obtain a GitHub OIDC JWT"
+          exit 1
+        fi
+        echo "::add-mask::$GITHUB_JWT"
+
+        # 2. Exchange the JWT for the SauceLabs service account.
+        #    Each value is masked the moment the value is parsed, before the
+        #    failure branch below can report anything.
+        #
+        #    --write-out appends the status code on its own trailing line, so
+        #    the failure branch can name the status. The body itself is never
+        #    printed.
+        #
+        #    `|| true` so a transport failure reaches the failure branch and is
+        #    reported as HTTP 000, rather than aborting on curl's exit code
+        #    with no explanation.
+        SAUCE_RESP=$(curl -sS --write-out '\n%{http_code}' "$VENDOR_URL" \
+          -H "Authorization: Bearer ${GITHUB_JWT}" \
+          -H 'Content-Type: application/json' \
+          -d '{"action":"get-saucelabs-credentials"}' || true)
+
+        SAUCE_CODE=$(echo "$SAUCE_RESP" | tail -n 1)
+        SAUCE_BODY=$(echo "$SAUCE_RESP" | sed '$d')
+
+        SAUCE_USERNAME=$(echo "$SAUCE_BODY" | jq -r '.username // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_USERNAME" ]; then
+          echo "::add-mask::$SAUCE_USERNAME"
+        fi
+
+        SAUCE_ACCESS_KEY=$(echo "$SAUCE_BODY" | jq -r '.accessKey // empty' 2>/dev/null || true)
+        if [ -n "$SAUCE_ACCESS_KEY" ]; then
+          echo "::add-mask::$SAUCE_ACCESS_KEY"
+        fi
+
+        if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
+          echo "::error::The credential vendor answered HTTP ${SAUCE_CODE} with no SauceLabs credentials."
+          exit 1
+        fi
+
+        # 3. Mint the access token the harness dials with. The ttl is the
+        #    vendor's 3600 second ceiling rather than the vendor's 300 second
+        #    default, which would very plausibly expire during device
+        #    allocation, before the harness ever dials. A ttl above the
+        #    ceiling is capped rather than rejected.
+        TOKEN_REQ=$(jq -nc --arg identity "ci-${PLATFORM}-${GITHUB_SHA}-$(date +%s%3N)" \
+          '{action: "mint-voice-token", identity: $identity, ttl: 3600}')
+
+        TOKEN_RESP=$(curl -sS --write-out '\n%{http_code}' "$VENDOR_URL" \
+          -H "Authorization: Bearer ${GITHUB_JWT}" \
+          -H 'Content-Type: application/json' \
+          -d "$TOKEN_REQ" || true)
+
+        TOKEN_CODE=$(echo "$TOKEN_RESP" | tail -n 1)
+        TOKEN_BODY=$(echo "$TOKEN_RESP" | sed '$d')
+
+        ACCESS_TOKEN=$(echo "$TOKEN_BODY" | jq -r '.token // empty' 2>/dev/null || true)
+        if [ -n "$ACCESS_TOKEN" ]; then
+          echo "::add-mask::$ACCESS_TOKEN"
+        fi
+
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "::error::The credential vendor answered HTTP ${TOKEN_CODE} and minted no access token."
+          exit 1
+        fi
+
+        # 4. Write the two gitignored config files the orchestrator imports.
+        #    Both files are built with jq --arg rather than by splicing values
+        #    into a JSON literal. A credential containing a quote or a
+        #    backslash would otherwise break the file or inject sibling
+        #    fields. The port is --argjson, so a non-numeric port fails here
+        #    rather than inside WebdriverIO.
+        #
+        #    The paths are anchored to GITHUB_WORKSPACE. A composite action
+        #    step inherits no working-directory from the calling job, so a
+        #    relative path would be ambiguous.
+        jq -n --arg accessToken "$ACCESS_TOKEN" \
+          '{accessToken: $accessToken}' \
+          > "${GITHUB_WORKSPACE}/test/appium-orchestrator/token.json"
+
+        jq -n \
+          --arg user "$SAUCE_USERNAME" \
+          --arg key "$SAUCE_ACCESS_KEY" \
+          --arg hostname "$SAUCE_HOSTNAME" \
+          --argjson port "$SAUCE_PORT" \
+          --arg baseUrl "$SAUCE_BASE_URL" \
+          --arg storageFilename "storage:filename=${STORAGE_FILENAME}" \
+          '{sauce: {user: $user, key: $key, hostname: $hostname, port: $port, baseUrl: $baseUrl, storageFilename: $storageFilename}}' \
+          > "${GITHUB_WORKSPACE}/test/appium-orchestrator/secrets.json"

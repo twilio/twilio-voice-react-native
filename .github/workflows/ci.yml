@@ -1,8 +1,10 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
+
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
 
@@ -24,6 +26,8 @@ jobs:
       id-token: write # for the Artifactory OIDC exchange below
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
 
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
@@ -40,15 +44,36 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      - run: yarn install --immutable
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/app install --immutable
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/expo install --immutable
+      - name: Install test/expo dependencies
+        working-directory: test/expo
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/appium-harness install --immutable
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
 
-      - run: yarn --cwd test/appium-orchestrator install --immutable
+      # Same hardened mode opt-out as the root install above: this lockfile
+      # also resolves proxy-addr, through Appium's Express 5 dependency.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install test/appium-orchestrator dependencies
+        working-directory: test/appium-orchestrator
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
 
       # `yarn run check` includes check:linking, which guards the property that
       # 2.x lost: the package autolinks in a bare React Native app. It needs no
@@ -59,3 +84,877 @@ jobs:
       - name: Remove Artifactory credentials
         if: always()
         run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
+  # Build Android Expo artifact
+  ###
+  build-android-expo:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify the runner has an Android SDK
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner (ANDROID_HOME and ANDROID_SDK_ROOT are unset or point at a missing directory)."
+            exit 1
+          fi
+
+          for tool_dir in platforms build-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/."
+              exit 1
+            fi
+          done
+
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
+
+      - name: Place the CI config fixtures
+        run: |
+          set -euo pipefail
+
+          cp .github/fixtures/appium-harness-secrets.json test/appium-harness/secrets.json
+          cp .github/fixtures/appium-harness-google-services.json test/appium-harness/google-services.json
+
+      - name: Expo prebuild (android)
+        run: |
+          cd test/appium-harness
+          yarn run prebuild --clean --platform=android
+
+      - name: Assemble release APK
+        working-directory: test/appium-harness/android
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+
+      - name: Upload appium harness android apk
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: expo-appium-harness-android-apk
+          path: test/appium-harness/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/appium-harness/secrets.json \
+            test/appium-harness/google-services.json \
+            test/appium-harness/android/app/google-services.json
+
+  ###
+  # Build iOS artifacts
+  ###
+  build-ios-expo:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found."
+            exit 1
+          fi
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the one in use -
+          # it is the first thing to check when a build starts failing for no
+          # apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/appium-harness dependencies
+        working-directory: test/appium-harness
+        run: yarn install --immutable
+
+      - name: Place the CI config fixtures
+        run: |
+          set -euo pipefail
+
+          cp .github/fixtures/appium-harness-secrets.json test/appium-harness/secrets.json
+          cp .github/fixtures/appium-harness-google-services.json test/appium-harness/google-services.json
+
+      - name: Expo prebuild (iOS)
+        run: |
+          cd test/appium-harness
+          yarn run prebuild --clean --platform=ios
+
+      - name: Build unsigned release app
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "twiliovoicereactnativesdkappiumharness.xcworkspace" \
+            -scheme "twiliovoicereactnativesdkappiumharness" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package unsigned ipa
+        working-directory: test/appium-harness/ios
+        run: |
+          set -euo pipefail
+
+          PRODUCTS_DIR=build/Build/Products/Release-iphoneos
+          APP_PATH="${PRODUCTS_DIR}/twiliovoicereactnativesdkappiumharness.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::xcodebuild reported success but ${APP_PATH} does not exist."
+            echo "Products dir contains: $(ls -1 "$PRODUCTS_DIR" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
+            echo "::error::${APP_PATH} has no main.jsbundle."
+            exit 1
+          fi
+
+          rm -rf ../ipa
+          mkdir -p ../ipa/Payload
+          cp -R "$APP_PATH" ../ipa/Payload/
+
+          cd ../ipa
+          zip -qry "twiliovoicereactnativesdkappiumharness.ipa" Payload
+          rm -rf Payload
+
+      - name: Upload appium harness ios ipa
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: expo-appium-harness-ios-ipa
+          path: test/appium-harness/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials and generated secrets
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/appium-harness/secrets.json \
+            test/appium-harness/google-services.json \
+            test/appium-harness/android/app/google-services.json
+
+  ###
+  # Build the bare React Native app hosting the Appium harness (Android)
+  ###
+  build-android-bare:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify the runner has an Android SDK and unzip
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner."
+            exit 1
+          fi
+
+          for tool_dir in platforms build-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/."
+              exit 1
+            fi
+          done
+
+          if ! command -v unzip >/dev/null 2>&1; then
+            echo "::error::unzip not found. This job inspects the built APK with it."
+            exit 1
+          fi
+
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
+
+      - name: Place the CI config fixture
+        run: cp .github/fixtures/bare-app-google-services.json test/app/android/app/google-services.json
+
+      - name: Assemble release APK with the harness entry
+        working-directory: test/app/android
+        run: |
+          ./gradlew assembleRelease --no-daemon \
+            -PentryFile=index.harness.js \
+            -Dorg.gradle.jvmargs=-Xmx4g
+
+      - name: Verify the APK bundles the harness
+        working-directory: test/app/android
+        run: |
+          set -euo pipefail
+
+          APK=app/build/outputs/apk/release/app-release.apk
+
+          if [ ! -f "$APK" ]; then
+            echo "::error::Gradle reported success but ${APK} does not exist."
+            exit 1
+          fi
+
+          rm -rf "${RUNNER_TEMP}/apk-check"
+          mkdir -p "${RUNNER_TEMP}/apk-check"
+          unzip -o -q "$APK" 'assets/index.android.bundle' -d "${RUNNER_TEMP}/apk-check"
+
+          BUNDLE="${RUNNER_TEMP}/apk-check/assets/index.android.bundle"
+          if [ ! -f "$BUNDLE" ]; then
+            echo "::error::${APK} carries no assets/index.android.bundle, so the JS was not embedded."
+            exit 1
+          fi
+
+          if ! grep -q 'textInput_testSuiteId' "$BUNDLE"; then
+            echo "::error::The embedded bundle has no textInput_testSuiteId, so this APK hosts the example app rather than the harness. Check that -PentryFile=index.harness.js reached the bundling task."
+            exit 1
+          fi
+
+          echo "::notice::APK bundles the Appium harness"
+
+      - name: Upload bare android apk
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: bare-appium-harness-android-apk
+          path: test/app/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials and the generated config
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/app/android/app/google-services.json
+
+  ###
+  # Build the bare React Native app hosting the Appium harness (iOS)
+  ###
+  build-ios-bare:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found."
+            exit 1
+          fi
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the one in use -
+          # it is the first thing to check when a build starts failing for no
+          # apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "22.13"
+          cache: yarn
+
+      # Yarn 4 turns on hardened mode for pull requests on a public repo, which
+      # re-resolves every descriptor against the registry instead of trusting
+      # the lockfile. Artifactory serves a broken packument for proxy-addr, so
+      # that resolution fails. Scoped to the lockfiles that carry proxy-addr.
+      # Remove once SSCHELP-2959 is fixed.
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: "false"
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/app dependencies
+        working-directory: test/app
+        run: yarn install --immutable
+
+      - run: yarn run pods
+
+      - name: Build unsigned release app with the harness entry
+        working-directory: test/app/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "TwilioVoiceExampleNewArch.xcworkspace" \
+            -scheme "TwilioVoiceExampleNewArch" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            ENTRY_FILE=index.harness.js \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package unsigned ipa
+        working-directory: test/app/ios
+        run: |
+          set -euo pipefail
+
+          PRODUCTS_DIR=build/Build/Products/Release-iphoneos
+          APP_PATH="${PRODUCTS_DIR}/TwilioVoiceExampleNewArch.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::xcodebuild reported success but ${APP_PATH} does not exist."
+            echo "Products dir contains: $(ls -1 "$PRODUCTS_DIR" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
+            echo "::error::${APP_PATH} has no main.jsbundle - the JS was not embedded."
+            exit 1
+          fi
+
+          if ! grep -q 'textInput_testSuiteId' "${APP_PATH}/main.jsbundle"; then
+            echo "::error::main.jsbundle has no textInput_testSuiteId, so this app hosts the example app rather than the harness. Check that the xcodebuild step above still passes ENTRY_FILE=index.harness.js."
+            exit 1
+          fi
+
+          echo "::notice::ipa bundles the Appium harness"
+
+          rm -rf ../ipa
+          mkdir -p ../ipa/Payload
+          cp -R "$APP_PATH" ../ipa/Payload/
+
+          cd ../ipa
+          zip -qry "TwilioVoiceExampleNewArch.ipa" Payload
+          rm -rf Payload
+
+      - name: Upload bare ios ipa
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: bare-appium-harness-ios-ipa
+          path: test/app/ipa/TwilioVoiceExampleNewArch.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
+  # Upload the Android harness build to SauceLabs
+  ###
+  upload-android-expo-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-android-expo
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the android apk
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: expo-appium-harness-android-apk
+          path: artifact
+
+      - name: Verify the apk was downloaded
+        run: |
+          set -euo pipefail
+
+          APK_PATH=artifact/app-release.apk
+
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected ${APK_PATH} from the expo-appium-harness-android-apk artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the apk to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/app-release.apk
+          name-prefix: twilio-voice-react-native-expo-appium-harness
+          extension: apk
+          label: android (expo)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Upload the iOS harness build to SauceLabs
+  ###
+  upload-ios-expo-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-ios-expo
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the ios ipa
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: expo-appium-harness-ios-ipa
+          path: artifact
+
+      - name: Verify the ipa was downloaded
+        run: |
+          set -euo pipefail
+
+          IPA_PATH=artifact/twiliovoicereactnativesdkappiumharness.ipa
+
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected ${IPA_PATH} from the expo-appium-harness-ios-ipa artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the ipa to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/twiliovoicereactnativesdkappiumharness.ipa
+          name-prefix: twilio-voice-react-native-expo-appium-harness
+          extension: ipa
+          label: ios (expo)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Upload the bare Android harness build to SauceLabs
+  ###
+  upload-android-bare-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-android-bare
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange in the action below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the bare android apk
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: bare-appium-harness-android-apk
+          path: artifact
+
+      - name: Verify the apk was downloaded
+        run: |
+          set -euo pipefail
+
+          APK_PATH=artifact/app-release.apk
+
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected ${APK_PATH} from the bare-appium-harness-android-apk artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the apk to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/app-release.apk
+          name-prefix: twilio-voice-react-native-bare-appium-harness
+          extension: apk
+          label: android (bare)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Upload the bare iOS harness build to SauceLabs
+  ###
+  upload-ios-bare-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: build-ios-bare
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange in the action below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the bare ios ipa
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: bare-appium-harness-ios-ipa
+          path: artifact
+
+      - name: Verify the ipa was downloaded
+        run: |
+          set -euo pipefail
+
+          IPA_PATH=artifact/TwilioVoiceExampleNewArch.ipa
+
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected ${IPA_PATH} from the bare-appium-harness-ios-ipa artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the ipa to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/TwilioVoiceExampleNewArch.ipa
+          name-prefix: twilio-voice-react-native-bare-appium-harness
+          extension: ipa
+          label: ios (bare)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Run the appium orchestrator (iOS Expo)
+  ###
+  e2e-ios-expo-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-ios-expo-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: ios
+          label: ios (expo)
+          storage-filename: ${{ needs.upload-ios-expo-saucelabs.outputs.filename }}
+          ios-bundle-id: com.example.twilioreactnativeappiumharness
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
+
+  ###
+  # Run the appium orchestrator (Android Expo)
+  ###
+  e2e-android-expo-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-android-expo-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: android
+          label: android (expo)
+          storage-filename: ${{ needs.upload-android-expo-saucelabs.outputs.filename }}
+          android-package: com.example.twilioreactnativeappiumharness
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
+
+  ###
+  # Run the appium orchestrator (Android bare)
+  ###
+  e2e-android-bare-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-android-bare-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: android
+          label: android (bare)
+          storage-filename: ${{ needs.upload-android-bare-saucelabs.outputs.filename }}
+          android-package: com.example.twiliovoicereactnative
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
+
+  ###
+  # Run the appium orchestrator (iOS bare)
+  ###
+  e2e-ios-bare-saucelabs:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+      !github.event.pull_request.head.repo.fork)
+    needs: upload-ios-bare-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: ios
+          label: ios (bare)
+          storage-filename: ${{ needs.upload-ios-bare-saucelabs.outputs.filename }}
+          ios-bundle-id: com.twilio.TwilioVoiceReactNativeExample
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}

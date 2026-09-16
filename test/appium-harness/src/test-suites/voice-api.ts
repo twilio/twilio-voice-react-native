@@ -142,16 +142,36 @@ const STEPS: Array<Step<Voice>> = [
       }
     },
   },
-  // KNOWN FAILING on Android: selecting regenerates every device uuid, so the
-  // uuid read back never matches the one selected, and a second select on the
-  // same object rejects. Restores the original selection either way.
+  // Asserts only what a suite that places no call can assert: that every
+  // select resolves, and that the device identities stay stable across
+  // selections.
+  //
+  // The readback assertion - select a device, expect `getAudioDevices` to
+  // report that same device back - lives in `call-controls-test` instead. On
+  // iOS `selectAudioDevice` only sets a preference on the `AVAudioSession`,
+  // and `selectedDevice` is recomputed from the route that the session
+  // actually settled on. With no call in progress the session is never
+  // activated, so the route never moves and selecting the earpiece reports the
+  // speaker back.
+  //
+  // KNOWN FAILING on Android: selecting regenerates every device uuid, which
+  // the uuid-stability assertion below reports. Restores the original
+  // selection either way.
   // TODO: VBLOCKS-7133
   {
     name: 'select-audio-device',
     description:
-      'selecting each audio device is reflected by getAudioDevices',
+      'selecting each audio device resolves and leaves the reported device ' +
+      'list unchanged',
     run: async (voice, log) => {
       const initial = await voice.getAudioDevices();
+
+      // Sorted because the device order is not part of the contract. On iOS
+      // the list is built from an unordered dictionary, so comparing the
+      // arrays as given would fail on ordering alone.
+      const initialUuids = initial.audioDevices
+        .map((audioDevice) => audioDevice.uuid)
+        .sort();
 
       // The restore runs in a `finally` because audio routing is device-wide
       // state that outlives this suite. Without it, a mid-loop assertion
@@ -163,7 +183,8 @@ const STEPS: Array<Step<Voice>> = [
           await audioDevice.select();
           await delay(AUDIO_DEVICE_SETTLE_DELAY_MS);
 
-          const { selectedDevice } = await voice.getAudioDevices();
+          const { audioDevices, selectedDevice } =
+            await voice.getAudioDevices();
 
           log.info(JSON.stringify({
             selected: audioDevice.name,
@@ -171,9 +192,19 @@ const STEPS: Array<Step<Voice>> = [
           }));
 
           expect(
-            selectedDevice?.uuid,
-            `the selected device after selecting "${audioDevice.name}"`,
-          ).toBe(audioDevice.uuid);
+            audioDevices
+              .map((reportedDevice) => reportedDevice.uuid)
+              .sort(),
+            `the device uuids after selecting "${audioDevice.name}"`,
+          ).toStrictEqual(initialUuids);
+
+          if (typeof selectedDevice !== 'undefined') {
+            expect(
+              initialUuids,
+              `the device reported as selected after selecting ` +
+                `"${audioDevice.name}" ("${selectedDevice.name}")`,
+            ).toContain(selectedDevice.uuid);
+          }
         }
       } finally {
         const { selectedDevice: originallySelected } = initial;
@@ -209,11 +240,18 @@ const STEPS: Array<Step<Voice>> = [
       await voice.setIncomingCallContactHandleTemplate();
     },
   },
+  // Android only, for now. On iOS the call shows the AV route picker, the
+  // picker is presented modally over the app, and the SDK exposes no way to
+  // dismiss it. XCUITest then stops reporting the harness elements underneath
+  // the picker, so the orchestrator can no longer read the test status and the
+  // suite times out. Dismissing the picker from the orchestrator was tried and
+  // did not work. Restoring iOS coverage needs a dismiss path in the SDK.
   {
     name: 'show-av-route-picker-view',
     description:
-      'showAvRoutePickerView resolves on iOS, where it shows the picker, and ' +
-      'also on Android, where it is a documented no-op rather than a rejection',
+      'showAvRoutePickerView resolves on Android, where it is a documented ' +
+      'no-op rather than a rejection',
+    platforms: ['android'],
     run: async (voice) => {
       await voice.showAvRoutePickerView();
     },

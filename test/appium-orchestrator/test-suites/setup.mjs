@@ -14,6 +14,7 @@ import tokenJson from '../token.json' with { type: 'json' };
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const COMMON_CAPABILITIES = {
   'appium:autoAcceptAlerts': true,
+  'appium:newCommandTimeout': 300,
 };
 
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
@@ -35,7 +36,6 @@ const ANDROID_CAPABILITIES = {
   platformName: 'Android',
   'appium:automationName': 'UiAutomator2',
   'appium:autoGrantPermissions': true,
-  'appium:newCommandTimeout': 300,
 };
 
 // NOTE: VBLOCKS-6582
@@ -161,17 +161,31 @@ const getSauceOptions = (platform) => {
   /** @type {string} */
   const buildName = `build test ${Date.now()}`;
 
+  /**
+   * Stated so `restartApp` can fall back to the requested capabilities when
+   * Sauce Labs does not echo the identifier back in the session capabilities.
+   * Override when the uploaded build is not the Expo harness.
+   *
+   * Read with `?.` because a CI run writes a `secrets.json` holding only the
+   * `sauce` block.
+   */
+  const androidPackage =
+    process.env.ANDROID_PACKAGE || secrets.android?.appPackage;
+  const iosBundleId = process.env.IOS_BUNDLE_ID || secrets.ios?.bundleId;
+
   const platformCapabilities =
     platform === 'android'
       ? {
           ...ANDROID_CAPABILITIES,
           'appium:deviceName': secrets.sauce.androidDeviceName || 'Google.*',
           'appium:platformVersion': secrets.sauce.androidPlatformVersion || '14',
+          ...(androidPackage ? { 'appium:appPackage': androidPackage } : {}),
         }
       : {
           ...IOS_CAPABILITIES,
           'appium:deviceName': 'iPhone.*',
           'appium:platformVersion': '26',
+          ...(iosBundleId ? { 'appium:bundleId': iosBundleId } : {}),
         };
 
   /** @type {Parameters<typeof remote>['0']['capabilities']} */
@@ -192,6 +206,7 @@ const getSauceOptions = (platform) => {
     hostname: secrets.sauce.hostname,
     port: secrets.sauce.port,
     baseUrl: secrets.sauce.baseUrl,
+    connectionRetryTimeout: 600000,
     capabilities,
   };
 
