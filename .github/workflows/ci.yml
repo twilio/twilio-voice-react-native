@@ -39,15 +39,15 @@ jobs:
           node-version: "22.13"
           cache: yarn
 
-      - run: YARN_HARDENED_MODE=1 yarn install --immutable
+      - run: YARN_ENABLE_HARDENED_MODE=1 yarn install --immutable
 
-      - run: YARN_HARDENED_MODE=1 yarn --cwd test/app install --immutable
+      - run: YARN_ENABLE_HARDENED_MODE=1 yarn --cwd test/app install --immutable
 
-      - run: YARN_HARDENED_MODE=1 yarn --cwd test/expo install --immutable
+      - run: YARN_ENABLE_HARDENED_MODE=1 yarn --cwd test/expo install --immutable
 
-      - run: YARN_HARDENED_MODE=1 yarn --cwd test/appium-harness install --immutable
+      - run: YARN_ENABLE_HARDENED_MODE=1 yarn --cwd test/appium-harness install --immutable
 
-      - run: YARN_HARDENED_MODE=1 yarn --cwd test/appium-orchestrator install --immutable
+      - run: YARN_ENABLE_HARDENED_MODE=1 yarn --cwd test/appium-orchestrator install --immutable
 
       # `yarn run check` includes check:linking, which guards the property that
       # 2.x lost: the package autolinks in a bare React Native app. It needs no
