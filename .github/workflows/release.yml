@@ -11,10 +11,20 @@ name: Release
 # Order matters: deploy publishes the branch head first; the write jobs below
 # all target that same GITHUB_SHA, so continue-development moving the branch
 # head afterward does not affect what was published or tagged.
+#
+# The dry_run input defaults to true and rehearses every job. Each step is
+# fail-closed: only an explicit "false" authorizes the real publish, tag, or
+# push, and any other value fails the step. A dry run leaves nothing behind,
+# though create-github-release does create a draft Release.
 
 on:
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: "Rehearse the release: nothing is published, tagged, or pushed. Uncheck to release for real."
+        required: true
+        type: boolean
+        default: true
       npm_dist_tag:
         description: "npm dist-tag to publish under"
         required: true
@@ -34,9 +44,10 @@ on:
         required: false
 
 # Only allow one release in flight at a time. Subsequent releases are queued
-# rather than cancelled.
+# rather than cancelled. Dry runs get their own group so a rehearsal never
+# blocks a real release.
 concurrency:
-  group: release
+  group: release-${{ inputs.dry_run }}
   cancel-in-progress: false
 
 # No default permissions; each job below declares exactly what it needs.
@@ -64,6 +75,7 @@ jobs:
       - name: Publish to npm
         env:
           NPM_DIST_TAG: ${{ inputs.npm_dist_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
 
@@ -73,11 +85,32 @@ jobs:
           # which has no built artifacts committed.
 
           VERSION="$(jq -r '.version' package.json)"
-          echo "::notice::Publishing ${VERSION} under the ${NPM_DIST_TAG} dist-tag."
 
+          # `npm publish --dry-run` still packs and runs the registry's
+          # validations, so a broken `files` list fails here. The dry run does
+          # not mint a real provenance attestation, so a dry run does not fully
+          # exercise OIDC trusted publishing.
+          DRY_RUN_FLAG="--dry-run"
+          case "$DRY_RUN" in
+            true)
+              echo "::notice::Dry run. Packing ${VERSION} for the ${NPM_DIST_TAG} dist-tag without publishing."
+              ;;
+            false)
+              DRY_RUN_FLAG=""
+              echo "::notice::Real run. Publishing ${VERSION} under the ${NPM_DIST_TAG} dist-tag."
+              ;;
+            *)
+              echo "::error::Unrecognized dry_run value '${DRY_RUN}'. Expected true or false. Nothing was published."
+              exit 1
+              ;;
+          esac
+
+          # Unquoted so an empty DRY_RUN_FLAG expands to no argument.
+          # shellcheck disable=SC2086
           npm publish --registry https://registry.npmjs.org \
             --tag "$NPM_DIST_TAG" \
-            --ignore-scripts --provenance --access public
+            --ignore-scripts --provenance --access public \
+            $DRY_RUN_FLAG
 
   # Creates the tag and the GitHub Release at the published commit. Targets
   # GITHUB_SHA directly, so it is unaffected by continue-development moving the
@@ -98,6 +131,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MAKE_LATEST: ${{ inputs.move_latest_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
 
@@ -107,11 +141,50 @@ jobs:
           # the run.
           RELEASE_NOTES="TODO: add release notes for ${VERSION}."
 
-          gh release create "$VERSION" \
-            --target "$GITHUB_SHA" \
-            --title "$VERSION" \
-            --notes "$RELEASE_NOTES" \
-            --latest="$MAKE_LATEST"
+          # `gh release create` has no dry-run flag, so a dry run creates a
+          # draft Release instead. The draft exercises the real API call and
+          # the token's contents: write permission.
+          #
+          # The draft uses a -dry-run tag name on purpose. A draft still
+          # occupies its tag name, so a leftover draft for ${VERSION} would
+          # make a later real release of that same version fail. The suffix
+          # keeps the two apart, and the draft is deleted right after.
+          #
+          # The run id and the run attempt make the name unique, so a draft
+          # left behind by an interrupted dry run never blocks the next one.
+          # The attempt matters because re-running a failed workflow reuses
+          # GITHUB_RUN_ID.
+          #
+          # --latest is left off the draft because the gh manual does not
+          # document how --latest interacts with --draft. A dry run therefore
+          # does not exercise the --latest argument.
+          case "$DRY_RUN" in
+            true)
+              DRY_RUN_TAG="${VERSION}-dry-run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+              echo "::notice::Dry run. Creating and then deleting the draft Release ${DRY_RUN_TAG}."
+
+              gh release create "$DRY_RUN_TAG" \
+                --draft \
+                --target "$GITHUB_SHA" \
+                --title "Dry run: ${VERSION}" \
+                --notes "$RELEASE_NOTES"
+
+              echo "::notice::Manually review the draft release. It is safe to delete it manually to clean up."
+              ;;
+            false)
+              echo "::notice::Real run. Creating the GitHub Release for ${VERSION}."
+
+              gh release create "$VERSION" \
+                --target "$GITHUB_SHA" \
+                --title "$VERSION" \
+                --notes "$RELEASE_NOTES" \
+                --latest="$MAKE_LATEST"
+              ;;
+            *)
+              echo "::error::Unrecognized dry_run value '${DRY_RUN}'. Expected true or false. No Release was created."
+              exit 1
+              ;;
+          esac
 
   # Separate from deploy so that job doesn't also need push access. Runs only
   # when the operator asked for it.
@@ -131,11 +204,32 @@ jobs:
       # GITHUB_SHA is the dispatched branch's head, i.e. the commit just
       # published.
       - name: Move the latest git tag
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
 
+          # `git push --dry-run` still contacts origin and validates the
+          # credentials and the refspec without updating the remote ref.
+          DRY_RUN_FLAG="--dry-run"
+          case "$DRY_RUN" in
+            true)
+              echo "::notice::Dry run. The latest tag moves in the runner's clone only."
+              ;;
+            false)
+              DRY_RUN_FLAG=""
+              echo "::notice::Real run. Moving the latest tag to ${GITHUB_SHA}."
+              ;;
+            *)
+              echo "::error::Unrecognized dry_run value '${DRY_RUN}'. Expected true or false. Nothing was pushed."
+              exit 1
+              ;;
+          esac
+
           git tag -f latest "$GITHUB_SHA"
-          git push origin latest --force
+
+          # shellcheck disable=SC2086
+          git push origin latest --force $DRY_RUN_FLAG
 
   # Commits the next dev version onto the release branch - after the publish, so
   # it never changes what was shipped. A human later merges release/<version>
@@ -175,8 +269,27 @@ jobs:
       - name: Commit development-version continuation
         env:
           DEVELOPMENT_VERSION: ${{ inputs.development_version }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
+
+          # The bump and the commit below run for real either way, in the
+          # runner's throwaway clone. Only the push is simulated, so a dry run
+          # still exercises substitute-constants-version.js and the git rm list.
+          DRY_RUN_FLAG="--dry-run"
+          case "$DRY_RUN" in
+            true)
+              echo "::notice::Dry run. The ${DEVELOPMENT_VERSION} commit is built but not pushed."
+              ;;
+            false)
+              DRY_RUN_FLAG=""
+              echo "::notice::Real run. Pushing the ${DEVELOPMENT_VERSION} commit to ${GITHUB_REF}."
+              ;;
+            *)
+              echo "::error::Unrecognized dry_run value '${DRY_RUN}'. Expected true or false. Nothing was pushed."
+              exit 1
+              ;;
+          esac
 
           npm version --no-git-tag-version "${DEVELOPMENT_VERSION}"
           node ./scripts/substitute-constants-version.js "${DEVELOPMENT_VERSION}"
@@ -192,4 +305,5 @@ jobs:
           # Explicit refspec: the checkout may be a detached HEAD at GITHUB_SHA
           # rather than on a named branch, so push back to the ref the run was
           # dispatched from instead of relying on `HEAD` inferring a branch.
-          git push origin "HEAD:${GITHUB_REF}"
+          # shellcheck disable=SC2086
+          git push origin "HEAD:${GITHUB_REF}" $DRY_RUN_FLAG
