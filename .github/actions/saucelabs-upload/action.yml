@@ -102,29 +102,33 @@ runs:
         fi
         echo "::add-mask::$GITHUB_JWT"
 
-        VENDOR_RESP=$(curl -sS "$VENDOR_URL" \
+        # --write-out appends the status code on its own trailing line, so the
+        # failure branch can name the status. The body itself is never printed.
+        #
+        # `|| true` so a transport failure reaches the failure branch and is
+        # reported as HTTP 000, rather than aborting on curl's exit code with
+        # no explanation.
+        VENDOR_RESP=$(curl -sS --write-out '\n%{http_code}' "$VENDOR_URL" \
           -H "Authorization: Bearer ${GITHUB_JWT}" \
           -H 'Content-Type: application/json' \
-          -d '{"action":"get-saucelabs-credentials"}')
+          -d '{"action":"get-saucelabs-credentials"}' || true)
 
-        # Masked as parsed, before the failure branch below can print a partial
-        # response.
-        SAUCE_USERNAME=$(echo "$VENDOR_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+        VENDOR_CODE=$(echo "$VENDOR_RESP" | tail -n 1)
+        VENDOR_BODY=$(echo "$VENDOR_RESP" | sed '$d')
+
+        # Masked as parsed, before the failure branch below reports anything.
+        SAUCE_USERNAME=$(echo "$VENDOR_BODY" | jq -r '.username // empty' 2>/dev/null || true)
         if [ -n "$SAUCE_USERNAME" ]; then
           echo "::add-mask::$SAUCE_USERNAME"
         fi
 
-        SAUCE_ACCESS_KEY=$(echo "$VENDOR_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+        SAUCE_ACCESS_KEY=$(echo "$VENDOR_BODY" | jq -r '.accessKey // empty' 2>/dev/null || true)
         if [ -n "$SAUCE_ACCESS_KEY" ]; then
           echo "::add-mask::$SAUCE_ACCESS_KEY"
         fi
 
         if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
-          echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
-          # Redact every key named like a token, and withhold a body that is not
-          # valid JSON rather than printing it raw.
-          echo "$VENDOR_RESP" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
-            || echo "::error::(response withheld - not valid JSON)"
+          echo "::error::The credential vendor answered HTTP ${VENDOR_CODE} with no SauceLabs credentials."
           exit 1
         fi
 
@@ -135,29 +139,30 @@ runs:
         FILENAME="${NAME_PREFIX}-${GITHUB_SHA}-$(date +%s%3N).${EXTENSION}"
         echo "::notice::Uploading as ${FILENAME}"
 
-        # --write-out appends the status code on its own trailing line. -f is
-        # deliberately unused: it discards the response body on an error, and the
-        # body is the only description of what went wrong.
+        # --write-out appends the status code on its own trailing line, so the
+        # failure branches below can name the status. The body is parsed for
+        # the file id but is never printed.
+        #
+        # `|| true` so a transport failure is reported as HTTP 000 rather than
+        # aborting on curl's exit code with no explanation.
         UPLOAD_RESP=$(curl -sS \
           -u "${SAUCE_USERNAME}:${SAUCE_ACCESS_KEY}" \
           -F "payload=@${ARTIFACT_PATH}" \
           -F "name=${FILENAME}" \
           --write-out '\n%{http_code}' \
-          "$SAUCE_UPLOAD_URL")
+          "$SAUCE_UPLOAD_URL" || true)
 
         HTTP_CODE=$(echo "$UPLOAD_RESP" | tail -n 1)
         BODY=$(echo "$UPLOAD_RESP" | sed '$d')
 
         if [ "${HTTP_CODE:0:1}" != "2" ]; then
-          echo "::error::SauceLabs upload failed with HTTP ${HTTP_CODE}. Response body below:"
-          echo "$BODY"
+          echo "::error::SauceLabs upload failed with HTTP ${HTTP_CODE}."
           exit 1
         fi
 
         FILE_ID=$(echo "$BODY" | jq -r '.item.id // empty' 2>/dev/null || true)
         if [ -z "$FILE_ID" ]; then
-          echo "::error::SauceLabs answered ${HTTP_CODE} but the response carried no .item.id. Response body below:"
-          echo "$BODY"
+          echo "::error::SauceLabs answered HTTP ${HTTP_CODE} but the response carried no .item.id."
           exit 1
         fi
 
