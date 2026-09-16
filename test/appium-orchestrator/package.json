@@ -6,7 +6,7 @@
   "dependencies": {
     "appium": "^3.3.1",
     "appium-uiautomator2-driver": "^8.6.4",
-    "appium-xcuitest-driver": "^11.0.0",
+    "appium-xcuitest-driver": "^12.12.4",
     "webdriverio": "^9.27.0"
   },
   "resolutions": {
