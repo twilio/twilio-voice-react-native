@@ -1,6 +1,6 @@
 // React Native Voice SDK
 ReactNativeVoiceSDK=react-native
-ReactNativeVoiceSDKVer=1.8.0
+ReactNativeVoiceSDKVer=2.0.0-rc10002
 
 // Scope names
 ScopeVoice=scopeVoice
