@@ -62,14 +62,6 @@ runs:
           fi
         done
 
-        # Redact every key whose name contains "token" or "key". Withhold the
-        # body entirely when the body is not valid JSON, rather than printing
-        # a raw unredacted body.
-        redact_response() {
-          echo "$1" | jq 'walk(if type == "object" then with_entries(if (.key | test("token|key"; "i")) then .value = "<redacted>" else . end) else . end)' 2>/dev/null \
-            || echo "::error::(response withheld - not valid JSON)"
-        }
-
         # GitHub injects these two only when the calling job declares
         # `permissions: id-token: write`. Without that permission they are
         # unset rather than empty, so `set -u` would kill the script below with
@@ -100,25 +92,35 @@ runs:
 
         # 2. Exchange the JWT for the SauceLabs service account.
         #    Each value is masked the moment the value is parsed, before the
-        #    failure branch below can print anything.
-        SAUCE_RESP=$(curl -sS "$VENDOR_URL" \
+        #    failure branch below can report anything.
+        #
+        #    --write-out appends the status code on its own trailing line, so
+        #    the failure branch can name the status. The body itself is never
+        #    printed.
+        #
+        #    `|| true` so a transport failure reaches the failure branch and is
+        #    reported as HTTP 000, rather than aborting on curl's exit code
+        #    with no explanation.
+        SAUCE_RESP=$(curl -sS --write-out '\n%{http_code}' "$VENDOR_URL" \
           -H "Authorization: Bearer ${GITHUB_JWT}" \
           -H 'Content-Type: application/json' \
-          -d '{"action":"get-saucelabs-credentials"}')
+          -d '{"action":"get-saucelabs-credentials"}' || true)
 
-        SAUCE_USERNAME=$(echo "$SAUCE_RESP" | jq -r '.username // empty' 2>/dev/null || true)
+        SAUCE_CODE=$(echo "$SAUCE_RESP" | tail -n 1)
+        SAUCE_BODY=$(echo "$SAUCE_RESP" | sed '$d')
+
+        SAUCE_USERNAME=$(echo "$SAUCE_BODY" | jq -r '.username // empty' 2>/dev/null || true)
         if [ -n "$SAUCE_USERNAME" ]; then
           echo "::add-mask::$SAUCE_USERNAME"
         fi
 
-        SAUCE_ACCESS_KEY=$(echo "$SAUCE_RESP" | jq -r '.accessKey // empty' 2>/dev/null || true)
+        SAUCE_ACCESS_KEY=$(echo "$SAUCE_BODY" | jq -r '.accessKey // empty' 2>/dev/null || true)
         if [ -n "$SAUCE_ACCESS_KEY" ]; then
           echo "::add-mask::$SAUCE_ACCESS_KEY"
         fi
 
         if [ -z "$SAUCE_USERNAME" ] || [ -z "$SAUCE_ACCESS_KEY" ]; then
-          echo "::error::The credential vendor returned no SauceLabs credentials. Redacted response below:"
-          redact_response "$SAUCE_RESP"
+          echo "::error::The credential vendor answered HTTP ${SAUCE_CODE} with no SauceLabs credentials."
           exit 1
         fi
 
@@ -130,19 +132,21 @@ runs:
         TOKEN_REQ=$(jq -nc --arg identity "ci-${PLATFORM}-${GITHUB_SHA}-$(date +%s%3N)" \
           '{action: "mint-voice-token", identity: $identity, ttl: 3600}')
 
-        TOKEN_RESP=$(curl -sS "$VENDOR_URL" \
+        TOKEN_RESP=$(curl -sS --write-out '\n%{http_code}' "$VENDOR_URL" \
           -H "Authorization: Bearer ${GITHUB_JWT}" \
           -H 'Content-Type: application/json' \
-          -d "$TOKEN_REQ")
+          -d "$TOKEN_REQ" || true)
 
-        ACCESS_TOKEN=$(echo "$TOKEN_RESP" | jq -r '.token // empty' 2>/dev/null || true)
+        TOKEN_CODE=$(echo "$TOKEN_RESP" | tail -n 1)
+        TOKEN_BODY=$(echo "$TOKEN_RESP" | sed '$d')
+
+        ACCESS_TOKEN=$(echo "$TOKEN_BODY" | jq -r '.token // empty' 2>/dev/null || true)
         if [ -n "$ACCESS_TOKEN" ]; then
           echo "::add-mask::$ACCESS_TOKEN"
         fi
 
         if [ -z "$ACCESS_TOKEN" ]; then
-          echo "::error::The credential vendor minted no access token. Redacted response below:"
-          redact_response "$TOKEN_RESP"
+          echo "::error::The credential vendor answered HTTP ${TOKEN_CODE} and minted no access token."
           exit 1
         fi
 
