@@ -14,8 +14,9 @@ name: Release
 #
 # The dry_run input defaults to true and rehearses every job. Each step is
 # fail-closed: only an explicit "false" authorizes the real publish, tag, or
-# push, and any other value fails the step. A dry run leaves nothing behind,
-# though create-github-release does create a draft Release.
+# push, and any other value fails the step. A dry run leaves one thing behind: a
+# draft Release under a -dry-run tag name. Deleting that draft after the dry run
+# is recommended.
 
 on:
   workflow_dispatch:
@@ -146,13 +147,14 @@ jobs:
           # the token's contents: write permission.
           #
           # The draft uses a -dry-run tag name on purpose. A draft still
-          # occupies its tag name, so a leftover draft for ${VERSION} would
-          # make a later real release of that same version fail. The suffix
-          # keeps the two apart, and the draft is deleted right after.
+          # occupies its tag name, so a draft for ${VERSION} would make a later
+          # real release of that same version fail. The suffix keeps the two
+          # apart.
           #
-          # The run id and the run attempt make the name unique, so a draft
-          # left behind by an interrupted dry run never blocks the next one.
-          # The attempt matters because re-running a failed workflow reuses
+          # Every dry run leaves its draft behind for the operator to review
+          # and delete. The run id and the run attempt make the tag name
+          # unique, so an undeleted draft never blocks the next dry run. The
+          # attempt matters because re-running a failed workflow reuses
           # GITHUB_RUN_ID.
           #
           # --latest is left off the draft because the gh manual does not
@@ -161,7 +163,7 @@ jobs:
           case "$DRY_RUN" in
             true)
               DRY_RUN_TAG="${VERSION}-dry-run-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-              echo "::notice::Dry run. Creating and then deleting the draft Release ${DRY_RUN_TAG}."
+              echo "::notice::Dry run. Creating the draft Release ${DRY_RUN_TAG}."
 
               gh release create "$DRY_RUN_TAG" \
                 --draft \
