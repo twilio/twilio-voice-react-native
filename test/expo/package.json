@@ -11,8 +11,7 @@
     "lint": "expo lint",
     "prebuild": "expo prebuild",
     "detox:build": "detox build",
-    "detox:test": "detox test",
-    "detox:relay-server": "node ./e2e/relay/server.js"
+    "detox:test": "detox test"
   },
   "jest": {
     "preset": "jest-expo"
