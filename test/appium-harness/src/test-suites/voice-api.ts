@@ -11,6 +11,7 @@ import { expect } from '../utilities/expect';
 import {
   describeError,
   runSteps,
+  statusFromSummary,
   summarizeResults,
   type Step,
 } from '../utilities/run-steps';
@@ -141,10 +142,15 @@ const STEPS: Array<Step<Voice>> = [
       }
     },
   },
-  // KNOWN FAILING on Android: selecting regenerates every device uuid, so the
-  // uuid read back never matches the one selected, and a second select on the
-  // same object rejects. Restores the original selection either way.
-  // TODO: VBLOCKS-7133
+  // KNOWN FAILING on an iOS device: selecting the earpiece with no call in
+  // progress leaves the route on the speaker, so the uuid read back is the
+  // speaker's. Observed on an iPhone 16 Pro Max, in both the bare and the Expo
+  // app. Restores the original selection either way.
+  //
+  // Android used to fail this for a different reason -- selecting regenerated
+  // every device uuid, so the uuid read back never matched the one selected
+  // (VBLOCKS-7133). Fixed in 1.8.0 by keying the handles on the device rather
+  // than minting them per refresh.
   {
     name: 'select-audio-device',
     description:
@@ -353,9 +359,9 @@ export const useVoiceApiTest: UseTestSuite = (
     setTestStatus('in-progress');
 
     const results = await runSteps(STEPS, voice, log);
-    const { failed } = summarizeResults(results, log);
+    const { failed, blocked } = summarizeResults(results, log);
 
-    setTestStatus(failed === 0 ? 'success' : 'failure');
+    setTestStatus(statusFromSummary({ failed, blocked }));
   }, [voice, log, setTestStatus]);
 
   return { perform };

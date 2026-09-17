@@ -14,13 +14,6 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: 'com.twilio.TwilioVoiceReactNativeExample',
       appleTeamId: secrets.appleTeamId,
-      infoPlist: {
-        NSMicrophoneUsageDescription: 'foobar',
-        UIBackgroundModes: ['audio', 'voip'],
-      },
-      entitlements: {
-        'aps-environment': 'development',
-      },
     },
     android: {
       adaptiveIcon: {
@@ -36,6 +29,7 @@ module.exports = {
       favicon: './assets/images/favicon.png',
     },
     plugins: [
+      '@twilio/voice-react-native-sdk',
       'expo-router',
       [
         'expo-splash-screen',

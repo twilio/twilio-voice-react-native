@@ -6,6 +6,7 @@ import { delay } from '../utilities/delay';
 import { expect } from '../utilities/expect';
 import {
   describeError,
+  statusFromSummary,
   summarizeResults,
   type Log,
   type StepResult,
@@ -324,9 +325,9 @@ export const useConnectOptionsTest: UseTestSuite = (
       await delay(INTER_VARIANT_DELAY_MS);
     }
 
-    const { failed } = summarizeResults(results, log);
+    const { failed, blocked } = summarizeResults(results, log);
 
-    setTestStatus(failed === 0 ? 'success' : 'failure');
+    setTestStatus(statusFromSummary({ failed, blocked }));
   }, [token, voice, log, setTestStatus]);
 
   return { perform };

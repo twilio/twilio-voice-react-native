@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'eventemitter3';
+import { settleNativePromise } from '../utility/nativePromise';
 import type { Uuid } from '../type/common';
 import { createNativeAudioDevicesInfo } from './AudioDevice';
 import { createNativeCallInfo } from './Call';
@@ -166,3 +167,20 @@ export const Platform = new MockPlatform();
 export const setTimeout = jest.fn();
 
 export const getExpoVersion = jest.fn().mockReturnValue('52.0.0');
+
+/**
+ * Mirrors the real `recordExpoVersion`, minus the memoization.
+ *
+ * The real one records the version once per process. A mock that did the same
+ * would make every suite's assertion depend on whether an earlier test in the
+ * file had already constructed a `Voice`, so this one calls through on every
+ * invocation and leaves the memoization to be covered by `common.test.ts`,
+ * which loads the real module.
+ */
+export const recordExpoVersion = jest.fn(() =>
+  (async () => {
+    await settleNativePromise(
+      NativeModule.voice_setExpoVersion(getExpoVersion())
+    );
+  })().catch(() => undefined)
+);

@@ -16,6 +16,14 @@ import type { IceServer, IceTransportPolicy } from './type/Ice';
 import type * as PreflightTestType from './type/PreflightTest';
 import { settleNativePromise } from './utility/nativePromise';
 
+/**
+ * Event typings for the {@link (PreflightTest:class) | PreflightTest class}.
+ *
+ * Declaration-merged with the class so that `on` and `emit` are typed per
+ * event. Mirrors the same pattern used by `Call` and `CallInvite`.
+ *
+ * @public
+ */
 export interface PreflightTest {
   /**
    * ------------
@@ -245,6 +253,8 @@ export interface PreflightTest {
  *   // handle preflightTest sample
  * });
  * ```
+ *
+ * @public
  */
 export class PreflightTest extends EventEmitter {
   /**
@@ -837,7 +847,9 @@ function constructInvalidValueError(
 }
 
 /**
- * Helper types for the PrefligthTest class.
+ * Helper types for the {@link (PreflightTest:class) | PreflightTest class}.
+ *
+ * @public
  */
 export namespace PreflightTest {
   /**

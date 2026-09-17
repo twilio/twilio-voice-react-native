@@ -678,7 +678,7 @@ export type PCMUAudioCodec = {
     [Constants.AudioCodecKeyType]: AudioCodecType.PCMU;
 };
 
-// @public (undocumented)
+// @public
 export interface PreflightTest {
     addListener(connectedEvent: PreflightTest.Event.Connected, listener: PreflightTest.Listener.Connected): this;
     addListener(completedEvent: PreflightTest.Event.Completed, listener: PreflightTest.Listener.Completed): this;
@@ -1254,6 +1254,6 @@ export namespace Voice {
 
 // Warnings were encountered during analysis:
 //
-// lib/typescript/type/Ice.d.ts:19:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
+// lib/typescript/type/Ice.d.ts:23:5 - (ae-forgotten-export) The symbol "Constants" needs to be exported by the entry point index.d.ts
 
 ```

@@ -10,10 +10,10 @@ import { AudioDevice } from './AudioDevice';
 import { Call } from './Call';
 import { CallInvite } from './CallInvite';
 import {
-  getExpoVersion,
   NativeEventEmitter,
   NativeModule,
   Platform,
+  recordExpoVersion,
 } from './common';
 import { Constants } from './constants';
 import { InvalidArgumentError } from './error/InvalidArgumentError';
@@ -289,6 +289,19 @@ export class Voice extends EventEmitter {
   >;
 
   /**
+   * Resolves once the native layer has recorded the Expo version. Awaited by
+   * the entry points that can cause the native layer to emit an insights
+   * event, so that the version is present in that event's metadata.
+   *
+   * @privateRemarks
+   * Never rejects. Failing to record the Expo version is a telemetry concern
+   * and must never prevent a call, registration, or preflight test. See
+   * {@link recordExpoVersion}, which is shared with
+   * {@link (CallInvite:class).accept}.
+   */
+  private _expoVersionPromise: Promise<void>;
+
+  /**
    * Main entry-point of the Voice SDK. Provides access to the entire
    * feature-set of the library.
    */
@@ -324,7 +337,7 @@ export class Voice extends EventEmitter {
       this._handleNativeEvent
     );
 
-    NativeModule.voice_setExpoVersion(getExpoVersion());
+    this._expoVersionPromise = recordExpoVersion();
   }
 
   /**
@@ -418,7 +431,7 @@ export class Voice extends EventEmitter {
 
   /**
    * Error event handler. Creates an error from the namespace
-   * {@link TwilioErrors} from the info raised by the native layer and emits it.
+   * `TwilioErrors.TwilioError` from the info raised by the native layer and emits it.
    * @param nativeVoiceEvent - A `Voice` event directly from the native layer.
    */
   private _handleError = (nativeVoiceEvent: NativeVoiceEvent) => {
@@ -511,7 +524,7 @@ export class Voice extends EventEmitter {
    * Custom ICE configuration can be provided via the iceServers and
    * iceTransportPolicy options. These options allow specifying custom
    * STUN/TURN servers and transport policy for the call, and behave
-   * consistently with the configuration supported by {@link Voice.runPreflight}
+   * consistently with the configuration supported by {@link (Voice:class).runPreflight}
    *
    * @param token - A Twilio Access Token, usually minted by an
    * authentication-gated endpoint using a Twilio helper library.
@@ -523,7 +536,7 @@ export class Voice extends EventEmitter {
    *  - Resolves with a call when the call is created.
    *  - Rejects:
    *    * When a call is not able to be created on the native layer.
-   *    * With an {@link TwilioErrors.InvalidArgumentError} when invalid
+   *    * With an `TwilioErrors.InvalidArgumentError` when invalid
    *      arguments are passed.
    */
   async connect(
@@ -549,9 +562,12 @@ export class Voice extends EventEmitter {
       );
     }
 
-    if (typeof params !== 'object') {
+    // `typeof null` is "object", so null must be rejected explicitly. Without
+    // this, Object.entries(null) below throws a raw TypeError instead of the
+    // documented InvalidArgumentError.
+    if (typeof params !== 'object' || params === null) {
       throw new InvalidArgumentError(
-        'Optional argument "params" must be undefined or of type "object".'
+        'Optional argument "params" must be undefined or a non-null object.'
       );
     }
 
@@ -564,6 +580,8 @@ export class Voice extends EventEmitter {
     }
 
     validateConnectOptions({ iceServers, iceTransportPolicy });
+
+    await this._expoVersionPromise;
 
     switch (Platform.OS) {
       case 'ios':
@@ -702,6 +720,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been registered.
    */
   async register(token: string): Promise<void> {
+    await this._expoVersionPromise;
     await settleNativePromise(NativeModule.voice_register(token));
   }
 
@@ -713,6 +732,7 @@ export class Voice extends EventEmitter {
    *  - Resolves when the device has been unregistered.
    */
   async unregister(token: string): Promise<void> {
+    await this._expoVersionPromise;
     await settleNativePromise(NativeModule.voice_unregister(token));
   }
 
@@ -800,6 +820,7 @@ export class Voice extends EventEmitter {
   async initializePushRegistry(): Promise<void> {
     switch (Platform.OS) {
       case 'ios':
+        await this._expoVersionPromise;
         await settleNativePromise(NativeModule.voice_initializePushRegistry());
         return;
       default:
@@ -947,7 +968,7 @@ export class Voice extends EventEmitter {
    * @returns
    * A Promise that:
    * - Resolves with a {@link (PreflightTest:class)} object.
-   * - Rejects with a {@link TwilioErrors} if unable to perform a
+   * - Rejects with a `TwilioErrors.TwilioError` if unable to perform a
    *   {@link (PreflightTest:class)}.
    */
   async runPreflight(
@@ -958,6 +979,8 @@ export class Voice extends EventEmitter {
     if (optionValidationResult.status === 'error') {
       throw optionValidationResult.error;
     }
+
+    await this._expoVersionPromise;
 
     const preflightTestUuid = await settleNativePromise(
       NativeModule.voice_runPreflight(accessToken, options)
@@ -1108,7 +1131,7 @@ export namespace Voice {
      *
      * See {@link (Voice:interface).(addListener:3)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type Error = (error: TwilioError) => void;
 

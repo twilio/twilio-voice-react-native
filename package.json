@@ -1,6 +1,6 @@
 {
   "name": "@twilio/voice-react-native-sdk",
-  "version": "2.0.0-dev",
+  "version": "1.8.0",
   "description": "Twilio Voice React Native SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -20,12 +20,12 @@
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
-    "expo-module.config.json",
-    "react-native.config.js"
+    "app.plugin.js",
+    "plugin"
   ],
   "scripts": {
     "app": "yarn run check && yarn --cwd test/app",
-    "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn && yarn pods",
+    "bootstrap": "yarn run build:constants && yarn --cwd test/app && yarn --cwd test/expo && yarn --cwd test/appium-harness && yarn --cwd test/appium-orchestrator && yarn && yarn pods",
     "build:api:extractor": "api-extractor run --local",
     "build:api:documenter": "api-documenter markdown --input-folder ./temp --output-folder ./docs/api",
     "build:constants": "node ./scripts/generate-constants.js",
@@ -35,11 +35,13 @@
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check:api": "git diff --exit-code src/error/generated.ts api/",
-    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:linking && yarn run check:type && yarn run check:lint && yarn run check:test --coverage",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "release": "release",
-    "test": "jest"
+    "test": "jest",
+    "check:type:apps": "yarn --cwd test/expo tsc --noEmit && yarn --cwd test/appium-harness tsc --noEmit",
+    "check:linking": "node ./test/scripts/check-linking.mjs"
   },
   "keywords": [
     "react-native",
@@ -73,7 +75,7 @@
     "eslint": "^7.2.0",
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-prettier": "^3.1.3",
-    "expo-modules-core": "^3.0.21",
+    "expo": "~52.0.47",
     "express": "^4.19.2",
     "husky": "^4.2.5",
     "jest": "^28.1.3",
@@ -103,7 +105,22 @@
       "<rootDir>/test",
       "<rootDir>/lib",
       "<rootDir>/types"
-    ]
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "plugin/**/*.js",
+      "!src/__tests__/**",
+      "!src/__mocks__/**",
+      "!plugin/__tests__/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    }
   },
   "husky": {
     "hooks": {
@@ -169,6 +186,9 @@
   "dependencies": {
     "@twilio/voice-errors": "1.8.0",
     "eventemitter3": "^4.0.7"
+  },
+  "resolutions": {
+    "postcss": "8.5.28"
   },
   "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }

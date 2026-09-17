@@ -46,3 +46,16 @@ export function parseScriptArgument() {
 
   return { identity, suite, path };
 }
+
+/**
+ * Attempt to parse an optional environment variable from the process.
+ * @param {string} envVarKey The name of the environment variable.
+ * @returns {string | undefined} The value, or `undefined` when unset or empty.
+ */
+export function parseOptionalEnvVar(envVarKey) {
+  const envVarValue = process.env[envVarKey];
+  if (typeof envVarValue === 'undefined' || envVarValue === '') {
+    return undefined;
+  }
+  return envVarValue;
+}

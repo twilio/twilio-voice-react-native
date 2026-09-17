@@ -45,7 +45,20 @@ export const Application = () => {
   // here. We're reusing the token generation for the other test apps and the
   // preflight test token works best here.
   const [token, setToken] = React.useState<string>(getToken);
-  const [testSuiteId, setTestSuiteId] = React.useState<string>('');
+  /**
+   * Set at build time to run one suite on launch with no UI interaction.
+   *
+   * Needed because XCUITest cannot drive a device running iOS 16 or earlier
+   * under Xcode 26: on-device testing goes through CoreDevice, which requires
+   * iOS 17, so WebDriverAgent has no valid destination and Appium cannot open
+   * a session. Plain install and launch still work, so a build carrying this
+   * value plus a bundled token exercises a suite without a driver. Unset in
+   * every normal build, which leaves behaviour unchanged.
+   */
+  const autorunSuiteId = process.env.EXPO_PUBLIC_AUTORUN_SUITE ?? '';
+
+  const [testSuiteId, setTestSuiteId] =
+    React.useState<string>(autorunSuiteId);
   const [testStatus, setTestStatus] = React.useState<TestStatus>('not-started');
 
   const logging = useLogging();
@@ -163,11 +176,21 @@ export const Application = () => {
     testSuiteId,
   ]);
 
+  const hasAutorun = React.useRef(false);
+  React.useEffect(() => {
+    if (!autorunSuiteId || hasAutorun.current) {
+      return;
+    }
+    hasAutorun.current = true;
+    void performTest();
+  }, [autorunSuiteId, performTest]);
+
   return (
     <SafeAreaView>
       <Text>Twilio Access Token</Text>
       <TextInput
         testID='textInput_token'
+        accessibilityLabel='textInput_token'
         placeholder='Enter Token'
         secureTextEntry={true}
         value={token}
@@ -177,25 +200,42 @@ export const Application = () => {
       <Text>Test Suite ID</Text>
       <TextInput
         testID='textInput_testSuiteId'
+        accessibilityLabel='textInput_testSuiteId'
         placeholder='Enter Test Suite ID'
         value={testSuiteId}
         onChangeText={(text) => setTestSuiteId(text)}
       />
 
       <Text>Test Suite Status</Text>
+      {/*
+        * No accessibilityLabel here, deliberately, unlike the inputs and the
+        * button. On iOS an accessibilityLabel on a Text replaces what XCUITest
+        * reports as the element's text, so the orchestrator read back
+        * "text_testSuiteStatus" instead of the status and waited forever. The
+        * orchestrator selects this element by resource-id on Android instead.
+        */}
       <Text testID='text_testSuiteStatus'>
         {testStatus}
       </Text>
 
       <Button
         testID='button_startTestSuite'
+        accessibilityLabel='button_startTestSuite'
         title='Start Test Suite'
         disabled={testStatus !== 'not-started'}
         onPress={performTest}
       />
 
       <Text>Test Suite Output</Text>
-      <Text>{JSON.stringify(logging.logEntries, null, 2)}</Text>
+      {/*
+        * testID only, no accessibilityLabel, for the same reason as the status
+        * element above: on iOS an accessibilityLabel on a Text replaces the
+        * text XCUITest reports, which would hide the very output this exists
+        * to expose. The orchestrator reads this when a suite does not pass.
+        */}
+      <Text testID='text_testSuiteOutput'>
+        {JSON.stringify(logging.logEntries, null, 2)}
+      </Text>
     </SafeAreaView>
   );
 };

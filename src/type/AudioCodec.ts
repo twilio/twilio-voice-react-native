@@ -2,6 +2,8 @@ import { Constants } from '../constants';
 
 /**
  * Available audio codecs.
+ *
+ * @public
  */
 export enum AudioCodecType {
   /**
@@ -16,6 +18,8 @@ export enum AudioCodecType {
 
 /**
  * Configuration to use the Opus audio codec.
+ *
+ * @public
  */
 export type OpusAudioCodec = {
   /**
@@ -31,6 +35,8 @@ export type OpusAudioCodec = {
 
 /**
  * Configuration to use the PCMU audio codec.
+ *
+ * @public
  */
 export type PCMUAudioCodec = {
   /**
@@ -41,5 +47,7 @@ export type PCMUAudioCodec = {
 
 /**
  * The type of an audio codec.
+ *
+ * @public
  */
 export type AudioCodec = OpusAudioCodec | PCMUAudioCodec;

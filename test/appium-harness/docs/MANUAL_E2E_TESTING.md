@@ -20,9 +20,12 @@ exist in a fresh clone.
 
 | Module | Export | Used by |
 | --- | --- | --- |
-| `e2e-token.ios.ts` | `token` | Every suite, on iOS |
-| `e2e-token.android.ts` | `token` | Every suite, on Android |
+| `e2e-tests-token.ios.ts` | `token` | Every suite, on iOS |
+| `e2e-tests-token.android.ts` | `token` | Every suite, on Android |
 | `e2e-tests-ice-server.ts` | `iceServer` | The `valid-*` variants of `ice-test` and `incoming-ice-test` |
+
+The names matter: `get-token.ts` requires `./e2e-tests-token` and
+`./e2e-tests-ice-server` literally, and Metro appends the platform suffix.
 
 Metro resolves the platform suffix, so only the token module for the platform
 you are testing has to be present.

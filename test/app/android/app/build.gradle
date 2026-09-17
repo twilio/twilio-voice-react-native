@@ -51,6 +51,19 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
 
+    //   Which JavaScript entry point to bundle. Defaults to the example app.
+    //   Pass -PentryFile=index.harness.js to build the Appium harness instead,
+    //   which lets one native project host either app without a second copy.
+    entryFile = file("../../" + (project.findProperty("entryFile") ?: "index.js"))
+
+    //   React Native 0.83 moved hermesc out of react-native and into the
+    //   hermes-compiler package, so the default lookup under
+    //   node_modules/react-native/sdks/hermesc no longer finds it. Resolve the
+    //   package the same way the Expo-generated project does.
+    hermesCommand = new File(["node", "--print",
+        "require.resolve('hermes-compiler/package.json', { paths: [require.resolve('react-native/package.json')] })"
+    ].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/hermesc/%OS-BIN%/hermesc"
+
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
@@ -118,6 +131,11 @@ dependencies {
     androidTestImplementation("com.wix:detox:+")
     implementation "androidx.appcompat:appcompat:1.1.0"
 
+    // The React Native Gradle Plugin substitutes this for
+    // com.facebook.hermes:hermes-android, which is where Hermes lives from
+    // React Native 0.83; com.facebook.react:hermes-android itself stops at
+    // 0.82.1. Keep the declaration, since the substitution needs something to
+    // act on, and it supplies libhermesvm.so.
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

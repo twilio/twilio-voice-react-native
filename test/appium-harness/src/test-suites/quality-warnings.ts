@@ -5,6 +5,7 @@ import { expect } from '../utilities/expect';
 import {
   describeError,
   runSteps,
+  statusFromSummary,
   summarizeResults,
   type Step,
 } from '../utilities/run-steps';
@@ -334,9 +335,9 @@ export const useQualityWarningsTest: UseTestSuite = (
     await safelySettlePromise(call.disconnect());
     await disconnectedPromise;
 
-    const { failed } = summarizeResults(results, log);
+    const { failed, blocked } = summarizeResults(results, log);
 
-    setTestStatus(failed === 0 ? 'success' : 'failure');
+    setTestStatus(statusFromSummary({ failed, blocked }));
   }, [token, voice, log, setTestStatus]);
 
   return { perform };

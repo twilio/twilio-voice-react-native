@@ -11,6 +11,7 @@ import { delay } from '../utilities/delay';
 import { expect } from '../utilities/expect';
 import {
   describeError,
+  statusFromSummary,
   summarizeResults,
   type Log,
   type StepResult,
@@ -45,6 +46,16 @@ const CONNECTED_TIMEOUT_MS = 30_000;
 /**
  * How long to wait for `PreflightTest.Event.Completed`. A preflight test places
  * a real test call and gathers samples for its full duration before reporting.
+ *
+ * KNOWN FAILING on Android. Observed on an emulator at API 34: the run reaches
+ * `Connected` and emits samples continuously, but `Completed` is never raised.
+ * Probed at 120 and at 300 seconds, still sampling at both, so this is not the
+ * wait being too short. Pointing the TwiML application at one that ends the
+ * call made no difference either, so it is not the far end holding the call
+ * open. Every other assertion in this suite passes, 16 of 17.
+ *
+ * Left at 120 seconds: raising it only lengthens the run without changing the
+ * outcome.
  */
 const COMPLETED_TIMEOUT_MS = 120_000;
 
@@ -109,10 +120,9 @@ const INVALID_OPTIONS = {
       'preferredAudioCodecs contains an unrecognized codec type; should reject',
     options: { preferredAudioCodecs: [{ type: 'not-a-codec' }] } as any,
   },
-  // KNOWN FAILING: `validateAudioCodec` guards on `typeof` alone, and
-  // `typeof null === 'object'`, so this throws a TypeError rather than
-  // rejecting. The ice server validator handles null correctly.
-  // TODO: VBLOCKS-7137
+  // Was KNOWN FAILING under VBLOCKS-7137: `validateAudioCodec` guarded on
+  // `typeof` alone and `typeof null === 'object'`, so this threw a TypeError
+  // rather than rejecting. The guard now rejects null explicitly.
   'invalid-codec-null': {
     description: 'preferredAudioCodecs contains null; should reject',
     options: { preferredAudioCodecs: [null] } as any,
@@ -632,9 +642,9 @@ export const usePreflightTest: UseTestSuite = (
     log.info(JSON.stringify({ phase: 'stop' }));
     results.push(...await runStopPhase(voice, token, log));
 
-    const { failed } = summarizeResults(results, log);
+    const { failed, blocked } = summarizeResults(results, log);
 
-    setTestStatus(failed === 0 ? 'success' : 'failure');
+    setTestStatus(statusFromSummary({ failed, blocked }));
   }, [token, voice, log, setTestStatus]);
 
   return { perform };

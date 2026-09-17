@@ -67,6 +67,19 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
 @property(nonatomic, strong) NSData *deviceTokenData;
 @property(nonatomic, strong) NSMutableDictionary *audioDevices;
+
+/**
+ * Maps an audio device's stable platform identifier to the UUID reported to
+ * JavaScript, so the same physical device keeps the same UUID for the lifetime
+ * of this module.
+ *
+ * Without this, `availableAudioDevices` mints a fresh UUID every time it runs,
+ * and it runs on every route change. A device selected by UUID then came back
+ * under a different one, so `selectedAudioDevice` never matched what the
+ * caller had chosen. Android carried the same defect and was fixed the same
+ * way in AudioSwitchManager.
+ */
+@property(nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *audioDeviceUuids;
 @property(nonatomic, strong) NSDictionary *selectedAudioDevice;
 @property(nonatomic, assign) BOOL registrationInProgress;
 
@@ -83,14 +96,29 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         _callInviteMap = [NSMutableDictionary dictionary];
         _cancelledCallInviteMap = [NSMutableDictionary dictionary];
         _audioDevices = [NSMutableDictionary dictionary];
+        _audioDeviceUuids = [NSMutableDictionary dictionary];
         _iceServersMap = [NSMutableDictionary dictionary];
         _iceTransportPolicyMap = [NSMutableDictionary dictionary];
+        _callPromiseResolvers = [NSMutableDictionary dictionary];
 
         NSString *reactNativeSDK = kTwilioVoiceReactNativeReactNativeVoiceSDK;
         setenv("global-env-sdk", [reactNativeSDK UTF8String], 1);
 
         NSString *reactNativeSdkVersion = kTwilioVoiceReactNativeReactNativeVoiceSDKVer;
         setenv("com.twilio.voice.env.sdk.version", [reactNativeSdkVersion UTF8String], 1);
+
+        // The Expo SDK version baked in by the config plugin, if any. `Voice`
+        // also reports this version from JavaScript, but a PushKit wake-up can
+        // reach the native layer before the JavaScript bundle has constructed
+        // `Voice`, and the native SDK memoizes publisher metadata on its first
+        // insights event, so a miss there persists for the rest of the process.
+        // The value from JavaScript arrives later and takes precedence, because
+        // it is read from the running manifest rather than baked in at build
+        // time.
+        id expoVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"TwilioVoiceExpoVersion"];
+        if ([expoVersion isKindOfClass:[NSString class]] && [(NSString *)expoVersion length] > 0) {
+            setenv("com.twilio.voice.env.sdk.expo_version", [(NSString *)expoVersion UTF8String], 1);
+        }
 
         sTwilioAudioDevice = [TVODefaultAudioDevice audioDevice];
         TwilioVoiceSDK.audioDevice = sTwilioAudioDevice;
@@ -164,22 +192,43 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
     [self sendEventWithName:kTwilioVoiceReactNativeScopeVoice body:eventBody];
 }
 
+/**
+ * The UUID for an audio device, stable across calls.
+ *
+ * `uid` is the platform's own identifier: the port UID for a real port, or the
+ * port type constant for the two built-in devices, which have no port until
+ * they are routed to.
+ *
+ * @param uid the platform identifier for the device
+ * @returns the UUID string already assigned to that device, or a new one
+ */
+- (NSString *)audioDeviceUuidForUid:(NSString *)uid {
+    NSString *existing = self.audioDeviceUuids[uid];
+    if (existing != nil) {
+        return existing;
+    }
+
+    NSString *uuid = [NSUUID UUID].UUIDString;
+    self.audioDeviceUuids[uid] = uuid;
+    return uuid;
+}
+
 - (void)initializeAudioDeviceList {
-    NSUUID *receiverUuid = [NSUUID UUID];
-    NSDictionary *builtInReceiver = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: receiverUuid.UUIDString,
+    NSString *receiverUuid = [self audioDeviceUuidForUid:AVAudioSessionPortBuiltInReceiver];
+    NSDictionary *builtInReceiver = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: receiverUuid,
                                        kTwilioVoiceReactNativeAudioDeviceKeyType: kTwilioVoiceReactNativeAudioDeviceKeyEarpiece,
                                        kTwilioVoiceReactNativeAudioDeviceKeyNativeType: AVAudioSessionPortBuiltInReceiver,
                                        kTwilioVoiceReactNativeAudioDeviceKeyName: @"iPhone",
                                        kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInReceiver};
-    self.audioDevices[receiverUuid.UUIDString] = builtInReceiver;
+    self.audioDevices[receiverUuid] = builtInReceiver;
 
-    NSUUID *speakerUuid = [NSUUID UUID];
-    NSDictionary *builtInSpeaker = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: speakerUuid.UUIDString,
+    NSString *speakerUuid = [self audioDeviceUuidForUid:AVAudioSessionPortBuiltInSpeaker];
+    NSDictionary *builtInSpeaker = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: speakerUuid,
                                       kTwilioVoiceReactNativeAudioDeviceKeyType: kTwilioVoiceReactNativeAudioDeviceKeySpeaker,
                                       kTwilioVoiceReactNativeAudioDeviceKeyNativeType: AVAudioSessionPortBuiltInSpeaker,
                                       kTwilioVoiceReactNativeAudioDeviceKeyName: @"Speaker",
                                       kTwilioVoiceAudioDeviceUid: AVAudioSessionPortBuiltInSpeaker};
-    self.audioDevices[speakerUuid.UUIDString] = builtInSpeaker;
+    self.audioDevices[speakerUuid] = builtInSpeaker;
 
     [self availableAudioDevices];
 }
@@ -200,13 +249,13 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         NSLog(@"\t%@, %@, %@", port.portType, port. portName, port.UID);
 
         if ([port.portType isEqualToString:AVAudioSessionPortBluetoothHFP]) {
-            NSUUID *uuid = [NSUUID UUID];
-            NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid.UUIDString,
+            NSString *uuid = [self audioDeviceUuidForUid:port.UID];
+            NSDictionary *bluetoothHfpDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid,
                                                   kTwilioVoiceReactNativeAudioDeviceKeyType: [self audioPortTypeMapping:port.portType],
                                                   kTwilioVoiceReactNativeAudioDeviceKeyNativeType: port.portType,
                                                   kTwilioVoiceReactNativeAudioDeviceKeyName: port.portName,
                                                   kTwilioVoiceAudioDeviceUid: port.UID };
-            self.audioDevices[uuid.UUIDString] = bluetoothHfpDevice;
+            self.audioDevices[uuid] = bluetoothHfpDevice;
         }
     }
 
@@ -250,13 +299,13 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
 
             if (!found) {
                 NSLog(@"Unidentified output device selected: %@, %@, %@", port.portType, port.portName, port.UID);
-                NSUUID *uuid = [NSUUID UUID];
-                NSDictionary *unidentifiedDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid.UUIDString,
+                NSString *uuid = [self audioDeviceUuidForUid:port.UID];
+                NSDictionary *unidentifiedDevice = @{ kTwilioVoiceReactNativeAudioDeviceKeyUuid: uuid,
                                                       kTwilioVoiceReactNativeAudioDeviceKeyType: [self audioPortTypeMapping:port.portType],
                                                       kTwilioVoiceReactNativeAudioDeviceKeyNativeType: port.portType,
                                                       kTwilioVoiceReactNativeAudioDeviceKeyName: port.portName,
                                                       kTwilioVoiceAudioDeviceUid: port.UID };
-                self.audioDevices[uuid.UUIDString] = unidentifiedDevice;
+                self.audioDevices[uuid] = unidentifiedDevice;
                 self.selectedAudioDevice = unidentifiedDevice;
             }
         }
@@ -339,15 +388,23 @@ static TVODefaultAudioDevice *sTwilioAudioDevice;
         return NO;
     }
 
-    // Override output to speaker if speaker is selected
-    if ([portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeySpeaker]) {
-        AVAudioSessionPortOverride outputOverride = AVAudioSessionPortOverrideSpeaker;
-        NSError *outputError;
-        [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
-        if (outputError) {
-            NSLog(@"Failed to override output port: %@", outputError);
-            return NO;
-        }
+    // Route the output.
+    //
+    // The override has to be cleared as well as set. Setting the preferred
+    // input moves only the input, so once the speaker had been selected the
+    // override stayed latched and every later selection kept playing out of
+    // the speaker: selecting the earpiece reported "Speaker" back from
+    // `getAudioDevices`, because that was genuinely still the route.
+    AVAudioSessionPortOverride outputOverride =
+        [portType isEqualToString:kTwilioVoiceReactNativeAudioDeviceKeySpeaker]
+            ? AVAudioSessionPortOverrideSpeaker
+            : AVAudioSessionPortOverrideNone;
+
+    NSError *outputError;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:outputOverride error:&outputError];
+    if (outputError) {
+        NSLog(@"Failed to override output port: %@", outputError);
+        return NO;
     }
 
     return YES;
@@ -637,12 +694,16 @@ RCT_EXPORT_METHOD(voice_connect_ios:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
-    [self makeCallWithAccessToken:accessToken 
-                           params:params 
+    // The resolver is handed over rather than assigned afterwards: the CallKit
+    // transaction is asynchronous, so its completion block could otherwise run
+    // before the assignment, find no resolver and leave this promise pending
+    // for the lifetime of the application.
+    [self makeCallWithAccessToken:accessToken
+                           params:params
                     contactHandle:contactHandle
                        iceServers:iceServers
-               iceTransportPolicy:iceTransportPolicy];
-    self.callPromiseResolver = resolver;
+               iceTransportPolicy:iceTransportPolicy
+                         resolver:resolver];
 }
 
 RCT_EXPORT_METHOD(voice_getCalls:(RCTPromiseResolveBlock)resolver
@@ -719,10 +780,11 @@ RCT_EXPORT_METHOD(voice_setExpoVersion:(NSString *)expoVersion
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 {
+    // An absent version leaves whatever was baked into Info.plist in place
+    // rather than unsetting it. The variable is unset at process start, so
+    // there is nothing to clear in a non-Expo application.
     if ([expoVersion length] > 0) {
         setenv("com.twilio.voice.env.sdk.expo_version", [expoVersion UTF8String], 1);
-    } else {
-        unsetenv("com.twilio.voice.env.sdk.expo_version");
     }
     [self resolvePromise:resolver value:[NSNull null]];
 }

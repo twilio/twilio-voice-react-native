@@ -1,7 +1,11 @@
 'use strict';
 
 import twilio from 'twilio';
-import { parseEnvVar, parseScriptArgument } from './common.mjs';
+import {
+  parseEnvVar,
+  parseOptionalEnvVar,
+  parseScriptArgument,
+} from './common.mjs';
 import { writeFileSync } from 'node:fs';
 
 const { AccessToken } = twilio.jwt;
@@ -29,7 +33,11 @@ function generateToken(identity, suite) {
     suite === 'preflightTest'
       ? parseEnvVar('PREFLIGHT_OUTGOING_APPLICATION_SID')
       : parseEnvVar('OUTGOING_APPLICATION_SID');
-  const pushCredentialSid = parseEnvVar('PUSH_CREDENTIAL_SID');
+  /**
+   * Only required for incoming calls, which need a push credential to reach
+   * the device. Outgoing-call suites vend a valid token without one.
+   */
+  const pushCredentialSid = parseOptionalEnvVar('PUSH_CREDENTIAL_SID');
 
   const accessToken = new AccessToken(accountSid, apiKeySid, apiKeySecret, {
     identity,
@@ -38,7 +46,7 @@ function generateToken(identity, suite) {
   const voiceGrant = new AccessToken.VoiceGrant({
     incomingAllow: true,
     outgoingApplicationSid,
-    pushCredentialSid,
+    ...(pushCredentialSid ? { pushCredentialSid } : {}),
   });
 
   accessToken.addGrant(voiceGrant);

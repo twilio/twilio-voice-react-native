@@ -41,6 +41,8 @@ test/app/android/app/google-services.json
 # Cocoapods
 #
 test/app/ios/Pods
+test/app/ios/build-*/
+test/app/ios/*.xcworkspace/
 
 # node.js
 #
@@ -81,3 +83,9 @@ test/app/src/e2e-tests-token.ts
 test/app/src/e2e-tests-token.android.ts
 test/app/src/e2e-tests-token.ios.ts
 coverage/
+
+# local e2e credentials
+test/e2e.env
+
+# e2e run logs
+test/results/

@@ -21,21 +21,50 @@ yarn add @twilio/voice-react-native-sdk
 
 Once the package has been installed to your React Native application, there are further steps that you will need to take for both iOS and Android platforms. Please see the supporting documentation below.
 
-## 2.x Documentation
+## Choosing your setup
 
-### Expo support
+One package supports both application types. Which setup steps you follow depends on how your app
+is built.
 
-With the release of `2.x` versions (including our preview versions available through `npm` and Github Releases), the Twilio Voice React Native SDK officially supports the Expo framework out-of-the-box.
+| Your app | What to do |
+| --- | --- |
+| Expo | Add the config plugin. See [Expo setup](./docs/expo/app-config.md) |
+| Framework-less (bare) React Native | Wire the native files once by hand. See the Getting Started guides below |
 
-**Please note that `2.x` versions of the SDK do not support framework-less ("bare") React Native applications out-of-the-box! Please see our guide linked below for steps on using `2.x` in a Bare RN application.**
+Expo apps require a [development build](https://docs.expo.dev/develop/development-builds/introduction/);
+Expo Go is not supported, because this library contains native code that Expo Go does not include.
 
-**Please note that `2.0.0-preview.1` only supports Expo v52 at this time. Other versions of Expo are not tested or guaranteed to work!**
+## Compatibility
 
-After installing the Twilio Voice React Native SDK to your Expo application, please follow this [doc](./docs/expo/app-config.md) for steps on configuring your Expo app with the proper permissions and grants to use Twilio Voice features.
+| SDK version | Bare React Native | Expo | New Architecture |
+| --- | --- | --- | --- |
+| 1.8.0 | supported | supported, via the config plugin | supported |
+| 2.0.0-preview.x | **not supported**, required forking the SDK | supported | supported |
+| 1.7.0 and earlier | supported | not supported | 1.6.0 and later |
 
-### Using 2.x in a framework-less (bare) React Native application
+Verified for 1.8.0, on Android:
 
-Please see this [document](/docs/bare-rn-support-guide.md) for forking and customizing the SDK for your use-case.
+| Configuration | Versions exercised |
+| --- | --- |
+| Expo SDK | 52, 54, 55, 56, 57 |
+| React Native, through those Expo versions | 0.76.9, 0.81.5, 0.83.10, 0.85.3, 0.86.3 |
+| React Native, bare | 0.83.6 |
+| Android API level | 31, 33, 34, 36, 37 |
+
+`minSdkVersion` remains 24. Expo 53 was not exercised. Versions outside this list are expected to
+work but are untested.
+
+On iOS, 1.8.0 updates the native Twilio Voice iOS SDK and fixes three defects in audio device
+selection and `Voice.connect` error handling; see [CHANGELOG.md](./CHANGELOG.md). The Expo config
+plugin's iOS mods and outgoing calls were exercised on physical hardware. Incoming calls and
+registration were not: both need a PushKit VoIP token, which requires an `aps-environment`
+entitlement the test signing identity could not issue.
+
+The 2.x preview line is discontinued. It made Expo work by replacing the Android binding, which
+removed bare React Native support. 1.8.0 delivers the same Expo support additively, so bare
+applications upgrade with no code change and Expo applications add one plugin entry.
+
+If you are on `2.0.0-preview.x`, see the migration notes in [CHANGELOG.md](./CHANGELOG.md).
 
 ## 1.x Documentation
 

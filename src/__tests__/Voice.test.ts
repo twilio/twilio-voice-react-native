@@ -69,6 +69,49 @@ beforeEach(() => {
   MockNativeEventEmitter.reset();
 });
 
+/**
+ * Lets every promise continuation that is already queued run.
+ */
+function flushPromises() {
+  return new Promise<void>((resolve) => setImmediate(resolve));
+}
+
+/**
+ * Replaces the mocked `voice_setExpoVersion` binding with a promise that the
+ * test controls. Lets a test assert that an entry point waits for the Expo
+ * version to be recorded before it invokes the native layer.
+ *
+ * The shared mock in `src/__mocks__/common.ts` is already resolved, so without
+ * this a test asserting ordering would pass trivially.
+ */
+function deferSetExpoVersion() {
+  let settle!: (value: unknown) => void;
+  const nativePromise = new Promise((resolve) => {
+    settle = resolve;
+  });
+
+  jest
+    .mocked(MockNativeModule.voice_setExpoVersion)
+    .mockReturnValueOnce(nativePromise as any);
+
+  return {
+    resolve: () => {
+      settle(mockNativePromiseResolutionValue(undefined));
+      return flushPromises();
+    },
+  };
+}
+
+/**
+ * Every native connect call made, regardless of platform.
+ */
+function nativeConnectCalls() {
+  return [
+    ...jest.mocked(MockNativeModule.voice_connect_android).mock.calls,
+    ...jest.mocked(MockNativeModule.voice_connect_ios).mock.calls,
+  ];
+}
+
 describe('Voice class', () => {
   describe('constructor', () => {
     describe('event handler mapping', () => {
@@ -349,6 +392,57 @@ describe('Voice class', () => {
 
       performTestForPlatforms(
         ['android', 'ios'],
+        'waits for the expo version to be recorded before connecting',
+        async () => {
+          const deferredExpoVersion = deferSetExpoVersion();
+
+          const connectPromise = new Voice().connect(token, options);
+          await flushPromises();
+
+          expect(nativeConnectCalls()).toHaveLength(0);
+
+          await deferredExpoVersion.resolve();
+          await connectPromise;
+
+          expect(nativeConnectCalls()).toHaveLength(1);
+        }
+      );
+
+      performTestForPlatforms(
+        ['android', 'ios'],
+        'connects when the expo version binding rejects',
+        async () => {
+          jest
+            .mocked(MockNativeModule.voice_setExpoVersion)
+            .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+          await new Voice().connect(token, options);
+
+          expect(nativeConnectCalls()).toHaveLength(1);
+        }
+      );
+
+      performTestForPlatforms(
+        ['android', 'ios'],
+        'connects when the expo version binding rejects with a code',
+        async () => {
+          jest
+            .mocked(MockNativeModule.voice_setExpoVersion)
+            .mockResolvedValueOnce(
+              mockNativePromiseRejectionWithCodeValue(
+                31401,
+                'mock expo version failure'
+              )
+            );
+
+          await new Voice().connect(token, options);
+
+          expect(nativeConnectCalls()).toHaveLength(1);
+        }
+      );
+
+      performTestForPlatforms(
+        ['android', 'ios'],
         'throws when token is not a string',
         async () => {
           for (const invalidToken of [undefined, null, {}, 101, false]) {
@@ -365,13 +459,16 @@ describe('Voice class', () => {
         ['android', 'ios'],
         'throws when params is defined and not an object',
         async () => {
-          for (const invalidParams of ['string', 101, false]) {
+          // `null` included deliberately: `typeof null` is "object", so it
+          // slipped past the guard and reached Object.entries(null), which
+          // threw a raw TypeError instead of InvalidArgumentError.
+          for (const invalidParams of ['string', 101, false, null]) {
             options.params = invalidParams as unknown as Record<string, string>;
             await expect(
               new Voice().connect(token, options)
             ).rejects.toThrowError(
-              'Optional argument "params" must be undefined or of type ' +
-                '"object".'
+              'Optional argument "params" must be undefined or a non-null ' +
+                'object.'
             );
           }
         }
@@ -865,6 +962,51 @@ describe('Voice class', () => {
         const registerPromise = new Voice().register('mock-voice-token');
         await expect(registerPromise).resolves.toBeUndefined();
       });
+
+      it('waits for the expo version to be recorded before registering', async () => {
+        const deferredExpoVersion = deferSetExpoVersion();
+
+        const registerPromise = new Voice().register('mock-voice-token');
+        await flushPromises();
+
+        expect(MockNativeModule.voice_register).not.toHaveBeenCalled();
+
+        await deferredExpoVersion.resolve();
+        await registerPromise;
+
+        expect(jest.mocked(MockNativeModule.voice_register).mock.calls).toEqual(
+          [['mock-voice-token']]
+        );
+      });
+
+      it('registers when the expo version binding rejects', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+        await new Voice().register('mock-voice-token');
+
+        expect(jest.mocked(MockNativeModule.voice_register).mock.calls).toEqual(
+          [['mock-voice-token']]
+        );
+      });
+
+      it('registers when the expo version binding rejects with a code', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockResolvedValueOnce(
+            mockNativePromiseRejectionWithCodeValue(
+              31401,
+              'mock expo version failure'
+            )
+          );
+
+        await new Voice().register('mock-voice-token');
+
+        expect(jest.mocked(MockNativeModule.voice_register).mock.calls).toEqual(
+          [['mock-voice-token']]
+        );
+      });
     });
 
     describe('.unregister', () => {
@@ -878,6 +1020,50 @@ describe('Voice class', () => {
       it('returns a Promise<void>', async () => {
         const registerPromise = new Voice().unregister('mock-voice-token');
         await expect(registerPromise).resolves.toBeUndefined();
+      });
+      it('waits for the expo version to be recorded before unregistering', async () => {
+        const deferredExpoVersion = deferSetExpoVersion();
+
+        const unregisterPromise = new Voice().unregister('mock-voice-token');
+        await flushPromises();
+
+        expect(MockNativeModule.voice_unregister).not.toHaveBeenCalled();
+
+        await deferredExpoVersion.resolve();
+        await unregisterPromise;
+
+        expect(
+          jest.mocked(MockNativeModule.voice_unregister).mock.calls
+        ).toEqual([['mock-voice-token']]);
+      });
+
+      it('unregisters when the expo version binding rejects', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+        await new Voice().unregister('mock-voice-token');
+
+        expect(
+          jest.mocked(MockNativeModule.voice_unregister).mock.calls
+        ).toEqual([['mock-voice-token']]);
+      });
+
+      it('unregisters when the expo version binding rejects with a code', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockResolvedValueOnce(
+            mockNativePromiseRejectionWithCodeValue(
+              31401,
+              'mock expo version failure'
+            )
+          );
+
+        await new Voice().unregister('mock-voice-token');
+
+        expect(
+          jest.mocked(MockNativeModule.voice_unregister).mock.calls
+        ).toEqual([['mock-voice-token']]);
       });
     });
 
@@ -968,6 +1154,55 @@ describe('Voice class', () => {
           new Voice().initializePushRegistry()
         ).resolves.toBeUndefined();
       });
+      it('waits for the expo version to be recorded before initializing', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        const deferredExpoVersion = deferSetExpoVersion();
+
+        const initializePromise = new Voice().initializePushRegistry();
+        await flushPromises();
+
+        expect(
+          MockNativeModule.voice_initializePushRegistry
+        ).not.toHaveBeenCalled();
+
+        await deferredExpoVersion.resolve();
+        await initializePromise;
+
+        expect(
+          jest.mocked(MockNativeModule.voice_initializePushRegistry).mock.calls
+        ).toEqual([[]]);
+      });
+
+      it('initializes when the expo version binding rejects', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+        await new Voice().initializePushRegistry();
+
+        expect(
+          jest.mocked(MockNativeModule.voice_initializePushRegistry).mock.calls
+        ).toEqual([[]]);
+      });
+
+      it('initializes when the expo version binding rejects with a code', async () => {
+        jest.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockResolvedValueOnce(
+            mockNativePromiseRejectionWithCodeValue(
+              31401,
+              'mock expo version failure'
+            )
+          );
+
+        await new Voice().initializePushRegistry();
+
+        expect(
+          jest.mocked(MockNativeModule.voice_initializePushRegistry).mock.calls
+        ).toEqual([[]]);
+      });
     });
 
     describe('.setCallKitConfiguration', () => {
@@ -1027,6 +1262,51 @@ describe('Voice class', () => {
     describe('.runPreflight', () => {
       it('invokes the native module', async () => {
         await new Voice().runPreflight('token');
+        expect(
+          jest.mocked(MockNativeModule.voice_runPreflight).mock.calls
+        ).toEqual([['token', {}]]);
+      });
+
+      it('waits for the expo version to be recorded before running', async () => {
+        const deferredExpoVersion = deferSetExpoVersion();
+
+        const preflightPromise = new Voice().runPreflight('token');
+        await flushPromises();
+
+        expect(MockNativeModule.voice_runPreflight).not.toHaveBeenCalled();
+
+        await deferredExpoVersion.resolve();
+        await preflightPromise;
+
+        expect(
+          jest.mocked(MockNativeModule.voice_runPreflight).mock.calls
+        ).toEqual([['token', {}]]);
+      });
+
+      it('runs when the expo version binding rejects', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockRejectedValueOnce(new Error('mock expo version failure'));
+
+        await new Voice().runPreflight('token');
+
+        expect(
+          jest.mocked(MockNativeModule.voice_runPreflight).mock.calls
+        ).toEqual([['token', {}]]);
+      });
+
+      it('runs when the expo version binding rejects with a code', async () => {
+        jest
+          .mocked(MockNativeModule.voice_setExpoVersion)
+          .mockResolvedValueOnce(
+            mockNativePromiseRejectionWithCodeValue(
+              31401,
+              'mock expo version failure'
+            )
+          );
+
+        await new Voice().runPreflight('token');
+
         expect(
           jest.mocked(MockNativeModule.voice_runPreflight).mock.calls
         ).toEqual([['token', {}]]);

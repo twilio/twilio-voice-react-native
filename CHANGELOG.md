@@ -1,61 +1,185 @@
-2.0.0-preview.3 (In Progress)
-=============================
+1.8.0 (In Progress)
+===================
+
+Expo support arrives additively. Framework-less ("bare") React Native
+applications are unaffected and upgrade with no code change; Expo applications
+add one config plugin entry. This supersedes the `2.0.0-preview.x` line, which
+delivered the same capability by replacing the Android binding and in doing so
+removed bare React Native support. Those preview versions are discontinued.
 
 ## Features
 
-- Added support for configuring custom ICE servers and ICE transport policy when accepting incoming calls using `CallInvite.accept` via the new `iceServers` and `iceTransportPolicy` options.
+### Expo
 
-## Breaking Changes
+- Expo applications are supported through a config plugin. Add
+  `"@twilio/voice-react-native-sdk"` to `plugins` in your app config and run
+  `expo prebuild`. See the [Expo setup guide](/docs/expo/app-config.md).
 
-### AudioDevice.Type and AudioDevice.nativeType
+  A [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+  is required. Expo Go is not supported, because this library contains native
+  code that Expo Go does not include.
 
-- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as reported by the native layer.
+  Set `android.googleServicesFile` in your app config. Expo installs your
+  `google-services.json` and applies the Google Services Gradle plugin from it,
+  and incoming calls will not reach the device without it.
 
-- Added `AudioDevice.Type.Unknown`, reported via `AudioDevice.type` when the native layer reports a device type that isn't one of the other well-known `AudioDevice.Type` values.
+  Verified on Expo SDK 52, 54, 55, 56 and 57.
 
-#### iOS
+### ICE configuration
 
-- Audio devices with an unrecognized native port type (for example, non-HFP Bluetooth profiles) previously reported that raw native type string, e.g. `"BluetoothA2DP"`, as `AudioDevice.type` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown` and `AudioDevice.nativeType` now reports the native value, e.g. `"BluetoothA2DP"`.
+- Added support for custom ICE servers and ICE transport policy on outgoing
+  calls started with `Voice.connect`, via the new `iceServers` and
+  `iceTransportPolicy` options.
 
-#### Android
+- The same two options are supported when accepting an incoming call with
+  `CallInvite.accept`.
 
-- Audio devices of an unrecognized type previously reported `AudioDevice.type` as `null` instead of a well-known `AudioDevice.Type` value. These devices now report `AudioDevice.Type.Unknown`.
+### AudioDevice
 
-## Fixes
-
-### Platform Specific Fixes
-
-#### Android
-
-- Fixed null pointer exception related crashes that could occur when accepting or rejecting invalid CallInvites using the native notification.
-
-2.0.0-preview.2 (April 29, 2026)
-================================
-
-## Features
-
-- Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
+- Added `AudioDevice.nativeType`, which exposes the audio device type exactly as
+  reported by the native layer, alongside the well-known `AudioDevice.type`.
 
 ## Changes
 
-- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependencies.
+- Updated the native Twilio Voice SDK dependencies.
 
   - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
 
   - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
 
-2.0.0-preview.1 (January 5, 2026)
-=================================
+- Errors raised by native methods are now consistently surfaced as
+  `TwilioErrors` subclasses. Previously this applied to some methods but not
+  others: `Voice.connect` and `CallInvite.accept` already constructed a typed
+  error, while methods such as `Call.mute`, `Call.disconnect` and
+  `Voice.getVersion` let the underlying React Native bridge error propagate.
 
-## Features
+  This changes what those methods throw. Where the native layer reports a
+  Twilio error code, the error is the matching `TwilioErrors` subclass and
+  `code` carries that code, as before. Where it reports a failure without a
+  code, the error is now an `InvalidStateError`, an `InvalidArgumentError` or
+  an `UnexpectedNativeError`, and `code` on those three is `undefined` --
+  1.7.0 gave the React Native bridge's generic `'EUNSPECIFIED'` there.
 
-- Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
+  Applications that read the bridge's undocumented `error.userInfo` property,
+  or that relied on `code` being present, should read `error.message` and
+  branch on `instanceof` instead:
 
-  If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
+  ```ts
+  import { InvalidStateError } from '@twilio/voice-react-native-sdk';
 
-## Changes
+  try {
+    await call.mute(true);
+  } catch (error) {
+    if (error instanceof InvalidStateError) {
+      // the call was not in a state that can be muted
+    }
+  }
+  ```
 
-- Updated local Typescript version used by the library.
+- Updated the local TypeScript version used by the library.
+
+## Fixes
+
+- Fixed the Expo SDK version being absent from call insights metadata.
+
+  `Voice` records the version natively during construction. That call was
+  fire-and-forget, so a call, registration or preflight test started shortly
+  after construction could reach the native layer first. On iOS the native SDK
+  memoizes publisher metadata on the first insights event, so a miss there
+  persisted for the rest of the application session. `connect`, `register`,
+  `unregister`, `runPreflight` and `initializePushRegistry` now wait for the
+  version to be recorded. Failing to record it can no longer reject any of
+  them.
+
+  Separately, the version was not reported at all for applications running an
+  over-the-air update, whose manifests nest the app config under
+  `extra.expoClient` rather than carrying `sdkVersion` at the top level.
+
+  `CallInvite.accept` now waits for it as well, and the config plugin records
+  the version in the built application -- as Android manifest meta-data and as
+  an iOS `Info.plist` key -- so that an incoming call on a cold start reports
+  it too. That path runs before the application's JavaScript has constructed
+  `Voice`, so no amount of waiting in JavaScript could have covered it.
+
+- Fixed an unresolved native module surfacing as a `TypeError` naming a
+  property rather than an error naming the cause. Importing the SDK into an
+  application whose native code is missing -- not rebuilt since the dependency
+  was added, `pod install` not run, or running in Expo Go -- now throws an
+  `InvalidStateError` listing what to check. React Native raises its own
+  invariant for this on iOS but not on Android, so on Android the first symptom
+  came from wherever the module was first read.
+
+- Fixed `new Voice()` being able to throw. Recording the Expo SDK version is
+  telemetry and is documented as never preventing a call, registration or
+  preflight test, but a synchronous failure from the native binding propagated
+  out of the constructor rather than being swallowed.
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed `Call.hold` and `Call.mute` returning an incorrect value.
+
+- Fixed `CallInvite.sendMessage`.
+
+- Fixed null pointer exception crashes that could occur when accepting or
+  rejecting invalid `CallInvite`s from the native notification.
+
+- Fixed `AudioDevice.uuid` changing whenever the available audio devices were
+  re-evaluated, which happens when a device is selected. An application that
+  selected a device and then compared `selectedDevice.uuid` against the device
+  it had selected saw a mismatch even though the correct device was active. A
+  device now keeps its `uuid` for as long as it remains available.
+
+- Fixed audio device types being misreported in release builds where a code
+  shrinker had renamed the underlying AudioSwitch classes.
+
+- Fixed `getAudioDevices` dropping a device when two devices of the same type
+  reported the same name, which two headsets of the same model do. The two
+  shared one `uuid`, so the list returned one entry short and the `uuid` that
+  went missing was no longer accepted by `selectAudioDevice`. Selecting a
+  device triggers a re-evaluation, so the list shrank immediately after a
+  selection.
+
+#### iOS
+
+- Fixed `PreflightTest` rejection paths.
+
+- Fixed `Voice.connect` never settling when CallKit rejected the start-call
+  transaction, for example while another call was already active. The promise
+  stayed pending for the lifetime of the application, so the caller saw a hang
+  rather than an error. It now rejects with the reason CallKit reported.
+
+  The same promise is now owned by whichever path settles it first, keyed by
+  the call's UUID. Previously the resolver was stored only after the CallKit
+  transaction had already started, so a fast failure could still find no
+  resolver and hang; the success path did not clear it, so a later failure
+  could settle an already-settled promise; and it was read and written from two
+  queues without synchronization.
+
+- Fixed `Voice.connect` never settling when the Twilio Voice iOS SDK declined
+  to create the call. It now rejects with an `InvalidStateError`.
+
+- Fixed `AudioDevice.uuid` changing whenever the available audio devices were
+  re-evaluated, the same defect fixed on Android above. A device now keeps its
+  `uuid` for as long as it remains available.
+
+- Fixed the speaker output override never being cleared. After the speaker had
+  been selected once, selecting any other device moved only the input, so audio
+  kept playing out of the speaker and `getAudioDevices` correctly reported
+  `Speaker` as the active route.
+
+## Migrating from 2.0.0-preview.x
+
+- Reinstall from npm as `@twilio/voice-react-native-sdk@1.8.0`. The version
+  number moves backwards, so no consumer upgrades into it by default.
+
+- If you were using Expo, replace any manual `Info.plist`, entitlements and
+  Google Services configuration with the config plugin entry described above.
+
+- If you were using bare React Native, you were required to fork this SDK. Delete
+  the fork and install from npm. Forking stopped you receiving native SDK and
+  security updates, and is no longer necessary.
 
 1.7.0 (October 8, 2025)
 =======================

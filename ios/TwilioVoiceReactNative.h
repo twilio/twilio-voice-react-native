@@ -37,7 +37,27 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSArray<NSDictionary *> *> *iceServersMap;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *iceTransportPolicyMap;
 @property (nonatomic, strong) void(^callKitCompletionCallback)(BOOL, NSError *error);
-@property (nonatomic, strong) RCTPromiseResolveBlock callPromiseResolver;
+
+/**
+ * Promise resolvers for in-flight `Voice.connect()` calls, keyed by the UUID of
+ * the call CallKit was asked to start.
+ *
+ * A single resolver property could not be settled safely. `voice_connect_ios`
+ * assigned it only after `makeCallWithAccessToken:` had already started the
+ * asynchronous CallKit transaction, so the transaction's completion block could
+ * run first, observe nil and leave `Voice.connect()` pending for the lifetime
+ * of the application -- the very defect that block exists to prevent. The
+ * success path resolved without clearing the property, so a later failure could
+ * invoke an already-settled block. And the property was read and written from
+ * both the React Native bridge queue and the main queue without
+ * synchronization.
+ *
+ * The resolver is now stored before the transaction starts, and both settle
+ * paths take and clear it for one UUID under a lock, so exactly one of them can
+ * settle it. Use `storeCallPromiseResolver:forUuid:` and
+ * `takeCallPromiseResolverForUuid:` rather than touching this directly.
+ */
+@property (nonatomic, strong) NSMutableDictionary<NSString *, RCTPromiseResolveBlock> *callPromiseResolvers;
 
 @property (nonatomic, strong) TVOPreflightTest *preflightTest;
 @property (nonatomic, copy) NSString *preflightTestUuid;
@@ -70,7 +90,8 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
                          params:(NSDictionary *)params
                   contactHandle:(NSString *)contactHandle
                      iceServers:(NSArray<NSDictionary *> * _Nullable)iceServers
-             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy;
+             iceTransportPolicy:(NSString * _Nullable)iceTransportPolicy
+                       resolver:(RCTPromiseResolveBlock)resolver;
 - (void)reportNewIncomingCall:(TVOCallInvite *)callInvite;
 - (void)endCallWithUuid:(NSUUID *)uuid;
 /* Initiate the answering from the app UI */
@@ -90,5 +111,9 @@ FOUNDATION_EXPORT NSString * const kTwilioVoiceReactNativeEventKeyCancelledCallI
 - (void)resolvePromise:(RCTPromiseResolveBlock)resolver value:(id)value;
 - (void)rejectPromiseWithCode:(RCTPromiseResolveBlock)resolver code:(NSNumber *)code message:(NSString *)message;
 - (void)rejectPromiseWithName:(RCTPromiseResolveBlock)resolver name:(NSString *)name message:(NSString *)message;
+
+/* Settle-once ownership of the `Voice.connect()` resolver. See callPromiseResolvers. */
+- (void)storeCallPromiseResolver:(RCTPromiseResolveBlock)resolver forUuid:(NSString *)uuid;
+- (RCTPromiseResolveBlock _Nullable)takeCallPromiseResolverForUuid:(NSString *)uuid;
 
 @end

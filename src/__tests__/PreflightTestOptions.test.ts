@@ -66,7 +66,14 @@ describe('preflight test option validation', () => {
     [
       'non-object audio codec',
       { preferredAudioCodecs: ['foobar'] },
-      'If "audioCodec" is present, it must be an object.',
+      'If "audioCodec" is present, it must be a non-null object.',
+    ],
+    [
+      // `typeof null` is "object", so null slipped past the guard and the
+      // `'type' in audioCodec` check threw a raw TypeError.
+      'null audio codec',
+      { preferredAudioCodecs: [null] },
+      'If "audioCodec" is present, it must be a non-null object.',
     ],
     [
       'non-string audio codec type',

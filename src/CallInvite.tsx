@@ -7,7 +7,12 @@
 
 import { EventEmitter } from 'eventemitter3';
 import { Call } from './Call';
-import { NativeEventEmitter, NativeModule, Platform } from './common';
+import {
+  NativeEventEmitter,
+  NativeModule,
+  Platform,
+  recordExpoVersion,
+} from './common';
 import { InvalidStateError } from './error/InvalidStateError';
 import { TwilioError } from './error/TwilioError';
 import { UnsupportedPlatformError } from './error/UnsupportedPlatformError';
@@ -466,6 +471,17 @@ export class CallInvite extends EventEmitter {
       const result = validateIceTransportPolicy(iceTransportPolicy);
       if (result.status === 'error') throw result.error;
     }
+
+    /**
+     * Accepting an invite makes the native layer emit insights events, so the
+     * Expo version has to be recorded first for the same reason
+     * {@link (Voice:class).connect} waits for it. This is the one entry point
+     * reached from an incoming call rather than from application code, so it
+     * cannot assume a `Voice` instance has already waited.
+     *
+     * Never rejects, so it cannot prevent the invite being accepted.
+     */
+    await recordExpoVersion();
 
     const callInfo = await settleNativePromise(
       NativeModule.callInvite_accept(this._uuid, options)

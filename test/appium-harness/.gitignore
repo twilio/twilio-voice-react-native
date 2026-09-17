@@ -53,5 +53,7 @@ app-example
 ###
 # Tokens
 ###
-/src/utilities/token/e2e-*-token*
-/src/utilities/token/e2e-tests-ice-server*
+# Local secrets. Broad on purpose: everything under this directory except the
+# checked-in helper holds a live access token or TURN credentials.
+/src/utilities/token/*
+!/src/utilities/token/get-token.ts

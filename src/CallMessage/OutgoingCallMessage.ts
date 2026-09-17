@@ -283,7 +283,7 @@ export namespace OutgoingCallMessage {
      * @remarks
      * See {@link (OutgoingCallMessage:interface).(addListener:1)}.
      *
-     * See {@link TwilioErrors} for all error classes.
+     * See the `TwilioErrors` namespace for all error classes.
      */
     export type Failure = (error: TwilioError) => void;
 
