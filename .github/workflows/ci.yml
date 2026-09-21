@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, testing_cache-issue-expo-1.x-build-appium-harness]
   pull_request:
 
 # No default permissions; each job below declares exactly what it needs.
