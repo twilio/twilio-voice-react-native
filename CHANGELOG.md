@@ -1,3 +1,5 @@
+:warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
+
 1.8.0 (In Progress)
 ===================
 
@@ -5,6 +7,16 @@ Expo support is now available on the existing 1.x release line. Framework-less (
 
 The `2.0.0-preview.x` releases introduced Expo support while we evaluated the integration through the preview channel. With 1.8.0, Expo support is now available without requiring a major-version upgrade or changes to existing bare React Native applications. As a result, development will continue on the 1.x line and the `2.0.0-preview.x` releases will no longer be maintained.
 
+
+## Migrating from 2.0.0-preview.x
+
+If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to continue receiving updates:
+
+- Install `@twilio/voice-react-native-sdk@1.8.0` from npm. Because `1.8.0` has a lower semantic version than the preview releases, package managers will not automatically move applications from `2.0.0-preview.x` to `1.8.0`.
+
+- If you are using Expo, configure the SDK using the config plugin described below. Existing manual `Info.plist`, entitlements, and Google Services configuration that is now handled by the plugin can be removed.
+
+- If you are using bare React Native, you can return to the standard npm package. Any workaround or fork used with the preview releases to maintain bare React Native compatibility is no longer necessary.
 
 ## Features
 
@@ -166,15 +178,33 @@ The `2.0.0-preview.x` releases introduced Expo support while we evaluated the in
   kept playing out of the speaker and `getAudioDevices` correctly reported
   `Speaker` as the active route.
 
-## Migrating from 2.0.0-preview.x
+2.0.0-preview.2 (April 29, 2026)
+================================
 
-If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to continue receiving updates:
+## Features
 
-- Install `@twilio/voice-react-native-sdk@1.8.0` from npm. Because `1.8.0` has a lower semantic version than the preview releases, package managers will not automatically move applications from `2.0.0-preview.x` to `1.8.0`.
+- Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
 
-- If you are using Expo, configure the SDK using the config plugin described above. Existing manual `Info.plist`, entitlements, and Google Services configuration that is now handled by the plugin can be removed.
+## Changes
 
-- If you are using bare React Native, you can return to the standard npm package. Any workaround or fork used with the preview releases to maintain bare React Native compatibility is no longer necessary.
+- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependencies.
+
+  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+
+  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+
+2.0.0-preview.1 (January 5, 2026)
+=================================
+
+## Features
+
+- Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
+
+  If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
+
+## Changes
+
+- Updated local Typescript version used by the library.
 
 1.7.0 (October 8, 2025)
 =======================
