@@ -1,4 +1,4 @@
-# Using the Twilio Voice React Native SDK (v2.x) with Bare React Native Applications
+# Using the Twilio Voice React Native SDK (v2.0.0-preview.x) with Bare React Native Applications
 
 > This guide applies only to the discontinued `2.0.0-preview.x` line, where
 > bare React Native support required forking the SDK. On `1.8.0` and later,
