@@ -60,8 +60,8 @@ class MainActivity : ReactActivity() {
   }
 
   override fun onDestroy() {
-    super.onDestroy()
     voiceActivityProxy.onDestroy()
+    super.onDestroy()
   }
 
   override fun onNewIntent(intent: Intent?) {

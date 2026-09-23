@@ -11,7 +11,7 @@ separate Expo build and no fork.
 
 - A [development build](https://docs.expo.dev/develop/development-builds/introduction/). **Expo Go
   is not supported**, because this library contains native code that Expo Go does not include.
-- Expo SDK 52 or later. Verified on 52, 54, 55, 56 and 57; see the compatibility matrix in the
+- Expo SDK 52 or later. Verified on 52, 53, 54, 55, 56 and 57; see the compatibility matrix in the
   README for exactly what was exercised.
 
 ## Setup
@@ -66,8 +66,8 @@ native projects, so anything you edit inside `android/` or `ios/` by hand is dis
 | --- | --- |
 | `withMainApplication` | Adds a `VoiceApplicationProxy` field, calls `onCreate()` after `super.onCreate()`, and adds an `onTerminate()` override |
 | `withMainActivity` | Adds a `VoiceActivityProxy` field with a permission-rationale handler, hooks `onCreate`, and adds `onDestroy` and `onNewIntent` overrides |
-| `withAndroidManifest` | Adds a `com.twilio.voice.expo_version` meta-data entry carrying your Expo SDK version |
-| `withInfoPlist` | Sets `NSMicrophoneUsageDescription`, adds `audio` and `voip` to `UIBackgroundModes`, and sets `TwilioVoiceExpoVersion` |
+| `withAndroidManifest` | When the Expo SDK version is resolvable from the app config, adds a `com.twilio.voice.expo_version` meta-data entry carrying that version |
+| `withInfoPlist` | Sets `NSMicrophoneUsageDescription` and adds `audio` and `voip` to `UIBackgroundModes`. When the Expo SDK version is resolvable, also sets `TwilioVoiceExpoVersion` |
 | `withEntitlementsPlist` | Sets `aps-environment` |
 
 The plugin never overwrites a value you set yourself. `UIBackgroundModes` is merged, not replaced,

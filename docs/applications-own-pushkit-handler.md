@@ -48,7 +48,7 @@ withCompletionHandler:(void (^)(void))completion {
     }
 
     completion();
-}];
+}
 ```
 
 A `CallInvite` event will be raised to the application so the user can accept or reject the call invite.
@@ -68,7 +68,7 @@ To report an incoming call to iOS CallKit, the SDK uses the `from` value of the 
   
     NSString *handleName = callInvite.from;
     if ([[handleName substringToIndex:7] isEqualToString:@"client:"]) {
-        [handleName = handleName stringByReplacingCharactersInRange:NSMakeRange(0, 7) withString:@""];
+        handleName = [handleName stringByReplacingCharactersInRange:NSMakeRange(0, 7) withString:@""];
     }
     
     CXHandle *callHandle = [[CXHandle alloc] initWithType:CXHandleTypePhoneNumber value:handleName];

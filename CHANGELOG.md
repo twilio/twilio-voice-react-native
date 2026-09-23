@@ -1,11 +1,10 @@
 1.8.0 (In Progress)
 ===================
 
-Expo support arrives additively. Framework-less ("bare") React Native
-applications are unaffected and upgrade with no code change; Expo applications
-add one config plugin entry. This supersedes the `2.0.0-preview.x` line, which
-delivered the same capability by replacing the Android binding and in doing so
-removed bare React Native support. Those preview versions are discontinued.
+Expo support is now available on the existing 1.x release line. Framework-less ("bare") React Native applications are unaffected and can upgrade with no code changes, while Expo applications only need to add a config plugin entry.
+
+The `2.0.0-preview.x` releases introduced Expo support while we evaluated the integration through the preview channel. With 1.8.0, Expo support is now available without requiring a major-version upgrade or changes to existing bare React Native applications. As a result, development will continue on the 1.x line and the `2.0.0-preview.x` releases will no longer be maintained.
+
 
 ## Features
 
@@ -22,8 +21,6 @@ removed bare React Native support. Those preview versions are discontinued.
   Set `android.googleServicesFile` in your app config. Expo installs your
   `google-services.json` and applies the Google Services Gradle plugin from it,
   and incoming calls will not reach the device without it.
-
-  Verified on Expo SDK 52, 54, 55, 56 and 57.
 
 ### ICE configuration
 
@@ -171,15 +168,13 @@ removed bare React Native support. Those preview versions are discontinued.
 
 ## Migrating from 2.0.0-preview.x
 
-- Reinstall from npm as `@twilio/voice-react-native-sdk@1.8.0`. The version
-  number moves backwards, so no consumer upgrades into it by default.
+If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to continue receiving updates:
 
-- If you were using Expo, replace any manual `Info.plist`, entitlements and
-  Google Services configuration with the config plugin entry described above.
+- Install `@twilio/voice-react-native-sdk@1.8.0` from npm. Because `1.8.0` has a lower semantic version than the preview releases, package managers will not automatically move applications from `2.0.0-preview.x` to `1.8.0`.
 
-- If you were using bare React Native, you were required to fork this SDK. Delete
-  the fork and install from npm. Forking stopped you receiving native SDK and
-  security updates, and is no longer necessary.
+- If you are using Expo, configure the SDK using the config plugin described above. Existing manual `Info.plist`, entitlements, and Google Services configuration that is now handled by the plugin can be removed.
+
+- If you are using bare React Native, you can return to the standard npm package. Any workaround or fork used with the preview releases to maintain bare React Native compatibility is no longer necessary.
 
 1.7.0 (October 8, 2025)
 =======================

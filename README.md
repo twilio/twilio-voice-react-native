@@ -36,37 +36,13 @@ Expo Go is not supported, because this library contains native code that Expo Go
 
 ## Compatibility
 
-| SDK version | Bare React Native | Expo | New Architecture |
-| --- | --- | --- | --- |
-| 1.8.0 | supported | supported, via the config plugin | supported |
-| 2.0.0-preview.x | **not supported**, required forking the SDK | supported | supported |
-| 1.7.0 and earlier | supported | not supported | 1.6.0 and later |
-
-Verified for 1.8.0, on Android:
-
 | Configuration | Versions exercised |
 | --- | --- |
-| Expo SDK | 52, 54, 55, 56, 57 |
-| React Native, through those Expo versions | 0.76.9, 0.81.5, 0.83.10, 0.85.3, 0.86.3 |
+| Expo SDK | 52, 53, 54, 55, 56, 57 |
+| React Native, through those Expo versions | 0.76.9, 0.79.6, 0.81.5, 0.83.10, 0.85.3, 0.86.3 |
 | React Native, bare | 0.83.6 |
-| Android API level | 31, 33, 34, 36, 37 |
 
-`minSdkVersion` remains 24. Expo 53 was not exercised. Versions outside this list are expected to
-work but are untested.
-
-On iOS, 1.8.0 updates the native Twilio Voice iOS SDK and fixes three defects in audio device
-selection and `Voice.connect` error handling; see [CHANGELOG.md](./CHANGELOG.md). The Expo config
-plugin's iOS mods and outgoing calls were exercised on physical hardware. Incoming calls and
-registration were not: both need a PushKit VoIP token, which requires an `aps-environment`
-entitlement the test signing identity could not issue.
-
-The 2.x preview line is discontinued. It made Expo work by replacing the Android binding, which
-removed bare React Native support. 1.8.0 delivers the same Expo support additively, so bare
-applications upgrade with no code change and Expo applications add one plugin entry.
-
-If you are on `2.0.0-preview.x`, see the migration notes in [CHANGELOG.md](./CHANGELOG.md).
-
-## 1.x Documentation
+## Documentation
 
 ### Getting Started
 
@@ -75,9 +51,6 @@ Learn how to get started for the [iOS platform](/docs/getting-started-ios.md).
 
 #### Android
 Learn how to get started for the Android platform if you are using [Java](/docs/getting-started-android-java.md) or [Kotlin](/docs/getting-started-android-kotlin.md).
-
-### Migration Guide
-If you are migrating from a version of the Twilio Voice React Native SDK `< 1.0.0.beta.4` to a version `>= 1.0.0.beta.4`, please see [this](/docs/migration-guide-beta.4.md) document.
 
 ### Customizing Notifications
 To customize the appearance and content of your application's notifications, please see [this](/docs/customize-notifications.md) document.
