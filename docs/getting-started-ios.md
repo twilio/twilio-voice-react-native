@@ -9,7 +9,7 @@ When following the React Native environment setup guide, please ensure that "Rea
 
 ## iOS
 
-Please note that the Twilio Voice React Native SDK is tightly integrated with the iOS CallKit framework. This provides the best call and audio experience, and requires the application to be run on a physical device. The SDK will not work on an iOS simulator.
+Please note that the Twilio Voice React Native SDK is tightly integrated with the iOS CallKit framework. This provides the best call and audio experience, and requires the application to be run on a physical device to place or receive calls. CallKit and PushKit are unavailable in the iOS simulator, though the SDK itself loads and runs there.
 
 Firstly, create a Bundle Identifier (Bundle ID) through the Apple Developer Portal. Then, create a Provisioning Profile for that Bundle ID and add physical devices to that profile. Those devices will also need to be registered to the developer account.
 

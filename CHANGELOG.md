@@ -3,10 +3,9 @@
 1.8.0 (In Progress)
 ===================
 
-Expo support is now available on the existing 1.x release line. Framework-less ("bare") React Native applications are unaffected and can upgrade with no code changes, while Expo applications only need to add a config plugin entry.
+Expo support is now available on the existing 1.x release line, without changing how framework-less ("bare") React Native applications are set up. Expo applications only need to add a config plugin entry.
 
-The `2.0.0-preview.x` releases introduced Expo support while we evaluated the integration through the preview channel. With 1.8.0, Expo support is now available without requiring a major-version upgrade or changes to existing bare React Native applications. As a result, development will continue on the 1.x line and the `2.0.0-preview.x` releases will no longer be maintained.
-
+The `2.0.0-preview.x` releases introduced Expo support while we evaluated the integration through the preview channel. Delivering it on 1.x means no major-version upgrade is required. Development will continue on the 1.x line and the `2.0.0-preview.x` releases will no longer be maintained.
 
 ## Migrating from 2.0.0-preview.x
 
@@ -16,7 +15,7 @@ If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to co
 
 - If you are using Expo, configure the SDK using the config plugin described below. Existing manual `Info.plist`, entitlements, and Google Services configuration that is now handled by the plugin can be removed.
 
-- If you are using bare React Native, you can return to the standard npm package. Any workaround or fork used with the preview releases to maintain bare React Native compatibility is no longer necessary.
+- If you are using bare React Native, we recommend you delete your fork and install `@twilio/voice-react-native-sdk@1.8.0` from npm. Bare React Native is supported natively in 1.8.0, and staying on a fork stops you receiving native SDK and security updates.
 
 ## Features
 
@@ -33,6 +32,8 @@ If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to co
   Set `android.googleServicesFile` in your app config. Expo installs your
   `google-services.json` and applies the Google Services Gradle plugin from it,
   and incoming calls will not reach the device without it.
+
+  Exercised on Expo SDK 52 through 57.
 
 ### ICE configuration
 

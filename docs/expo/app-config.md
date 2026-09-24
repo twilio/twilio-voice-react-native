@@ -9,10 +9,16 @@ separate Expo build and no fork.
 
 ## Requirements
 
+This page covers the config plugin only. The Push Credential, access token server and device
+requirements that every application needs are listed under
+[Prerequisites](../../README.md#prerequisites) in the README. An app wired by this plugin alone
+will build and run, but cannot place or receive a call without them.
+
 - A [development build](https://docs.expo.dev/develop/development-builds/introduction/). **Expo Go
   is not supported**, because this library contains native code that Expo Go does not include.
-- Expo SDK 52 or later. Verified on 52, 53, 54, 55, 56 and 57; see the compatibility matrix in the
-  README for exactly what was exercised.
+- Expo SDK 52 through 57. These are the versions exercised; see the compatibility matrix in the
+  README. The plugin does not enforce a minimum, so newer or older versions may work but are
+  untested.
 
 ## Setup
 
