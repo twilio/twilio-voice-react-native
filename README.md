@@ -62,7 +62,7 @@ Expo Go is not supported, because this library contains native code that Expo Go
 | 2.0.0-preview.x | **not supported**, required forking the SDK | supported | supported |
 | 1.7.0 and earlier | supported | **not supported** | 1.6.0 and later |
 
-If you are on `2.0.0-preview.x`, see the [migration notes](https://github.com/twilio/twilio-voice-react-native/blob/latest/CHANGELOG.md#migrating-from-200-previewx).
+If you are on `2.0.0-preview.x`, see the [migration notes](./CHANGELOG.md#migrating-from-200-previewx).
 
 Verified for 1.8.0:
 
