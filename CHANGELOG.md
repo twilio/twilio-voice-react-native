@@ -75,12 +75,12 @@ If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to co
   branch on `instanceof` instead:
 
   ```ts
-  import { InvalidStateError } from '@twilio/voice-react-native-sdk';
+  import { TwilioErrors } from '@twilio/voice-react-native-sdk';
 
   try {
     await call.mute(true);
   } catch (error) {
-    if (error instanceof InvalidStateError) {
+    if (error instanceof TwilioErrors.InvalidStateError) {
       // the call was not in a state that can be muted
     }
   }

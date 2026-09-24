@@ -17,8 +17,9 @@ will build and run, but cannot place or receive a call without them.
 - A [development build](https://docs.expo.dev/develop/development-builds/introduction/). **Expo Go
   is not supported**, because this library contains native code that Expo Go does not include.
 - Expo SDK 52 through 57. These are the versions exercised; see the compatibility matrix in the
-  README. The plugin does not enforce a minimum, so newer or older versions may work but are
-  untested.
+  README. The plugin does not enforce a minimum, so newer versions may work but are untested.
+  Expo SDK 49 and earlier generate Java `MainApplication` and `MainActivity` files, which this
+  plugin does not edit. See [Kotlin only](#kotlin-only).
 
 ## Setup
 
@@ -183,7 +184,7 @@ private val voiceActivityProxy = VoiceActivityProxy(this) { permission ->
 }
 
 override fun onCreate(savedInstanceState: Bundle?) {
-  super.onCreate(null)
+  super.onCreate(savedInstanceState)
   voiceActivityProxy.onCreate(savedInstanceState)
 }
 
