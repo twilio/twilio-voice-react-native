@@ -1,6 +1,6 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
-1.8.0 (In Progress)
+1.8.0 (September 24, 2026)
 ===================
 
 Expo support is now available on the existing 1.x release line, without changing how framework-less ("bare") React Native applications are set up. Expo applications only need to add a config plugin entry.
