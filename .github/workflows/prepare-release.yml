@@ -39,7 +39,7 @@ jobs:
       - name: Bump package.json version
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
-        run: npm version --no-git-tag-version "${RELEASE_VERSION}"
+        run: npm version --no-git-tag-version --allow-same-version "${RELEASE_VERSION}"
 
       - name: Stamp constants files
         env:
