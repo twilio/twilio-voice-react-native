@@ -48,7 +48,7 @@ Within your `MainActivity.kt` file, you will need to instantiate a `VoiceActivit
 Here is an example of how to instantiate the `VoiceActivityProxy` class:
 ```kotlin
 class MainActivity : ReactActivity() {
-    private val activityProxy = VoiceActivityProxy(
+    private val voiceActivityProxy = VoiceActivityProxy(
         this
     ) { permission: String ->
         if (Manifest.permission.RECORD_AUDIO == permission) {
@@ -87,17 +87,19 @@ class MainActivity : ReactActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activityProxy.onCreate(savedInstanceState)
+        voiceActivityProxy.onCreate(savedInstanceState)
     }
 }
 ```
 
-You will need to do this for the following Android lifecycle methods:
+You will need to hook the following Android lifecycle methods:
   - `onCreate`
   - `onDestroy`
   - `onNewIntent`
-  - `onStart`
-  - `onStop`
+
+`VoiceActivityProxy` exposes these three methods and no others; the older
+guidance to also hook `onStart` and `onStop` is stale and no such methods exist
+on the proxy.
 
 #### `MainApplication`
 You will need to instantiate a `VoiceApplicationProxy` which will need to be "hooked" into the Android application lifecycle methods:
@@ -111,7 +113,7 @@ class MainApplication : Application(), ReactApplication {
 }
 ```
 
-Finally, here is an example of how to hook the `VoiceApplicationProxy` lifecycle methods onto `MainApplication`:
+Finally, here is an example of how to hook the `VoiceApplicationProxy` lifecycle methods onto `MainApplication`. The example keeps the rest of `MainApplication` intact and only shows the additions:
 
 ```kotlin
 class MainApplication : Application(), ReactApplication {
@@ -121,13 +123,11 @@ class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
         voiceApplicationProxy.onCreate()
-        SoLoader.init(this,  /* native exopackage */false)
-        // Remove the following line if you don't want Flipper enabled
-        initializeFlipper(this, reactNativeHost.reactInstanceManager)
+        // your existing onCreate work follows
     }
 
     override fun onTerminate() {
-        // Note: this method is not called when running on device, devies just kill the process.
+        // Note: this method is not invoked on real devices; the OS kills the process instead.
         voiceApplicationProxy.onTerminate()
         super.onTerminate()
     }
@@ -140,6 +140,14 @@ class MainApplication : Application(), ReactApplication {
 The following lifecycle methods need to be hooked:
   - `onCreate`
   - `onTerminate`
+
+React Native templates from 0.71+ generate `MainApplication` around
+`DefaultReactNativeHost` and no longer initialize Flipper. Whichever shape
+your generated `MainApplication` uses, the two calls above (`onCreate` and
+`onTerminate` on the `VoiceApplicationProxy` member) are what the SDK
+requires; leave the rest of `MainApplication` as your template generated it.
+For a complete reference, see `test/app/android/app/src/main/java/com/example/twiliovoicereactnative/MainApplication.kt`
+in this repository.
 
 ## Wrapping Up
 Once the above native code has been implemented in your application, the Twilio Voice React Native SDK is ready for usage on Android platforms.

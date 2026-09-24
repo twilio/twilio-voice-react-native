@@ -1,11 +1,21 @@
+:warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
+
 1.8.0 (In Progress)
 ===================
 
-Expo support arrives additively. Framework-less ("bare") React Native
-applications are unaffected and upgrade with no code change; Expo applications
-add one config plugin entry. This supersedes the `2.0.0-preview.x` line, which
-delivered the same capability by replacing the Android binding and in doing so
-removed bare React Native support. Those preview versions are discontinued.
+Expo support is now available on the existing 1.x release line, without changing how framework-less ("bare") React Native applications are set up. Expo applications only need to add a config plugin entry.
+
+The `2.0.0-preview.x` releases introduced Expo support while we evaluated the integration through the preview channel. Delivering it on 1.x means no major-version upgrade is required. Development will continue on the 1.x line and the `2.0.0-preview.x` releases will no longer be maintained.
+
+## Migrating from 2.0.0-preview.x
+
+If you are currently using a `2.0.0-preview.x` release, migrate to `1.8.0` to continue receiving updates:
+
+- Install `@twilio/voice-react-native-sdk@1.8.0` from npm. Because `1.8.0` has a lower semantic version than the preview releases, package managers will not automatically move applications from `2.0.0-preview.x` to `1.8.0`.
+
+- If you are using Expo, configure the SDK using the config plugin described below. Existing manual `Info.plist`, entitlements, and Google Services configuration that is now handled by the plugin can be removed.
+
+- If you are using bare React Native, we recommend you delete your fork and install `@twilio/voice-react-native-sdk@1.8.0` from npm. Bare React Native is supported natively in 1.8.0, and staying on a fork stops you receiving native SDK and security updates.
 
 ## Features
 
@@ -23,7 +33,7 @@ removed bare React Native support. Those preview versions are discontinued.
   `google-services.json` and applies the Google Services Gradle plugin from it,
   and incoming calls will not reach the device without it.
 
-  Verified on Expo SDK 52, 54, 55, 56 and 57.
+  Exercised on Expo SDK 52 through 57.
 
 ### ICE configuration
 
@@ -169,17 +179,33 @@ removed bare React Native support. Those preview versions are discontinued.
   kept playing out of the speaker and `getAudioDevices` correctly reported
   `Speaker` as the active route.
 
-## Migrating from 2.0.0-preview.x
+2.0.0-preview.2 (April 29, 2026)
+================================
 
-- Reinstall from npm as `@twilio/voice-react-native-sdk@1.8.0`. The version
-  number moves backwards, so no consumer upgrades into it by default.
+## Features
 
-- If you were using Expo, replace any manual `Info.plist`, entitlements and
-  Google Services configuration with the config plugin entry described above.
+- Added support for custom ICE servers and ICE transport policy for outgoing calls initiated with `Voice.connect` via the new `iceServers` and `iceTransportPolicy` options.
 
-- If you were using bare React Native, you were required to fork this SDK. Delete
-  the fork and install from npm. Forking stopped you receiving native SDK and
-  security updates, and is no longer necessary.
+## Changes
+
+- Updated the native Twilio Voice iOS SDK and Twilio Voice Android SDK dependencies.
+
+  - Twilio Voice Android SDK upgraded from `6.7.1` to `6.10.3`.
+
+  - Twilio Voice iOS SDK upgraded from `6.13.3` to `6.13.6`.
+
+2.0.0-preview.1 (January 5, 2026)
+=================================
+
+## Features
+
+- Version 2.x of the Twilio Voice React Native SDK adds out-of-the-box support for Expo, allowing the SDK to be used in Expo projects without manual native code. See the [Expo setup documentation](/docs/expo/app-config.md) for more information on how to configure your Expo application.
+
+  If you are using the Twilio Voice React Native SDK version 2.x in an existing framework-less (bare) React Native application, please follow this [Bare React Native setup guide](/docs/bare-rn-support-guide.md).
+
+## Changes
+
+- Updated local Typescript version used by the library.
 
 1.7.0 (October 8, 2025)
 =======================
