@@ -1,5 +1,21 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.8.1 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed notification buttons acting on the wrong call when notifications for
+  more than one call were posted at the same time. With two incoming calls
+  ringing, "Answer" or "Decline" on the first call's notification acted on the
+  second call, while the notification still showed the first caller. The
+  hang-up button on concurrent active or outgoing calls was affected the same
+  way. Each call's notification now carries its own `PendingIntent`s.
+
 1.8.0 (September 24, 2026)
 ==========================
 
