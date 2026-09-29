@@ -129,7 +129,8 @@ export class MockNativeEventEmitter extends EventEmitter {
       const spy = jest.fn(fn);
       super.addListener(event, spy, context);
       this.addListenerSpies.push([event, spy]);
-      return this;
+      // The real emitter returns a subscription rather than itself.
+      return { remove: () => this.removeListener(event, spy) } as any;
     }
   );
 

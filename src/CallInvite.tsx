@@ -269,6 +269,13 @@ export class CallInvite extends EventEmitter {
    * the layers.
    */
   private _uuid: Uuid;
+
+  /**
+   * The subscription to native call invite events made upon construction. It
+   * is removed once the invite is rejected or cancelled, so that settled
+   * invites do not stay subscribed for the lifetime of the application.
+   */
+  private _nativeEventSubscription: { remove: () => void };
   /**
    * A string representing the SID of this call.
    */
@@ -310,7 +317,7 @@ export class CallInvite extends EventEmitter {
 
     this._state = state;
 
-    NativeEventEmitter.addListener(
+    this._nativeEventSubscription = NativeEventEmitter.addListener(
       Constants.ScopeCallInvite,
       this._handleNativeCallInviteEvent
     );
@@ -416,6 +423,7 @@ export class CallInvite extends EventEmitter {
   private _handleCallInviteRejected = () => {
     this._state = CallInvite.State.Rejected;
     this.emit(CallInvite.Event.Rejected);
+    this._nativeEventSubscription.remove();
   };
 
   /**
@@ -434,6 +442,7 @@ export class CallInvite extends EventEmitter {
       : undefined;
 
     this.emit(CallInvite.Event.Cancelled, error);
+    this._nativeEventSubscription.remove();
   };
 
   /**
