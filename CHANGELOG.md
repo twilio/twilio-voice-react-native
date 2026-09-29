@@ -1,9 +1,15 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.8.1 (in progress)
+
 1.8.1 (In Progress)
 ===================
 
 ## Fixes
+
+- Fixed `Call` and `CallInvite` objects staying subscribed to native events after they finished.
+
+  Every `Call` and `CallInvite` subscribed to the native event emitter when it was constructed and never unsubscribed. `Voice.getCalls()` and `Voice.getCallInvites()` also construct new objects on each call. Each finished call and each rejected or cancelled invite kept its subscription, and its listener ran for every later native event. A `Call` now unsubscribes after it disconnects or fails to connect, and a `CallInvite` unsubscribes after it is rejected or cancelled.
 
 ### Platform Specific Fixes
 

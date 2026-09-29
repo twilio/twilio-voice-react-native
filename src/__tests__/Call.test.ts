@@ -287,6 +287,45 @@ describe('Call class', () => {
     });
 
     /**
+     * Terminal events release the native event subscription.
+     */
+    describe('native event subscription', () => {
+      it.each([
+        mockCallNativeEvents.connectFailure,
+        mockCallNativeEvents.disconnected,
+        mockCallNativeEvents.disconnectedWithError,
+      ])('is removed after $name', ({ nativeEvent }) => {
+        const call = new Call(createNativeCallInfo());
+        expect(MockNativeEventEmitter.listenerCount(Constants.ScopeCall)).toBe(
+          1
+        );
+
+        MockNativeEventEmitter.emit(Constants.ScopeCall, { ...nativeEvent });
+
+        expect(MockNativeEventEmitter.listenerCount(Constants.ScopeCall)).toBe(
+          0
+        );
+        expect(call.getState()).toBe(Call.State.Disconnected);
+      });
+
+      it.each([
+        mockCallNativeEvents.connected,
+        mockCallNativeEvents.reconnecting,
+        mockCallNativeEvents.reconnected,
+        mockCallNativeEvents.ringing,
+      ])('is kept after $name', ({ nativeEvent }) => {
+        const call = new Call(createNativeCallInfo());
+
+        MockNativeEventEmitter.emit(Constants.ScopeCall, { ...nativeEvent });
+
+        expect(MockNativeEventEmitter.listenerCount(Constants.ScopeCall)).toBe(
+          1
+        );
+        expect(call.getState()).not.toBe(Call.State.Disconnected);
+      });
+    });
+
+    /**
      * Event case-specific tests.
      */
     describe(Constants.CallEventQualityWarningsChanged, () => {
