@@ -149,7 +149,8 @@ class NotificationUtility {
       Constants.ACTION_FOREGROUND_AND_DEPRIORITIZE_INCOMING_CALL_NOTIFICATION,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord, foregroundIntent);
 
     // Carry the id so the service can still dismiss the notification after the call record is
     // evicted (for example, after process death); otherwise the accept/reject button lingers forever.
@@ -159,7 +160,8 @@ class NotificationUtility {
       VoiceService.class,
       callRecord.getUuid());
     rejectIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
-    PendingIntent piRejectIntent = constructPendingIntentForService(context, rejectIntent);
+    PendingIntent piRejectIntent = constructPendingIntentForService(
+      context, callRecord, rejectIntent);
 
     // Accept targets the main activity, not VoiceService: it must foreground the in-call UI (a
     // service cannot launch activities on Android 12+). VoiceActivityProxy forwards it to the
@@ -170,7 +172,8 @@ class NotificationUtility {
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
     acceptIntent.putExtra(Constants.MSG_KEY_NOTIFICATION_ID, callRecord.getNotificationId());
-    PendingIntent piAcceptIntent = constructPendingIntentForActivity(context, acceptIntent);
+    PendingIntent piAcceptIntent = constructPendingIntentForActivity(
+      context, callRecord, acceptIntent);
 
     return constructNotificationBuilder(context, channelImportance)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -200,14 +203,16 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord, foregroundIntent);
 
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(
+      context, callRecord, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -237,14 +242,16 @@ class NotificationUtility {
       Constants.ACTION_PUSH_APP_TO_FOREGROUND,
       Objects.requireNonNull(VoiceApplicationProxy.getMainActivityClass()),
       callRecord.getUuid());
-    PendingIntent piForegroundIntent = constructPendingIntentForActivity(context, foregroundIntent);
+    PendingIntent piForegroundIntent = constructPendingIntentForActivity(
+      context, callRecord, foregroundIntent);
 
     Intent endCallIntent = constructMessage(
       context,
       Constants.ACTION_CALL_DISCONNECT,
       VoiceService.class,
       callRecord.getUuid());
-    PendingIntent piEndCallIntent = constructPendingIntentForService(context, endCallIntent);
+    PendingIntent piEndCallIntent = constructPendingIntentForService(
+      context, callRecord, endCallIntent);
 
     return constructNotificationBuilder(context, Constants.VOICE_CHANNEL_LOW_IMPORTANCE)
       .setSmallIcon(notificationResource.getSmallIconId())
@@ -318,20 +325,44 @@ class NotificationUtility {
     return voiceChannelId;
   }
 
+  /**
+   * The request code that gives a call's notification actions their own PendingIntent identity.
+   *
+   * Android identifies a PendingIntent by its request code plus {@link Intent#filterEquals}, which
+   * compares action, data, type, component and categories but not extras. The call uuid travels
+   * only as an extra, so with a shared request code every call's "accept" resolved to one
+   * PendingIntent, and FLAG_UPDATE_CURRENT rewrote the extras of notifications already posted for
+   * other calls. A button then acted on whichever call was notified last, not the call its
+   * notification displayed.
+   *
+   * The notification id is unique per call record, so two calls' PendingIntents can only coincide
+   * when their notifications would replace each other anyway. Within one call the actions differ,
+   * which keeps its accept, reject, hang-up and content intents apart. The uuid covers the case
+   * where no notification id has been assigned.
+   */
+  static int getPendingIntentRequestCode(@NonNull final CallRecord callRecord) {
+    final int notificationId = callRecord.getNotificationId();
+    return (CallRecord.INVALID_NOTIFICATION_ID != notificationId)
+      ? notificationId
+      : Objects.requireNonNull(callRecord.getUuid()).hashCode();
+  }
+
   private static PendingIntent constructPendingIntentForActivity(@NonNull Context context,
+                                                                 @NonNull final CallRecord callRecord,
                                                                  @NonNull final Intent intent) {
     return PendingIntent.getActivity(
       context.getApplicationContext(),
-      0,
+      getPendingIntentRequestCode(callRecord),
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
   }
 
   private static PendingIntent constructPendingIntentForService(@NonNull Context context,
+                                                                @NonNull final CallRecord callRecord,
                                                                 @NonNull final Intent intent) {
     return PendingIntent.getService(
       context.getApplicationContext(),
-      0,
+      getPendingIntentRequestCode(callRecord),
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
   }
