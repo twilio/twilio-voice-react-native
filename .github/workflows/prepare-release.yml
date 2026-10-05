@@ -156,6 +156,6 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
-          git push origin \
+          git push --atomic origin \
             "release/${RELEASE_VERSION}" \
             "refs/tags/${RELEASE_VERSION}"
