@@ -439,7 +439,13 @@ export const useIceTest: UseTestSuite = (
       skipped: skipped.map((r) => r.variant),
     }));
 
-    setTestStatus(failed.length === 0 ? 'success' : 'failure');
+    // The only skips are `valid-*` variants missing VALID_ICE_SERVER, so a skip
+    // means a missing dependency rather than full coverage.
+    if (failed.length > 0) {
+      setTestStatus('failure');
+    } else {
+      setTestStatus(skipped.length > 0 ? 'blocked' : 'success');
+    }
   }, [token, voice, log, setMasks, setTestStatus]);
 
   return { perform };

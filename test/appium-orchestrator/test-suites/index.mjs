@@ -7,7 +7,7 @@ import { writeFileSync } from 'node:fs';
 /**
  * @import { TestOrchestratorSetup } from './setup.mjs'
  */
-import { setupTestOrchestrator } from './setup.mjs';
+import { getEnv, setupTestOrchestrator } from './setup.mjs';
 import { safelySettlePromise } from '../utilities/safely-settle-promise.mjs';
 
 /**
@@ -15,8 +15,12 @@ import { safelySettlePromise } from '../utilities/safely-settle-promise.mjs';
  * them unattended.
  *
  * `automated`  runs in a normal unattended pass.
- * `blocked`    cannot run yet; the reason is reported rather than silently skipped.
- * `manual`     requires a human and is never attempted here.
+ * `blocked`    cannot run unattended yet, so it only runs when SUITES names it.
+ * `manual`     requires a human and is never attempted unless SUITES names it.
+ *
+ * Every suite here appears in the results. A suite that is not attempted is
+ * reported as `Not run`. Why a suite was not run depends on the environment,
+ * so the caller explains it rather than this list.
  *
  * Keep in step with the `suites` record in the harness app's `src/app/index.tsx`.
  */
@@ -30,21 +34,9 @@ const SUITES = [
   { id: 'call-message-test', kind: 'automated' },
   { id: 'preflight-test', kind: 'automated' },
   { id: 'ice-test', kind: 'automated' },
-  {
-    id: 'incoming-ice-test',
-    kind: 'blocked',
-    reason: 'incoming calls need a real FCM push credential',
-  },
-  {
-    id: 'quality-warnings-test',
-    kind: 'blocked',
-    reason: 'needs deterministic host audio input',
-  },
-  {
-    id: 'incoming-call-test-manual',
-    kind: 'manual',
-    reason: 'requires a human to answer the call',
-  },
+  { id: 'incoming-ice-test', kind: 'blocked' },
+  { id: 'quality-warnings-test', kind: 'blocked' },
+  { id: 'incoming-call-test-manual', kind: 'manual' },
 ];
 
 /**
@@ -253,33 +245,46 @@ const report = (results, context) => {
 };
 
 const main = async () => {
-  const setupResult = await safelySettlePromise(setupTestOrchestrator());
+  // Read before setup so a bad PLATFORM or SUITES does not spend a device
+  // session.
+  let env;
+  try {
+    env = getEnv();
+  } catch (error) {
+    console.log(`::error::${String(error?.message || error)}`);
+    return 1;
+  }
+
+  const requested = env.SUITES
+    ? env.SUITES.split(',').map((s) => s.trim()).filter(Boolean)
+    : null;
+
+  // A typo would otherwise leave a requested suite silently unrun.
+  const unknown = (requested ?? []).filter((id) => !SUITES.some((s) => s.id === id));
+  if (unknown.length > 0) {
+    console.log(`::error::SUITES names unknown suites: ${unknown.join(', ')}`);
+    return 1;
+  }
+
+  const setupResult = await safelySettlePromise(setupTestOrchestrator(env));
   if (setupResult.status === 'rejected') {
     console.log('setup failed');
     console.log(setupResult.error);
     return 1;
   }
 
-  const { accessToken, driver, env, testElements } = setupResult.value;
-
-  const requested = env.SUITES
-    ? env.SUITES.split(',').map((s) => s.trim()).filter(Boolean)
-    : null;
-
-  const selected = requested
-    ? SUITES.filter((s) => requested.includes(s.id))
-    : SUITES;
+  const { accessToken, driver, testElements } = setupResult.value;
 
   /** @type {Array<{ id: string, status: string, detail?: string, seconds?: number }>} */
   const results = [];
 
-  for (const suite of selected) {
-    if (suite.kind !== 'automated' && !requested) {
-      results.push({
-        id: suite.id,
-        status: suite.kind === 'manual' ? 'Not run' : 'Blocked',
-        detail: suite.reason,
-      });
+  for (const suite of SUITES) {
+    const attempted = requested
+      ? requested.includes(suite.id)
+      : suite.kind === 'automated';
+
+    if (!attempted) {
+      results.push({ id: suite.id, status: 'Not run' });
       continue;
     }
 

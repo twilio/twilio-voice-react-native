@@ -41,7 +41,7 @@ const ANDROID_CAPABILITIES = {
 // NOTE: VBLOCKS-6582
 // Consider adding other things to the env helper function, such as overriding
 // hostname, port, Sauce Labs options, etc.
-const getEnv = () => {
+export const getEnv = () => {
   const platform = (process.env.PLATFORM || 'ios').toLowerCase();
   if (platform !== 'ios' && platform !== 'android') {
     throw new Error(`PLATFORM must be "ios" or "android", got "${platform}".`);
@@ -50,7 +50,7 @@ const getEnv = () => {
   return {
     USE_SAUCE: process.env.USE_SAUCE === 'true',
     PLATFORM: /** @type {'ios' | 'android'} */ (platform),
-    /** Comma-separated suite ids, or all of them when unset. */
+    /** Comma-separated suite ids, or every automated suite when unset. */
     SUITES: process.env.SUITES,
     /** Recorded in results so a run can be attributed to an API level. */
     AVD: process.env.AVD,
@@ -215,12 +215,12 @@ const getSauceOptions = (platform) => {
 
 /**
  * Perform test orchestration setup.
+ *
+ * @param {ReturnType<typeof getEnv>} env
  */
-export const setupTestOrchestrator = async () => {
+export const setupTestOrchestrator = async (env) => {
   /** @type {string} */
   const accessToken = tokenJson.accessToken;
-
-  const env = getEnv();
 
   const remoteOptions = env.USE_SAUCE
     ? getSauceOptions(env.PLATFORM)
@@ -266,7 +266,7 @@ export const setupTestOrchestrator = async () => {
     },
   };
 
-  return { accessToken, driver, env, testElements };
+  return { accessToken, driver, testElements };
 };
 
 /** @typedef {Awaited<ReturnType<typeof setupTestOrchestrator>>} TestOrchestratorSetup */

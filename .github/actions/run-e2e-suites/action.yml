@@ -110,11 +110,10 @@ runs:
         storage-filename: ${{ inputs.storage-filename }}
 
     # SUITES is an allowlist of suites to run, not a filter over the default set.
-    # The orchestrator auto-skips its `blocked` and `manual` suites only while
-    # SUITES is unset, so listing incoming-call-test-manual here would hang the
-    # job until the per-suite timeout. registration-test is left out because no
-    # CI build carries a real push credential. ice-test stays in and reports
-    # Blocked, which is not a failure, when no TURN credentials are bundled.
+    # The orchestrator runs every suite listed here, including `manual` ones, so
+    # listing incoming-call-test-manual would hang the job until the per-suite
+    # timeout. The orchestrator reports every suite left out as `Not run`, and
+    # the report step below explains why from its reason map.
     - name: Run the allowlisted suites
       shell: bash
       working-directory: test/appium-orchestrator
@@ -145,15 +144,27 @@ runs:
       run: |
         set -euo pipefail
 
+        # Why a suite did not run, or ran only in part, depends on what this
+        # environment provides, so the reasons live beside this action and not
+        # in the orchestrator. A suite missing from skip-reasons.json is
+        # reported as having no reason recorded rather than left out.
+        REASONS=$(jq --arg platform "$PLATFORM" \
+          '.common + (.[$platform] // {})' \
+          "${GITHUB_ACTION_PATH}/skip-reasons.json")
+
+        # Validated once so a malformed file cannot fail a passing run.
+        RESULTS_VALID=false
+        if [ -f "$RESULTS_JSON" ] &&
+           jq -e '.results | type == "array"' "$RESULTS_JSON" >/dev/null 2>&1; then
+          RESULTS_VALID=true
+        fi
+
         {
           echo "### SauceLabs e2e (${LABEL})"
           echo ""
           echo "- app: \`${STORAGE_FILENAME}\`"
 
-          # Validated once so a malformed file cannot fail a passing run or
-          # drop the caveats below.
-          if [ -f "$RESULTS_JSON" ] &&
-             jq -e '.results | type == "array"' "$RESULTS_JSON" >/dev/null 2>&1; then
+          if [ "$RESULTS_VALID" = true ]; then
             SESSION_ID=$(jq -r '.sessionId // empty' "$RESULTS_JSON")
             if [ -n "$SESSION_ID" ]; then
               echo "- session: https://app.saucelabs.com/tests/${SESSION_ID}"
@@ -165,28 +176,35 @@ runs:
             # log is where `::add-mask::` applies.
             echo "| suite | status | seconds |"
             echo "| --- | --- | --- |"
-            jq -r '.results[] | "| \(.id) | \(.status) | \(.seconds // "") |"' "$RESULTS_JSON"
+            jq -r '.results[] | select(.status != "Not run") | "| \(.id) | \(.status) | \(.seconds // "") |"' "$RESULTS_JSON"
             echo ""
             echo "Failure details are in the log of the \`Run the allowlisted suites\` step."
+
+            # A green run must not read as more coverage than it is.
+            echo ""
+            echo "**Not fully exercised by this run**"
+            echo ""
+
+            jq -r --argjson reasons "$REASONS" '
+              [.results[] | select(.status == "Not run" or .status == "Blocked")]
+              | if length == 0 then "- every suite ran in full"
+                else .[] | "- `\(.id)` (\(.status)): \($reasons[.id] // "no reason recorded")"
+                end
+            ' "$RESULTS_JSON"
           elif [ -f "$RESULTS_JSON" ]; then
             echo "- results file is not valid JSON or has no results array"
           else
             echo "- no results file; the orchestrator did not write one"
           fi
-
-          # A green run must not read as more coverage than it is.
-          echo ""
-          echo "**Not exercised by this run**"
-          echo ""
-
-          if [ "$PLATFORM" = "android" ]; then
-            echo "- \`registration-test\`: the build receives a placeholder google-services.json, so it has no real FCM push credential."
-          else
-            echo "- \`registration-test\`: the build is unsigned and carries no aps-environment entitlement, so it can obtain no PushKit VoIP token."
-          fi
-
-          echo "- \`ice-test\` valid-* variants: no TURN credentials are bundled at build time, so those variants skip and the suite reports Blocked."
         } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ "$RESULTS_VALID" = true ]; then
+          jq -r --argjson reasons "$REASONS" '
+            .results[]
+            | select((.status == "Not run" or .status == "Blocked") and $reasons[.id] == null)
+            | "::warning::\(.id) reported \(.status) and the report step has no reason recorded for it."
+          ' "$RESULTS_JSON"
+        fi
 
     # The runner group is self-hosted, so the workspace and $HOME can outlive the
     # job.
