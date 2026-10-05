@@ -8,6 +8,12 @@ on:
 # No default permissions; each job below declares exactly what it needs.
 permissions: {}
 
+# A new push to a PR cancels the older run of that PR. Each push to main gets
+# its own group by commit SHA, so every commit on main runs to completion.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Fork PRs don't run CI at all - they can't get Artifactory access, and
   # this repo doesn't run tests without it. A maintainer reviews and tests
@@ -81,6 +87,7 @@ jobs:
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
       !github.event.pull_request.head.repo.fork)
+    needs: test
     runs-on: ubuntu-x64
     timeout-minutes: 60
     permissions:
@@ -181,6 +188,7 @@ jobs:
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
       !github.event.pull_request.head.repo.fork)
+    needs: test
     runs-on: macos-arm
     timeout-minutes: 60
     permissions:
@@ -319,6 +327,7 @@ jobs:
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
       !github.event.pull_request.head.repo.fork)
+    needs: test
     runs-on: ubuntu-x64
     timeout-minutes: 60
     permissions:
@@ -445,6 +454,7 @@ jobs:
       github.event_name == 'push' ||
       (github.event_name == 'pull_request' &&
       !github.event.pull_request.head.repo.fork)
+    needs: test
     runs-on: macos-arm
     timeout-minutes: 60
     permissions:
