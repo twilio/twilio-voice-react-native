@@ -126,8 +126,9 @@ runs:
         SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
         RESULTS_JSON: ${{ github.workspace }}/temp/results.json
       run: |
-        # The orchestrator announces a failed write rather than throwing, so a
-        # missing directory would lose the results silently.
+        set -euo pipefail
+
+        # The orchestrator's writeFileSync does not create the parent directory.
         mkdir -p "$(dirname "$RESULTS_JSON")"
         node test-suites/index.mjs
 
@@ -149,7 +150,10 @@ runs:
           echo ""
           echo "- app: \`${STORAGE_FILENAME}\`"
 
-          if [ -f "$RESULTS_JSON" ]; then
+          # Validated once so a malformed file cannot fail a passing run or
+          # drop the caveats below.
+          if [ -f "$RESULTS_JSON" ] &&
+             jq -e '.results | type == "array"' "$RESULTS_JSON" >/dev/null 2>&1; then
             SESSION_ID=$(jq -r '.sessionId // empty' "$RESULTS_JSON")
             if [ -n "$SESSION_ID" ]; then
               echo "- session: https://app.saucelabs.com/tests/${SESSION_ID}"
@@ -168,8 +172,10 @@ runs:
               .results[]
               | "| \(.id | cell) | \(.status | cell) | \(.seconds // "") | \(.detail | cell) |"
             ' "$RESULTS_JSON"
+          elif [ -f "$RESULTS_JSON" ]; then
+            echo "- results file is not valid JSON or has no results array"
           else
-            echo "- no results file; the orchestrator did not reach its report"
+            echo "- no results file; the orchestrator did not write one"
           fi
 
           # A green run must not read as more coverage than it is.

@@ -347,7 +347,7 @@ const main = async () => {
         )
       );
     } catch (error) {
-      console.log(`could not write ${process.env.RESULTS_JSON}: ${String(error)}`);
+      console.log(`::error::could not write ${process.env.RESULTS_JSON}: ${String(error)}`);
     }
   }
 
