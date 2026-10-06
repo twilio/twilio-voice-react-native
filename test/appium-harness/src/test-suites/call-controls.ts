@@ -195,6 +195,12 @@ const STEPS: Array<Step<CallControlsContext>> = [
     run: async ({ voice }, log) => {
       const initial = await voice.getAudioDevices();
 
+      // Without this an empty list would skip every assertion below.
+      expect(
+        initial.audioDevices.length > 0,
+        'the device reports at least one audio device'
+      ).toBe(true);
+
       // The restore runs in a `finally` because audio routing is device-wide
       // state that outlives this suite. Without it, a mid-loop assertion
       // failure would leave the device on whatever was selected last, and

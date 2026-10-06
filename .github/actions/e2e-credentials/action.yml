@@ -62,6 +62,8 @@ runs:
           fi
         done
 
+        # Consider deduplicating this credential fetch with saucelabs-upload/action.yml. VBLOCKS-7357
+        #
         # GitHub injects these two only when the calling job declares
         # `permissions: id-token: write`. Without that permission they are
         # unset rather than empty, so `set -u` would kill the script below with

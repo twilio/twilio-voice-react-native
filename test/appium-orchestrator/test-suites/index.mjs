@@ -268,7 +268,7 @@ const main = async () => {
 
   const setupResult = await safelySettlePromise(setupTestOrchestrator(env));
   if (setupResult.status === 'rejected') {
-    console.log('setup failed');
+    console.log(`::error::setup failed: ${String(setupResult.error?.message || setupResult.error)}`);
     console.log(setupResult.error);
     return 1;
   }

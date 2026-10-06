@@ -218,9 +218,9 @@ jobs:
             exit 1
           fi
 
-          # We deliberately do not pin an Xcode version, so log the one in use -
-          # it is the first thing to check when a build starts failing for no
-          # apparent reason.
+          # We deliberately do not pin an Xcode version, so log the Xcode version
+          # in use. The Xcode version is the first thing to check when a build
+          # starts failing for no apparent reason.
           echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
 
       - name: Artifactory OIDC Auth
@@ -484,9 +484,9 @@ jobs:
             exit 1
           fi
 
-          # We deliberately do not pin an Xcode version, so log the one in use -
-          # it is the first thing to check when a build starts failing for no
-          # apparent reason.
+          # We deliberately do not pin an Xcode version, so log the Xcode version
+          # in use. The Xcode version is the first thing to check when a build
+          # starts failing for no apparent reason.
           echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
 
       - name: Artifactory OIDC Auth
@@ -546,7 +546,7 @@ jobs:
           fi
 
           if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
-            echo "::error::${APP_PATH} has no main.jsbundle - the JS was not embedded."
+            echo "::error::${APP_PATH} has no main.jsbundle, so the JS was not embedded."
             exit 1
           fi
 

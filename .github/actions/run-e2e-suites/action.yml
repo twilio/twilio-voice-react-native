@@ -131,8 +131,9 @@ runs:
         mkdir -p "$(dirname "$RESULTS_JSON")"
         node test-suites/index.mjs
 
-    # The orchestrator writes RESULTS_JSON before returning its exit code, so a
-    # failing run still has the file to report from.
+    # A run that reaches its suites writes RESULTS_JSON before returning its exit
+    # code, so a failing suite still has the file to report from. A run that
+    # stops before its suites writes no file and prints an ::error:: instead.
     - name: Report what this run exercised
       if: always()
       shell: bash
@@ -194,7 +195,7 @@ runs:
           elif [ -f "$RESULTS_JSON" ]; then
             echo "- results file is not valid JSON or has no results array"
           else
-            echo "- no results file; the orchestrator did not write one"
+            echo "- no results file. The orchestrator did not write one. See the job log for why."
           fi
         } >> "$GITHUB_STEP_SUMMARY"
 
