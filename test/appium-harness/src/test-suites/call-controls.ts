@@ -185,7 +185,9 @@ const STEPS: Array<Step<CallControlsContext>> = [
   // Placed after `get-stats` so the stats above are read from a call that has
   // not been re-routed mid-suite.
   //
-  // iOS only.
+  // iOS only. Selecting an audio device during a call is not yet verified on
+  // Android.
+  // TODO: VBLOCKS-7358
   {
     name: 'select-audio-device-while-connected',
     description:
