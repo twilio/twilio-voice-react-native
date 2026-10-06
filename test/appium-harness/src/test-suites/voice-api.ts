@@ -147,9 +147,6 @@ const STEPS: Array<Step<Voice>> = [
   // progress, selecting does not move the route, so the selection read back is
   // still the previous device (VBLOCKS-7216). `select-audio-device-while-connected`
   // in `call-controls-test` reads the selection back on iOS during a call.
-  //
-  // Android read back a mismatch until 1.8.0, because selecting regenerated
-  // every device uuid (VBLOCKS-7133).
   {
     name: 'select-audio-device',
     description:

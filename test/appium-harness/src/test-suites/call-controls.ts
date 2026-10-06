@@ -185,11 +185,7 @@ const STEPS: Array<Step<CallControlsContext>> = [
   // Placed after `get-stats` so the stats above are read from a call that has
   // not been re-routed mid-suite.
   //
-  // iOS only. Android was excluded because selecting regenerated every device
-  // uuid, so the uuid read back never matched the one selected (VBLOCKS-7133).
-  // That was fixed in 1.8.0, and the `select-audio-device` step of
-  // `voice-api-test` now reads the selection back on Android. Running this step
-  // on Android as well is not yet verified on a device.
+  // iOS only.
   {
     name: 'select-audio-device-while-connected',
     description:
