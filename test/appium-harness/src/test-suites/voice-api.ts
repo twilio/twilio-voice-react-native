@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Platform } from 'react-native';
 import {
   AudioDevice,
   CallKit,
@@ -133,31 +134,35 @@ const STEPS: Array<Step<Voice>> = [
         assertAudioDevice(audioDevice, `audioDevices[${index}]`);
       });
 
-      if (typeof selectedDevice !== 'undefined') {
-        assertAudioDevice(selectedDevice, 'selectedDevice');
-        expect(
-          audioDevices.map((audioDevice) => audioDevice.uuid),
-          'the selected device appears in audioDevices',
-        ).toContain(selectedDevice.uuid);
-      }
+      // A device list with nothing selected is a defect, not a skip.
+      expect(selectedDevice, 'selectedDevice').toBeDefined();
+      assertAudioDevice(selectedDevice, 'selectedDevice');
+      expect(
+        audioDevices.map((audioDevice) => audioDevice.uuid),
+        'the selected device appears in audioDevices',
+      ).toContain(selectedDevice?.uuid);
     },
   },
-  // KNOWN FAILING on an iOS device: selecting the earpiece with no call in
-  // progress leaves the route on the speaker, so the uuid read back is the
-  // speaker's. Observed on an iPhone 16 Pro Max, in both the bare and the Expo
-  // app. Restores the original selection either way.
+  // The selection is read back only on Android. On iOS with no call in
+  // progress, selecting does not move the route, so the selection read back is
+  // still the previous device (VBLOCKS-7216). `select-audio-device-while-connected`
+  // in `call-controls-test` reads the selection back on iOS during a call.
   //
-  // Android used to fail this for a different reason -- selecting regenerated
-  // every device uuid, so the uuid read back never matched the one selected
-  // (VBLOCKS-7133). Fixed in 1.8.0 by keying the handles on the device rather
-  // than minting them per refresh.
+  // Android read back a mismatch until 1.8.0, because selecting regenerated
+  // every device uuid (VBLOCKS-7133).
   {
     name: 'select-audio-device',
     description:
-      'selecting each audio device resolves and leaves the reported device ' +
-      'list unchanged',
+      'selecting each audio device resolves, leaves the reported device list ' +
+      'unchanged, and on Android is reflected by getAudioDevices',
     run: async (voice, log) => {
       const initial = await voice.getAudioDevices();
+
+      // Without this an empty list would skip every assertion below.
+      expect(
+        initial.audioDevices.length > 0,
+        'the device reports at least one audio device',
+      ).toBe(true);
 
       // Sorted because the device order is not part of the contract. On iOS
       // the list is built from an unordered dictionary, so comparing the
@@ -191,12 +196,23 @@ const STEPS: Array<Step<Voice>> = [
             `the device uuids after selecting "${audioDevice.name}"`,
           ).toStrictEqual(initialUuids);
 
-          if (typeof selectedDevice !== 'undefined') {
+          expect(
+            selectedDevice,
+            `the device reported as selected after selecting ` +
+              `"${audioDevice.name}"`,
+          ).toBeDefined();
+          expect(
+            initialUuids,
+            `the device reported as selected after selecting ` +
+              `"${audioDevice.name}" ("${selectedDevice?.name}")`,
+          ).toContain(selectedDevice?.uuid);
+
+          if (Platform.OS === 'android') {
             expect(
-              initialUuids,
+              selectedDevice?.uuid,
               `the device reported as selected after selecting ` +
-                `"${audioDevice.name}" ("${selectedDevice.name}")`,
-            ).toContain(selectedDevice.uuid);
+                `"${audioDevice.name}" ("${selectedDevice?.name}")`,
+            ).toBe(audioDevice.uuid);
           }
         }
       } finally {
