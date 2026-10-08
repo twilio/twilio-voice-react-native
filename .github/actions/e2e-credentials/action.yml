@@ -29,8 +29,8 @@ runs:
   steps:
     # The credential fetch and the config write share one step on purpose. The
     # SauceLabs service account and the access token stay as shell locals and
-    # are never written to $GITHUB_ENV. The runner group is self-hosted, so a
-    # value that is never written out has no cleanup step to forget.
+    # are never written to $GITHUB_ENV, so no later step in the job can read the
+    # SauceLabs service account or the access token.
     - name: Fetch credentials and write the orchestrator config
       shell: bash
       env:

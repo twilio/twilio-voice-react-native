@@ -35,8 +35,8 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    # One step on purpose. The runner group is self-hosted, so the workspace can
-    # outlive the job, and credentials kept as shell locals need no cleanup step.
+    # One step on purpose. The credentials stay as shell locals and are never
+    # written to $GITHUB_ENV, so no later step in the job can read the credentials.
     - name: Fetch SauceLabs credentials and upload the app
       id: upload
       shell: bash

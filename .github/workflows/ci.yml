@@ -74,7 +74,8 @@ jobs:
       # Android SDK, so it runs in this job rather than on a device runner.
       - run: yarn run check
 
-      # The runner group is self-hosted, so $HOME can outlive the job.
+      # The runners are ephemeral GitHub-hosted VMs, so this cleanup is defense in
+      # depth rather than a requirement.
       - name: Remove Artifactory credentials
         if: always()
         run: rm -f ~/.npmrc ~/.yarnrc.yml

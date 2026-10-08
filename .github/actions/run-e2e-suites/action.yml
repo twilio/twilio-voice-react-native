@@ -207,8 +207,8 @@ runs:
           ' "$RESULTS_JSON"
         fi
 
-    # The runner group is self-hosted, so the workspace and $HOME can outlive the
-    # job.
+    # The runners are ephemeral GitHub-hosted VMs, so this cleanup is defense in
+    # depth rather than a requirement.
     - name: Remove the generated credentials
       if: always()
       shell: bash
