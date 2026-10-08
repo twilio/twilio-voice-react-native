@@ -191,8 +191,8 @@ const STEPS: Array<Step<CallControlsContext>> = [
   {
     name: 'select-audio-device-while-connected',
     description:
-      'selecting each audio device during a connected call is reflected by ' +
-      'getAudioDevices',
+      'selecting each audio device during a connected call leaves the ' +
+      'reported device list unchanged and is reflected by getAudioDevices',
     platforms: ['ios'],
     run: async ({ voice }, log) => {
       const initial = await voice.getAudioDevices();
@@ -203,6 +203,12 @@ const STEPS: Array<Step<CallControlsContext>> = [
         'the device reports at least one audio device'
       ).toBe(true);
 
+      // Sorted because the device order is not part of the contract. On iOS
+      // the list is built from an unordered dictionary.
+      const initialUuids = initial.audioDevices
+        .map((audioDevice) => audioDevice.uuid)
+        .sort();
+
       // The restore runs in a `finally` because audio routing is device-wide
       // state that outlives this suite. Without it, a mid-loop assertion
       // failure would leave the device on whatever was selected last, and
@@ -212,7 +218,8 @@ const STEPS: Array<Step<CallControlsContext>> = [
           await audioDevice.select();
           await delay(CONTROL_SETTLE_DELAY_MS);
 
-          const { selectedDevice } = await voice.getAudioDevices();
+          const { audioDevices, selectedDevice } =
+            await voice.getAudioDevices();
 
           log.info(
             JSON.stringify({
@@ -220,6 +227,13 @@ const STEPS: Array<Step<CallControlsContext>> = [
               reported: selectedDevice?.name,
             })
           );
+
+          // Checked before the selection, so a changed uuid set is reported as
+          // itself rather than as a selection mismatch.
+          expect(
+            audioDevices.map((reportedDevice) => reportedDevice.uuid).sort(),
+            `the device uuids after selecting "${audioDevice.name}"`
+          ).toStrictEqual(initialUuids);
 
           // The device names are in the label because the orchestrator reports
           // only the last few failing entries, so the `log.info` above does not
