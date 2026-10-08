@@ -7,10 +7,12 @@ Each app statically imports a config file that must exist before its build can
 run, and the Google Services Gradle plugin hard-fails when its file is absent.
 CI has no real values for either, so it copies a fixture.
 
-These are not developer templates. `test/appium-harness` and `test/expo` each
-ship a `*.example.json` explaining what a human should fill in, and those files
-are deliberately separate from these: a template can carry guidance text that
-would make a build fail, while a fixture has to be valid.
+These are not developer templates. `test/appium-harness` ships a
+`*.example.json` for each config file, explaining what a human should fill in.
+The templates are deliberately separate from these fixtures. A template can
+carry guidance text that would make a build fail, while a fixture has to be
+valid. `test/app` ships no template, so a developer building `test/app` locally
+supplies their own `android/app/google-services.json`.
 
 A fixture's `package_name` must match the app's `applicationId`, because the
 Google Services plugin rejects a file with no matching client.
