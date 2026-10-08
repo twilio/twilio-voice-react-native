@@ -206,7 +206,8 @@ async function failingSteps(testElements) {
     if (failures.length === 0) {
       return 'no failing entry in the on-screen log';
     }
-    // Keep the report readable; the full log is written to the results file.
+    // Truncated to keep the report readable. The full on-screen log is in the
+    // Sauce session's command log, as the response to the getText call above.
     return failures.slice(-3).join(' | ').slice(0, 600);
   } catch (error) {
     return `could not read the on-screen log: ${String(error)}`;
