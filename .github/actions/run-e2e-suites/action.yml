@@ -153,6 +153,13 @@ runs:
           '.common + (.[$platform] // {})' \
           "${GITHUB_ACTION_PATH}/skip-reasons.json")
 
+        # A step skipped by `platforms` leaves its suite reporting Pass, because
+        # results.json carries only suite status. The known step gaps are
+        # therefore kept by hand in skip-reasons.json, keyed by suite then step.
+        STEP_GAPS=$(jq --arg platform "$PLATFORM" \
+          '.steps[$platform] // {}' \
+          "${GITHUB_ACTION_PATH}/skip-reasons.json")
+
         # Validated once so a malformed file cannot fail a passing run.
         RESULTS_VALID=false
         if [ -f "$RESULTS_JSON" ] &&
@@ -186,10 +193,16 @@ runs:
             echo "**Not fully exercised by this run**"
             echo ""
 
-            jq -r --argjson reasons "$REASONS" '
-              [.results[] | select(.status == "Not run" or .status == "Blocked")]
-              | if length == 0 then "- every suite ran in full"
-                else .[] | "- `\(.id)` (\(.status)): \($reasons[.id] // "no reason recorded")"
+            # A step gap is listed for any attempted suite, since the step was
+            # skipped whatever the suite reported.
+            jq -r --argjson reasons "$REASONS" --argjson gaps "$STEP_GAPS" '
+              [.results[] | select(.status == "Not run" or .status == "Blocked")
+                | "- `\(.id)` (\(.status)): \($reasons[.id] // "no reason recorded")"]
+              + [.results[] | select(.status != "Not run") as $r
+                | ($gaps[$r.id] // {}) | to_entries[]
+                | "- `\($r.id)` step `\(.key)` (skipped): \(.value)"]
+              | if length == 0 then "- every suite ran in full and no known step gap applies"
+                else .[]
                 end
             ' "$RESULTS_JSON"
           elif [ -f "$RESULTS_JSON" ]; then

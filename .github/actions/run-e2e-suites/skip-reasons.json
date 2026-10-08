@@ -12,5 +12,12 @@
   "ios": {
     "registration-test": "the build is unsigned and carries no aps-environment entitlement, so it can obtain no PushKit VoIP token.",
     "incoming-ice-test": "the build can obtain no PushKit VoIP token, so it cannot receive incoming calls."
+  },
+  "steps": {
+    "ios": {
+      "voice-api-test": {
+        "show-av-route-picker-view": "the AV route picker is presented modally, the SDK cannot dismiss the picker, and XCUITest then loses the harness elements underneath."
+      }
+    }
   }
 }

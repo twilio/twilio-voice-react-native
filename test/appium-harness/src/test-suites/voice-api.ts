@@ -251,7 +251,9 @@ const STEPS: Array<Step<Voice>> = [
   // dismiss it. XCUITest then stops reporting the harness elements underneath
   // the picker, so the orchestrator can no longer read the test status and the
   // suite times out. Dismissing the picker from the orchestrator was tried and
-  // did not work. Restoring iOS coverage needs a dismiss path in the SDK.
+  // did not work. Restoring iOS coverage needs a dismiss path in the SDK. The
+  // CI summary reports this gap from the `steps` entry in
+  // .github/actions/run-e2e-suites/skip-reasons.json, so keep the two in step.
   {
     name: 'show-av-route-picker-view',
     description:
