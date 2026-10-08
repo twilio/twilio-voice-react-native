@@ -19,6 +19,10 @@ jobs:
   # this repo doesn't run tests without it. A maintainer reviews and tests
   # fork PRs manually before merging. Revisit if we want fork PRs to run CI
   # safely.
+  #
+  # Every other job needs this one, directly or through another job, so a
+  # skipped test skips them too. Adding always() or !cancelled() to a job's if
+  # would bypass this guard.
   test:
     # Allowlists event names - add any new trigger here too, such as 'schedule'
     if: >-
@@ -84,10 +88,6 @@ jobs:
   # Build Android Expo artifact
   ###
   build-android-expo:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: test
     runs-on: ubuntu-x64
     timeout-minutes: 60
@@ -185,10 +185,6 @@ jobs:
   # Build iOS artifacts
   ###
   build-ios-expo:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: test
     runs-on: macos-arm
     timeout-minutes: 60
@@ -324,10 +320,6 @@ jobs:
   # Build the bare React Native app hosting the Appium harness (Android)
   ###
   build-android-bare:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: test
     runs-on: ubuntu-x64
     timeout-minutes: 60
@@ -451,10 +443,6 @@ jobs:
   # Build the bare React Native app hosting the Appium harness (iOS)
   ###
   build-ios-bare:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: test
     runs-on: macos-arm
     timeout-minutes: 60
@@ -582,10 +570,6 @@ jobs:
   # Upload the Android harness build to SauceLabs
   ###
   upload-android-expo-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: build-android-expo
     runs-on: ubuntu-x64
     timeout-minutes: 15
@@ -638,10 +622,6 @@ jobs:
   # Upload the iOS harness build to SauceLabs
   ###
   upload-ios-expo-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: build-ios-expo
     runs-on: ubuntu-x64
     timeout-minutes: 15
@@ -694,10 +674,6 @@ jobs:
   # Upload the bare Android harness build to SauceLabs
   ###
   upload-android-bare-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: build-android-bare
     runs-on: ubuntu-x64
     timeout-minutes: 15
@@ -750,10 +726,6 @@ jobs:
   # Upload the bare iOS harness build to SauceLabs
   ###
   upload-ios-bare-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: build-ios-bare
     runs-on: ubuntu-x64
     timeout-minutes: 15
@@ -806,10 +778,6 @@ jobs:
   # Run the appium orchestrator (iOS Expo)
   ###
   e2e-ios-expo-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: upload-ios-expo-saucelabs
     runs-on: ubuntu-x64
     timeout-minutes: 30
@@ -838,10 +806,6 @@ jobs:
   # Run the appium orchestrator (Android Expo)
   ###
   e2e-android-expo-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: upload-android-expo-saucelabs
     runs-on: ubuntu-x64
     timeout-minutes: 30
@@ -870,10 +834,6 @@ jobs:
   # Run the appium orchestrator (Android bare)
   ###
   e2e-android-bare-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: upload-android-bare-saucelabs
     runs-on: ubuntu-x64
     timeout-minutes: 30
@@ -902,10 +862,6 @@ jobs:
   # Run the appium orchestrator (iOS bare)
   ###
   e2e-ios-bare-saucelabs:
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-      !github.event.pull_request.head.repo.fork)
     needs: upload-ios-bare-saucelabs
     runs-on: ubuntu-x64
     timeout-minutes: 30
