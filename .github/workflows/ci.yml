@@ -210,11 +210,6 @@ jobs:
             exit 1
           fi
 
-          if ! command -v jq >/dev/null 2>&1; then
-            echo "::error::jq not found."
-            exit 1
-          fi
-
           # We deliberately do not pin an Xcode version, so log the Xcode version
           # in use. The Xcode version is the first thing to check when a build
           # starts failing for no apparent reason.
@@ -313,8 +308,7 @@ jobs:
             ~/.npmrc \
             ~/.yarnrc.yml \
             test/appium-harness/secrets.json \
-            test/appium-harness/google-services.json \
-            test/appium-harness/android/app/google-services.json
+            test/appium-harness/google-services.json
 
   ###
   # Build the bare React Native app hosting the Appium harness (Android)
@@ -465,11 +459,6 @@ jobs:
 
           if ! command -v pod >/dev/null 2>&1; then
             echo "::error::CocoaPods (pod) not found."
-            exit 1
-          fi
-
-          if ! command -v jq >/dev/null 2>&1; then
-            echo "::error::jq not found."
             exit 1
           fi
 
