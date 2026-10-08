@@ -226,8 +226,8 @@ runs:
       if: always()
       shell: bash
       run: |
-        rm -f test/appium-orchestrator/secrets.json \
-              test/appium-orchestrator/token.json \
-              temp/results.json \
+        rm -f "${GITHUB_WORKSPACE}/test/appium-orchestrator/secrets.json" \
+              "${GITHUB_WORKSPACE}/test/appium-orchestrator/token.json" \
+              "${GITHUB_WORKSPACE}/temp/results.json" \
               ~/.npmrc \
               ~/.yarnrc.yml

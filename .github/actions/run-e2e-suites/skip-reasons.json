@@ -14,6 +14,11 @@
     "incoming-ice-test": "the build can obtain no PushKit VoIP token, so it cannot receive incoming calls."
   },
   "steps": {
+    "android": {
+      "call-controls-test": {
+        "select-audio-device-while-connected": "the step is limited to iOS until in-call audio device selection is verified on Android (VBLOCKS-7358)."
+      }
+    },
     "ios": {
       "voice-api-test": {
         "show-av-route-picker-view": "the AV route picker is presented modally, the SDK cannot dismiss the picker, and XCUITest then loses the harness elements underneath."

@@ -4,6 +4,7 @@ import { Call, CallInvite, IceTransportPolicy, Voice } from '@twilio/voice-react
 import type { useLogging } from '../hooks/useLogging';
 import type { UseTestSuite } from '../test-suites';
 import { delay } from '../utilities/delay';
+import { statusFromSummary } from '../utilities/run-steps';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
 import { getIceServer, NO_ICE_SERVER } from '../utilities/token/get-token';
 import { waitForVoiceEvent } from '../utilities/wait-for-event';
@@ -547,7 +548,12 @@ export const useIncomingIceTest: UseTestSuite = (
       skipped: skipped.map((r) => r.variant),
     }));
 
-    setTestStatus(failed.length === 0 ? 'success' : 'failure');
+    // The only skips are `valid-*` variants missing VALID_ICE_SERVER, so a skip
+    // means a missing dependency rather than full coverage.
+    setTestStatus(statusFromSummary({
+      failed: failed.length,
+      blocked: skipped.length,
+    }));
   }, [token, voice, log, setMasks, setTestStatus]);
 
   return { perform };

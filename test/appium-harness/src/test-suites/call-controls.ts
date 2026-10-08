@@ -186,7 +186,8 @@ const STEPS: Array<Step<CallControlsContext>> = [
   // not been re-routed mid-suite.
   //
   // iOS only. Selecting an audio device during a call is not yet verified on
-  // Android.
+  // Android. The CI summary reports this gap from the `steps` entry in
+  // .github/actions/run-e2e-suites/skip-reasons.json, so keep the two in step.
   // TODO: VBLOCKS-7358
   {
     name: 'select-audio-device-while-connected',
