@@ -55,12 +55,18 @@ runs:
         # this user only.
         umask 077
 
-        for required in PLATFORM VENDOR_URL VENDOR_AUDIENCE SAUCE_HOSTNAME SAUCE_PORT SAUCE_BASE_URL STORAGE_FILENAME; do
-          if [ -z "${!required}" ]; then
-            echo "::error::${required} is not set."
-            exit 1
-          fi
-        done
+        # Named by the repository setting a reader has to go and change, not by
+        # the variable name inside this action.
+        [ -n "$VENDOR_URL" ] || { echo "::error::The E2E_CREDENTIAL_VENDOR_URL repository secret is not set."; exit 1; }
+        [ -n "$VENDOR_AUDIENCE" ] || { echo "::error::The E2E_CREDENTIAL_VENDOR_AUDIENCE repository variable is not set."; exit 1; }
+        [ -n "$SAUCE_HOSTNAME" ] || { echo "::error::The SAUCE_HOSTNAME repository variable is not set."; exit 1; }
+        [ -n "$SAUCE_PORT" ] || { echo "::error::The SAUCE_PORT repository variable is not set."; exit 1; }
+        [ -n "$SAUCE_BASE_URL" ] || { echo "::error::The SAUCE_BASE_URL repository variable is not set."; exit 1; }
+
+        # Supplied by the calling job rather than configured, so these name the
+        # action input instead.
+        [ -n "$PLATFORM" ] || { echo "::error::The platform input is empty."; exit 1; }
+        [ -n "$STORAGE_FILENAME" ] || { echo "::error::The storage-filename input is empty."; exit 1; }
 
         # Consider deduplicating this credential fetch. VBLOCKS-7357
         #
