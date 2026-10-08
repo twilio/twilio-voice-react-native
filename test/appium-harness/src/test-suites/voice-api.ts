@@ -116,8 +116,8 @@ const STEPS: Array<Step<Voice>> = [
   {
     name: 'get-audio-devices',
     description:
-      'getAudioDevices resolves with well-formed devices and, when the ' +
-      'platform reports one, a selected device drawn from that same list',
+      'getAudioDevices resolves with well-formed devices and a selected ' +
+      'device drawn from that same list',
     run: async (voice) => {
       const { audioDevices, selectedDevice } = await voice.getAudioDevices();
 
