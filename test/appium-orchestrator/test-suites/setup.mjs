@@ -196,6 +196,11 @@ const getSauceOptions = (platform) => {
       appiumVersion: 'latest',
       build: buildName,
       name: buildName,
+      // The job's command log carries the access token typed into the app.
+      // `team` limits the job to users in our Sauce org, who sign in via SSO.
+      // Sauce applies `public` to virtual devices only, so the real-device
+      // jobs requested above ignore this option.
+      public: 'team',
     },
   };
 
