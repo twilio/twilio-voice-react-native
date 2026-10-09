@@ -155,6 +155,31 @@ describe('CallInvite class', () => {
         });
       });
 
+      describe('native event subscription', () => {
+        it.each([
+          ['cancelled', mockNativeCallInviteEvents.cancelled],
+          ['rejected', mockNativeCallInviteEvents.rejected],
+        ] as const)('is removed after the invite is %s', (_name, event) => {
+          eventTest(event, CallInvite.Event.Cancelled);
+          expect(
+            MockNativeEventEmitter.listenerCount(Constants.ScopeCallInvite)
+          ).toBe(0);
+        });
+
+        it.each([
+          ['accepted', mockNativeCallInviteEvents.accepted],
+          [
+            'notification tapped',
+            mockNativeCallInviteEvents.notificationTapped,
+          ],
+        ] as const)('is kept after the invite is %s', (_name, event) => {
+          eventTest(event, CallInvite.Event.Accepted);
+          expect(
+            MockNativeEventEmitter.listenerCount(Constants.ScopeCallInvite)
+          ).toBe(1);
+        });
+      });
+
       describe(mockNativeCallInviteEvents.notificationTapped.type, () => {
         it('re-emits a valid event', () => {
           const { spy } = eventTest(

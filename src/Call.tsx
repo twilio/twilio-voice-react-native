@@ -412,6 +412,13 @@ export class Call extends EventEmitter {
   >;
 
   /**
+   * The subscription to native call events made upon construction. It is
+   * removed once the call reaches a terminal state, so that finished calls do
+   * not stay subscribed for the lifetime of the application.
+   */
+  private _nativeEventSubscription: { remove: () => void };
+
+  /**
    * Constructor for the {@link (Call:class) | Call class}. This should not be
    * invoked by third-party code. All instances of the
    * {@link (Call:class) | Call class} should be made by the SDK and emitted by
@@ -471,10 +478,19 @@ export class Call extends EventEmitter {
       [Constants.CallEventMessageReceived]: this._handleMessageReceivedEvent,
     };
 
-    NativeEventEmitter.addListener(
+    this._nativeEventSubscription = NativeEventEmitter.addListener(
       Constants.ScopeCall,
       this._handleNativeEvent
     );
+  }
+
+  /**
+   * Stop listening to native call events. Called when the call has reached a
+   * terminal state (disconnected, or failed to connect), after which the native
+   * layer raises no further events for it.
+   */
+  private _removeNativeEventSubscription() {
+    this._nativeEventSubscription.remove();
   }
 
   /**
@@ -556,6 +572,7 @@ export class Call extends EventEmitter {
     const { message, code } = nativeCallEvent.error;
     const error = constructTwilioError(message, code);
     this.emit(Call.Event.ConnectFailure, error);
+    this._removeNativeEventSubscription();
   };
 
   /**
@@ -579,6 +596,7 @@ export class Call extends EventEmitter {
     } else {
       this.emit(Call.Event.Disconnected);
     }
+    this._removeNativeEventSubscription();
   };
 
   /**
