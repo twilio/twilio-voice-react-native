@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Platform } from 'react-native';
 import {
   AudioDevice,
   CallKit,
@@ -115,8 +116,8 @@ const STEPS: Array<Step<Voice>> = [
   {
     name: 'get-audio-devices',
     description:
-      'getAudioDevices resolves with well-formed devices and, when the ' +
-      'platform reports one, a selected device drawn from that same list',
+      'getAudioDevices resolves with well-formed devices and a selected ' +
+      'device drawn from that same list',
     run: async (voice) => {
       const { audioDevices, selectedDevice } = await voice.getAudioDevices();
 
@@ -133,30 +134,39 @@ const STEPS: Array<Step<Voice>> = [
         assertAudioDevice(audioDevice, `audioDevices[${index}]`);
       });
 
-      if (typeof selectedDevice !== 'undefined') {
-        assertAudioDevice(selectedDevice, 'selectedDevice');
-        expect(
-          audioDevices.map((audioDevice) => audioDevice.uuid),
-          'the selected device appears in audioDevices',
-        ).toContain(selectedDevice.uuid);
-      }
+      // A device list with nothing selected is a defect, not a skip.
+      expect(selectedDevice, 'selectedDevice').toBeDefined();
+      assertAudioDevice(selectedDevice, 'selectedDevice');
+      expect(
+        audioDevices.map((audioDevice) => audioDevice.uuid),
+        'the selected device appears in audioDevices',
+      ).toContain(selectedDevice?.uuid);
     },
   },
-  // KNOWN FAILING on an iOS device: selecting the earpiece with no call in
-  // progress leaves the route on the speaker, so the uuid read back is the
-  // speaker's. Observed on an iPhone 16 Pro Max, in both the bare and the Expo
-  // app. Restores the original selection either way.
-  //
-  // Android used to fail this for a different reason -- selecting regenerated
-  // every device uuid, so the uuid read back never matched the one selected
-  // (VBLOCKS-7133). Fixed in 1.8.0 by keying the handles on the device rather
-  // than minting them per refresh.
+  // The selection is read back only on Android. On iOS with no call in
+  // progress, selecting does not move the route, so the selection read back is
+  // still the previous device (VBLOCKS-7216). `select-audio-device-while-connected`
+  // in `call-controls-test` reads the selection back on iOS during a call.
   {
     name: 'select-audio-device',
     description:
-      'selecting each audio device is reflected by getAudioDevices',
+      'selecting each audio device resolves, leaves the reported device list ' +
+      'unchanged, and on Android is reflected by getAudioDevices',
     run: async (voice, log) => {
       const initial = await voice.getAudioDevices();
+
+      // Without this an empty list would skip every assertion below.
+      expect(
+        initial.audioDevices.length > 0,
+        'the device reports at least one audio device',
+      ).toBe(true);
+
+      // Sorted because the device order is not part of the contract. On iOS
+      // the list is built from an unordered dictionary, so comparing the
+      // arrays as given would fail on ordering alone.
+      const initialUuids = initial.audioDevices
+        .map((audioDevice) => audioDevice.uuid)
+        .sort();
 
       // The restore runs in a `finally` because audio routing is device-wide
       // state that outlives this suite. Without it, a mid-loop assertion
@@ -168,7 +178,8 @@ const STEPS: Array<Step<Voice>> = [
           await audioDevice.select();
           await delay(AUDIO_DEVICE_SETTLE_DELAY_MS);
 
-          const { selectedDevice } = await voice.getAudioDevices();
+          const { audioDevices, selectedDevice } =
+            await voice.getAudioDevices();
 
           log.info(JSON.stringify({
             selected: audioDevice.name,
@@ -176,9 +187,30 @@ const STEPS: Array<Step<Voice>> = [
           }));
 
           expect(
-            selectedDevice?.uuid,
-            `the selected device after selecting "${audioDevice.name}"`,
-          ).toBe(audioDevice.uuid);
+            audioDevices
+              .map((reportedDevice) => reportedDevice.uuid)
+              .sort(),
+            `the device uuids after selecting "${audioDevice.name}"`,
+          ).toStrictEqual(initialUuids);
+
+          expect(
+            selectedDevice,
+            `the device reported as selected after selecting ` +
+              `"${audioDevice.name}"`,
+          ).toBeDefined();
+          expect(
+            initialUuids,
+            `the device reported as selected after selecting ` +
+              `"${audioDevice.name}" ("${selectedDevice?.name}")`,
+          ).toContain(selectedDevice?.uuid);
+
+          if (Platform.OS === 'android') {
+            expect(
+              selectedDevice?.uuid,
+              `the device reported as selected after selecting ` +
+                `"${audioDevice.name}" ("${selectedDevice?.name}")`,
+            ).toBe(audioDevice.uuid);
+          }
         }
       } finally {
         const { selectedDevice: originallySelected } = initial;
@@ -214,11 +246,20 @@ const STEPS: Array<Step<Voice>> = [
       await voice.setIncomingCallContactHandleTemplate();
     },
   },
+  // Android only, for now. On iOS the call shows the AV route picker, the
+  // picker is presented modally over the app, and the SDK exposes no way to
+  // dismiss it. XCUITest then stops reporting the harness elements underneath
+  // the picker, so the orchestrator can no longer read the test status and the
+  // suite times out. Dismissing the picker from the orchestrator was tried and
+  // did not work. Restoring iOS coverage needs a dismiss path in the SDK. The
+  // CI summary reports this gap from the `steps` entry in
+  // .github/actions/run-e2e-suites/skip-reasons.json, so keep the two in step.
   {
     name: 'show-av-route-picker-view',
     description:
-      'showAvRoutePickerView resolves on iOS, where it shows the picker, and ' +
-      'also on Android, where it is a documented no-op rather than a rejection',
+      'showAvRoutePickerView resolves on Android, where it is a documented ' +
+      'no-op rather than a rejection',
+    platforms: ['android'],
     run: async (voice) => {
       await voice.showAvRoutePickerView();
     },

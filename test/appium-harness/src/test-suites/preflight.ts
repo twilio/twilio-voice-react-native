@@ -52,7 +52,8 @@ const CONNECTED_TIMEOUT_MS = 30_000;
  * Probed at 120 and at 300 seconds, still sampling at both, so this is not the
  * wait being too short. Pointing the TwiML application at one that ends the
  * call made no difference either, so it is not the far end holding the call
- * open. Every other assertion in this suite passes, 16 of 17.
+ * open. Every other assertion in this suite passes, 16 of 17. TODO:
+ * VBLOCKS-7386
  *
  * Left at 120 seconds: raising it only lengthens the run without changing the
  * outcome.

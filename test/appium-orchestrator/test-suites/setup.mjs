@@ -14,6 +14,7 @@ import tokenJson from '../token.json' with { type: 'json' };
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
 const COMMON_CAPABILITIES = {
   'appium:autoAcceptAlerts': true,
+  'appium:newCommandTimeout': 300,
 };
 
 /** @type {Parameters<typeof remote>['0']['capabilities']} */
@@ -35,13 +36,12 @@ const ANDROID_CAPABILITIES = {
   platformName: 'Android',
   'appium:automationName': 'UiAutomator2',
   'appium:autoGrantPermissions': true,
-  'appium:newCommandTimeout': 300,
 };
 
 // NOTE: VBLOCKS-6582
 // Consider adding other things to the env helper function, such as overriding
 // hostname, port, Sauce Labs options, etc.
-const getEnv = () => {
+export const getEnv = () => {
   const platform = (process.env.PLATFORM || 'ios').toLowerCase();
   if (platform !== 'ios' && platform !== 'android') {
     throw new Error(`PLATFORM must be "ios" or "android", got "${platform}".`);
@@ -50,7 +50,7 @@ const getEnv = () => {
   return {
     USE_SAUCE: process.env.USE_SAUCE === 'true',
     PLATFORM: /** @type {'ios' | 'android'} */ (platform),
-    /** Comma-separated suite ids, or all of them when unset. */
+    /** Comma-separated suite ids, or every automated suite when unset. */
     SUITES: process.env.SUITES,
     /** Recorded in results so a run can be attributed to an API level. */
     AVD: process.env.AVD,
@@ -161,17 +161,31 @@ const getSauceOptions = (platform) => {
   /** @type {string} */
   const buildName = `build test ${Date.now()}`;
 
+  /**
+   * Stated so `restartApp` can fall back to the requested capabilities when
+   * Sauce Labs does not echo the identifier back in the session capabilities.
+   * Override when the uploaded build is not the Expo harness.
+   *
+   * Read with `?.` because a CI run writes a `secrets.json` holding only the
+   * `sauce` block.
+   */
+  const androidPackage =
+    process.env.ANDROID_PACKAGE || secrets.android?.appPackage;
+  const iosBundleId = process.env.IOS_BUNDLE_ID || secrets.ios?.bundleId;
+
   const platformCapabilities =
     platform === 'android'
       ? {
           ...ANDROID_CAPABILITIES,
           'appium:deviceName': secrets.sauce.androidDeviceName || 'Google.*',
           'appium:platformVersion': secrets.sauce.androidPlatformVersion || '14',
+          ...(androidPackage ? { 'appium:appPackage': androidPackage } : {}),
         }
       : {
           ...IOS_CAPABILITIES,
           'appium:deviceName': 'iPhone.*',
           'appium:platformVersion': '26',
+          ...(iosBundleId ? { 'appium:bundleId': iosBundleId } : {}),
         };
 
   /** @type {Parameters<typeof remote>['0']['capabilities']} */
@@ -182,6 +196,11 @@ const getSauceOptions = (platform) => {
       appiumVersion: 'latest',
       build: buildName,
       name: buildName,
+      // The job's command log carries the access token typed into the app.
+      // `team` limits the job to users in our Sauce org, who sign in via SSO.
+      // Sauce applies `public` to virtual devices only, so the real-device
+      // jobs requested above ignore this option.
+      public: 'team',
     },
   };
 
@@ -192,6 +211,7 @@ const getSauceOptions = (platform) => {
     hostname: secrets.sauce.hostname,
     port: secrets.sauce.port,
     baseUrl: secrets.sauce.baseUrl,
+    connectionRetryTimeout: 600000,
     capabilities,
   };
 
@@ -200,12 +220,12 @@ const getSauceOptions = (platform) => {
 
 /**
  * Perform test orchestration setup.
+ *
+ * @param {ReturnType<typeof getEnv>} env
  */
-export const setupTestOrchestrator = async () => {
+export const setupTestOrchestrator = async (env) => {
   /** @type {string} */
   const accessToken = tokenJson.accessToken;
-
-  const env = getEnv();
 
   const remoteOptions = env.USE_SAUCE
     ? getSauceOptions(env.PLATFORM)
@@ -251,7 +271,7 @@ export const setupTestOrchestrator = async () => {
     },
   };
 
-  return { accessToken, driver, env, testElements };
+  return { accessToken, driver, testElements };
 };
 
 /** @typedef {Awaited<ReturnType<typeof setupTestOrchestrator>>} TestOrchestratorSetup */

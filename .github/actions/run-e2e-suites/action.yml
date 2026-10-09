@@ -1,0 +1,233 @@
+name: 'Run E2E Suites'
+description: 'Install the orchestrator, fetch credentials, run the Appium suites against a SauceLabs device, and report what ran'
+
+inputs:
+  platform:
+    description: 'ios or android'
+    required: true
+  label:
+    description: 'Names this run in the step summary heading, such as "android" or "android, bare app"'
+    required: true
+  storage-filename:
+    description: 'The app in SauceLabs storage to run against, from the upload job output'
+    required: true
+  android-package:
+    description: 'The uploaded app''s applicationId. Set this when platform is android.'
+    required: false
+    default: ''
+  ios-bundle-id:
+    description: 'The uploaded app''s bundle id. Set this when platform is ios.'
+    required: false
+    default: ''
+  artifactory-url:
+    description: 'Base URL of the artifactory instance'
+    required: true
+  vendor-url:
+    description: 'Credential vendor endpoint'
+    required: true
+  vendor-audience:
+    description: 'Audience the GitHub OIDC token is requested for'
+    required: true
+  sauce-hostname:
+    description: 'SauceLabs hostname'
+    required: true
+  sauce-port:
+    description: 'SauceLabs port. Must be numeric.'
+    required: true
+  sauce-base-url:
+    description: 'SauceLabs base url'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # Runs before the install, so a runner group missing either tool fails in
+    # seconds rather than after the orchestrator install.
+    - name: Verify the runner has the tools and the caller named the app
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        ANDROID_PACKAGE: ${{ inputs.android-package }}
+        IOS_BUNDLE_ID: ${{ inputs.ios-bundle-id }}
+      run: |
+        set -euo pipefail
+
+        for tool in curl jq; do
+          if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::${tool} not found."
+            exit 1
+          fi
+        done
+
+        # Without an identifier the session still starts and every suite then
+        # fails on restartApp, costing a real device for the full job timeout.
+        case "$PLATFORM" in
+          android)
+            if [ -z "$ANDROID_PACKAGE" ]; then
+              echo "::error::platform is android but android-package is empty. Pass the uploaded app's applicationId."
+              exit 1
+            fi
+            ;;
+          ios)
+            if [ -z "$IOS_BUNDLE_ID" ]; then
+              echo "::error::platform is ios but ios-bundle-id is empty. Pass the uploaded app's bundle id."
+              exit 1
+            fi
+            ;;
+          *)
+            echo "::error::platform must be android or ios, got \"${PLATFORM}\"."
+            exit 1
+            ;;
+        esac
+
+    - name: Artifactory OIDC Auth
+      uses: ./.github/actions/artifactory-oidc
+      with:
+        artifactory_url: ${{ inputs.artifactory-url }}
+
+    - shell: bash
+      run: corepack enable
+
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+      with:
+        node-version: "22.13"
+        cache: yarn
+
+    - name: Install test/appium-orchestrator dependencies
+      shell: bash
+      working-directory: test/appium-orchestrator
+      run: yarn install --immutable
+
+    - name: Fetch credentials and write the orchestrator config
+      uses: ./.github/actions/e2e-credentials
+      with:
+        platform: ${{ inputs.platform }}
+        vendor-url: ${{ inputs.vendor-url }}
+        vendor-audience: ${{ inputs.vendor-audience }}
+        sauce-hostname: ${{ inputs.sauce-hostname }}
+        sauce-port: ${{ inputs.sauce-port }}
+        sauce-base-url: ${{ inputs.sauce-base-url }}
+        storage-filename: ${{ inputs.storage-filename }}
+
+    # SUITES is an allowlist of suites to run, not a filter over the default set.
+    # The orchestrator runs every suite listed here, including `manual` ones, so
+    # listing incoming-call-test-manual would hang the job until the per-suite
+    # timeout. The orchestrator reports every suite left out as `Not run`, and
+    # the report step below explains why from its reason map.
+    - name: Run the allowlisted suites
+      shell: bash
+      working-directory: test/appium-orchestrator
+      env:
+        USE_SAUCE: "true"
+        PLATFORM: ${{ inputs.platform }}
+        ANDROID_PACKAGE: ${{ inputs.android-package }}
+        IOS_BUNDLE_ID: ${{ inputs.ios-bundle-id }}
+        SUITES: voice-api-test,errors-test,connect-options-test,outgoing-call-test,call-controls-test,call-message-test,preflight-test,ice-test
+        RESULTS_JSON: ${{ github.workspace }}/temp/results.json
+      run: |
+        set -euo pipefail
+
+        # The orchestrator's writeFileSync does not create the parent directory.
+        mkdir -p "$(dirname "$RESULTS_JSON")"
+        node test-suites/index.mjs
+
+    # A run that reaches its suites writes RESULTS_JSON before returning its exit
+    # code, so a failing suite still has the file to report from. A run that
+    # stops before its suites writes no file and prints an ::error:: instead.
+    - name: Report what this run exercised
+      if: always()
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        LABEL: ${{ inputs.label }}
+        STORAGE_FILENAME: ${{ inputs.storage-filename }}
+        RESULTS_JSON: ${{ github.workspace }}/temp/results.json
+      run: |
+        set -euo pipefail
+
+        # Why a suite did not run, or ran only in part, depends on what this
+        # environment provides, so the reasons live beside this action and not
+        # in the orchestrator. A suite missing from skip-reasons.json is
+        # reported as having no reason recorded rather than left out.
+        REASONS=$(jq --arg platform "$PLATFORM" \
+          '.common + (.[$platform] // {})' \
+          "${GITHUB_ACTION_PATH}/skip-reasons.json")
+
+        # A step skipped by `platforms` leaves its suite reporting Pass, because
+        # results.json carries only suite status. The known step gaps are
+        # therefore kept by hand in skip-reasons.json, keyed by suite then step.
+        STEP_GAPS=$(jq --arg platform "$PLATFORM" \
+          '.steps[$platform] // {}' \
+          "${GITHUB_ACTION_PATH}/skip-reasons.json")
+
+        # Validated once so a malformed file cannot fail a passing run.
+        RESULTS_VALID=false
+        if [ -f "$RESULTS_JSON" ] &&
+           jq -e '.results | type == "array"' "$RESULTS_JSON" >/dev/null 2>&1; then
+          RESULTS_VALID=true
+        fi
+
+        {
+          echo "### SauceLabs e2e (${LABEL})"
+          echo ""
+          echo "- app: \`${STORAGE_FILENAME}\`"
+
+          if [ "$RESULTS_VALID" = true ]; then
+            SESSION_ID=$(jq -r '.sessionId // empty' "$RESULTS_JSON")
+            if [ -n "$SESSION_ID" ]; then
+              echo "- session: https://app.saucelabs.com/tests/${SESSION_ID}"
+            fi
+
+            echo ""
+            # `detail` is left out because it carries raw error text from
+            # authenticated requests. The orchestrator logs `detail`, and the
+            # log is where `::add-mask::` applies.
+            echo "| suite | status | seconds |"
+            echo "| --- | --- | --- |"
+            jq -r '.results[] | select(.status != "Not run") | "| \(.id) | \(.status) | \(.seconds // "") |"' "$RESULTS_JSON"
+            echo ""
+            echo "Failure details are in the log of the \`Run the allowlisted suites\` step."
+
+            # A green run must not read as more coverage than it is.
+            echo ""
+            echo "**Not fully exercised by this run**"
+            echo ""
+
+            # A step gap is listed for any attempted suite, since the step was
+            # skipped whatever the suite reported.
+            jq -r --argjson reasons "$REASONS" --argjson gaps "$STEP_GAPS" '
+              [.results[] | select(.status == "Not run" or .status == "Blocked")
+                | "- `\(.id)` (\(.status)): \($reasons[.id] // "no reason recorded")"]
+              + [.results[] | select(.status != "Not run") as $r
+                | ($gaps[$r.id] // {}) | to_entries[]
+                | "- `\($r.id)` step `\(.key)` (skipped): \(.value)"]
+              | if length == 0 then "- every suite ran in full and no known step gap applies"
+                else .[]
+                end
+            ' "$RESULTS_JSON"
+          elif [ -f "$RESULTS_JSON" ]; then
+            echo "- results file is not valid JSON or has no results array"
+          else
+            echo "- no results file. The orchestrator did not write one. See the job log for why."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ "$RESULTS_VALID" = true ]; then
+          jq -r --argjson reasons "$REASONS" '
+            .results[]
+            | select((.status == "Not run" or .status == "Blocked") and $reasons[.id] == null)
+            | "::warning::\(.id) reported \(.status) and the report step has no reason recorded for it."
+          ' "$RESULTS_JSON"
+        fi
+
+    # The runners are ephemeral GitHub-hosted VMs, so this cleanup is defense in
+    # depth rather than a requirement.
+    - name: Remove the generated credentials
+      if: always()
+      shell: bash
+      run: |
+        rm -f "${GITHUB_WORKSPACE}/test/appium-orchestrator/secrets.json" \
+              "${GITHUB_WORKSPACE}/test/appium-orchestrator/token.json" \
+              "${GITHUB_WORKSPACE}/temp/results.json" \
+              ~/.npmrc \
+              ~/.yarnrc.yml

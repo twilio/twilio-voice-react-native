@@ -1,0 +1,28 @@
+{
+  "common": {
+    "quality-warnings-test": "the SauceLabs device has no deterministic audio input.",
+    "incoming-call-test-manual": "requires a human to answer the call.",
+    "ice-test": "the valid-* variants skip because no TURN credentials are bundled at build time."
+  },
+  "android": {
+    "registration-test": "the build receives a placeholder google-services.json, so it has no real FCM push credential.",
+    "incoming-ice-test": "the build has no real FCM push credential, so it cannot receive incoming calls.",
+    "voice-api-test": "the get-device-token step needs an FCM token, and the build receives a placeholder google-services.json."
+  },
+  "ios": {
+    "registration-test": "the build is unsigned and carries no aps-environment entitlement, so it can obtain no PushKit VoIP token.",
+    "incoming-ice-test": "the build can obtain no PushKit VoIP token, so it cannot receive incoming calls."
+  },
+  "steps": {
+    "android": {
+      "call-controls-test": {
+        "select-audio-device-while-connected": "the step is limited to iOS until in-call audio device selection is verified on Android (VBLOCKS-7358)."
+      }
+    },
+    "ios": {
+      "voice-api-test": {
+        "show-av-route-picker-view": "the AV route picker is presented modally, the SDK cannot dismiss the picker, and XCUITest then loses the harness elements underneath."
+      }
+    }
+  }
+}

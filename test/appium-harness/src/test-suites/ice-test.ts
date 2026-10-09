@@ -8,6 +8,7 @@ import {
 import type { useLogging } from '../hooks/useLogging';
 import { UseTestSuite } from '../test-suites';
 import { delay } from '../utilities/delay';
+import { statusFromSummary } from '../utilities/run-steps';
 import { safelySettlePromise } from '../utilities/safely-settle-promise';
 import { getIceServer, NO_ICE_SERVER } from '../utilities/token/get-token';
 
@@ -439,7 +440,12 @@ export const useIceTest: UseTestSuite = (
       skipped: skipped.map((r) => r.variant),
     }));
 
-    setTestStatus(failed.length === 0 ? 'success' : 'failure');
+    // The only skips are `valid-*` variants missing VALID_ICE_SERVER, so a skip
+    // means a missing dependency rather than full coverage.
+    setTestStatus(statusFromSummary({
+      failed: failed.length,
+      blocked: skipped.length,
+    }));
   }, [token, voice, log, setMasks, setTestStatus]);
 
   return { perform };
