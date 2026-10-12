@@ -1,7 +1,7 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
-1.8.1 (In Progress)
-===================
+1.8.1 (October 12, 2026)
+========================
 
 ## Fixes
 
