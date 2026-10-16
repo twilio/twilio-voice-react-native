@@ -387,7 +387,13 @@ public class VoiceService extends Service {
                                            final Notification notification) {
     NotificationManager mNotificationManager =
       (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    mNotificationManager.notify(notificationId, notification);
+    // notify() throws for a notification the platform considers invalid. Uncaught here, that
+    // kills the app's process over a notification; log it instead. JS still gets the event.
+    try {
+      mNotificationManager.notify(notificationId, notification);
+    } catch (Exception e) {
+      logger.warning(e, "Failed to post call notification");
+    }
   }
   private void createOrReplaceForegroundNotification(final int notificationId,
                                                      final Notification notification) {
