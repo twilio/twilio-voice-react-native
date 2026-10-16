@@ -6,6 +6,7 @@
 //
 
 @import AVKit;
+@import CallKit;
 
 #import "TwilioVoicePushRegistry.h"
 #import "TwilioVoiceReactNative.h"
@@ -911,8 +912,20 @@ RCT_EXPORT_METHOD(call_mute:(NSString *)uuid
     TVOCall *call = [self getCallFromMap:uuid resolver:resolver];
     if (!call) return;
     
-    [call setMuted:muted];
-    [self resolvePromise:resolver value:@(call.isMuted)];
+    // Mute through CallKit so its state stays in sync with the call. Setting
+    // TVOCall.muted directly leaves CallKit unaware: the system call UI shows the
+    // wrong state, and the mic can be re-enabled while the app still reports muted.
+    // performSetMutedCallAction: applies the change to the TVOCall.
+    CXSetMutedCallAction *muteAction = [[CXSetMutedCallAction alloc] initWithCallUUID:call.uuid muted:muted];
+    CXTransaction *transaction = [[CXTransaction alloc] initWithAction:muteAction];
+
+    [self.callKitCallController requestTransaction:transaction completion:^(NSError *error) {
+        if (error) {
+            NSLog(@"SetMutedCallAction transaction request failed: %@", [error localizedDescription]);
+            [call setMuted:muted];
+        }
+        [self resolvePromise:resolver value:@(muted)];
+    }];
 }
 
 RCT_EXPORT_METHOD(call_isMuted:(NSString *)uuid
