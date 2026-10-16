@@ -1,5 +1,19 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.8.2 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### iOS
+
+- `Call.mute()` now goes through CallKit (`CXSetMutedCallAction`) instead of
+  setting the mute state on the call directly. Previously CallKit was not told
+  about the change, so the system call UI could show the wrong mute state and the
+  microphone could be re-enabled while the app still reported the call as muted.
+
 1.8.1 (October 12, 2026)
 ========================
 
