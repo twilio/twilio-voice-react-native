@@ -165,10 +165,13 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 Releases are published by two manually dispatched GitHub Actions workflows. Each workflow file documents its inputs and jobs in detail.
 
-1. Run the [Prepare Release](.github/workflows/prepare-release.yml) workflow with the version to release, e.g. `2.0.0` or `2.0.0-rc1`. The Prepare Release workflow bumps the version, builds the SDK, and pushes a `release/<version>` branch and a `<version>` tag.
-2. Run the [Release](.github/workflows/release.yml) workflow from the `release/<version>` branch. The Release workflow publishes to npm, creates the GitHub Release, and optionally moves the `latest` tag and commits the next development version. The `dry_run` input defaults to true, so uncheck `dry_run` to release for real. A dry run leaves a draft GitHub Release behind, which is safe to delete.
+1. Run the [Prepare Release](.github/workflows/prepare-release.yml) workflow with the version to release, e.g. `2.0.0` or `2.0.0-rc1`. The Prepare Release workflow bumps the version, builds the SDK, and pushes a `release/<version>` branch and a `<version>` tag. Release candidates are never published, so stop here for a release candidate.
+2. Run the [Release](.github/workflows/release.yml) workflow from the `release/<version>` branch. The Release workflow publishes to npm, creates the GitHub Release, and optionally moves the `latest` tag. Set these inputs deliberately:
+   - `dry_run` defaults to true. Uncheck `dry_run` to release for real. A dry run leaves a draft GitHub Release behind, which is safe to delete.
+   - `npm_dist_tag` defaults to `latest`. Use `latest` for a general release, `preview` for a preview, `beta` for a beta, and `backport` for a patch to an older major version.
+   - `development_version` is the next development version, e.g. `2.0.1-dev`. Always set `development_version`. The Release workflow commits the development version onto the release branch and removes the built artifacts that the Prepare Release workflow committed.
 3. Edit the GitHub Release to replace its placeholder notes.
-4. Merge the `release/<version>` branch into `main` through a pull request.
+4. Merge the `release/<version>` branch into `main` through a pull request. If `development_version` was left blank, do not merge the branch, because the branch still contains the built artifacts.
 
 ### Scripts
 
