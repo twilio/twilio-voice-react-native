@@ -1,10 +1,8 @@
-.circleci
 .DS_STORE
 .github
 .editorconfig
 .gitattributes
 .gitignore
-.release.json
 .vscode
 api
 api-extractor.json
