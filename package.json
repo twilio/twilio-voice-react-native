@@ -38,7 +38,6 @@
     "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:linking && yarn run check:type && yarn run check:type:apps && yarn run check:lint && yarn run check:test --coverage",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
-    "release": "release",
     "test": "jest",
     "check:type:apps": "yarn --cwd test/expo tsc --noEmit && yarn --cwd test/appium-harness tsc --noEmit",
     "check:linking": "node ./test/scripts/check-linking.mjs"

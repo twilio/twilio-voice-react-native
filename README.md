@@ -1,5 +1,6 @@
 # Twilio Voice React Native SDK
 [![NPM](https://img.shields.io/npm/v/%40twilio/voice-react-native-sdk.svg?color=blue)](https://www.npmjs.com/package/%40twilio/voice-react-native-sdk)
+
 Twilio's Voice React Native SDK allows you to add real-time voice and PSTN calling to your React Native apps.
 
 - [Documentation](https://www.twilio.com/docs/voice/sdks/react-native)

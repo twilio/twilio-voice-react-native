@@ -163,13 +163,12 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 ### Publishing to npm
 
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
+Releases are published by two manually dispatched GitHub Actions workflows. Each workflow file documents its inputs and jobs in detail.
 
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
+1. Run the [Prepare Release](.github/workflows/prepare-release.yml) workflow with the version to release, e.g. `2.0.0` or `2.0.0-rc1`. The Prepare Release workflow bumps the version, builds the SDK, and pushes a `release/<version>` branch and a `<version>` tag.
+2. Run the [Release](.github/workflows/release.yml) workflow from the `release/<version>` branch. The Release workflow publishes to npm, creates the GitHub Release, and optionally moves the `latest` tag and commits the next development version. The `dry_run` input defaults to true, so uncheck `dry_run` to release for real. A dry run leaves a draft GitHub Release behind, which is safe to delete.
+3. Edit the GitHub Release to replace its placeholder notes.
+4. Merge the `release/<version>` branch into `main` through a pull request.
 
 ### Scripts
 
