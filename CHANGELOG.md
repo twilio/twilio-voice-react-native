@@ -1,5 +1,23 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.8.2 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed a crash on Android 14+ when an incoming call arrived and the app could
+  not use full-screen intents (the `USE_FULL_SCREEN_INTENT` permission was not
+  declared, or the user revoked it). The platform rejects a `CallStyle`
+  notification that has no full-screen intent and is not posted from a
+  foreground service, so `notify()` threw `IllegalArgumentException` and killed
+  the app. The SDK now falls back to a high-priority heads-up notification with
+  Decline and Answer actions, and no longer lets a failed `notify()` crash the
+  process.
+
 1.8.1 (October 12, 2026)
 ========================
 

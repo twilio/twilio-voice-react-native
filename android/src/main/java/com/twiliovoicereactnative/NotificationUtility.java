@@ -5,17 +5,22 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.net.Uri;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationChannelGroupCompat;
 import androidx.core.app.NotificationCompat;
@@ -175,16 +180,53 @@ class NotificationUtility {
     PendingIntent piAcceptIntent = constructPendingIntentForActivity(
       context, callRecord, acceptIntent);
 
-    return constructNotificationBuilder(context, channelImportance)
-      .setSmallIcon(notificationResource.getSmallIconId())
-      .setCategory(Notification.CATEGORY_CALL)
-      .setAutoCancel(true)
-      .setContentIntent(piForegroundIntent)
-      .setFullScreenIntent(piForegroundIntent, true)
-      .addPerson(incomingCaller)
-      .setStyle(NotificationCompat.CallStyle.forIncomingCall(
-        incomingCaller, piRejectIntent, piAcceptIntent))
+    final NotificationCompat.Builder builder =
+      constructNotificationBuilder(context, channelImportance)
+        .setSmallIcon(notificationResource.getSmallIconId())
+        .setCategory(Notification.CATEGORY_CALL)
+        .setAutoCancel(true)
+        .setContentIntent(piForegroundIntent)
+        .addPerson(incomingCaller);
+
+    if (canUseFullScreenIntent(context)) {
+      return builder
+        .setFullScreenIntent(piForegroundIntent, true)
+        .setStyle(NotificationCompat.CallStyle.forIncomingCall(
+          incomingCaller, piRejectIntent, piAcceptIntent))
+        .build();
+    }
+
+    // The incoming call notification is posted with NotificationManager.notify(), not from a
+    // foreground service. From Android 14, the platform rejects a CallStyle notification that
+    // is not from a foreground service or user-initiated job and has no full-screen intent:
+    // notify() throws IllegalArgumentException. Without the full-screen intent permission
+    // (not declared, or revoked by the user on Android 14+), post a high-priority heads-up
+    // notification with the same Decline and Answer actions instead.
+    return builder
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setContentTitle(notificationResource.getName())
+      .setContentText(context.getString(R.string.incoming_call_notification_text))
+      .addAction(0, context.getString(R.string.decline), piRejectIntent)
+      .addAction(0, context.getString(R.string.answer), piAcceptIntent)
       .build();
+  }
+
+  /**
+   * Whether this app may attach a full-screen intent to a notification. Android 10 to 13 require
+   * the USE_FULL_SCREEN_INTENT permission; from Android 14 the user can revoke it, so ask the
+   * NotificationManager.
+   */
+  private static boolean canUseFullScreenIntent(@NonNull Context context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+      return true;
+    }
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      return ContextCompat.checkSelfPermission(context, Manifest.permission.USE_FULL_SCREEN_INTENT)
+        == PackageManager.PERMISSION_GRANTED;
+    }
+    final NotificationManager notificationManager =
+      context.getSystemService(NotificationManager.class);
+    return null != notificationManager && notificationManager.canUseFullScreenIntent();
   }
 
   public static Notification createCallAnsweredNotificationWithLowImportance(@NonNull Context context,
