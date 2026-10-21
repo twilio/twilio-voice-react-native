@@ -5,6 +5,8 @@
 
 ## Fixes
 
+- Fixed an issue where `Voice.runPreflight` rejected options whose `iceServers`, `iceTransportPolicy`, `preferredAudioCodecs`, or nested ICE server and audio codec properties were explicitly set to `undefined`. These properties are now treated as absent, which matches the behavior of `Voice.connect`.
+
 ### Platform Specific Fixes
 
 #### Android
