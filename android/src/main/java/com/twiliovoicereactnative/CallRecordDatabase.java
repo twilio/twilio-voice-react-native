@@ -170,17 +170,15 @@ class CallRecordDatabase  {
   }
 
   public CallRecord get(final CallRecord record) {
-    try {
-      return callRecordList.get(callRecordList.indexOf(record));
-    } catch (IndexOutOfBoundsException e) {
-      return null;
+    synchronized (callRecordList) {
+      final int index = callRecordList.indexOf(record);
+      return index < 0 ? null : callRecordList.get(index);
     }
   }
   public CallRecord remove(final CallRecord record) {
-    try {
-      return callRecordList.remove(callRecordList.indexOf(record));
-    } catch (IndexOutOfBoundsException e) {
-      return null;
+    synchronized (callRecordList) {
+      final int index = callRecordList.indexOf(record);
+      return index < 0 ? null : callRecordList.remove(index);
     }
   }
   public Collection<CallRecord> getCollection() {
