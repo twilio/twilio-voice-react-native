@@ -32,7 +32,6 @@ import com.twilio.voice.VoiceException;
 
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
-import java.util.Objects;
 
 
 public class CallMessageListenerProxy implements Call.CallMessageListener {
@@ -68,9 +67,22 @@ public class CallMessageListenerProxy implements Call.CallMessageListener {
   public void onMessageReceived(String callSid, CallMessage callMessage) {
     logger.debug("onMessageReceived");
 
-    //final call record
-    final CallRecord callRecord =
-      Objects.requireNonNull(getCallRecordDatabase().get(new CallRecord(callSid)));
+    // Messages may arrive after terminal callbacks remove the call record.
+    if (callSid == null || callSid.isEmpty()) {
+      logger.warning("Ignoring call message without a call identifier");
+      return;
+    }
+    final CallRecord callRecord = getCallRecordDatabase().get(new CallRecord(callSid));
+    if (callRecord == null) {
+      logger.warning("Ignoring call message for an unavailable call record");
+      return;
+    }
+    final boolean isActiveInvite =
+      CallRecord.CallInviteState.ACTIVE == callRecord.getCallInviteState();
+    if (!isActiveInvite && (callRecord.getUuid() == null || callRecord.getVoiceCall() == null)) {
+      logger.warning("Ignoring call message before the native call record is ready");
+      return;
+    }
 
     // notify JS layer ScopeCallInvite or ScopeCall
     final String event =
