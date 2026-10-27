@@ -1,5 +1,23 @@
 # Contributing
 
+This repository is publicly available and maintained by Twilio under a limited external contribution model.
+
+## Pull requests
+
+Due to limited maintenance capacity, external pull requests are not currently accepted.
+
+## GitHub Issues
+
+GitHub Issues may be used to report reproducible bugs or provide feature feedback about this SDK. Issues are reviewed on a best-effort basis, with no SLA or guaranteed response.
+
+GitHub Issues are not an official Twilio support channel. For production issues, general usage questions, or account-specific assistance, please contact [Twilio Support](https://help.twilio.com/). If you have a Twilio account manager, you may also escalate through them.
+
+Do not share [Personally Identifiable Information (PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information, including access tokens, API keys, and credentials, in issues, logs, or screenshots.
+
+## Security vulnerabilities
+
+Report security vulnerabilities privately through [Twilio's Vulnerability Disclosure Program](https://www.twilio.com/en-us/security/vulnerability-disclosure-program), rather than public GitHub Issues.
+
 We want this community to be friendly and respectful to each other. Please follow it in all your interactions with the project.
 
 > All third-party contributors acknowledge that any contributions they provide will be made under the same open-source license that the open-source project is provided under.
@@ -187,17 +205,12 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn build:docs`: regenerate the API report and the Markdown API reference under `docs/api`.
 - `yarn app`: run the full gate, then install dependencies for `test/app`.
 
-### Sending a pull request
+### Collaborator pull requests
 
-> **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github).
-
-When you're sending a pull request:
-
-- Prefer small pull requests focused on one change.
-- Verify that linters and tests are passing.
-- Review the documentation to make sure it looks good.
-- Follow the pull request template when opening a pull request.
-- For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
+Keep pull requests focused on one change. Verify that linters and tests pass,
+review affected documentation, and follow the pull request template. Collaborators
+changing the API or implementation should discuss the change with maintainers
+before opening a pull request.
 
 ## Code of Conduct
 
@@ -240,7 +253,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ### Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [INSERT CONTACT METHOD]. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [open-source@twilio.com](mailto:open-source@twilio.com). All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 

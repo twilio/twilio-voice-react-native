@@ -105,12 +105,25 @@ To have your application implement or use its own `PushKit` delegate module, ple
 ### Out-of-band Firebase Messaging Service
 To have your application implement or use a different `FirebaseMessagingService` (such as OneSignal or RNFirebase), please see [this](/docs/out-of-band-firebase-messaging-service.md) document.
 
-## Issues and Support
-Please check out our [common issues](/COMMON_ISSUES.md) page or file any issues you find here on Github. For general inquiries related to the Voice SDK you can file a support ticket.
+<a id="issues-and-support"></a>
 
-Please ensure that you are not sharing any [Personally Identifiable Information(PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information (API keys, credentials, etc.) when reporting an issue.
+## Community Contributions and Support
 
-Please check out our [known issues](/KNOWN_ISSUES.md) for known bugs and workarounds.
+This repository is publicly available and maintained by Twilio under a limited external contribution model.
+
+Due to limited maintenance capacity, external pull requests are not currently accepted.
+
+GitHub Issues may be used to report reproducible bugs or provide feature feedback about this SDK. Issues are reviewed on a best-effort basis, with no SLA or guaranteed response.
+
+GitHub Issues are not an official Twilio support channel. For production issues, general usage questions, or account-specific assistance, please contact [Twilio Support](https://help.twilio.com/). If you have a Twilio account manager, you may also escalate through them.
+
+Do not share [Personally Identifiable Information (PII)](https://www.twilio.com/docs/glossary/what-is-personally-identifiable-information-pii) or sensitive account information, including access tokens, API keys, and credentials, in issues, logs, or screenshots.
+
+Report security vulnerabilities privately through [Twilio's Vulnerability Disclosure Program](https://www.twilio.com/en-us/security/vulnerability-disclosure-program), rather than public GitHub Issues.
+
+See [CONTRIBUTING.md](https://github.com/twilio/twilio-voice-react-native/blob/main/CONTRIBUTING.md) for reporting guidance.
+
+Before reporting a bug, check the [common issues](COMMON_ISSUES.md) and [known issues](KNOWN_ISSUES.md) for workarounds.
 
 ## Related
 - [Reference App](https://github.com/twilio/twilio-voice-react-native-app)
