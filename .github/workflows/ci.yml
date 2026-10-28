@@ -245,8 +245,10 @@ jobs:
           cp .github/fixtures/appium-harness-google-services.json test/appium-harness/google-services.json
 
       - name: Expo prebuild (iOS)
-        run: |
-          cd test/appium-harness
+        working-directory: ./test/appium-harness
+        env:
+          USE_FRAMEWORKS: dynamic
+        run:
           yarn run prebuild --clean --platform=ios
 
       - name: Build unsigned release app
