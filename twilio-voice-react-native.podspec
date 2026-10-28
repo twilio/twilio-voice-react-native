@@ -22,6 +22,8 @@ Pod::Spec.new do |s|
     requirement: { kind: "exactVersion", version: "6.13.8" },
     products: ["TwilioVoice-static"]
   )
+  # Matches the system frameworks the TwilioVoice-static pod on trunk links.
+  s.frameworks = "AVFAudio", "AVFoundation", "AudioToolbox", "CoreMedia", "SystemConfiguration"
   s.xcconfig  =  { 'VALID_ARCHS' => 'arm64 x86_64' }
   s.pod_target_xcconfig   = { 'VALID_ARCHS[sdk=iphoneos*]' => 'arm64', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'arm64 x86_64' }
 end
