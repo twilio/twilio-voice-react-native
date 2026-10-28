@@ -51,7 +51,7 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
-          node-version: "22.13"
+          node-version: "22.19"
           cache: yarn
 
       - name: Install dependencies
@@ -108,7 +108,7 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
-          node-version: "22.13"
+          node-version: "22.19"
           cache: yarn
 
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
@@ -224,7 +224,7 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
-          node-version: "22.13"
+          node-version: "22.19"
           cache: yarn
 
       - name: Install dependencies
@@ -334,7 +334,7 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
-          node-version: "22.13"
+          node-version: "22.19"
           cache: yarn
 
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
@@ -476,7 +476,7 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
         with:
-          node-version: "22.13"
+          node-version: "22.19"
           cache: yarn
 
       - name: Install dependencies
