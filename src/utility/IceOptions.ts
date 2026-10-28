@@ -40,9 +40,10 @@ function validateIceServer(
     };
   }
 
-  const hasUsername = 'username' in iceServer;
-  const hasPassword = 'password' in iceServer;
-  const hasServerUrl = 'serverUrl' in iceServer;
+  // A property that is explicitly `undefined` is treated as absent.
+  const hasUsername = typeof iceServer.username !== 'undefined';
+  const hasPassword = typeof iceServer.password !== 'undefined';
+  const hasServerUrl = typeof iceServer.serverUrl !== 'undefined';
 
   if (hasUsername) {
     const { username } = iceServer;
