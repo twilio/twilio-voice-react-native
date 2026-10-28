@@ -19,8 +19,8 @@ Pod::Spec.new do |s|
   # CocoaPods trunk is read-only, so TwilioVoice resolves through SPM.
   spm_dependency(s,
     url: "https://github.com/twilio/twilio-voice-ios",
-    requirement: { kind: "exactVersion", version: "6.13.6" },
-    products: ["TwilioVoice"]
+    requirement: { kind: "exactVersion", version: "6.13.8" },
+    products: ["TwilioVoice-static"]
   )
   s.xcconfig  =  { 'VALID_ARCHS' => 'arm64 x86_64' }
   s.pod_target_xcconfig   = { 'VALID_ARCHS[sdk=iphoneos*]' => 'arm64', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'arm64 x86_64' }

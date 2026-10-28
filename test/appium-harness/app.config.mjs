@@ -13,9 +13,10 @@ const config = {
     scheme: 'twiliovoicereactnativesdkappiumharness',
     newArchEnabled: true,
     ios: {
-      supportsTablet: true,
-      bundleIdentifier: secrets.ios.bundleIdentifier,
       appleTeamId: secrets.ios.appleTeamId,
+      bundleIdentifier: secrets.ios.bundleIdentifier,
+      entitlements: { 'aps-environment': 'development' },
+      supportsTablet: true,
     },
     android: {
       package: secrets.android.package,
