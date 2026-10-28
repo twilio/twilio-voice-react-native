@@ -5874,7 +5874,6 @@ __metadata:
     "@react-native-community/eslint-config": "npm:^2.0.0"
     "@twilio/voice-errors": "npm:1.8.0"
     "@types/jest": "npm:^28.1.6"
-    "@types/node": "npm:^24.19.2"
     "@types/react": "npm:18.2.48"
     "@types/react-native": "npm:0.62.13"
     api-documenter: "https://github.com/twilio/twilio-api-documenter#95bb77af636e2a5edaa13251178015438aa4b417"
@@ -6040,15 +6039,6 @@ __metadata:
   version: 12.20.24
   resolution: "@types/node@npm:12.20.24"
   checksum: 10c0/9a5ebef034baddfddc3fa2a5b35e442845c16c3e15fa9c9a410eb03f2bf85907e55aa572bc3ee7c55f7c91a38cad4aea25ba1ad1b78842e0e20ea14323d3b04e
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^24.19.2":
-  version: 24.19.2
-  resolution: "@types/node@npm:24.19.2"
-  dependencies:
-    undici-types: "npm:>=7.24.0 <7.24.7"
-  checksum: 10c0/b51a7f8854007ad579dffdd0633d8addbfeb2c97cceb380f2eba0ed163638ec52e17565385a6cc04d54ac4ff99c70c64aee68a4ca45b6128c035e828794e29c5
   languageName: node
   linkType: hard
 
@@ -15969,13 +15959,6 @@ __metadata:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: 10c0/bf9c781c4e2f38e6613ea17a51072e4b416840fbe6eeb244597ce9b028fac2fb6cfd3dde1f14111b02c245e665dc461aab8168ecc30b14364d02caa37f812996
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:>=7.24.0 <7.24.7":
-  version: 7.24.6
-  resolution: "undici-types@npm:7.24.6"
-  checksum: 10c0/d9cd8befb643ac904615c280a095ba4240531f6bb4a5e75a22a7483630ca8d3f1016d2ab6ace6ceda1f63b3a2db2fe037fafe121d6917a0187573aa548ff78ca
   languageName: node
   linkType: hard
 
