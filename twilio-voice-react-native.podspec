@@ -24,6 +24,9 @@ Pod::Spec.new do |s|
   )
   # Matches the system frameworks the TwilioVoice-static pod on trunk links.
   s.frameworks = "AVFAudio", "AVFoundation", "AudioToolbox", "CoreMedia", "SystemConfiguration"
+  # TwilioVoice-static needs libc++. With USE_FRAMEWORKS=dynamic, this pod links
+  # as its own dylib and no other pod supplies libc++ to that link.
+  s.libraries = "c++"
   s.xcconfig  =  { 'VALID_ARCHS' => 'arm64 x86_64' }
   s.pod_target_xcconfig   = { 'VALID_ARCHS[sdk=iphoneos*]' => 'arm64', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'arm64 x86_64' }
 end
