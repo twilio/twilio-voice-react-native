@@ -13,16 +13,23 @@ case "$CONFIGURATION" in
 esac
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+HARNESS="$REPO/test/appium-harness"
 UDID="${IOS_UDID:?set IOS_UDID to the target device UDID (xcrun xctrace list devices)}"
-DERIVED="${IOS_DERIVED_DATA:-$REPO/test/appium-harness/ios/build-device}"
+DERIVED="${IOS_DERIVED_DATA:-$HARNESS/ios/build-device}"
 NAME=twiliovoicereactnativesdkappiumharness
+WORKSPACE="$HARNESS/ios/$NAME.xcworkspace"
 
 # shellcheck source=test/scripts/lib-xcode.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib-xcode.sh"
 resolve_developer_dir
 
+if [ ! -d "$WORKSPACE" ]; then
+  echo "no workspace at $WORKSPACE; running prebuild"
+  ( cd "$HARNESS" && yarn run prebuild --clean --platform=ios )
+fi
+
 xcodebuild \
-  -workspace "$REPO/test/appium-harness/ios/$NAME.xcworkspace" \
+  -workspace "$WORKSPACE" \
   -scheme "$NAME" \
   -configuration "$CONFIGURATION" \
   -destination "id=$UDID" \
