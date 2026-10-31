@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: twilio-voice-react-native
+  title: twilio-voice-react-native
+  namespace: default
+  description: Twilio Voice React Native SDK
+  annotations:
+    github.com/project-slug: twilio/twilio-voice-react-native
+    jira/project-key: VBLOCKS
+    pagerduty.com/service-id: replace-me
+    twilio.com/email: voice-blocks-eng@twilio.com
+    twilio.com/service-tier: "5"
+    twilio.com/slack-channel-name: eng-voice-blocks-alerts
+    twilio.com/in-scope-sox: "false"
+    twilio.com/in-scope-hipaa: "false"
+    twilio.com/in-scope-pci: "false"
+  labels: {}
+  tags: []
+  links: []
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/sup-org-2101
+  system: voice-access
