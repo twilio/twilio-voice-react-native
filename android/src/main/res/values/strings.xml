@@ -19,6 +19,7 @@
   <string name="invalid_notification_type">Invalid notificaiton type %s</string>
   <string name="unknown_call_recipient">Unknown</string>
   <string name="incoming_call_caller_name_text">${from}</string>
+  <string name="incoming_call_notification_text">Incoming call</string>
   <string name="outgoing_call_caller_name_text">${to}</string>
   <string name="answered_call_caller_name_text">${from}</string>
   <string name="method_invocation_invalid">Method invocation invalid</string>
