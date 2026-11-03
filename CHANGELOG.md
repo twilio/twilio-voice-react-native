@@ -1,5 +1,15 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+Unreleased
+==========
+
+## Fixes
+
+### Android
+
+- Ignore call messages for missing or incomplete call records instead of throwing
+  a null pointer exception. Valid active-call and active-invite routing is unchanged.
+
 1.8.1 (October 12, 2026)
 ========================
 
