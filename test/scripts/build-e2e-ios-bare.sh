@@ -6,6 +6,13 @@
 # embeds a bundle. A Debug build asks Metro for `index` and loads the example
 # app instead of the harness.
 #
+# The bundle embeds the TURN credentials from
+# test/appium-harness/src/utilities/token/e2e-tests-ice-server.ts at build time.
+# The runner mints new credentials after the build, and those new credentials
+# do not reach an app that is already built. Run
+# `mint-e2e-credentials.sh <repo-root>` before this script, and start the run
+# within the one hour TTL of those credentials.
+#
 # The project sets no signing team, so IOS_TEAM_ID is required. The bundle
 # identifier cannot be overridden here. A command-line build setting applies to
 # every target, so each embedded pod framework would take the app's identifier.

@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
-# Build the Appium harness app for a physical iOS device, into the location
-# run-e2e-ios-device.sh reads from. That runner needs Release, which embeds the
-# JavaScript bundle. Debug needs Metro running.
+# Build the Appium harness app for a physical iOS device. A Release build embeds
+# the JavaScript bundle and lands where run-e2e-ios-device.sh reads by default.
+# A Debug build needs Metro running, and run-e2e-ios-device.sh needs IOS_APP set
+# to the Debug-iphoneos app path.
 #
-# Usage: IOS_UDID=<udid> build-e2e-ios.sh [Release|Debug]
+# A Release bundle embeds the TURN credentials from
+# test/appium-harness/src/utilities/token/e2e-tests-ice-server.ts at build time.
+# The runner mints new credentials after the build, and those new credentials
+# do not reach an app that is already built. Run
+# `mint-e2e-credentials.sh <repo-root>` before this script, and start the run
+# within the one hour TTL of those credentials.
+#
+# Usage: IOS_UDID=<udid> build-e2e-ios-appium-harness.sh [Release|Debug]
 set -euo pipefail
 
 CONFIGURATION="${1:-Release}"
