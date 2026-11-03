@@ -1,5 +1,12 @@
 require "json"
 
+# React Native defines spm_dependency in react_native_pods.rb from 0.75 onward.
+# Perform the check here so that we fail before unnecessarily reading files.
+unless defined?(spm_dependency)
+  raise "twilio-voice-react-native requires React Native 0.75 or later. " \
+    "The spm_dependency helper from react_native_pods.rb was not found."
+end
+
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
@@ -16,7 +23,17 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm}"
 
   s.dependency "React-Core"
-  s.dependency "TwilioVoice", "6.13.6"
+  # CocoaPods trunk is read-only, so TwilioVoice resolves through SPM.
+  spm_dependency(s,
+    url: "https://github.com/twilio/twilio-voice-ios",
+    requirement: { kind: "exactVersion", version: "6.13.8" },
+    products: ["TwilioVoice-static"]
+  )
+  # Matches the system frameworks the TwilioVoice-static pod on trunk links.
+  s.frameworks = "AVFAudio", "AVFoundation", "AudioToolbox", "CoreMedia", "SystemConfiguration"
+  # TwilioVoice-static needs libc++. With USE_FRAMEWORKS=dynamic, this pod links
+  # as its own dylib and no other pod supplies libc++ to that link.
+  s.libraries = "c++"
   s.xcconfig  =  { 'VALID_ARCHS' => 'arm64 x86_64' }
   s.pod_target_xcconfig   = { 'VALID_ARCHS[sdk=iphoneos*]' => 'arm64', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'arm64 x86_64' }
 end

@@ -1,5 +1,29 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.9.0 (In Progress)
+===================
+
+## Changes
+
+### Platform Specific Changes
+
+#### iOS
+
+- The Twilio Voice iOS SDK is now resolved through Swift Package Manager instead
+  of CocoaPods trunk, because CocoaPods trunk is read-only. The podspec declares
+  the Swift package with the `spm_dependency` helper from React Native.
+
+- iOS builds now require React Native `0.75` or later. React Native defines the
+  `spm_dependency` helper from `0.75` onward. On older versions, `pod install`
+  fails with an error that states this requirement.
+
+- When `USE_FRAMEWORKS` is not set to `dynamic`, `pod install` prints a React
+  Native warning that a Swift package used with static linking might cause
+  linker errors. Builds with static, dynamic, and unset `USE_FRAMEWORKS` have
+  been verified, so this warning can be ignored.
+
+- Updated the Twilio Voice iOS SDK version from `6.13.6` to `6.13.8`.
+
 1.8.1 (October 12, 2026)
 ========================
 
