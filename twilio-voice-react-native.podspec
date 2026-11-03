@@ -1,5 +1,12 @@
 require "json"
 
+# React Native defines spm_dependency in react_native_pods.rb from 0.75 onward.
+# Perform the check here so that we fail before unnecessarily reading files.
+unless defined?(spm_dependency)
+  raise "twilio-voice-react-native requires React Native 0.75 or later. " \
+    "The spm_dependency helper from react_native_pods.rb was not found."
+end
+
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
