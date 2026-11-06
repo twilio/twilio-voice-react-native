@@ -36,8 +36,14 @@
             break;
         }
     }
-    NSAssert(uuid, @"No matching call invite");
-    self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
+    // A cancel can arrive for an invite that is not in the map: the cancel push can
+    // win the race on a cold launch, or the invite was already accepted, rejected or
+    // cancelled. NSAssert is compiled out in Release builds, so a nil uuid used to
+    // reach the dictionary operations below and throw NSInvalidArgumentException.
+    // Still emit the cancelled event, which JS routes by callSid.
+    if (uuid) {
+        self.cancelledCallInviteMap[uuid] = cancelledCallInvite;
+    }
 
     [self sendEventWithName:kTwilioVoiceReactNativeScopeCallInvite
                        body:@{
@@ -48,9 +54,12 @@
                            kTwilioVoiceReactNativeVoiceErrorKeyCode: @(error.code),
                            kTwilioVoiceReactNativeVoiceErrorKeyMessage: [error localizedDescription]}}];
     
-    [self.callInviteMap removeObjectForKey:uuid];
-    
-    [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
+    if (uuid) {
+        [self.callInviteMap removeObjectForKey:uuid];
+        [self endCallWithUuid:[[NSUUID alloc] initWithUUIDString:uuid]];
+    } else {
+        NSLog(@"No matching call invite for cancelled callSid %@", cancelledCallInvite.callSid);
+    }
 }
 
 @end

@@ -287,7 +287,14 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 
 - (void)performAnswerVoiceCallWithUUID:(NSUUID *)uuid
                             completion:(void(^)(BOOL success))completionHandler {
-    NSAssert(self.callInviteMap[uuid.UUIDString], @"No call invite");
+    // NSAssert is compiled out in Release builds, and TVOAcceptOptions throws
+    // NSInvalidArgumentException for a nil invite. Fail the call instead.
+    if (!self.callInviteMap[uuid.UUIDString]) {
+        NSLog(@"No call invite for %@", uuid.UUIDString);
+        [self.callKitProvider reportCallWithUUID:uuid endedAtDate:[NSDate date] reason:CXCallEndedReasonFailed];
+        completionHandler(NO);
+        return;
+    }
 
     NSString *uuidString = uuid.UUIDString;
     TVOIceOptions *iceOptions = [self buildTVOIceOptionsWithServers:self.iceServersMap[uuidString]
@@ -392,6 +399,24 @@ NSString * const kDefaultCallKitConfigurationName = @"Twilio Voice React Native"
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action {
+    // The invite can be gone by the time the Answer tap reaches the provider: the
+    // caller hung up (cancelledCallInviteReceived:error: removes the invite before
+    // CallKit ends the call), or the process restarted while CallKit was still
+    // ringing. Fail the action so CallKit tears down its UI.
+    if (!self.callInviteMap[action.callUUID.UUIDString]) {
+        NSLog(@"No call invite for %@, failing answer action", action.callUUID.UUIDString);
+        // Settle a pending CallInvite.accept() from JS so its promise does not hang.
+        if (self.callKitCompletionCallback) {
+            NSError *error = [NSError errorWithDomain:@"TwilioVoiceReactNative"
+                                                 code:0
+                                             userInfo:@{NSLocalizedDescriptionKey: @"No call invite to answer."}];
+            self.callKitCompletionCallback(NO, error);
+            self.callKitCompletionCallback = nil;
+        }
+        [action fail];
+        return;
+    }
+
     [TwilioVoiceReactNative twilioAudioDevice].enabled = NO;
     [TwilioVoiceReactNative twilioAudioDevice].block();
 

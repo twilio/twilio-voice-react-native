@@ -1,5 +1,22 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.8.2 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### iOS
+
+- Fixed a crash in Release builds when a call invite was missing from the
+  invite map. A cancel arriving for an unknown invite (for example, the cancel
+  push winning the race on a cold launch), or an Answer tap after the caller had
+  hung up, threw `NSInvalidArgumentException`, because the only guard was an
+  `NSAssert`, which is compiled out in Release. The cancelled event is still
+  emitted; an Answer on a missing invite now fails the CallKit action and
+  rejects any pending `CallInvite.accept()` promise.
+
 1.8.1 (October 12, 2026)
 ========================
 
