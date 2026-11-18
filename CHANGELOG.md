@@ -1,5 +1,19 @@
 :warning: **Important**: If you are currently using a `2.0.0-preview.x` release and would like to migrate to `1.8.0` or later, please refer to this [section](#migrating-from-200-previewx) for more details.
 
+1.9.0 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### iOS
+
+- Fixed the podspec `s.source` pointing at a personal fork instead of the
+  `twilio/twilio-voice-react-native` repository. Installs through React Native
+  or Expo autolinking were not affected, because autolinking uses a `:path`
+  entry and CocoaPods ignores `s.source` for it.
+
 1.8.1 (October 12, 2026)
 ========================
 
