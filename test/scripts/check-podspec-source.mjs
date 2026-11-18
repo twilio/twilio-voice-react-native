@@ -50,8 +50,16 @@ if (!source) {
   }
 }
 
-if (!/^\s*s\.version\s*=\s*package\["version"\]\s*$/m.test(podspec)) {
-  failures.push('s.version is not package["version"]');
+const versions = podspec.match(/^\s*s\.version\s*=.*$/gm) ?? [];
+if (
+  versions.length !== 1 ||
+  !/^\s*s\.version\s*=\s*package\["version"\]\s*$/.test(versions[0])
+) {
+  failures.push(
+    `expected one line of the form s.version = package["version"], found:\n${
+      versions.join('\n') || '(none)'
+    }`
+  );
 }
 
 if (failures.length) {
@@ -59,6 +67,8 @@ if (failures.length) {
     console.error(`FAIL  ${PODSPEC}: ${failure}`);
   }
   process.exitCode = 1;
+} else {
+  console.log(
+    `ok    ${PODSPEC} s.source is ${expectedGit} at the package version`
+  );
 }
-
-console.log(`ok    ${PODSPEC} s.source is ${expectedGit} at the package version`);
