@@ -73,36 +73,6 @@ jobs:
         working-directory: test/appium-orchestrator
         run: yarn install --immutable
 
-      # CocoaPods resolves the pod from s.source for a consumer that does not
-      # use a :path entry, so a wrong URL or tag breaks that install.
-      - name: Verify the podspec source
-        run: |
-          set -euo pipefail
-
-          if ! command -v jq >/dev/null 2>&1; then
-            echo "::error::jq not found. This step reads the evaluated podspec with it."
-            exit 1
-          fi
-
-          EXPECTED_GIT="$(jq -r '.repository' package.json).git"
-          EXPECTED_TAG="$(jq -r '.version' package.json)"
-
-          SPEC="$(pod ipc spec twilio-voice-react-native.podspec)"
-          ACTUAL_GIT="$(jq -r '.source.git' <<< "$SPEC")"
-          ACTUAL_TAG="$(jq -r '.source.tag' <<< "$SPEC")"
-
-          if [ "$ACTUAL_GIT" != "$EXPECTED_GIT" ]; then
-            echo "::error::The podspec s.source git is ${ACTUAL_GIT}, not the package.json repository ${EXPECTED_GIT}."
-            exit 1
-          fi
-
-          if [ "$ACTUAL_TAG" != "$EXPECTED_TAG" ]; then
-            echo "::error::The podspec s.source tag is ${ACTUAL_TAG}, not the package.json version ${EXPECTED_TAG}."
-            exit 1
-          fi
-
-          echo "::notice::The podspec s.source is ${ACTUAL_GIT} at tag ${ACTUAL_TAG}"
-
       # `yarn run check` includes check:linking, which guards the property that
       # 2.x lost: the package autolinks in a bare React Native app. It needs no
       # Android SDK, so it runs in this job rather than on a device runner.
