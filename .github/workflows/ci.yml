@@ -497,7 +497,6 @@ jobs:
           # starts failing for no apparent reason.
           echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
 
-
       - name: Artifactory OIDC Auth
         uses: ./.github/actions/artifactory-oidc
         with:
