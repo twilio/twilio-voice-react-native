@@ -1,5 +1,11 @@
 const secrets = require('./secrets.json');
 
+// CI builds a legacy-architecture variant that hosts the Appium harness.
+// Expo evaluates this file for prebuild and again for each bundle, so both
+// switches must be set in the environment of both steps.
+const newArchEnabled = process.env.TEST_EXPO_NEW_ARCH !== 'false';
+const useHarness = process.env.TEST_EXPO_ENTRY === 'harness';
+
 module.exports = {
   expo: {
     name: 'TwilioVoiceExpoExample',
@@ -9,7 +15,7 @@ module.exports = {
     icon: './assets/images/icon.png',
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: true,
+    newArchEnabled,
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.twilio.TwilioVoiceReactNativeExample',
@@ -30,7 +36,7 @@ module.exports = {
     },
     plugins: [
       '@twilio/voice-react-native-sdk',
-      'expo-router',
+      useHarness ? ['expo-router', { root: 'harness' }] : 'expo-router',
       [
         'expo-splash-screen',
         {

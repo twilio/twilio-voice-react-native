@@ -556,6 +556,315 @@ jobs:
         run: rm -f ~/.npmrc ~/.yarnrc.yml
 
   ###
+  # Build test/expo (React Native 0.76) on the legacy architecture, hosting the
+  # Appium harness (Android)
+  ###
+  build-android-expo-legacyArch:
+    needs: test
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    # test/expo/app.config.js reads both switches during prebuild and again
+    # when Gradle bundles the JS, so they are set for the whole job.
+    env:
+      TEST_EXPO_NEW_ARCH: "false"
+      TEST_EXPO_ENTRY: harness
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+          cache: yarn
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify the runner has an Android SDK and unzip
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner."
+            exit 1
+          fi
+
+          for tool_dir in platforms build-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/."
+              exit 1
+            fi
+          done
+
+          if ! command -v unzip >/dev/null 2>&1; then
+            echo "::error::unzip not found. This job inspects the built APK with it."
+            exit 1
+          fi
+
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/expo dependencies
+        working-directory: test/expo
+        run: yarn install --immutable
+
+      - name: Place the CI config fixtures
+        run: |
+          set -euo pipefail
+
+          cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
+          cp .github/fixtures/bare-app-google-services.json test/expo/google-services.json
+
+      - name: Expo prebuild (android)
+        working-directory: test/expo
+        run: yarn run prebuild --clean --platform=android
+
+      - name: Verify the prebuild turned the New Architecture off
+        working-directory: test/expo/android
+        run: |
+          set -euo pipefail
+
+          if ! grep -qx 'newArchEnabled=false' gradle.properties; then
+            echo "::error::test/expo/android/gradle.properties does not set newArchEnabled=false. Check that TEST_EXPO_NEW_ARCH reached test/expo/app.config.js."
+            grep -n 'newArchEnabled' gradle.properties || true
+            exit 1
+          fi
+
+          echo "::notice::Prebuild set newArchEnabled=false"
+
+      - name: Assemble release APK
+        working-directory: test/expo/android
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+
+      - name: Verify the APK bundles the harness
+        working-directory: test/expo/android
+        run: |
+          set -euo pipefail
+
+          APK=app/build/outputs/apk/release/app-release.apk
+
+          if [ ! -f "$APK" ]; then
+            echo "::error::Gradle reported success but ${APK} does not exist."
+            exit 1
+          fi
+
+          rm -rf "${RUNNER_TEMP}/apk-check"
+          mkdir -p "${RUNNER_TEMP}/apk-check"
+          unzip -o -q "$APK" 'assets/index.android.bundle' -d "${RUNNER_TEMP}/apk-check"
+
+          BUNDLE="${RUNNER_TEMP}/apk-check/assets/index.android.bundle"
+          if [ ! -f "$BUNDLE" ]; then
+            echo "::error::${APK} carries no assets/index.android.bundle, so the JS was not embedded."
+            exit 1
+          fi
+
+          if ! grep -q 'textInput_testSuiteId' "$BUNDLE"; then
+            echo "::error::The embedded bundle has no textInput_testSuiteId, so this APK hosts the example app rather than the harness. Check that TEST_EXPO_ENTRY=harness reached the bundling task."
+            exit 1
+          fi
+
+          echo "::notice::APK bundles the Appium harness"
+
+      - name: Upload legacyArch expo android apk
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: expo-legacyArch-appium-harness-android-apk
+          path: test/expo/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials and the generated config
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/expo/secrets.json \
+            test/expo/google-services.json \
+            test/expo/android/app/google-services.json
+
+  ###
+  # Build test/expo (React Native 0.76) on the legacy architecture, hosting the
+  # Appium harness (iOS)
+  ###
+  build-ios-expo-legacyArch:
+    needs: test
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    # test/expo/app.config.js reads both switches during prebuild and again
+    # when the Xcode bundle phase bundles the JS, so they are set for the
+    # whole job.
+    env:
+      TEST_EXPO_NEW_ARCH: "false"
+      TEST_EXPO_ENTRY: harness
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found."
+            exit 1
+          fi
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found. This job reads Podfile.properties.json with it."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the Xcode version
+          # in use. The Xcode version is the first thing to check when a build
+          # starts failing for no apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Prepare the RN SDK
+        run: yarn run prepare
+
+      - name: Install test/expo dependencies
+        working-directory: test/expo
+        run: yarn install --immutable
+
+      - name: Place the CI config fixtures
+        run: |
+          set -euo pipefail
+
+          cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
+          cp .github/fixtures/bare-app-google-services.json test/expo/google-services.json
+
+      - name: Expo prebuild (iOS)
+        working-directory: test/expo
+        run: yarn run prebuild --clean --platform=ios
+
+      - name: Verify the prebuild turned the New Architecture off
+        working-directory: test/expo/ios
+        run: |
+          set -euo pipefail
+
+          NEW_ARCH="$(jq -r '.newArchEnabled' Podfile.properties.json)"
+          if [ "$NEW_ARCH" != "false" ]; then
+            echo "::error::test/expo/ios/Podfile.properties.json sets newArchEnabled to ${NEW_ARCH}, not false. Check that TEST_EXPO_NEW_ARCH reached test/expo/app.config.js."
+            exit 1
+          fi
+
+          echo "::notice::Prebuild set newArchEnabled to false"
+
+      - name: Build unsigned release app
+        working-directory: test/expo/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "TwilioVoiceExpoExample.xcworkspace" \
+            -scheme "TwilioVoiceExpoExample" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Package unsigned ipa
+        working-directory: test/expo/ios
+        run: |
+          set -euo pipefail
+
+          PRODUCTS_DIR=build/Build/Products/Release-iphoneos
+          APP_PATH="${PRODUCTS_DIR}/TwilioVoiceExpoExample.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::xcodebuild reported success but ${APP_PATH} does not exist."
+            echo "Products dir contains: $(ls -1 "$PRODUCTS_DIR" 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+          if [ ! -f "${APP_PATH}/main.jsbundle" ]; then
+            echo "::error::${APP_PATH} has no main.jsbundle, so the JS was not embedded."
+            exit 1
+          fi
+
+          if ! grep -q 'textInput_testSuiteId' "${APP_PATH}/main.jsbundle"; then
+            echo "::error::main.jsbundle has no textInput_testSuiteId, so this app hosts the example app rather than the harness. Check that TEST_EXPO_ENTRY=harness reached the Xcode bundle phase."
+            exit 1
+          fi
+
+          echo "::notice::ipa bundles the Appium harness"
+
+          rm -rf ../ipa
+          mkdir -p ../ipa/Payload
+          cp -R "$APP_PATH" ../ipa/Payload/
+
+          cd ../ipa
+          zip -qry "TwilioVoiceExpoExample.ipa" Payload
+          rm -rf Payload
+
+      - name: Upload legacyArch expo ios ipa
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: expo-legacyArch-appium-harness-ios-ipa
+          path: test/expo/ipa/TwilioVoiceExpoExample.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials and the generated config
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/expo/secrets.json \
+            test/expo/google-services.json
+
+  ###
   # Upload the Android harness build to SauceLabs
   ###
   upload-android-expo-saucelabs:
