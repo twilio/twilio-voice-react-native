@@ -636,9 +636,15 @@ jobs:
           cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
           cp .github/fixtures/bare-app-google-services.json test/expo/google-services.json
 
+      - name: Download the Expo prebuild template
+        id: expo-template
+        uses: ./.github/actions/expo-prebuild-template
+
       - name: Expo prebuild (android)
         working-directory: test/expo
-        run: yarn run prebuild --clean --platform=android
+        env:
+          EXPO_TEMPLATE: ${{ steps.expo-template.outputs.path }}
+        run: yarn run prebuild --clean --platform=android --template "$EXPO_TEMPLATE"
 
       - name: Verify the prebuild turned the New Architecture off
         working-directory: test/expo/android
@@ -741,7 +747,7 @@ jobs:
           fi
 
           if ! command -v jq >/dev/null 2>&1; then
-            echo "::error::jq not found. This job reads Podfile.properties.json with it."
+            echo "::error::jq not found. This job reads Podfile.properties.json and the Expo prebuild template metadata with it."
             exit 1
           fi
 
@@ -777,11 +783,16 @@ jobs:
           set -euo pipefail
 
           cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
-          cp .github/fixtures/bare-app-google-services.json test/expo/google-services.json
+
+      - name: Download the Expo prebuild template
+        id: expo-template
+        uses: ./.github/actions/expo-prebuild-template
 
       - name: Expo prebuild (iOS)
         working-directory: test/expo
-        run: yarn run prebuild --clean --platform=ios
+        env:
+          EXPO_TEMPLATE: ${{ steps.expo-template.outputs.path }}
+        run: yarn run prebuild --clean --platform=ios --template "$EXPO_TEMPLATE"
 
       - name: Verify the prebuild turned the New Architecture off
         working-directory: test/expo/ios
@@ -861,8 +872,7 @@ jobs:
           rm -f \
             ~/.npmrc \
             ~/.yarnrc.yml \
-            test/expo/secrets.json \
-            test/expo/google-services.json
+            test/expo/secrets.json
 
   ###
   # Upload the Android harness build to SauceLabs
