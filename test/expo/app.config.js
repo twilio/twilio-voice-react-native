@@ -36,6 +36,7 @@ module.exports = {
     },
     plugins: [
       '@twilio/voice-react-native-sdk',
+      './plugins/withFmtCxx17',
       useHarness ? ['expo-router', { root: 'harness' }] : 'expo-router',
       [
         'expo-splash-screen',
