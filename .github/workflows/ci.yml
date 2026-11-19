@@ -22,8 +22,9 @@ jobs:
   #
   # Every other job needs this one, directly or through another job, so a
   # skipped test skips them too. Adding always() or !cancelled() to a job's if
-  # would bypass this guard. The e2e-required job is the one exception, and
-  # its if keeps the guard by also checking needs.test.result.
+  # would bypass this guard. The e2e-required job is the one exception. The
+  # e2e-required job's if repeats the fork condition below, so keep the two
+  # fork conditions in step.
   test:
     # Allowlists event names - add any new trigger here too, such as 'schedule'
     if: >-
@@ -881,10 +882,14 @@ jobs:
   # so gating another job is a one-line change to needs.
   ###
   e2e-required:
-    # GitHub counts a skipped required check as passing, so always() makes this
-    # job run and fail when a needed job fails or is skipped. The test check
-    # keeps the fork guard on the test job.
-    if: always() && needs.test.result != 'skipped'
+    # GitHub counts a skipped required check as passing. So always() makes the
+    # e2e-required job run and fail when a needed job fails or is skipped. The
+    # fork condition matches the test job's fork guard, so only a fork pull
+    # request skips the e2e-required job.
+    if: >-
+      always() &&
+      !(github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.fork)
     needs:
       - test
       - e2e-ios-expo-saucelabs
@@ -900,6 +905,11 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         run: |
           set -euo pipefail
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq is required by the e2e-required job but was not found on the runner."
+            exit 1
+          fi
 
           NOT_SUCCEEDED=$(jq -r '
             to_entries[]
