@@ -1087,6 +1087,11 @@ jobs:
   ###
   e2e-ios-expo-saucelabs:
     needs: upload-ios-expo-saucelabs
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     runs-on: ubuntu-x64
     timeout-minutes: 30
     permissions:
@@ -1100,7 +1105,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: ios
-          label: ios (expo)
+          label: ios (expo), attempt ${{ matrix.attempt }}
           storage-filename: ${{ needs.upload-ios-expo-saucelabs.outputs.filename }}
           ios-bundle-id: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -1115,6 +1120,11 @@ jobs:
   ###
   e2e-android-expo-saucelabs:
     needs: upload-android-expo-saucelabs
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     runs-on: ubuntu-x64
     timeout-minutes: 30
     permissions:
@@ -1128,7 +1138,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: android
-          label: android (expo)
+          label: android (expo), attempt ${{ matrix.attempt }}
           storage-filename: ${{ needs.upload-android-expo-saucelabs.outputs.filename }}
           android-package: com.example.twilioreactnativeappiumharness
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -1143,6 +1153,11 @@ jobs:
   ###
   e2e-android-bare-saucelabs:
     needs: upload-android-bare-saucelabs
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     runs-on: ubuntu-x64
     timeout-minutes: 30
     permissions:
@@ -1156,7 +1171,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: android
-          label: android (bare)
+          label: android (bare), attempt ${{ matrix.attempt }}
           storage-filename: ${{ needs.upload-android-bare-saucelabs.outputs.filename }}
           android-package: com.example.twiliovoicereactnative
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
@@ -1171,6 +1186,11 @@ jobs:
   ###
   e2e-ios-bare-saucelabs:
     needs: upload-ios-bare-saucelabs
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     runs-on: ubuntu-x64
     timeout-minutes: 30
     permissions:
@@ -1184,7 +1204,7 @@ jobs:
       - uses: ./.github/actions/run-e2e-suites
         with:
           platform: ios
-          label: ios (bare)
+          label: ios (bare), attempt ${{ matrix.attempt }}
           storage-filename: ${{ needs.upload-ios-bare-saucelabs.outputs.filename }}
           ios-bundle-id: com.twilio.TwilioVoiceReactNativeExample
           artifactory-url: ${{ vars.ARTIFACTORY_URL }}
