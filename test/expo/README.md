@@ -98,6 +98,27 @@
   adb reverse tcp:8081 tcp:8081
   ```
 
+## Legacy architecture build with the Appium harness
+
+CI builds this app on the legacy architecture with the Appium harness from `test/appium-harness/src` in place of the example UI. Two environment variables select this build, and `app.config.js` reads both of them.
+
+- `TEST_EXPO_NEW_ARCH=false` sets `newArchEnabled` to `false`.
+- `TEST_EXPO_ENTRY=harness` moves the Expo Router root to `harness/`, which re-exports the harness app.
+
+Expo reads `app.config.js` during prebuild and again when the native build bundles the JS. Therefore, set both variables for the prebuild and for the native build.
+
+```bash
+export TEST_EXPO_NEW_ARCH=false TEST_EXPO_ENTRY=harness
+yarn run prebuild --clean --platform=android
+(cd android && ./gradlew assembleRelease)
+```
+
+The prebuild writes `newArchEnabled=false` to `android/gradle.properties` and `"newArchEnabled": "false"` to `ios/Podfile.properties.json`.
+
+Gradle does not track either variable as an input. When you switch between this build and the default build in one checkout, run the prebuild again with `--clean`.
+
+The harness build does not need the token files below. However, the harness crashes at launch on this app's React Native version unless `test/appium-harness/src/utilities/token/e2e-tests-token.ts` exists. Metro 0.81 reports the missing optional module as a fatal error instead of throwing it into the harness's try/catch. For a local launch, that file can export an empty token, `export const token = '';`.
+
 ## Tokens
 
 By default, the test app will expect at least two token files in the `test/expo/constants/` folder.
