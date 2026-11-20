@@ -31,6 +31,7 @@
     "build:constants": "node ./scripts/generate-constants.js",
     "build:docs": "yarn run prepare && yarn run build:api:extractor && yarn run build:api:documenter",
     "build:errors": "node ./scripts/generate-errors.js",
+    "build:tarball": "yarn run prepare && npm pack --ignore-scripts --pack-destination",
     "check:lint": "eslint \"**/*.{js,ts,tsx}\"",
     "check:test": "jest",
     "check:type": "tsc --noEmit",
@@ -158,6 +159,7 @@
     "test/expo/",
     "test/appium-harness/",
     "test/appium-orchestrator/",
+    "test/package-check/",
     "src/error/generated.ts",
     "coverage/"
   ],
