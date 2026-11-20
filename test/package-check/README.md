@@ -1,8 +1,9 @@
 # Package-check apps
 
-These two apps are fresh template apps that the package checks build the
-published SDK into. A customer installs the published tarball into a new app,
-so these apps stay as close to an untouched template as possible.
+These two apps are fresh template apps for the package checks. The package
+checks will install the packed SDK tarball into these apps. A customer installs
+the published tarball into a new app, so these apps stay as close to an
+untouched template as possible.
 
 `test/app` and `test/expo` are not used for this, because each links the SDK
 from the repository, configures Metro for that link, and carries extra native
@@ -11,14 +12,14 @@ dependencies that can hide a packaging gap in the SDK.
 | App | Template | Native folders |
 | --- | --- | --- |
 | `bare/` | React Native `0.76.9` (`@react-native-community/cli` `15.0.1`) | `android/` and `ios/` are committed |
-| `expo/` | Expo SDK 52 (`expo` `~52.0.49`, React Native `0.76.9`), `blank-typescript` | None. CI generates them with `expo prebuild` |
+| `expo/` | Expo SDK 52 (`expo` `~52.0.49`, React Native `0.76.9`), `blank-typescript` | None. `yarn run prebuild` generates them |
 
-Both apps use the Android `applicationId` `com.example.twiliovoicereactnative`,
-the same as `test/app` and `test/expo`. So the apps share the existing Google
-Services fixture and the existing Firebase and push setup for that package.
+The bare app uses the Android `applicationId`
+`com.example.twiliovoicereactnative`, the same as `test/app` and `test/expo`.
+The Expo app does not set `android.package` yet.
 
-Neither app lists the SDK as a dependency. The CI jobs install the tarball
-that the `pack` job builds.
+Neither app lists the SDK as a dependency. The package checks will install the
+tarball instead.
 
 ## How the apps were created
 
@@ -56,8 +57,28 @@ rm -r expo/AGENTS.md expo/.claude
   `expo` because the name conflicts with the `expo` dependency. So the app is
   created as `ExpoPackageCheck` and the folder is renamed.
 
+## Changes from the templates
+
+These are the only changes after the template commit.
+
+Both apps:
+
+- `.yarnrc.yml` sets `nodeLinker: node-modules`, because React Native and Expo
+  autolinking read `node_modules/`.
+- `yarn.lock` is committed, so Yarn treats each app as its own project instead
+  of part of the repository root project.
+- `package.json` pins `packageManager` to Yarn `4.12.0`, so Corepack uses the
+  same Yarn as the rest of the repository.
+
+`expo/`:
+
+- `package.json` adds a `prebuild` script that runs `expo prebuild`.
+- `package.json` pins `postcss` to `8.5.28` in `resolutions`, the same pin as
+  the root `package.json` and `test/expo`. Without the pin,
+  `@expo/metro-config` resolves `postcss` `~8.4.32`.
+
 ## Updating an app
 
 To move an app to a new React Native or Expo version, re-create the app with
-the commands above at the new version, commit the template output on its own,
-and then re-apply the later changes from `git log -p -- test/package-check`.
+the commands above at the new version, and commit the template output on its
+own. Then re-apply the changes listed above.
