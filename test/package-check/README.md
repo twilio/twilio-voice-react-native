@@ -56,8 +56,45 @@ rm -r expo/AGENTS.md expo/.claude
   `expo` because the name conflicts with the `expo` dependency. So the app is
   created as `ExpoPackageCheck` and the folder is renamed.
 
+## Changes from the templates
+
+These are the only changes after the template commit, apart from each app's
+`yarn.lock`.
+
+Both apps:
+
+- `package.json` pins `packageManager` to Yarn `4.12.0`, so Corepack uses the
+  same Yarn as the rest of the repository.
+- `.yarnrc.yml` sets `nodeLinker: node-modules`, because React Native and Expo
+  autolinking read `node_modules/`.
+
+`bare/`:
+
+- `android/app/build.gradle` sets `enableProguardInReleaseBuilds = true`, so
+  the release build runs R8. The template ships with R8 off.
+- `android/app/build.gradle` applies `com.google.gms.google-services`, and
+  `android/build.gradle` adds its `classpath`. The SDK needs Firebase for push.
+- `.gitignore` ignores `android/app/google-services.json`, which CI copies in
+  from `.github/fixtures/`.
+
+`expo/`:
+
+- `app.json` sets `android.package` to `com.example.twiliovoicereactnative`
+  and `android.googleServicesFile` to `./google-services.json`.
+- `app.json` adds the `@twilio/voice-react-native-sdk` config plugin. The
+  prebuild needs the SDK installed, so the prebuild runs only after CI installs
+  the tarball.
+- `package.json` adds a `prebuild` script that runs `expo prebuild`.
+- `.gitignore` ignores the generated `android/` and `ios/` folders, and the
+  `google-services.json` that CI copies in. The prebuild reads
+  `google-services.json`, so CI copies the file in before the prebuild.
+
+R8 is not on in `expo/app.json`. The CI job passes
+`-Pandroid.enableProguardInReleaseBuilds=true` to Gradle, because the prebuilt
+`android/app/build.gradle` defaults R8 to off.
+
 ## Updating an app
 
 To move an app to a new React Native or Expo version, re-create the app with
-the commands above at the new version, commit the template output on its own,
-and then re-apply the later changes from `git log -p -- test/package-check`.
+the commands above at the new version, and commit the template output on its
+own. Then re-apply the changes listed above.
