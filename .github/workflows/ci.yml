@@ -556,6 +556,254 @@ jobs:
         run: rm -f ~/.npmrc ~/.yarnrc.yml
 
   ###
+  # Pack the RN SDK once for the package checks
+  ###
+  pack:
+    needs: test
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # release.yml publishes the built tree with `npm publish --ignore-scripts`,
+      # so this tarball has the published shape.
+      - name: Pack the RN SDK
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/sdk-tarball"
+          yarn run build:tarball "${RUNNER_TEMP}/sdk-tarball"
+          mv "${RUNNER_TEMP}"/sdk-tarball/*.tgz "${RUNNER_TEMP}/sdk-tarball/voice-react-native-sdk.tgz"
+
+      - name: Upload the RN SDK tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # 7.0.1
+        with:
+          name: sdk-tarball
+          path: ${{ runner.temp }}/sdk-tarball/voice-react-native-sdk.tgz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
+  # Android package check: the tarball in a fresh bare React Native 0.76 app
+  ###
+  package-check-android-bare:
+    needs: pack
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify the runner has an Android SDK
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner (ANDROID_HOME and ANDROID_SDK_ROOT are unset or point at a missing directory)."
+            exit 1
+          fi
+
+          for tool_dir in platforms build-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/."
+              exit 1
+            fi
+          done
+
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - name: Download the RN SDK tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: sdk-tarball
+          path: ${{ runner.temp }}/sdk-tarball
+
+      # The tarball changes on every build, so its lockfile entry is never
+      # committed. The `yarn add` only adds lockfile entries for the SDK and its
+      # dependencies.
+      - name: Install the tarball into the bare app
+        working-directory: test/package-check/bare
+        run: |
+          set -euo pipefail
+          yarn install --immutable
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn add "@twilio/voice-react-native-sdk@file:${RUNNER_TEMP}/sdk-tarball/voice-react-native-sdk.tgz"
+
+      - name: Place the CI config fixture
+        run: cp .github/fixtures/bare-app-google-services.json test/package-check/bare/android/app/google-services.json
+
+      - name: Assemble the R8 release APK
+        working-directory: test/package-check/bare/android
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+
+      - name: Check autolinking and R8
+        run: test/scripts/check-android-package.sh test/package-check/bare/android
+
+      - name: Remove Artifactory credentials and the generated config
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/package-check/bare/android/app/google-services.json
+
+  ###
+  # Android package check: the tarball in a fresh Expo 52 app
+  ###
+  package-check-android-expo:
+    needs: pack
+    runs-on: ubuntu-x64
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # 5.7.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify the runner has an Android SDK
+        run: |
+          set -euo pipefail
+
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+
+          if [ -z "$SDK_DIR" ] || [ ! -d "$SDK_DIR" ]; then
+            echo "::error::No Android SDK on this runner (ANDROID_HOME and ANDROID_SDK_ROOT are unset or point at a missing directory)."
+            exit 1
+          fi
+
+          for tool_dir in platforms build-tools; do
+            if [ ! -d "${SDK_DIR}/${tool_dir}" ]; then
+              echo "::error::Android SDK at ${SDK_DIR} is missing ${tool_dir}/."
+              exit 1
+            fi
+          done
+
+          echo "ANDROID_HOME=${SDK_DIR}" >> "$GITHUB_ENV"
+          echo "::notice::Using Android SDK at ${SDK_DIR}"
+
+      - name: Download the RN SDK tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: sdk-tarball
+          path: ${{ runner.temp }}/sdk-tarball
+
+      # The tarball changes on every build, so its lockfile entry is never
+      # committed. The `yarn add` only adds lockfile entries for the SDK and its
+      # dependencies.
+      - name: Install the tarball into the Expo app
+        working-directory: test/package-check/expo
+        run: |
+          set -euo pipefail
+          yarn install --immutable
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn add "@twilio/voice-react-native-sdk@file:${RUNNER_TEMP}/sdk-tarball/voice-react-native-sdk.tgz"
+
+      # The prebuild copies google-services.json into android/app/, so the
+      # fixture must be in place first.
+      - name: Place the CI config fixture
+        run: cp .github/fixtures/bare-app-google-services.json test/package-check/expo/google-services.json
+
+      - name: Download the Expo prebuild template
+        id: expo-template
+        uses: ./.github/actions/expo-prebuild-template
+        with:
+          app-dir: test/package-check/expo
+
+      - name: Expo prebuild (android)
+        working-directory: test/package-check/expo
+        env:
+          EXPO_TEMPLATE: ${{ steps.expo-template.outputs.path }}
+        run: yarn run prebuild --clean --platform=android --template "$EXPO_TEMPLATE"
+
+      - name: Verify the prebuild turned the New Architecture on
+        working-directory: test/package-check/expo/android
+        run: |
+          if ! grep -qx 'newArchEnabled=true' gradle.properties; then
+            echo "::error::gradle.properties lacks newArchEnabled=true. The package check covers the New Architecture on 0.76."
+            exit 1
+          fi
+
+      # The prebuilt app/build.gradle reads enableProguardInReleaseBuilds from
+      # this property and defaults it to false.
+      - name: Assemble the R8 release APK
+        working-directory: test/package-check/expo/android
+        run: ./gradlew assembleRelease --no-daemon -Pandroid.enableProguardInReleaseBuilds=true -Dorg.gradle.jvmargs=-Xmx4g
+
+      - name: Check autolinking and R8
+        run: test/scripts/check-android-package.sh test/package-check/expo/android
+
+      - name: Remove Artifactory credentials and the generated config
+        if: always()
+        run: |
+          rm -f \
+            ~/.npmrc \
+            ~/.yarnrc.yml \
+            test/package-check/expo/google-services.json \
+            test/package-check/expo/android/app/google-services.json
+
+  ###
   # Upload the Android harness build to SauceLabs
   ###
   upload-android-expo-saucelabs:

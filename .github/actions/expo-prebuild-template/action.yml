@@ -1,0 +1,56 @@
+name: 'Expo Prebuild Template'
+description: 'Download the pinned Expo prebuild template for an Expo 52 app through the authenticated npm registry'
+
+# Expo 52 downloads its prebuild template with a fetch that sends no
+# Artifactory token, so Artifactory rejects that download. npm sends the token,
+# so npm downloads the template and the prebuild reads the file through
+# `--template`. Expo 55 and later ship the template inside the `expo` package,
+# so only Expo 52 apps need this action.
+#
+# The version and integrity are pinned so that a moved dist-tag or a replaced
+# tarball fails the build. Update both when the app changes Expo SDK.
+
+inputs:
+  app-dir:
+    description: 'The Expo app whose Expo SDK major the pinned template must match'
+    default: 'test/expo'
+
+outputs:
+  path:
+    description: 'Absolute path to the downloaded template tarball'
+    value: ${{ steps.pack.outputs.path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download and verify the template
+      id: pack
+      shell: bash
+      working-directory: ${{ inputs.app-dir }}
+      env:
+        APP_DIR: ${{ inputs.app-dir }}
+        TEMPLATE_VERSION: '52.0.79'
+        TEMPLATE_INTEGRITY: 'sha512-VoBUnXgFFs2UZ6KlhVonxtaI8S5x3n3wDrxtWycfJnbAwCjBCfBK/5c8GmbbFZ2RXP+T/B62682CPX+1bRFbcw=='
+      run: |
+        set -euo pipefail
+
+        if ! command -v jq >/dev/null 2>&1; then
+          echo "::error::jq is required by the expo-prebuild-template action but was not found on the runner."
+          exit 1
+        fi
+
+        SDK_MAJOR="$(jq -r '.version | split(".")[0]' node_modules/expo/package.json)"
+        if [ "$SDK_MAJOR" != "${TEMPLATE_VERSION%%.*}" ]; then
+          echo "::error::${APP_DIR} uses Expo SDK ${SDK_MAJOR}, but the pinned template is ${TEMPLATE_VERSION}. Update the pinned version and integrity."
+          exit 1
+        fi
+
+        PACKED="$(npm pack "expo-template-bare-minimum@${TEMPLATE_VERSION}" \
+          --pack-destination "$RUNNER_TEMP" --json)"
+        ACTUAL_INTEGRITY="$(jq -r '.[0].integrity' <<< "$PACKED")"
+        if [ "$ACTUAL_INTEGRITY" != "$TEMPLATE_INTEGRITY" ]; then
+          echo "::error::expo-template-bare-minimum@${TEMPLATE_VERSION} has integrity ${ACTUAL_INTEGRITY}, not the pinned ${TEMPLATE_INTEGRITY}."
+          exit 1
+        fi
+
+        echo "path=${RUNNER_TEMP}/$(jq -r '.[0].filename' <<< "$PACKED")" >> "$GITHUB_OUTPUT"
