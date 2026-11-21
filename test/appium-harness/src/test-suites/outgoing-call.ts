@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Platform } from 'react-native';
 import { Call } from '@twilio/voice-react-native-sdk';
 import { UseTestSuite } from '../test-suites';
 import {
@@ -24,6 +25,13 @@ const CONNECTED_HOLD_MS = 5_000;
  */
 const OUTGOING_CALL_TIMEOUT_MS = 60_000;
 
+/**
+ * Android names the outgoing call notification after the `to` param. A `$` in
+ * that name crashed the app while the Android SDK used a regex replace to build
+ * the name. So the `to` param keeps a `$` as a regression check.
+ */
+const CALL_RECIPIENT = '$1';
+
 export const useOutgoingCallTest: UseTestSuite = (
   token,
   { voice },
@@ -35,7 +43,9 @@ export const useOutgoingCallTest: UseTestSuite = (
 
     const raisedCallEvents: CallEvent[] = [];
 
-    const connectResult = await safelySettlePromise(voice.connect(token));
+    const connectResult = await safelySettlePromise(
+      voice.connect(token, { params: { to: CALL_RECIPIENT } }),
+    );
     if (connectResult.status === 'rejected') {
       const errorMessage = connectResult.error instanceof Error
         ? JSON.stringify({
@@ -90,6 +100,16 @@ export const useOutgoingCallTest: UseTestSuite = (
     call.on(Call.Event.Disconnected, (error) => {
       if (error) {
         settle('failed', `disconnected with error: ${describeError(error)}`);
+        return;
+      }
+      // Android builds the outgoing call notification from the `to` param only
+      // when the call rings. So a call that never rang did not check
+      // CALL_RECIPIENT.
+      if (
+        Platform.OS === 'android' &&
+        !raisedCallEvents.some(({ eventName }) => eventName === Call.Event.Ringing)
+      ) {
+        settle('failed', 'disconnected without raising ringing');
         return;
       }
       settle('passed');
