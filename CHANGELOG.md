@@ -14,6 +14,34 @@
   or Expo autolinking were not affected, because autolinking uses a `:path`
   entry and CocoaPods ignores `s.source` for it.
 
+1.8.2 (In Progress)
+===================
+
+## Fixes
+
+### Platform Specific Fixes
+
+#### Android
+
+- Fixed app crashes when building call notifications.
+  - An incoming call crashed the app when the caller identity contained `$`
+    or `\`.
+  - With a contact handle template set, an incoming call crashed the app when
+    a custom TwiML parameter value used in the template contained `$` or `\`
+    or was empty, or when any custom parameter key was not a valid regular
+    expression.
+  - An outgoing call crashed the app when the call recipient contained `$` or
+    `\`.
+  - A call crashed the app when the caller name was empty.
+- The `${from}`, `${to}` and `${KEY}` placeholders in call notifications are
+  now replaced literally, matching iOS. A custom parameter key now matches only
+  its exact `${KEY}` placeholder.
+- When the caller name would be empty, the call notification now shows the
+  `unknown_call_recipient` string resource, which defaults to `Unknown`.
+- If building the caller name for a call notification fails, the call
+  notification now shows the `unknown_call_recipient` string resource instead
+  of crashing the app, so the call still rings.
+
 1.8.1 (October 12, 2026)
 ========================
 
