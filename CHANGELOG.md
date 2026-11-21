@@ -38,6 +38,9 @@
   its exact `${KEY}` placeholder.
 - When the caller name would be empty, the call notification now shows the
   `unknown_call_recipient` string resource, which defaults to `Unknown`.
+- If building the caller name for a call notification fails, the call
+  notification now shows the `unknown_call_recipient` string resource instead
+  of crashing the app, so the call still rings.
 
 1.8.1 (October 12, 2026)
 ========================

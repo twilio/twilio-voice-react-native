@@ -32,6 +32,7 @@ import static com.twiliovoicereactnative.VoiceService.constructMessage;
 import com.twiliovoicereactnative.CallRecordDatabase.CallRecord;
 
 class NotificationUtility {
+  private static final SDKLog logger = new SDKLog(NotificationUtility.class);
   private static final SecureRandom secureRandom = new SecureRandom();
 
   private static class NotificationResource {
@@ -72,7 +73,15 @@ class NotificationUtility {
     public String getName() {
       // CallStyle throws for an empty name. A whitespace-only name, such as a
       // template whose values are all empty, does not throw and shows as blank.
-      final String name = this.resolveName();
+      String name;
+      try {
+        name = this.resolveName();
+      } catch (RuntimeException e) {
+        // Fall back so the call still rings. Only the exception class is
+        // logged, because the exception message can contain caller data.
+        logger.warning("Failed to build the call notification name: " + e.getClass().getName());
+        name = "";
+      }
       return name.isEmpty()
         ? this.ctx.getString(R.string.unknown_call_recipient)
         : name;
