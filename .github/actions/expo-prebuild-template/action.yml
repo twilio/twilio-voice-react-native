@@ -9,6 +9,8 @@ description: 'Download the pinned Expo prebuild template for an Expo 52 app thro
 #
 # The version and integrity are pinned so that a moved dist-tag or a replaced
 # tarball fails the build. Update both when the app changes Expo SDK.
+# `test/expo` and `test/package-check/expo` both use this pin, so the two apps
+# change Expo SDK together.
 
 inputs:
   app-dir:

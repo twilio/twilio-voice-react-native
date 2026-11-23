@@ -786,7 +786,7 @@ jobs:
           fi
 
       # The prebuilt app/build.gradle reads enableProguardInReleaseBuilds from
-      # this property and defaults it to false.
+      # this property and defaults enableProguardInReleaseBuilds to false.
       - name: Assemble the R8 release APK
         working-directory: test/package-check/expo/android
         run: ./gradlew assembleRelease --no-daemon -Pandroid.enableProguardInReleaseBuilds=true -Dorg.gradle.jvmargs=-Xmx4g
