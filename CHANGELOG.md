@@ -39,8 +39,8 @@
 - A `\` or `$0` in a caller identity, call recipient or custom parameter value
   now shows as sent. Before this change, a `\` that did not crash the app was
   dropped, so `C:\x` showed as `C:x`, and `$0` showed the placeholder itself.
-  Apps that escaped these characters to avoid the crash should stop escaping
-  them.
+  Apps that escape these characters to avoid the crash no longer need to on
+  this version. Older versions still crash on unescaped values.
 - When the caller name would be empty, the call notification now shows the
   `unknown_call_recipient` string resource, which defaults to `Unknown`.
 - If building the caller name for a call notification fails, the call
