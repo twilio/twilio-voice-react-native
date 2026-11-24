@@ -157,6 +157,7 @@
     "test/expo/",
     "test/appium-harness/",
     "test/appium-orchestrator/",
+    "test/package-check/",
     "src/error/generated.ts",
     "coverage/"
   ],
