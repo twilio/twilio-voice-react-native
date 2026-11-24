@@ -1,7 +1,7 @@
 # Package-check apps
 
 These two apps are fresh template apps for the package checks. The package
-checks will install the packed SDK tarball into these apps. A customer installs
+checks install the packed SDK tarball into these apps. A customer installs
 the published tarball into a new app, so these apps stay as close to an
 untouched template as possible.
 
@@ -14,11 +14,12 @@ dependencies that can hide a packaging gap in the SDK.
 | `bare/` | React Native `0.76.9` (`@react-native-community/cli` `15.0.1`) | `android/` and `ios/` are committed |
 | `expo/` | Expo SDK 52 (`expo` `~52.0.49`, React Native `0.76.9`), `blank-typescript` | None. `yarn run prebuild` generates them |
 
-The bare app uses the Android `applicationId`
+Both apps use the Android `applicationId`
 `com.example.twiliovoicereactnative`, the same as `test/app` and `test/expo`.
-The Expo app does not set `android.package` yet.
+So both apps share the `.github/fixtures/bare-app-google-services.json`
+fixture.
 
-Neither app lists the SDK as a dependency. The package checks will install the
+Neither app lists the SDK as a dependency. The package checks install the
 tarball instead.
 
 ## How the apps were created
@@ -70,12 +71,33 @@ Both apps:
 - `package.json` pins `packageManager` to Yarn `4.12.0`, so Corepack uses the
   same Yarn as the rest of the repository.
 
+`bare/`:
+
+- `android/app/build.gradle` sets `enableProguardInReleaseBuilds = true`, so
+  the release build runs R8. The template ships with R8 off.
+- `android/app/build.gradle` applies `com.google.gms.google-services`, and
+  `android/build.gradle` adds its `classpath`. The SDK needs Firebase for push.
+- `.gitignore` ignores `android/app/google-services.json`, which CI copies in
+  from `.github/fixtures/`.
+
 `expo/`:
 
 - `package.json` adds a `prebuild` script that runs `expo prebuild`.
 - `package.json` pins `postcss` to `8.5.28` in `resolutions`, the same pin as
   the root `package.json` and `test/expo`. Without the pin,
   `@expo/metro-config` resolves `postcss` `~8.4.32`.
+- `app.json` sets `android.package` to `com.example.twiliovoicereactnative`
+  and `android.googleServicesFile` to `./google-services.json`.
+- `app.json` adds the `@twilio/voice-react-native-sdk` config plugin. The
+  prebuild needs the SDK installed, so the prebuild runs only after CI installs
+  the tarball.
+- `.gitignore` ignores the generated `android/` and `ios/` folders, and the
+  `google-services.json` that CI copies in. The prebuild reads
+  `google-services.json`, so CI copies the file in before the prebuild.
+
+R8 is not on in `expo/app.json`. The CI job passes
+`-Pandroid.enableProguardInReleaseBuilds=true` to Gradle, because the prebuilt
+`android/app/build.gradle` defaults R8 to off.
 
 ## Updating an app
 

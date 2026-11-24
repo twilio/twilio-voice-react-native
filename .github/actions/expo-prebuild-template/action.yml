@@ -1,14 +1,21 @@
 name: 'Expo Prebuild Template'
-description: 'Download the pinned Expo prebuild template for test/expo through the authenticated npm registry'
+description: 'Download the pinned Expo prebuild template for an Expo 52 app through the authenticated npm registry'
 
 # Expo 52 downloads its prebuild template with a fetch that sends no
 # Artifactory token, so Artifactory rejects that download. npm sends the token,
 # so npm downloads the template and the prebuild reads the file through
 # `--template`. Expo 55 and later ship the template inside the `expo` package,
-# so only test/expo needs this action.
+# so only Expo 52 apps need this action.
 #
 # The version and integrity are pinned so that a moved dist-tag or a replaced
-# tarball fails the build. Update both when test/expo changes Expo SDK.
+# tarball fails the build. Update both when the app changes Expo SDK.
+# `test/expo` and `test/package-check/expo` both use this pin, so the two apps
+# change Expo SDK together.
+
+inputs:
+  app-dir:
+    description: 'The Expo app whose Expo SDK major the pinned template must match'
+    default: 'test/expo'
 
 outputs:
   path:
@@ -21,8 +28,9 @@ runs:
     - name: Download and verify the template
       id: pack
       shell: bash
-      working-directory: test/expo
+      working-directory: ${{ inputs.app-dir }}
       env:
+        APP_DIR: ${{ inputs.app-dir }}
         TEMPLATE_VERSION: '52.0.79'
         TEMPLATE_INTEGRITY: 'sha512-VoBUnXgFFs2UZ6KlhVonxtaI8S5x3n3wDrxtWycfJnbAwCjBCfBK/5c8GmbbFZ2RXP+T/B62682CPX+1bRFbcw=='
       run: |
@@ -35,7 +43,7 @@ runs:
 
         SDK_MAJOR="$(jq -r '.version | split(".")[0]' node_modules/expo/package.json)"
         if [ "$SDK_MAJOR" != "${TEMPLATE_VERSION%%.*}" ]; then
-          echo "::error::test/expo uses Expo SDK ${SDK_MAJOR}, but the pinned template is ${TEMPLATE_VERSION}. Update the pinned version and integrity."
+          echo "::error::${APP_DIR} uses Expo SDK ${SDK_MAJOR}, but the pinned template is ${TEMPLATE_VERSION}. Update the pinned version and integrity."
           exit 1
         fi
 
