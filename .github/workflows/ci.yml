@@ -806,6 +806,249 @@ jobs:
             test/package-check/expo/android/app/google-services.json
 
   ###
+  # iOS package check: the tarball in a fresh bare React Native 0.76 app, for
+  # each pod linkage
+  ###
+  package-check-ios-bare:
+    needs: pack
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    # A customer app links pods as static libraries when USE_FRAMEWORKS is
+    # unset, and as static or dynamic frameworks when USE_FRAMEWORKS is set.
+    strategy:
+      fail-fast: false
+      matrix:
+        linkage: [unset, static, dynamic]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the Xcode version
+          # in use. The Xcode version is the first thing to check when a build
+          # starts failing for no apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+
+      - name: Download the RN SDK tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: sdk-tarball
+          path: ${{ runner.temp }}/sdk-tarball
+
+      # The tarball changes on every build, so its lockfile entry is never
+      # committed. The `yarn add` only adds lockfile entries for the SDK and its
+      # dependencies.
+      - name: Install the tarball into the bare app
+        working-directory: test/package-check/bare
+        run: |
+          set -euo pipefail
+          yarn install --immutable
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn add "@twilio/voice-react-native-sdk@file:${RUNNER_TEMP}/sdk-tarball/voice-react-native-sdk.tgz"
+
+      # The Podfile treats an empty USE_FRAMEWORKS as set, so the unset leg
+      # leaves USE_FRAMEWORKS out of the environment. React Native 0.76 turns
+      # the New Architecture on by default, and the RCT_NEW_ARCH_ENABLED export
+      # keeps a runner's RCT_NEW_ARCH_ENABLED=0 from turning it off.
+      - name: Install pods
+        working-directory: test/package-check/bare/ios
+        env:
+          LINKAGE: ${{ matrix.linkage }}
+        run: |
+          set -euo pipefail
+          export RCT_NEW_ARCH_ENABLED=1
+          if [ "$LINKAGE" != unset ]; then
+            export USE_FRAMEWORKS="$LINKAGE"
+          fi
+          pod install
+
+      - name: Build unsigned release app
+        working-directory: test/package-check/bare/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "BarePackageCheck.xcworkspace" \
+            -scheme "BarePackageCheck" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Check autolinking and pod linkage
+        run: test/scripts/check-ios-package.sh test/package-check/bare/ios BarePackageCheck "${{ matrix.linkage }}"
+
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
+  # iOS package check: the tarball in a fresh Expo 52 app, for each pod linkage
+  ###
+  package-check-ios-expo:
+    needs: pack
+    runs-on: macos-arm
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory OIDC exchange below
+    # A customer app links pods as static libraries when USE_FRAMEWORKS is
+    # unset, and as static or dynamic frameworks when USE_FRAMEWORKS is set.
+    strategy:
+      fail-fast: false
+      matrix:
+        linkage: [unset, static, dynamic]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the runner has an iOS toolchain
+        run: |
+          set -euo pipefail
+
+          if ! command -v xcodebuild >/dev/null 2>&1; then
+            echo "::error::xcodebuild not found."
+            exit 1
+          fi
+
+          if ! command -v pod >/dev/null 2>&1; then
+            echo "::error::CocoaPods (pod) not found."
+            exit 1
+          fi
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "::error::jq not found. This job reads Podfile.properties.json and the Expo prebuild template metadata with it."
+            exit 1
+          fi
+
+          # We deliberately do not pin an Xcode version, so log the Xcode version
+          # in use. The Xcode version is the first thing to check when a build
+          # starts failing for no apparent reason.
+          echo "::notice::$(xcodebuild -version | tr '\n' ' ')"
+
+      - name: Artifactory OIDC Auth
+        uses: ./.github/actions/artifactory-oidc
+        with:
+          artifactory_url: ${{ vars.ARTIFACTORY_URL }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: "24.22.1"
+
+      - name: Download the RN SDK tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: sdk-tarball
+          path: ${{ runner.temp }}/sdk-tarball
+
+      # The tarball changes on every build, so its lockfile entry is never
+      # committed. The `yarn add` only adds lockfile entries for the SDK and its
+      # dependencies.
+      - name: Install the tarball into the Expo app
+        working-directory: test/package-check/expo
+        run: |
+          set -euo pipefail
+          yarn install --immutable
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn add "@twilio/voice-react-native-sdk@file:${RUNNER_TEMP}/sdk-tarball/voice-react-native-sdk.tgz"
+
+      - name: Download the Expo prebuild template
+        id: expo-template
+        uses: ./.github/actions/expo-prebuild-template
+        with:
+          app-dir: test/package-check/expo
+
+      # The prebuild logs a failed pod install as a warning and still succeeds,
+      # so --no-install skips the prebuild's pod install. The next step runs pod
+      # install on its own.
+      - name: Expo prebuild (iOS)
+        working-directory: test/package-check/expo
+        env:
+          EXPO_TEMPLATE: ${{ steps.expo-template.outputs.path }}
+        run: yarn run prebuild --clean --platform=ios --no-install --template "$EXPO_TEMPLATE"
+
+      - name: Verify the prebuild turned the New Architecture on
+        working-directory: test/package-check/expo/ios
+        run: |
+          set -euo pipefail
+
+          NEW_ARCH="$(jq -r '.newArchEnabled' Podfile.properties.json)"
+          if [ "$NEW_ARCH" != "true" ]; then
+            echo "::error::Podfile.properties.json sets newArchEnabled to ${NEW_ARCH}, not true. The package check covers the New Architecture on 0.76."
+            exit 1
+          fi
+
+      # The prebuilt Podfile treats an empty USE_FRAMEWORKS as set, so the unset
+      # leg leaves USE_FRAMEWORKS out of the environment.
+      - name: Install pods
+        working-directory: test/package-check/expo/ios
+        env:
+          LINKAGE: ${{ matrix.linkage }}
+        run: |
+          set -euo pipefail
+          if [ "$LINKAGE" != unset ]; then
+            export USE_FRAMEWORKS="$LINKAGE"
+          fi
+          pod install
+
+      - name: Build unsigned release app
+        working-directory: test/package-check/expo/ios
+        run: |
+          set -euo pipefail
+
+          xcodebuild \
+            -workspace "ExpoPackageCheck.xcworkspace" \
+            -scheme "ExpoPackageCheck" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      - name: Check autolinking and pod linkage
+        run: test/scripts/check-ios-package.sh test/package-check/expo/ios ExpoPackageCheck "${{ matrix.linkage }}"
+
+      - name: Remove Artifactory credentials
+        if: always()
+        run: rm -f ~/.npmrc ~/.yarnrc.yml
+
+  ###
   # Build test/expo (React Native 0.76) on the legacy architecture, hosting the
   # Appium harness (Android)
   ###
@@ -1463,6 +1706,10 @@ jobs:
       - e2e-android-expo-saucelabs
       - e2e-android-bare-saucelabs
       - e2e-ios-bare-saucelabs
+      - package-check-android-bare
+      - package-check-android-expo
+      - package-check-ios-bare
+      - package-check-ios-expo
     runs-on: ubuntu-x64
     timeout-minutes: 5
     permissions: {}

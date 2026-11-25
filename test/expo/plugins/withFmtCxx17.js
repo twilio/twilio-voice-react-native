@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { withDangerousMod } = require('expo/config-plugins');
 
+// test/package-check/expo/plugins/withFmtCxx17.js is a copy of this plugin.
+// Keep the two copies in step.
+//
 // React Native 0.76 pins fmt 11.0.2, which does not compile as C++20 under
 // Xcode 26.4 and later. React Native sets C++20 on every pod target in
 // `react_native_post_install`, so this plugin sets C++17 on the fmt target
