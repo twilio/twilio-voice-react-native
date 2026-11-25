@@ -159,6 +159,7 @@
     "test/appium-harness/",
     "test/appium-orchestrator/",
     "test/package-check/",
+    "test/legacyArch-bare/",
     "src/error/generated.ts",
     "coverage/"
   ],
