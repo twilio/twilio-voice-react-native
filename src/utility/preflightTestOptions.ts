@@ -26,7 +26,7 @@ function validateAudioCodec(
     };
   }
 
-  if ('type' in audioCodec) {
+  if (typeof audioCodec.type !== 'undefined') {
     const { type } = audioCodec;
     if (
       typeof type !== 'string' ||
@@ -42,7 +42,10 @@ function validateAudioCodec(
     }
   }
 
-  if ('maxAverageBitrate' in audioCodec) {
+  if (
+    'maxAverageBitrate' in audioCodec &&
+    typeof audioCodec.maxAverageBitrate !== 'undefined'
+  ) {
     const { maxAverageBitrate } = audioCodec;
     if (typeof maxAverageBitrate !== 'number') {
       return {
@@ -89,7 +92,7 @@ function validateAudioCodecs(
 export function validatePreflightOptions(
   preflightTestOptions: PreflightTest.Options
 ): OptionValidation<{ preflightTestOptions: PreflightTest.Options }> {
-  if ('iceTransportPolicy' in preflightTestOptions) {
+  if (typeof preflightTestOptions.iceTransportPolicy !== 'undefined') {
     const validation = validateIceTransportPolicy(
       preflightTestOptions.iceTransportPolicy!
     );
@@ -98,14 +101,14 @@ export function validatePreflightOptions(
     }
   }
 
-  if ('iceServers' in preflightTestOptions) {
+  if (typeof preflightTestOptions.iceServers !== 'undefined') {
     const validation = validateIceServers(preflightTestOptions.iceServers!);
     if (validation.status === 'error') {
       return validation;
     }
   }
 
-  if ('preferredAudioCodecs' in preflightTestOptions) {
+  if (typeof preflightTestOptions.preferredAudioCodecs !== 'undefined') {
     const validation = validateAudioCodecs(
       preflightTestOptions.preferredAudioCodecs!
     );

@@ -174,6 +174,36 @@ describe('preflight test option validation', () => {
         preferredAudioCodecs: [{ type: 'opus' }],
       },
     ],
+    [
+      'when ice servers are explicitly undefined',
+      { ...validOptions, iceServers: undefined },
+    ],
+    [
+      'when ice transport policy is explicitly undefined',
+      { ...validOptions, iceTransportPolicy: undefined },
+    ],
+    [
+      'when preferred audio codecs are explicitly undefined',
+      { ...validOptions, preferredAudioCodecs: undefined },
+    ],
+    [
+      'when ice server username and password are explicitly undefined',
+      {
+        ...validOptions,
+        iceServers: [
+          { username: undefined, password: undefined, serverUrl: 'bazz' },
+        ],
+      },
+    ],
+    [
+      'when audio codec type and max average bitrate are explicitly undefined',
+      {
+        ...validOptions,
+        preferredAudioCodecs: [
+          { type: undefined, maxAverageBitrate: undefined },
+        ],
+      },
+    ],
   ] as [string, any][];
 
   successCases.forEach(([testTitle, testOptions]) => {
