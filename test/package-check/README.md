@@ -79,6 +79,9 @@ Both apps:
   `android/build.gradle` adds its `classpath`. The SDK needs Firebase for push.
 - `.gitignore` ignores `android/app/google-services.json`, which CI copies in
   from `.github/fixtures/`.
+- `ios/Podfile` sets C++17 on the `fmt` pod after `react_native_post_install`.
+  React Native 0.76 pins fmt 11.0.2, which does not compile as C++20 under
+  Xcode 26.4 and later.
 
 `expo/`:
 
@@ -88,9 +91,16 @@ Both apps:
   `@expo/metro-config` resolves `postcss` `~8.4.32`.
 - `app.json` sets `android.package` to `com.example.twiliovoicereactnative`
   and `android.googleServicesFile` to `./google-services.json`.
+- `app.json` sets `ios.bundleIdentifier` to
+  `com.example.twiliovoicereactnative`, the same as the bare app.
 - `app.json` adds the `@twilio/voice-react-native-sdk` config plugin. The
   prebuild needs the SDK installed, so the prebuild runs only after CI installs
   the tarball.
+- `plugins/withFmtCxx17.js` sets C++17 on the `fmt` pod in the prebuilt
+  Podfile, for the same reason as the bare app's Podfile change. `app.json`
+  adds the plugin. The plugin is a copy of `test/expo/plugins/withFmtCxx17.js`,
+  because the plugin in `test/expo` resolves `expo/config-plugins` from
+  `test/expo`, which the package checks do not install.
 - `.gitignore` ignores the generated `android/` and `ios/` folders, and the
   `google-services.json` that CI copies in. The prebuild reads
   `google-services.json`, so CI copies the file in before the prebuild.
@@ -98,6 +108,10 @@ Both apps:
 R8 is not on in `expo/app.json`. The CI job passes
 `-Pandroid.enableProguardInReleaseBuilds=true` to Gradle, because the prebuilt
 `android/app/build.gradle` defaults R8 to off.
+
+Neither app sets a pod linkage. Each iOS CI job is a matrix with three legs,
+which run `pod install` with `USE_FRAMEWORKS` unset, `static` and `dynamic`.
+Both the bare Podfile and the prebuilt Expo Podfile read `USE_FRAMEWORKS`.
 
 ## Updating an app
 

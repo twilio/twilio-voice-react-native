@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.twiliovoicereactnative"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,6 +27,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["@twilio/voice-react-native-sdk"]
+    "plugins": ["@twilio/voice-react-native-sdk", "./plugins/withFmtCxx17"]
   }
 }

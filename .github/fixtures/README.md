@@ -24,8 +24,11 @@ Google Services plugin rejects a file with no matching client.
 | `bare-app-google-services.json` | `build-android-bare`, `build-android-expo-legacyArch`, `package-check-android-bare`, `package-check-android-expo` | `com.example.twiliovoicereactnative` |
 | `test-expo-secrets.json` | `build-android-expo-legacyArch`, `build-ios-expo-legacyArch` | n/a, read by `test/expo/app.config.js` |
 
-`build-ios-bare` consumes no fixture. The bare iOS app pulls in no Firebase
-pods, so it needs no `GoogleService-Info.plist`.
+`build-ios-bare`, `package-check-ios-bare` and `package-check-ios-expo` consume
+no fixture. Those iOS apps pull in no Firebase pods, so those iOS apps need no
+`GoogleService-Info.plist`. `test/package-check/expo/app.json` names
+`google-services.json` only under `android`, so the iOS prebuild never reads
+`google-services.json`.
 
 `build-ios-expo-legacyArch` consumes only `test-expo-secrets.json`.
 `test/expo/app.config.js` names `google-services.json` only under `android`, so
