@@ -237,10 +237,23 @@ export const setupTestOrchestrator = async (env) => {
 
   const driver = await remote(remoteOptions);
 
+  /**
+   * On iOS, React Native 0.76 also reports the TextInput container under the
+   * text field's label, so "~" matches two elements. Match only the field.
+   *
+   * @param {string} id
+   */
+  const textInput = (id) =>
+    env.PLATFORM === 'android'
+      ? driver.$(`~${id}`)
+      : driver.$(
+          `-ios predicate string:name == "${id}" AND type IN {"XCUIElementTypeTextField", "XCUIElementTypeSecureTextField"}`
+        );
+
   const testElements = {
     textInput: {
-      token: driver.$('~textInput_token'),
-      testSuiteId: driver.$('~textInput_testSuiteId'),
+      token: textInput('textInput_token'),
+      testSuiteId: textInput('textInput_testSuiteId'),
     },
     button: {
       startTestSuite: driver.$('~button_startTestSuite'),

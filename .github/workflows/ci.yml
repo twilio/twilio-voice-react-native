@@ -886,6 +886,14 @@ jobs:
           cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
           cp .github/fixtures/bare-app-google-services.json test/expo/google-services.json
 
+      # The harness token module is a gitignored secret, so CI has no copy.
+      # Under the metro-runtime 0.81.5 that test/expo resolves, the missing
+      # module is fatal at launch instead of reaching the try/catch in
+      # getToken(). The empty stub lets the harness launch. The orchestrator
+      # types the real token into the harness.
+      - name: Stub the harness token module
+        run: echo "export const token = '';" > test/appium-harness/src/utilities/token/e2e-tests-token.ts
+
       - name: Download the Expo prebuild template
         id: expo-template
         uses: ./.github/actions/expo-prebuild-template
@@ -1033,6 +1041,14 @@ jobs:
           set -euo pipefail
 
           cp .github/fixtures/test-expo-secrets.json test/expo/secrets.json
+
+      # The harness token module is a gitignored secret, so CI has no copy.
+      # Under the metro-runtime 0.81.5 that test/expo resolves, the missing
+      # module is fatal at launch instead of reaching the try/catch in
+      # getToken(). The empty stub lets the harness launch. The orchestrator
+      # types the real token into the harness.
+      - name: Stub the harness token module
+        run: echo "export const token = '';" > test/appium-harness/src/utilities/token/e2e-tests-token.ts
 
       - name: Download the Expo prebuild template
         id: expo-template
@@ -1333,6 +1349,110 @@ jobs:
         run: rm -rf artifact
 
   ###
+  # Upload the legacy architecture test/expo Android harness build to SauceLabs
+  ###
+  upload-android-expo-legacyArch-saucelabs:
+    needs: build-android-expo-legacyArch
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange in the action below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the legacyArch expo android apk
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: expo-legacyArch-appium-harness-android-apk
+          path: artifact
+
+      - name: Verify the apk was downloaded
+        run: |
+          set -euo pipefail
+
+          APK_PATH=artifact/app-release.apk
+
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected ${APK_PATH} from the expo-legacyArch-appium-harness-android-apk artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the apk to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/app-release.apk
+          name-prefix: twilio-voice-react-native-expo-legacyArch-appium-harness
+          extension: apk
+          label: android (expo, legacyArch)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
+  # Upload the legacy architecture test/expo iOS harness build to SauceLabs
+  ###
+  upload-ios-expo-legacyArch-saucelabs:
+    needs: build-ios-expo-legacyArch
+    runs-on: ubuntu-x64
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # for the credential vendor OIDC exchange in the action below
+    outputs:
+      filename: ${{ steps.upload.outputs.filename }}
+      file_id: ${{ steps.upload.outputs.file_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the legacyArch expo ios ipa
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # 8.0.1
+        with:
+          name: expo-legacyArch-appium-harness-ios-ipa
+          path: artifact
+
+      - name: Verify the ipa was downloaded
+        run: |
+          set -euo pipefail
+
+          IPA_PATH=artifact/TwilioVoiceExpoExample.ipa
+
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected ${IPA_PATH} from the expo-legacyArch-appium-harness-ios-ipa artifact."
+            echo "Directory contains: $(ls -1 artifact 2>/dev/null | tr '\n' ' ')"
+            exit 1
+          fi
+
+      - name: Upload the ipa to SauceLabs
+        id: upload
+        uses: ./.github/actions/saucelabs-upload
+        with:
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-upload-url: ${{ vars.SAUCE_UPLOAD_URL }}
+          artifact-path: artifact/TwilioVoiceExpoExample.ipa
+          name-prefix: twilio-voice-react-native-expo-legacyArch-appium-harness
+          extension: ipa
+          label: ios (expo, legacyArch)
+
+      - name: Remove the downloaded artifact
+        if: always()
+        run: rm -rf artifact
+
+  ###
   # Run the appium orchestrator (iOS Expo)
   ###
   e2e-ios-expo-saucelabs:
@@ -1445,6 +1565,62 @@ jobs:
           sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
 
   ###
+  # Run the appium orchestrator (Android legacy architecture test/expo)
+  ###
+  e2e-android-expo-legacyArch-saucelabs:
+    needs: upload-android-expo-legacyArch-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: android
+          label: android (expo, legacyArch)
+          storage-filename: ${{ needs.upload-android-expo-legacyArch-saucelabs.outputs.filename }}
+          android-package: com.example.twiliovoicereactnative
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
+
+  ###
+  # Run the appium orchestrator (iOS legacy architecture test/expo)
+  ###
+  e2e-ios-expo-legacyArch-saucelabs:
+    needs: upload-ios-expo-legacyArch-saucelabs
+    runs-on: ubuntu-x64
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # for the Artifactory and credential vendor OIDC exchanges
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/run-e2e-suites
+        with:
+          platform: ios
+          label: ios (expo, legacyArch)
+          storage-filename: ${{ needs.upload-ios-expo-legacyArch-saucelabs.outputs.filename }}
+          ios-bundle-id: com.twilio.TwilioVoiceReactNativeExample
+          artifactory-url: ${{ vars.ARTIFACTORY_URL }}
+          vendor-url: ${{ secrets.E2E_CREDENTIAL_VENDOR_URL }}
+          vendor-audience: ${{ vars.E2E_CREDENTIAL_VENDOR_AUDIENCE }}
+          sauce-hostname: ${{ vars.SAUCE_HOSTNAME }}
+          sauce-port: ${{ vars.SAUCE_PORT }}
+          sauce-base-url: ${{ vars.SAUCE_BASE_URL }}
+
+  ###
   # The required status check on main. Branch protection names only this job,
   # so gating another job is a one-line change to needs.
   ###
@@ -1463,6 +1639,8 @@ jobs:
       - e2e-android-expo-saucelabs
       - e2e-android-bare-saucelabs
       - e2e-ios-bare-saucelabs
+      - e2e-android-expo-legacyArch-saucelabs
+      - e2e-ios-expo-legacyArch-saucelabs
     runs-on: ubuntu-x64
     timeout-minutes: 5
     permissions: {}
