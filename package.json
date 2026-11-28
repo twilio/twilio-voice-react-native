@@ -36,7 +36,8 @@
     "check:test": "jest",
     "check:type": "tsc --noEmit",
     "check:api": "git diff --exit-code src/error/generated.ts api/",
-    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:linking && yarn run check:type && yarn run check:type:apps && yarn run check:lint && yarn run check:test --coverage",
+    "check:codegen": "node node_modules/react-native/scripts/generate-codegen-artifacts.js -p . -t all -o build/codegen",
+    "check": "yarn run build:constants && yarn run build:errors && yarn run build:docs && yarn run check:api && yarn run check:linking && yarn run check:codegen && yarn run check:type && yarn run check:type:apps && yarn run check:lint && yarn run check:test --coverage",
     "pods": "cd test/app && pod-install --quiet",
     "prepare": "yarn run build:constants && bob build",
     "test": "jest",
@@ -182,6 +183,14 @@
         }
       ]
     ]
+  },
+  "codegenConfig": {
+    "name": "TwilioVoiceReactNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "com.twiliovoicereactnative"
+    }
   },
   "dependencies": {
     "@twilio/voice-errors": "1.8.0",
